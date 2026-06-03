@@ -381,10 +381,63 @@ Workout Analytics
 
 <div id="adminDashboard" class="dashboard admin-panel">
 
+<div style="display:flex;align-items:center;gap:15px;">
+
+<button
+onclick="toggleMenu()"
+class="btn"
+style="
+width:60px;
+font-size:24px;
+padding:8px;">
+☰
+</button>
+
 <h2 id="adminWelcome"
 style="margin:15px;">
 Welcome Admin
 </h2>
+
+</div>
+
+<div
+id="adminMenu"
+class="glass"
+style="
+display:none;
+padding:20px;
+margin-bottom:20px;">
+
+<h3>Manage Members</h3>
+
+<button
+class="btn"
+onclick="showSection('addMemberSection')">
+Add Member
+</button>
+
+<button
+class="btn"
+onclick="showSection('editMemberSection')">
+Edit Member
+</button>
+
+<button
+class="btn"
+onclick="showSection('deleteMemberSection')">
+Delete Member
+</button>
+
+<button
+class="btn"
+onclick="loadMembers()">
+View Members
+</button>
+
+</div>
+
+
+
 
 <div class="cards">
 
@@ -413,7 +466,7 @@ Welcome Admin
 
 
 
-<div class="section glass">
+<div class="section glass" id="addMemberSection">
 
 <div class="section-title">
 Add New Member
@@ -441,6 +494,91 @@ Create Member
 </button>
 
 </div>
+
+
+<div
+class="section glass"
+id="editMemberSection"
+style="display:none;">
+
+<div class="section-title">
+Edit Member
+</div>
+
+<input
+id="editLoginId"
+placeholder="Member Login ID">
+
+<input
+id="editName"
+placeholder="New Name">
+
+<input
+id="editPhone"
+placeholder="New Phone">
+
+<button
+class="btn"
+onclick="editMember()">
+Update Member
+</button>
+
+</div>
+
+
+<div
+class="section glass"
+id="deleteMemberSection"
+style="display:none;">
+
+<div class="section-title">
+Delete Member
+</div>
+
+<input
+id="deleteLoginId"
+placeholder="Member Login ID">
+
+<button
+class="btn"
+onclick="deleteMember()">
+Delete Member
+</button>
+
+</div>
+
+
+
+<div
+class="section glass"
+id="memberListSection">
+
+<div class="section-title">
+Members List
+</div>
+
+<table class="table">
+
+<thead>
+
+<tr>
+<th>Login ID</th>
+<th>Name</th>
+<th>Phone</th>
+</tr>
+
+</thead>
+
+<tbody id="memberTable">
+
+</tbody>
+
+</table>
+
+</div>
+
+
+
 
 
 
@@ -540,6 +678,8 @@ document.getElementById(
 "Welcome, " + data.username;
 
 loadAdminStats();
+
+loadMembers();
 
 return;
 
@@ -943,6 +1083,161 @@ alert("Member Created");
 loadAdminStats();
 
 }
+
+
+
+
+
+async function editMember(){
+
+let login_id =
+document.getElementById(
+"editLoginId"
+).value;
+
+let name =
+document.getElementById(
+"editName"
+).value;
+
+let phone =
+document.getElementById(
+"editPhone"
+).value;
+
+const { error } =
+await db
+.from("users")
+.update({
+name:name,
+phone:phone
+})
+.eq("login_id",login_id);
+
+if(error){
+
+alert(error.message);
+return;
+
+}
+
+alert("Member Updated");
+
+loadMembers();
+
+}
+
+
+
+
+
+async function deleteMember(){
+
+let login_id =
+document.getElementById(
+"deleteLoginId"
+).value;
+
+let confirmDelete =
+confirm(
+"Delete this member?"
+);
+
+if(!confirmDelete) return;
+
+const { error } =
+await db
+.from("users")
+.delete()
+.eq("login_id",login_id);
+
+if(error){
+
+alert(error.message);
+return;
+
+}
+
+alert("Member Deleted");
+
+loadMembers();
+
+}
+
+
+
+
+
+
+async function loadMembers(){
+
+const { data,error } =
+await db
+.from("users")
+.select("*")
+.order("login_id");
+
+if(error) return;
+
+let html="";
+
+data.forEach(row=>{
+
+html += `
+<tr>
+<td>${row.login_id}</td>
+<td>${row.name}</td>
+<td>${row.phone}</td>
+</tr>
+`;
+
+});
+
+document.getElementById(
+"memberTable"
+).innerHTML = html;
+
+}
+
+
+
+
+
+
+
+function toggleMenu(){
+
+let menu =
+document.getElementById("adminMenu");
+
+menu.style.display =
+menu.style.display==="block"
+? "none"
+: "block";
+
+}
+
+function showSection(id){
+
+document
+.getElementById("addMemberSection")
+.style.display="none";
+
+document
+.getElementById("editMemberSection")
+.style.display="none";
+
+document
+.getElementById("deleteMemberSection")
+.style.display="none";
+
+document
+.getElementById(id)
+.style.display="block";
+
+}
+
+
 
 
 
