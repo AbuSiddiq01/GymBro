@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<title>Royal GYM</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:'Poppins',sans-serif;
+}
+
+body{
+background:linear-gradient(-45deg,#0f172a,#1e293b,#312e81,#581c87);
+background-size:400% 400%;
+animation:bgMove 12s ease infinite;
+min-height:100vh;
+color:white;
+}
+
+@keyframes bgMove{
+0%{background-position:0% 50%;}
+50%{background-position:100% 50%;}
+100%{background-position:0% 50%;}
+}
+
+.container{
+width:95%;
+max-width:1400px;
+margin:auto;
+padding:20px;
+}
+
+.glass{
+background:rgba(255,255,255,0.08);
+backdrop-filter:blur(15px);
+border:1px solid rgba(255,255,255,0.15);
+border-radius:20px;
+box-shadow:0 8px 32px rgba(0,0,0,0.3);
+}
+
+.header{
+display:flex;
+justify-content:space-between;
+align-items:center;
+padding:20px;
+margin-top:20px;
+}
+
+.logo{
+font-size:32px;
+font-weight:700;
+background:linear-gradient(to right,#00e5ff,#7c3aed);
+-webkit-background-clip:text;
+-webkit-text-fill-color:transparent;
+}
+
+.tag{
+font-size:14px;
+opacity:.8;
+}
+
+.login-box{
+width:420px;
+max-width:100%;
+padding:30px;
+margin:40px auto;
+text-align:center;
+}
+
+.login-box h2{
+margin-bottom:20px;
+}
+
+input,select{
+width:100%;
+padding:14px;
+margin-top:10px;
+border:none;
+outline:none;
+border-radius:12px;
+background:rgba(255,255,255,0.1);
+color:white;
+}
+
+option{
+color:black;
+}
+
+.btn{
+width:100%;
+padding:14px;
+margin-top:15px;
+border:none;
+border-radius:12px;
+cursor:pointer;
+font-size:16px;
+font-weight:600;
+background:linear-gradient(135deg,#06b6d4,#7c3aed);
+color:white;
+transition:.3s;
+}
+
+.btn:hover{
+transform:translateY(-3px);
+}
+
+.dashboard{
+display:none;
+margin-top:20px;
+}
+
+.cards{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+gap:20px;
+margin-top:20px;
+}
+
+.card{
+padding:20px;
+text-align:center;
+transition:.3s;
+}
+
+.card:hover{
+transform:translateY(-5px);
+}
+
+.card h3{
+font-size:30px;
+margin-top:10px;
+}
+
+.section{
+margin-top:25px;
+padding:25px;
+}
+
+.section-title{
+margin-bottom:15px;
+font-size:20px;
+font-weight:600;
+}
+
+.attendance-form{
+display:grid;
+grid-template-columns:1fr 1fr 1fr;
+gap:15px;
+}
+
+.table{
+width:100%;
+margin-top:20px;
+border-collapse:collapse;
+}
+
+.table th{
+background:rgba(255,255,255,0.1);
+padding:12px;
+}
+
+.table td{
+padding:12px;
+text-align:center;
+border-bottom:1px solid rgba(255,255,255,.1);
+}
+
+.badge{
+padding:6px 12px;
+border-radius:20px;
+font-size:12px;
+}
+
+.present{
+background:#16a34a;
+}
+
+.absent{
+background:#dc2626;
+}
+
+.admin-panel{
+display:none;
+}
+
+.graph-box{
+height:350px;
+padding:20px;
+}
+
+.footer{
+text-align:center;
+margin-top:30px;
+padding:20px;
+opacity:.7;
+}
+
+@media(max-width:768px){
+
+.attendance-form{
+grid-template-columns:1fr;
+}
+
+.logo{
+font-size:24px;
+}
+
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<div class="header glass">
+
+<button
+onclick="goHome()"
+class="btn"
+style="
+width:120px;
+margin-bottom:15px;">
+← Back
+</button>
+
+<div>
+<div class="logo">ROYAL GYM</div>
+<div class="tag">
+Track. Train. Transform.
+</div>
+</div>
+</div>
+
+<!-- LOGIN -->
+
+<div class="login-box glass" id="loginPage">
+
+<h2>Member Login</h2>
+
+<input
+type="text"
+placeholder="Login ID / Admin Username"
+id="loginId">
+
+<input
+type="password"
+placeholder="Admin Password"
+id="adminPassword">
+
+<select id="userType">
+<option value="member">Member</option>
+<option value="admin">Admin</option>
+</select>
+
+<button class="btn" onclick="login()">
+Login
+</button>
+
+</div>
+
+<!-- MEMBER DASHBOARD -->
+
+<div id="memberDashboard" class="dashboard">
+
+<h2 id="memberWelcome"
+style="margin:15px;">
+Welcome Member
+</h2>
+
+<div class="cards">
+
+<div class="card glass">
+<div>🔥 Current Streak</div>
+<h3 id="streak">12</h3>
+</div>
+
+<div class="card glass">
+<div>📅 Attendance %</div>
+<h3 id="attendancePercent">92%</h3>
+</div>
+
+<div class="card glass">
+<div>💪 Total Workouts</div>
+<h3 id="totalWorkout">48</h3>
+</div>
+
+<div class="card glass">
+<div>🏆 Rank</div>
+<h3 id="rank">#0</h3>
+</div>
+
+</div>
+
+<div class="section glass">
+
+<div class="section-title">
+Mark Attendance
+</div>
+
+<div class="attendance-form">
+
+<select id="session">
+<option>Morning</option>
+<option>Evening</option>
+</select>
+
+<select id="workout" multiple size="8">
+
+<option value="Chest">Chest</option>
+<option value="Biceps">Biceps</option>
+<option value="Triceps">Triceps</option>
+<option value="Shoulders">Shoulders</option>
+<option value="Lats">Lats</option>
+<option value="Legs">Legs</option>
+<option value="Abs">Abs</option>
+<option value="Cardio">Cardio</option>
+
+</select>
+
+<div style="font-size:12px;margin-top:5px;">
+Hold CTRL to select multiple workouts
+</div>
+
+<button class="btn" onclick="markAttendance()">
+Mark Present
+</button>
+</div>
+
+</div>
+
+<div class="section glass">
+
+<div class="section-title">
+Attendance History
+</div>
+
+<table class="table">
+
+<thead>
+
+<tr>
+<th>Date</th>
+<th>Session</th>
+<th>Workout</th>
+<th>Status</th>
+</tr>
+
+</thead>
+
+<tbody id="historyTable">
+</tbody>
+
+</table>
+
+</div>
+
+<div class="section glass graph-box">
+
+<div class="section-title">
+Workout Analytics
+</div>
+
+<canvas id="workoutChart"></canvas>
+
+</div>
+
+</div>
+
+<!-- ADMIN DASHBOARD -->
+
+<div id="adminDashboard" class="dashboard admin-panel">
+
+<h2 id="adminWelcome"
+style="margin:15px;">
+Welcome Admin
+</h2>
+
+<div class="cards">
+
+<div class="card glass">
+<div>Total Members</div>
+<h3 id="totalMembers">0</h3>
+</div>
+
+<div class="card glass">
+<div>Present Today</div>
+<h3 id="presentToday">0</h3>
+</div>
+
+<div class="card glass">
+<div>Fees Pending</div>
+<h3 id="feesPending">0</h3></div>
+
+<div class="card glass">
+<div>Revenue</div>
+<h3 id="revenue">₹0</h3>
+</div>
+
+</div>
+
+<div class="section glass">
+
+
+
+<div class="section glass">
+
+<div class="section-title">
+Add New Member
+</div>
+
+<input
+type="text"
+id="newLoginId"
+placeholder="4 Digit Login ID">
+
+<input
+type="text"
+id="newMemberName"
+placeholder="Member Name">
+
+<input
+type="text"
+id="newPhone"
+placeholder="Phone Number">
+
+<button
+class="btn"
+onclick="addMember()">
+Create Member
+</button>
+
+</div>
+
+
+
+
+
+
+<div class="section-title">
+Pending Fees Members
+</div>
+
+<table class="table">
+
+<tr>
+<th>Name</th>
+<th>Month</th>
+<th>Amount</th>
+</tr>
+
+<tr>
+<td>Abu</td>
+<td>June</td>
+<td>₹700</td>
+</tr>
+
+<tr>
+<td>Rahman</td>
+<td>June</td>
+<td>₹700</td>
+</tr>
+
+</table>
+
+</div>
+
+<div class="section glass graph-box">
+
+<div class="section-title">
+Monthly Attendance Statistics
+</div>
+
+<canvas id="attendanceChart"></canvas>
+
+</div>
+
+</div>
+
+<div class="footer">
+ROYAL GYM © 2026
+</div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+
+async function login(){
+
+let loginId =
+document.getElementById("loginId").value.trim();
+
+let type =
+document.getElementById("userType").value;
+
+if(type==="admin"){
+
+let username =
+document.getElementById("loginId").value;
+
+let password =
+document.getElementById("adminPassword").value;
+
+const { data,error } =
+await db
+.from("admins")
+.select("*")
+.eq("username",username)
+.eq("password",password)
+.single();
+
+if(error || !data){
+
+alert("Invalid Admin Login");
+return;
+
+}
+
+document.getElementById("loginPage")
+.style.display="none";
+
+document.getElementById("adminDashboard")
+.style.display="block";
+
+document.getElementById(
+"adminWelcome"
+).innerText =
+"Welcome, " + data.username;
+
+loadAdminStats();
+
+return;
+
+}
+
+const { data,error } =
+await db
+.from("users")
+.select("*")
+.eq("login_id",loginId)
+.single();
+
+if(error || !data){
+
+alert("Invalid Login ID");
+
+return;
+
+}
+
+localStorage.setItem(
+"user_id",
+data.id
+);
+
+localStorage.setItem(
+"user_name",
+data.name
+);
+
+document.getElementById(
+"memberWelcome"
+).innerText =
+"Welcome, " + data.name;
+
+document.getElementById("loginPage")
+.style.display="none";
+
+document.getElementById("memberDashboard")
+.style.display="block";
+
+loadAttendance();
+loadWorkoutChart();
+loadMemberStats();
+
+}
+let workoutChartInstance;
+
+async function loadWorkoutChart(){
+
+let userId =
+localStorage.getItem("user_id");
+
+const { data,error } =
+await db
+.from("attendance")
+.select("workout")
+.eq("user_id",userId);
+
+if(error) return;
+
+let counts = {};
+
+data.forEach(row=>{
+
+counts[row.workout] =
+(counts[row.workout] || 0) + 1;
+
+});
+
+const ctx =
+document.getElementById("workoutChart");
+
+if(workoutChartInstance){
+
+workoutChartInstance.destroy();
+
+}
+
+workoutChartInstance =
+new Chart(ctx,{
+
+type:"bar",
+
+data:{
+
+labels:Object.keys(counts),
+
+datasets:[{
+
+label:"Workout Count",
+
+data:Object.values(counts)
+
+}]
+
+}
+
+});
+
+}
+
+const attendanceChart =
+document.getElementById('attendanceChart');
+
+if(attendanceChart){
+
+new Chart(attendanceChart,{
+type:'line',
+data:{
+labels:[
+'Jan',
+'Feb',
+'Mar',
+'Apr',
+'May',
+'Jun'
+],
+datasets:[{
+data:[60,70,90,100,120,140]
+}]
+}
+});
+
+}
+
+const SUPABASE_URL =
+"https://zyoxwguvpcvqplucserh.supabase.co";
+
+const SUPABASE_KEY =
+"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp5b3h3Z3V2cGN2cXBsdWNzZXJoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA0MDk5NzQsImV4cCI6MjA5NTk4NTk3NH0.xHjWAMzggUGNaiA-kE0CNUVYUH0zMq-_OVB-InQ0V5A";
+
+const db =
+window.supabase.createClient(
+SUPABASE_URL,
+SUPABASE_KEY
+);
+
+
+
+
+async function markAttendance(){
+
+let userId =
+localStorage.getItem("user_id");
+
+let session =
+document.getElementById("session").value;
+
+let today =
+new Date()
+.toISOString()
+.split("T")[0];
+
+const { data:existing } =
+await db
+.from("attendance")
+.select("*")
+.eq("user_id",userId)
+.eq("attendance_date",today)
+.eq("session",session);
+
+if(existing && existing.length > 0){
+
+alert(
+"You already marked attendance for "
++ session +
+" today."
+);
+
+return;
+
+}
+
+let selected = [];
+
+let workoutSelect =
+document.getElementById("workout");
+
+for(let option of workoutSelect.options){
+
+if(option.selected){
+
+selected.push(option.value);
+
+}
+
+}
+
+if(selected.length===0){
+
+alert("Select at least one workout");
+
+return;
+
+}
+
+const { error } =
+await db
+.from("attendance")
+.insert([{
+
+user_id:userId,
+attendance_date:today,
+session:session,
+workout:selected.join(", "),
+status:"Present"
+
+}]);
+
+if(error){
+
+alert(error.message);
+return;
+
+}
+
+alert("Attendance Saved");
+
+loadAttendance();
+loadWorkoutChart();
+loadMemberStats();
+
+}
+
+
+
+async function loadAttendance(){
+
+let userId =
+localStorage.getItem("user_id");
+
+const { data,error } =
+await db
+.from("attendance")
+.select("*")
+.eq("user_id",userId)
+.order("attendance_date",
+{ascending:false});
+
+if(error) return;
+
+let html="";
+
+data.forEach(row=>{
+
+html += `
+<tr>
+<td>${row.attendance_date}</td>
+<td>${row.session}</td>
+<td>${row.workout}</td>
+<td>
+<span class="badge present">
+${row.status}
+</span>
+</td>
+</tr>
+`;
+
+});
+
+document.getElementById("historyTable")
+.innerHTML = html;
+
+}
+
+
+
+
+async function loadMemberStats(){
+
+let userId =
+localStorage.getItem("user_id");
+
+const { data } =
+await db
+.from("attendance")
+.select("*")
+.eq("user_id",userId);
+
+if(!data) return;
+
+
+
+
+let total = 0;
+
+data.forEach(row=>{
+
+let parts =
+row.workout.split(",");
+
+total += parts.length;
+
+});
+
+
+
+
+document.getElementById(
+"totalWorkout"
+).innerText = total;
+
+let attendancePercent =
+Math.min(total * 5,100);
+
+document.getElementById(
+"attendancePercent"
+).innerText =
+attendancePercent + "%";
+
+let uniqueDays =
+new Set();
+
+data.forEach(row=>{
+
+uniqueDays.add(
+row.attendance_date
+);
+
+});
+
+document.getElementById(
+"streak"
+).innerText =
+uniqueDays.size;
+
+}
+
+
+
+async function loadAdminStats(){
+
+const { count:members } =
+await db
+.from("users")
+.select("*",
+{count:"exact",head:true});
+
+document.getElementById(
+"totalMembers"
+).innerText =
+members || 0;
+
+let today =
+new Date()
+.toISOString()
+.split("T")[0];
+
+const { count:present } =
+await db
+.from("attendance")
+.select("*",
+{count:"exact",head:true})
+.eq("attendance_date",today);
+
+document.getElementById(
+"presentToday"
+).innerText =
+present || 0;
+
+}
+
+
+
+async function addMember(){
+
+let login_id =
+document.getElementById(
+"newLoginId"
+).value;
+
+let name =
+document.getElementById(
+"newMemberName"
+).value;
+
+let phone =
+document.getElementById(
+"newPhone"
+).value;
+
+const { error } =
+await db
+.from("users")
+.insert([{
+login_id,
+name,
+phone
+}]);
+
+if(error){
+
+alert(error.message);
+return;
+
+}
+
+alert("Member Created");
+
+loadAdminStats();
+
+}
+
+
+
+function goHome(){
+
+location.reload();
+
+}
+
+
+
+
+
+</script>
+
+</body>
+</html>
