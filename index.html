@@ -400,41 +400,96 @@ Welcome Admin
 
 </div>
 
-<div
-id="adminMenu"
-class="glass"
+
+
+<div id="adminMenu"
 style="
 display:none;
+position:fixed;
+left:0;
+top:0;
+width:260px;
+height:100%;
+background:#111827;
 padding:20px;
-margin-bottom:20px;">
+overflow:auto;
+z-index:999;
+">
 
-<h3>Manage Members</h3>
+<button class="btn"
+onclick="toggleMemberMenu()">
+Manage Members ▼
+</button>
 
-<button
-class="btn"
-onclick="showSection('addMemberSection')">
+<div
+id="memberSubMenu"
+style="display:none;">
+
+<button class="btn"
+onclick="openPage('addPage')">
 Add Member
 </button>
 
-<button
-class="btn"
-onclick="showSection('editMemberSection')">
+<button class="btn"
+onclick="openPage('editPage')">
 Edit Member
 </button>
 
-<button
-class="btn"
-onclick="showSection('deleteMemberSection')">
+<button class="btn"
+onclick="openPage('deletePage')">
 Delete Member
 </button>
 
-<button
-class="btn"
-onclick="loadMembers()">
+<button class="btn"
+onclick="openPage('viewPage')">
 View Members
 </button>
 
 </div>
+
+<button class="btn"
+onclick="openPage('feePage')">
+Fee Collection
+</button>
+
+<button class="btn"
+onclick="openPage('pendingPage')">
+Pending Fees
+</button>
+
+<button class="btn"
+onclick="openPage('revenuePage')">
+Revenue Calculation
+</button>
+
+<button class="btn"
+onclick="openPage('leaderboardPage')">
+Gym Leaderboard
+</button>
+
+<button class="btn"
+onclick="openPage('rankingPage')">
+Best Member Ranking
+</button>
+
+<button class="btn"
+onclick="openPage('reportPage')">
+Monthly Reports
+</button>
+
+<button class="btn"
+onclick="exportPDF()">
+PDF Export
+</button>
+
+<button class="btn"
+onclick="exportExcel()">
+Excel Export
+</button>
+
+</div>
+
+
 
 
 
@@ -466,26 +521,29 @@ View Members
 
 
 
-<div class="section glass" id="addMemberSection">
 
-<div class="section-title">
-Add New Member
-</div>
+
+
+<div id="adminPages">
+
+<div
+id="addPage"
+class="section glass"
+style="display:none;">
+
+<h2>Add Member</h2>
 
 <input
-type="text"
 id="newLoginId"
-placeholder="4 Digit Login ID">
+placeholder="Login ID">
 
 <input
-type="text"
 id="newMemberName"
 placeholder="Member Name">
 
 <input
-type="text"
 id="newPhone"
-placeholder="Phone Number">
+placeholder="Phone">
 
 <button
 class="btn"
@@ -497,17 +555,15 @@ Create Member
 
 
 <div
+id="editPage"
 class="section glass"
-id="editMemberSection"
 style="display:none;">
 
-<div class="section-title">
-Edit Member
-</div>
+<h2>Edit Member</h2>
 
 <input
 id="editLoginId"
-placeholder="Member Login ID">
+placeholder="Login ID">
 
 <input
 id="editName"
@@ -520,62 +576,130 @@ placeholder="New Phone">
 <button
 class="btn"
 onclick="editMember()">
-Update Member
+Update
 </button>
 
 </div>
 
 
 <div
+id="deletePage"
 class="section glass"
-id="deleteMemberSection"
 style="display:none;">
 
-<div class="section-title">
-Delete Member
-</div>
+<h2>Delete Member</h2>
 
 <input
 id="deleteLoginId"
-placeholder="Member Login ID">
+placeholder="Login ID">
 
 <button
 class="btn"
 onclick="deleteMember()">
-Delete Member
+Delete
 </button>
 
 </div>
 
 
-
 <div
+id="viewPage"
 class="section glass"
-id="memberListSection">
+style="display:none;">
 
-<div class="section-title">
-Members List
-</div>
+<h2>Members List</h2>
 
 <table class="table">
 
 <thead>
-
 <tr>
-<th>Login ID</th>
+<th>ID</th>
 <th>Name</th>
 <th>Phone</th>
 </tr>
-
 </thead>
 
 <tbody id="memberTable">
-
 </tbody>
 
 </table>
 
 </div>
+
+
+<div
+id="feePage"
+class="section glass"
+style="display:none;">
+
+<h2>Fee Collection</h2>
+
+<p>Collect and update member fees here.</p>
+
+</div>
+
+
+<div
+id="pendingPage"
+class="section glass"
+style="display:none;">
+
+<h2>Pending Fees</h2>
+
+<p>Show all unpaid members.</p>
+
+</div>
+
+
+<div
+id="revenuePage"
+class="section glass"
+style="display:none;">
+
+<h2>Revenue Calculation</h2>
+
+<p>Total Revenue Statistics.</p>
+
+</div>
+
+
+<div
+id="leaderboardPage"
+class="section glass"
+style="display:none;">
+
+<h2>Gym Leaderboard</h2>
+
+<p>Top Attendance Members.</p>
+
+</div>
+
+
+<div
+id="rankingPage"
+class="section glass"
+style="display:none;">
+
+<h2>Best Member Ranking</h2>
+
+<p>Member Ranking System.</p>
+
+</div>
+
+
+<div
+id="reportPage"
+class="section glass"
+style="display:none;">
+
+<h2>Monthly Reports</h2>
+
+<p>Attendance and Fee Reports.</p>
+
+</div>
+
+</div>
+
 
 
 
@@ -1202,6 +1326,23 @@ document.getElementById(
 
 
 
+function toggleMemberMenu(){
+
+let menu =
+document.getElementById(
+"memberSubMenu"
+);
+
+menu.style.display =
+menu.style.display==="block"
+? "none"
+: "block";
+
+}
+
+
+
+
 
 
 
@@ -1217,25 +1358,64 @@ menu.style.display==="block"
 
 }
 
-function showSection(id){
 
-document
-.getElementById("addMemberSection")
-.style.display="none";
 
-document
-.getElementById("editMemberSection")
-.style.display="none";
 
-document
-.getElementById("deleteMemberSection")
-.style.display="none";
+function openPage(pageId){
+
+const pages = [
+
+"addPage",
+"editPage",
+"deletePage",
+"viewPage",
+"feePage",
+"pendingPage",
+"revenuePage",
+"leaderboardPage",
+"rankingPage",
+"reportPage"
+
+];
+
+pages.forEach(id=>{
 
 document
 .getElementById(id)
+.style.display="none";
+
+});
+
+document
+.getElementById(pageId)
 .style.display="block";
 
+if(pageId==="viewPage"){
+
+loadMembers();
+
 }
+
+}
+
+
+
+function exportPDF(){
+
+alert(
+"PDF Export Connected"
+);
+
+}
+
+function exportExcel(){
+
+alert(
+"Excel Export Connected"
+);
+
+}
+
 
 
 
