@@ -238,6 +238,81 @@ margin-top:20px;
 
 
 
+.sideMenu{
+position:fixed;
+left:-350px;
+top:0;
+width:320px;
+height:100%;
+background:#f8fafc;
+z-index:9999;
+overflow:auto;
+transition:.4s;
+padding:20px;
+box-shadow:0 0 30px rgba(0,0,0,.2);
+}
+
+.sideMenu.active{
+left:0;
+}
+
+.menuHeader{
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-bottom:20px;
+}
+
+.menuHeader h2{
+color:#2563eb;
+}
+
+.menuHeader p{
+color:#666;
+font-size:13px;
+}
+
+.menuClose{
+background:#2563eb;
+color:white;
+border:none;
+padding:10px 15px;
+border-radius:12px;
+cursor:pointer;
+}
+
+.menuCard{
+background:white;
+border:2px solid #2563eb;
+border-radius:15px;
+padding:10px;
+margin-bottom:15px;
+transition:.3s;
+}
+
+.menuCard:hover{
+transform:translateY(-4px);
+}
+
+.menuCard button{
+width:100%;
+background:none;
+border:none;
+padding:12px;
+font-size:16px;
+font-weight:600;
+cursor:pointer;
+color:#111827;
+text-align:left;
+}
+
+#memberSubMenu button{
+font-size:14px;
+padding-left:25px;
+}
+
+
+
 
 
 </style>
@@ -563,6 +638,138 @@ onclick="adminHome()">
 
 
 
+<div id="feeCollectionPage" style="display:none;">
+
+<h2>💰 Fee Collection</h2>
+
+<button class="btn"
+onclick="adminHome()">
+← Dashboard
+</button>
+
+<div class="section glass">
+
+<input
+id="feeLoginId"
+placeholder="Member ID">
+
+<input
+id="feeAmount"
+placeholder="Amount">
+
+<button
+class="btn"
+onclick="collectFee()">
+Collect Fee
+</button>
+
+</div>
+
+</div>
+
+
+
+<div id="pendingFeesPage" style="display:none;">
+
+<h2>📅 Pending Fees</h2>
+
+<button class="btn"
+onclick="adminHome()">
+← Dashboard
+</button>
+
+<div class="section glass">
+
+<table class="table">
+
+<thead>
+<tr>
+<th>Name</th>
+<th>Pending</th>
+</tr>
+</thead>
+
+<tbody id="pendingTable">
+</tbody>
+
+</table>
+
+</div>
+
+</div>
+
+
+
+<div id="leaderboardPage"
+style="display:none;">
+
+<h2>🏆 Gym Leaderboard</h2>
+
+<button class="btn"
+onclick="adminHome()">
+← Dashboard
+</button>
+
+<div
+class="section glass"
+id="leaderboardData">
+</div>
+
+</div>
+
+
+
+<div id="rankingPage"
+style="display:none;">
+
+<h2>⭐ Best Members</h2>
+
+<button class="btn"
+onclick="adminHome()">
+← Dashboard
+</button>
+
+<div
+class="section glass"
+id="rankingData">
+</div>
+
+</div>
+
+
+
+<div id="reportsPage"
+style="display:none;">
+
+<h2>📊 Monthly Reports</h2>
+
+<button class="btn"
+onclick="adminHome()">
+← Dashboard
+</button>
+
+<div class="section glass">
+
+<button
+class="btn"
+onclick="exportPDF()">
+PDF Report
+</button>
+
+<button
+class="btn"
+onclick="exportExcel()">
+Excel Report
+</button>
+
+</div>
+
+</div>
+
+
+
+
+
 
 
 <div style="display:flex;align-items:center;gap:15px;">
@@ -586,116 +793,91 @@ Welcome Admin
 
 
 
-<div id="adminMenu"
-style="
-display:none;
-position:fixed;
-left:0;
-top:0;
-width:320px;
-max-width:90%;
-height:100%;
-background:white;
-padding:20px;
-overflow:auto;
-z-index:9999;
-box-shadow:0 0 25px rgba(0,0,0,.3);
-">
+<div id="adminMenu" class="sideMenu">
 
+<div class="menuHeader">
 
+<div>
+<h2>ROYAL GYM</h2>
+<p>Admin Panel</p>
+</div>
 
-<button
-onclick="toggleMenu()"
-style="
-background:#2563eb;
-color:white;
-border:none;
-padding:12px;
-border-radius:12px;
-width:60px;
-font-size:22px;
-cursor:pointer;
-margin-bottom:20px;">
+<button class="menuClose"
+onclick="toggleMenu()">
 ☰
-</button>
-
-
-
-
-
-
-<button
-class="btn"
-style="text-align:left;"
-onclick="toggleMemberMenu()">
-📁 Manage Members ▼
-</button>
-
-<div
-id="memberSubMenu"
-style="display:none;">
-
-<button class="btn"
-onclick="showAdminPage('add')">
-➕ Add Member
-</button>
-
-<button class="btn"
-onclick="showAdminPage('edit')">
-✏️ Edit Member
-</button>
-
-<button class="btn"
-onclick="showAdminPage('delete')">
-🗑 Delete Member
-</button>
-
-<button class="btn"
-onclick="showAdminPage('view')">
-👥 View Members
 </button>
 
 </div>
 
-<button class="btn"
-onclick="openPage('feePage')">
-Fee Collection
+<div class="menuCard">
+
+<button onclick="toggleMemberMenu()">
+👥 Manage Members
 </button>
 
-<button class="btn"
-onclick="openPage('pendingPage')">
-Pending Fees
+<div id="memberSubMenu" style="display:none;">
+
+<button onclick="showAdminPage('add')">
+➕ Add Member
 </button>
 
-<button class="btn"
-onclick="openPage('revenuePage')">
-Revenue Calculation
+<button onclick="showAdminPage('edit')">
+✏️ Edit Member
 </button>
 
-<button class="btn"
-onclick="openPage('leaderboardPage')">
-Gym Leaderboard
+<button onclick="showAdminPage('delete')">
+🗑 Delete Member
 </button>
 
-<button class="btn"
-onclick="openPage('rankingPage')">
-Best Member Ranking
+<button onclick="showAdminPage('view')">
+📋 View Members
 </button>
 
-<button class="btn"
-onclick="openPage('reportPage')">
-Monthly Reports
-</button>
+</div>
 
-<button class="btn"
-onclick="exportPDF()">
-PDF Export
-</button>
+</div>
 
-<button class="btn"
-onclick="exportExcel()">
-Excel Export
+<div class="menuCard">
+<button onclick="showAdminPage('fees')">
+💰 Fee Collection
 </button>
+</div>
+
+<div class="menuCard">
+<button onclick="showAdminPage('pending')">
+📅 Pending Fees
+</button>
+</div>
+
+<div class="menuCard">
+<button onclick="showAdminPage('leaderboard')">
+🏆 Leaderboard
+</button>
+</div>
+
+<div class="menuCard">
+<button onclick="showAdminPage('ranking')">
+⭐ Best Member Ranking
+</button>
+</div>
+
+<div class="menuCard">
+<button onclick="showAdminPage('reports')">
+📊 Monthly Reports
+</button>
+</div>
+
+<div class="menuCard">
+<button onclick="exportPDF()">
+📄 Export PDF
+</button>
+</div>
+
+<div class="menuCard">
+<button onclick="exportExcel()">
+📗 Export Excel
+</button>
+</div>
 
 </div>
 
@@ -1384,13 +1566,9 @@ menu.style.display==="block"
 
 function toggleMenu(){
 
-let menu =
-document.getElementById("adminMenu");
-
-menu.style.display =
-menu.style.display==="block"
-? "none"
-: "block";
+document
+.getElementById("adminMenu")
+.classList.toggle("active");
 
 }
 
@@ -1419,6 +1597,31 @@ document.getElementById(
 document.querySelector(
 ".cards"
 ).style.display="none";
+
+
+
+document.getElementById(
+"feeCollectionPage"
+).style.display="none";
+
+document.getElementById(
+"pendingFeesPage"
+).style.display="none";
+
+document.getElementById(
+"leaderboardPage"
+).style.display="none";
+
+document.getElementById(
+"rankingPage"
+).style.display="none";
+
+document.getElementById(
+"reportsPage"
+).style.display="none";
+
+
+
 
 }
 
@@ -1462,6 +1665,55 @@ loadMembers();
 
 }
 
+
+
+
+if(type==="fees"){
+
+document.getElementById(
+"feeCollectionPage"
+).style.display="block";
+
+}
+
+if(type==="pending"){
+
+document.getElementById(
+"pendingFeesPage"
+).style.display="block";
+
+loadPendingFees();
+
+}
+
+if(type==="leaderboard"){
+
+document.getElementById(
+"leaderboardPage"
+).style.display="block";
+
+loadLeaderboard();
+
+}
+
+if(type==="ranking"){
+
+document.getElementById(
+"rankingPage"
+).style.display="block";
+
+loadRanking();
+
+}
+
+if(type==="reports"){
+
+document.getElementById(
+"reportsPage"
+).style.display="block";
+
+}
+
 }
 
 
@@ -1499,6 +1751,55 @@ document.querySelector(
 ).style.display="grid";
 
 }
+
+
+
+async function collectFee(){
+
+alert("Fee Collected");
+
+}
+
+async function loadPendingFees(){
+
+document.getElementById(
+"pendingTable"
+).innerHTML=
+`
+<tr>
+<td>Abu</td>
+<td>₹700</td>
+</tr>
+`;
+
+}
+
+async function loadLeaderboard(){
+
+document.getElementById(
+"leaderboardData"
+).innerHTML=
+`
+<h3>🥇 Abu - 96%</h3>
+<h3>🥈 Rahman - 94%</h3>
+<h3>🥉 Sameer - 90%</h3>
+`;
+
+}
+
+async function loadRanking(){
+
+document.getElementById(
+"rankingData"
+).innerHTML=
+`
+<h3>#1 Abu</h3>
+<h3>#2 Rahman</h3>
+<h3>#3 Sameer</h3>
+`;
+
+}
+
 
 
 
