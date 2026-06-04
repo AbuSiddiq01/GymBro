@@ -216,6 +216,30 @@ font-size:24px;
 
 }
 
+
+
+
+#adminMenu button{
+margin-bottom:8px;
+}
+
+#memberSubMenu{
+padding-left:15px;
+}
+
+#memberSubMenu .btn{
+font-size:14px;
+}
+
+#adminPagesContainer{
+margin-top:20px;
+}
+
+
+
+
+
+
 </style>
 </head>
 
@@ -379,7 +403,167 @@ Workout Analytics
 
 <!-- ADMIN DASHBOARD -->
 
+
+
 <div id="adminDashboard" class="dashboard admin-panel">
+
+<!-- ADMIN PAGES -->
+
+<!-- ADD MEMBER PAGE -->
+
+<div id="addMemberPage"
+style="display:none;">
+
+<h2>➕ Add Member</h2>
+
+
+<button
+class="btn"
+style="width:150px;"
+onclick="adminHome()">
+← Dashboard
+</button>
+
+
+<div class="section glass">
+
+<input id="newLoginId"
+placeholder="Login ID">
+
+<input id="newMemberName"
+placeholder="Member Name">
+
+<input id="newPhone"
+placeholder="Phone">
+
+<button
+class="btn"
+onclick="addMember()">
+Create Member
+</button>
+
+</div>
+
+</div>
+
+<!-- EDIT MEMBER PAGE -->
+
+<div id="editMemberPage"
+style="display:none;">
+
+<h2>✏️ Edit Member</h2>
+
+
+<button
+class="btn"
+style="width:150px;"
+onclick="adminHome()">
+← Dashboard
+</button>
+
+
+
+
+<div class="section glass">
+
+<input id="editLoginId"
+placeholder="Login ID">
+
+<input id="editName"
+placeholder="New Name">
+
+<input id="editPhone"
+placeholder="New Phone">
+
+<button
+class="btn"
+onclick="editMember()">
+Update Member
+</button>
+
+</div>
+
+</div>
+
+<!-- DELETE MEMBER PAGE -->
+
+<div id="deleteMemberPage"
+style="display:none;">
+
+<h2>🗑 Delete Member</h2>
+
+
+<button
+class="btn"
+style="width:150px;"
+onclick="adminHome()">
+← Dashboard
+</button>
+
+
+
+
+
+<div class="section glass">
+
+<input id="deleteLoginId"
+placeholder="Login ID">
+
+<button
+class="btn"
+onclick="deleteMember()">
+Delete Member
+</button>
+
+</div>
+
+</div>
+
+<!-- VIEW MEMBER PAGE -->
+
+<div id="viewMembersPage"
+style="display:none;">
+
+<h2>👥 View All Members</h2>
+
+
+<button
+class="btn"
+style="width:150px;"
+onclick="adminHome()">
+← Dashboard
+</button>
+
+
+
+
+<div class="section glass">
+
+<table class="table">
+
+<thead>
+<tr>
+<th>ID</th>
+<th>Name</th>
+<th>Phone</th>
+</tr>
+</thead>
+
+<tbody id="memberTable">
+</tbody>
+
+</table>
+
+</div>
+
+</div>
+
+
+
+
+
+
+
 
 <div style="display:flex;align-items:center;gap:15px;">
 
@@ -408,17 +592,43 @@ display:none;
 position:fixed;
 left:0;
 top:0;
-width:260px;
+width:320px;
+max-width:90%;
 height:100%;
-background:#111827;
+background:white;
 padding:20px;
 overflow:auto;
-z-index:999;
+z-index:9999;
+box-shadow:0 0 25px rgba(0,0,0,.3);
 ">
 
-<button class="btn"
+
+
+<button
+onclick="toggleMenu()"
+style="
+background:#2563eb;
+color:white;
+border:none;
+padding:12px;
+border-radius:12px;
+width:60px;
+font-size:22px;
+cursor:pointer;
+margin-bottom:20px;">
+☰
+</button>
+
+
+
+
+
+
+<button
+class="btn"
+style="text-align:left;"
 onclick="toggleMemberMenu()">
-Manage Members ▼
+📁 Manage Members ▼
 </button>
 
 <div
@@ -426,23 +636,23 @@ id="memberSubMenu"
 style="display:none;">
 
 <button class="btn"
-onclick="openPage('addPage')">
-Add Member
+onclick="showAdminPage('add')">
+➕ Add Member
 </button>
 
 <button class="btn"
-onclick="openPage('editPage')">
-Edit Member
+onclick="showAdminPage('edit')">
+✏️ Edit Member
 </button>
 
 <button class="btn"
-onclick="openPage('deletePage')">
-Delete Member
+onclick="showAdminPage('delete')">
+🗑 Delete Member
 </button>
 
 <button class="btn"
-onclick="openPage('viewPage')">
-View Members
+onclick="showAdminPage('view')">
+👥 View Members
 </button>
 
 </div>
@@ -524,181 +734,7 @@ Excel Export
 
 
 
-<div id="adminPages">
 
-<div
-id="addPage"
-class="section glass"
-style="display:none;">
-
-<h2>Add Member</h2>
-
-<input
-id="newLoginId"
-placeholder="Login ID">
-
-<input
-id="newMemberName"
-placeholder="Member Name">
-
-<input
-id="newPhone"
-placeholder="Phone">
-
-<button
-class="btn"
-onclick="addMember()">
-Create Member
-</button>
-
-</div>
-
-
-<div
-id="editPage"
-class="section glass"
-style="display:none;">
-
-<h2>Edit Member</h2>
-
-<input
-id="editLoginId"
-placeholder="Login ID">
-
-<input
-id="editName"
-placeholder="New Name">
-
-<input
-id="editPhone"
-placeholder="New Phone">
-
-<button
-class="btn"
-onclick="editMember()">
-Update
-</button>
-
-</div>
-
-
-<div
-id="deletePage"
-class="section glass"
-style="display:none;">
-
-<h2>Delete Member</h2>
-
-<input
-id="deleteLoginId"
-placeholder="Login ID">
-
-<button
-class="btn"
-onclick="deleteMember()">
-Delete
-</button>
-
-</div>
-
-
-<div
-id="viewPage"
-class="section glass"
-style="display:none;">
-
-<h2>Members List</h2>
-
-<table class="table">
-
-<thead>
-<tr>
-<th>ID</th>
-<th>Name</th>
-<th>Phone</th>
-</tr>
-</thead>
-
-<tbody id="memberTable">
-</tbody>
-
-</table>
-
-</div>
-
-
-<div
-id="feePage"
-class="section glass"
-style="display:none;">
-
-<h2>Fee Collection</h2>
-
-<p>Collect and update member fees here.</p>
-
-</div>
-
-
-<div
-id="pendingPage"
-class="section glass"
-style="display:none;">
-
-<h2>Pending Fees</h2>
-
-<p>Show all unpaid members.</p>
-
-</div>
-
-
-<div
-id="revenuePage"
-class="section glass"
-style="display:none;">
-
-<h2>Revenue Calculation</h2>
-
-<p>Total Revenue Statistics.</p>
-
-</div>
-
-
-<div
-id="leaderboardPage"
-class="section glass"
-style="display:none;">
-
-<h2>Gym Leaderboard</h2>
-
-<p>Top Attendance Members.</p>
-
-</div>
-
-
-<div
-id="rankingPage"
-class="section glass"
-style="display:none;">
-
-<h2>Best Member Ranking</h2>
-
-<p>Member Ranking System.</p>
-
-</div>
-
-
-<div
-id="reportPage"
-class="section glass"
-style="display:none;">
-
-<h2>Monthly Reports</h2>
-
-<p>Attendance and Fee Reports.</p>
-
-</div>
-
-</div>
 
 
 
@@ -1361,42 +1397,77 @@ menu.style.display==="block"
 
 
 
-function openPage(pageId){
 
-const pages = [
+function hideAllAdminPages(){
 
-"addPage",
-"editPage",
-"deletePage",
-"viewPage",
-"feePage",
-"pendingPage",
-"revenuePage",
-"leaderboardPage",
-"rankingPage",
-"reportPage"
+document.getElementById(
+"addMemberPage"
+).style.display="none";
 
-];
+document.getElementById(
+"editMemberPage"
+).style.display="none";
 
-pages.forEach(id=>{
+document.getElementById(
+"deleteMemberPage"
+).style.display="none";
 
-document
-.getElementById(id)
-.style.display="none";
+document.getElementById(
+"viewMembersPage"
+).style.display="none";
 
-});
+document.querySelector(
+".cards"
+).style.display="none";
 
-document
-.getElementById(pageId)
-.style.display="block";
+}
 
-if(pageId==="viewPage"){
+function showAdminPage(type){
+
+hideAllAdminPages();
+
+toggleMenu();
+
+if(type==="add"){
+
+document.getElementById(
+"addMemberPage"
+).style.display="block";
+
+}
+
+if(type==="edit"){
+
+document.getElementById(
+"editMemberPage"
+).style.display="block";
+
+}
+
+if(type==="delete"){
+
+document.getElementById(
+"deleteMemberPage"
+).style.display="block";
+
+}
+
+if(type==="view"){
+
+document.getElementById(
+"viewMembersPage"
+).style.display="block";
 
 loadMembers();
 
 }
 
 }
+
+
+
+
+
 
 
 
@@ -1417,6 +1488,17 @@ alert(
 }
 
 
+
+
+function adminHome(){
+
+hideAllAdminPages();
+
+document.querySelector(
+".cards"
+).style.display="grid";
+
+}
 
 
 
