@@ -82,8 +82,6 @@ body.theme-batman{background-image:radial-gradient(ellipse at 50% 0%,rgba(255,20
 #cinematicOverlay.cin-active{pointer-events:all;opacity:1}
 #cinBg{position:absolute;inset:0;background:#000;opacity:0;transition:opacity 0.3s ease}
 #cinematicOverlay.cin-active #cinBg{opacity:1}
-
-/* Batman */
 #batContainer{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none}
 #batSVG{position:absolute;width:clamp(180px,30vw,320px);height:auto;filter:drop-shadow(0 0 40px rgba(255,204,0,0.85)) drop-shadow(0 0 80px rgba(255,204,0,0.45));transform-origin:center center;animation:none}
 @keyframes batSwoop{
@@ -105,8 +103,6 @@ body.theme-batman{background-image:radial-gradient(ellipse at 50% 0%,rgba(255,20
 }
 @keyframes batTextReveal{0%{opacity:0;transform:translateX(-50%) scaleX(0.1) skewX(-15deg)}45%{opacity:1;transform:translateX(-50%) scaleX(1) skewX(0)}82%{opacity:1}100%{opacity:0}}
 .bat-swooping #batText{animation:batTextReveal 1.9s 0.45s ease forwards}
-
-/* God Mode */
 #godContainer{position:absolute;inset:0;pointer-events:none;opacity:0}
 #fireChain{
   position:absolute;height:20px;width:54px;border-radius:8px;
@@ -186,7 +182,7 @@ body.theme-godmode .themeBtn.active{background:rgba(255,0,0,0.28);color:#ff4422}
 .logoutBtn:hover{background:#dc2626;transform:scale(1.04)}
 
 /* ===================== TAB MENU ===================== */
-.memberMenu{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:18px}
+.memberMenu{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-bottom:18px}
 .memberMenu button{background:var(--bg-card);border:1px solid var(--border-col);padding:12px 4px;border-radius:14px;cursor:pointer;font-weight:600;font-size:12px;font-family:var(--font-alt);letter-spacing:0.5px;text-align:center;color:var(--tab-text);transition:all 0.3s ease}
 .memberMenu button:hover{transform:translateY(-2px);background:var(--accent-soft);color:var(--accent)}
 .memberMenu button.activeMenu{background:var(--tab-active-bg);color:var(--follow-btn-text);border-color:transparent;box-shadow:var(--btn-shadow)}
@@ -242,12 +238,10 @@ body.theme-batman .rank-badge{color:#07080a}
 body.theme-batman .section-title::before{content:'';display:inline-block;width:20px;height:12px;margin-right:2px;background:var(--accent);opacity:0.3;clip-path:polygon(50% 0%,20% 30%,0% 20%,10% 50%,0% 80%,20% 70%,50% 100%,80% 70%,100% 80%,90% 50%,100% 20%,80% 30%)}
 body.theme-godmode .section-title{font-style:italic;letter-spacing:1px}
 
-/* ===================== CHECK-IN (UPDATED FLOW) ===================== */
+/* ===================== CHECK-IN ===================== */
 .checkin-flow-step{margin-top:14px}
 .checkin-session-row{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap}
 .checkin-session-row select{flex:1;min-width:160px;margin-top:0}
-
-/* Post-checkin area: workout selector + body highlight (hidden until after check-in) */
 .compact-checkin-wrapper{display:flex;gap:18px;align-items:flex-start;margin-top:14px}
 .checkin-left-controls{width:44%;display:flex;flex-direction:column;gap:10px}
 .checkin-right-body{width:52%;background:var(--checkin-right-bg);border-radius:16px;padding:10px;border:1px solid var(--border-col);transition:background 0.4s}
@@ -255,8 +249,6 @@ body.theme-godmode .section-title{font-style:italic;letter-spacing:1px}
 #frontBody,#backBody{background:transparent;border:1px solid var(--border-col);border-radius:10px;padding:5px;width:100%;max-width:112px;height:auto;max-height:175px;transition:all 0.3s ease}
 .muscle-group{fill:var(--muscle-idle);transition:fill 0.3s cubic-bezier(0.4,0,0.2,1);cursor:pointer}
 .muscle-group:hover{opacity:0.8}
-
-/* Workout selector area hidden by default, shown after check-in */
 #workoutSelectorArea{display:none;animation:fadeIn 0.4s ease}
 #workoutSelectorArea.visible{display:block}
 
@@ -468,6 +460,102 @@ body.theme-batman .tracker-page-btn.active{color:#07080a}
 .tracker-graph-box{position:relative;height:300px;width:100%}
 .tracker-subtitle{font-size:11px;color:var(--text-muted);font-family:var(--font-alt);margin-bottom:16px;letter-spacing:0.3px}
 
+/* ===================== LEARN PAGE STYLES ===================== */
+.learn-page-header{
+  background:var(--header-bg);
+  border-radius:20px;padding:28px 24px;margin-bottom:20px;
+  box-shadow:0 10px 30px rgba(0,0,0,0.15);position:relative;overflow:hidden;
+}
+.learn-page-header::before{content:'';position:absolute;top:-40%;right:-5%;width:220px;height:220px;border-radius:50%;background:rgba(255,255,255,0.04);pointer-events:none}
+.learn-page-header h1{font-family:var(--font-display);font-size:32px;color:var(--header-text);letter-spacing:2px;margin-bottom:6px}
+.learn-page-header p{font-size:13px;color:rgba(255,255,255,0.75);font-family:var(--font-alt);letter-spacing:0.5px;line-height:1.5;max-width:600px}
+
+/* Search + Filter Row */
+.learn-search-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px}
+.learn-search-box{position:relative}
+.learn-search-box input{margin-top:0;padding-left:40px}
+.learn-search-icon{position:absolute;left:13px;top:50%;transform:translateY(-50%);font-size:16px;pointer-events:none;z-index:1}
+.learn-suggestions{position:absolute;left:0;right:0;top:calc(100% + 4px);background:var(--bg-card);border:1px solid var(--border-col);border-radius:14px;max-height:220px;overflow-y:auto;z-index:200;box-shadow:0 12px 32px rgba(0,0,0,0.14);display:none}
+.learn-suggestions .sug-item{padding:11px 16px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--border-col);color:var(--text-primary);display:flex;align-items:center;gap:10px;transition:background 0.15s}
+.learn-suggestions .sug-item:last-child{border-bottom:none}
+.learn-suggestions .sug-item:hover{background:var(--accent-soft);color:var(--accent)}
+.learn-suggestions .sug-item .sug-badge{font-size:10px;background:var(--workout-tag-bg);color:var(--workout-tag-col);padding:2px 7px;border-radius:6px;font-family:var(--font-alt);font-weight:700;margin-left:auto;flex-shrink:0}
+.learn-filter-group label{font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.8px;font-family:var(--font-alt);display:block;margin-bottom:6px}
+.learn-filter-group select{margin-top:0}
+
+/* Workout Info Card */
+.learn-info-card{
+  background:var(--bg-card);border:1px solid var(--border-col);border-radius:20px;
+  padding:24px;box-shadow:var(--card-shadow);animation:fadeIn 0.4s ease;
+}
+.learn-info-card-header{
+  display:flex;align-items:center;gap:14px;margin-bottom:20px;
+  padding-bottom:16px;border-bottom:1px solid var(--border-col);
+}
+.learn-exercise-title{font-family:var(--font-display);font-size:28px;color:var(--section-title-col);letter-spacing:1.5px}
+.learn-muscle-badge{background:var(--btn-bg);color:var(--follow-btn-text);padding:6px 14px;border-radius:10px;font-family:var(--font-alt);font-size:13px;font-weight:700;letter-spacing:0.5px;white-space:nowrap}
+body.theme-batman .learn-muscle-badge{color:#07080a}
+
+/* GIF + Info Two-Column */
+.learn-main-grid{display:grid;grid-template-columns:340px 1fr;gap:20px;align-items:start}
+.learn-gif-col{}
+.learn-gif-container{
+  background:var(--accent-soft);border:1px solid var(--border-col);border-radius:16px;
+  overflow:hidden;aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;
+  position:relative;min-height:280px;
+}
+.learn-gif-container img{width:100%;height:100%;object-fit:cover;border-radius:16px}
+.learn-gif-fallback{
+  text-align:center;padding:24px;
+}
+.learn-gif-fallback .gif-emoji{font-size:72px;display:block;margin-bottom:10px;animation:gifBounce 1.5s ease-in-out infinite}
+@keyframes gifBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+.learn-gif-fallback .gif-label{font-family:var(--font-alt);font-size:14px;font-weight:700;color:var(--accent);letter-spacing:0.5px}
+.learn-yt-link{
+  margin-top:12px;display:flex;align-items:center;gap:10px;
+  background:linear-gradient(135deg,#ff0000,#cc0000);
+  color:#fff;border-radius:13px;padding:12px 16px;text-decoration:none;
+  font-family:var(--font-alt);font-size:14px;font-weight:700;letter-spacing:0.5px;
+  transition:all 0.3s ease;box-shadow:0 4px 14px rgba(220,38,38,0.35);
+}
+.learn-yt-link:hover{transform:translateY(-2px);box-shadow:0 8px 22px rgba(220,38,38,0.45)}
+.learn-yt-icon{font-size:20px;flex-shrink:0}
+
+/* Right column */
+.learn-details-col{}
+.learn-section-block{margin-bottom:18px;padding:16px;background:var(--accent-soft);border-radius:14px;border:1px solid var(--border-col)}
+.learn-block-title{font-family:var(--font-alt);font-size:15px;font-weight:700;color:var(--section-title-col);letter-spacing:0.5px;margin-bottom:12px;display:flex;align-items:center;gap:7px}
+.learn-steps-list{list-style:none;padding:0}
+.learn-steps-list li{display:flex;gap:12px;align-items:flex-start;margin-bottom:10px;font-size:13px;color:var(--text-primary);line-height:1.5}
+.learn-step-num{background:var(--btn-bg);color:var(--follow-btn-text);width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--font-alt);font-size:11px;font-weight:800;flex-shrink:0;margin-top:1px}
+body.theme-batman .learn-step-num{color:#07080a}
+.learn-mistakes-list{list-style:none;padding:0}
+.learn-mistakes-list li{padding:8px 0;font-size:13px;color:var(--text-primary);border-bottom:1px solid var(--border-col);display:flex;align-items:flex-start;gap:8px;line-height:1.5}
+.learn-mistakes-list li:last-child{border-bottom:none;padding-bottom:0}
+.learn-muscles-row{display:flex;gap:12px;flex-wrap:wrap}
+.learn-muscle-chip{padding:8px 14px;border-radius:10px;font-family:var(--font-alt);font-size:13px;font-weight:700;letter-spacing:0.3px}
+.learn-muscle-chip.primary{background:var(--btn-bg);color:var(--follow-btn-text)}
+body.theme-batman .learn-muscle-chip.primary{color:#07080a}
+.learn-muscle-chip.secondary{background:var(--accent-soft);color:var(--accent);border:1px solid var(--accent)}
+
+/* Empty state */
+.learn-empty-state{
+  text-align:center;padding:60px 20px;
+  color:var(--text-muted);font-family:var(--font-alt);
+}
+.learn-empty-state .empty-icon{font-size:64px;display:block;margin-bottom:16px;opacity:0.5}
+.learn-empty-state p{font-size:15px;letter-spacing:0.5px}
+
+/* Responsive */
+@media(max-width:900px){
+  .learn-main-grid{grid-template-columns:1fr}
+  .learn-gif-container{min-height:220px;aspect-ratio:4/3}
+}
+@media(max-width:600px){
+  .learn-search-row{grid-template-columns:1fr}
+  .learn-info-card-header{flex-wrap:wrap}
+}
+
 @media(max-width:768px){
   .compact-checkin-wrapper{flex-direction:column}
   .checkin-left-controls,.checkin-right-body{width:100%}
@@ -553,11 +641,14 @@ body.theme-batman .tracker-page-btn.active{color:#07080a}
         <button class="logoutBtn" onclick="logoutUser()">LOGOUT</button>
       </div>
     </div>
+
+    <!-- ===================== MEMBER MENU (6 tabs) ===================== -->
     <div class="memberMenu">
       <button id="menu-dashPage" class="activeMenu" onclick="switchMemberTab('dashPage')">Dashboard</button>
       <button id="menu-statsPage" onclick="switchMemberTab('statsPage')">Stats</button>
       <button id="menu-attPage" onclick="switchMemberTab('attPage')">History</button>
       <button id="menu-workPage" onclick="switchMemberTab('workPage')">Workouts</button>
+      <button id="menu-learnPage" onclick="switchMemberTab('learnPage')">📚 Learn</button>
       <button id="menu-socialPage" onclick="switchMemberTab('socialPage')">Profile</button>
     </div>
 
@@ -573,7 +664,6 @@ body.theme-batman .tracker-page-btn.active{color:#07080a}
         <div class="card"><div class="card-label">💪 Workouts</div><h3 id="totalWorkout">0</h3><div class="card-sub">This month</div></div>
         <div class="card"><div class="card-label">📅 Check-ins</div><h3 id="checkinsMonth">0</h3><div class="card-sub">This month</div></div>
       </div>
-      <!-- XP PANEL -->
       <div class="xp-panel glass">
         <div class="xp-top">
           <div class="rank-badge" id="rankBadge">BEGINNER</div>
@@ -587,11 +677,8 @@ body.theme-batman .tracker-page-btn.active{color:#07080a}
         <div class="xp-next-label" id="xpNextLabel">Next rank: Intermediate at 501 XP</div>
       </div>
 
-      <!-- ===================== INLINE CHECK-IN (UPDATED FLOW) ===================== -->
       <div class="section glass" style="margin-top:18px">
         <div class="section-title">🏟 Gym Check-In</div>
-
-        <!-- STEP 1: Session selection + Submit Check-In button -->
         <div class="checkin-flow-step" id="checkinStep1">
           <div class="checkin-session-row">
             <select id="session" style="margin-top:0">
@@ -601,13 +688,9 @@ body.theme-batman .tracker-page-btn.active{color:#07080a}
           </div>
           <button class="btn" id="submitCheckinBtn" onclick="processCheckIn()">⚡ SUBMIT CHECK-IN (+50 XP)</button>
         </div>
-
-        <!-- STEP 2: Stopwatch (shown after check-in) -->
         <div class="stopwatch-container" id="clockBox">
           <h3 id="stopwatch">00:00:00</h3>
           <div id="gymDuration" class="duration-display"></div>
-
-          <!-- STEP 3: Workout class selector + body highlight (shown after check-in inside stopwatch area) -->
           <div id="workoutSelectorArea">
             <div style="margin-top:14px;font-size:13px;font-weight:700;color:var(--accent);font-family:var(--font-alt);letter-spacing:0.5px;margin-bottom:8px">
               💪 SELECT WORKOUT CLASSES
@@ -660,7 +743,6 @@ body.theme-batman .tracker-page-btn.active{color:#07080a}
               </div>
             </div>
           </div>
-
           <button class="btn" style="background:linear-gradient(135deg,#dc2626,#b91c1c);margin-top:14px;padding:10px" onclick="processCheckOut()">🏁 CHECK-OUT &amp; SAVE</button>
         </div>
       </div>
@@ -684,7 +766,6 @@ body.theme-batman .tracker-page-btn.active{color:#07080a}
             <canvas id="workoutChart"></canvas>
           </div>
         </div>
-        <!-- Legend -->
         <div id="statsChartLegend" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px"></div>
         <div style="font-size:11px;color:var(--text-muted);font-family:var(--font-alt);margin-top:6px">
           💡 Hover or click a bar to see workout details &amp; duration
@@ -781,8 +862,6 @@ body.theme-batman .tracker-page-btn.active{color:#07080a}
         </div>
         <div id="savedWorkoutLogsContainer" style="margin-top:18px"></div>
       </div>
-
-      <!-- WORKOUT TRACKER SECTION -->
       <div class="section glass" style="margin-top:18px" id="workoutTrackerSection">
         <div class="section-title">📈 Workout Tracker</div>
         <p class="tracker-subtitle">Analyse your training volume and frequency across any custom date range.</p>
@@ -812,6 +891,73 @@ body.theme-batman .tracker-page-btn.active{color:#07080a}
         </div>
       </div>
     </div>
+
+    <!-- ===================== LEARN TAB ===================== -->
+    <div id="learnPage" class="memberTab" style="display:none">
+
+      <!-- Page Header -->
+      <div class="learn-page-header">
+        <h1>📚 Learn Workouts</h1>
+        <p>Learn every exercise using realistic workout demonstrations, detailed step-by-step instructions, and curated video tutorials.</p>
+      </div>
+
+      <!-- Search + Filter -->
+      <div class="section glass" style="margin-top:0;padding:20px">
+        <div class="learn-search-row">
+          <!-- Search box -->
+          <div class="learn-filter-group">
+            <label>Search Workout</label>
+            <div class="learn-search-box">
+              <span class="learn-search-icon">🔍</span>
+              <input type="text" id="learnSearchInput" placeholder="Search Workout... (e.g. Bench Press)" oninput="handleLearnSearch()" autocomplete="off" style="margin-top:0">
+              <div class="learn-suggestions" id="learnSuggestions"></div>
+            </div>
+          </div>
+          <!-- Class filter -->
+          <div class="learn-filter-group">
+            <label>Choose Muscle Group</label>
+            <select id="learnClassFilter" onchange="handleLearnClassFilter()" style="margin-top:0">
+              <option value="">— Select Muscle Group —</option>
+              <option value="Chest">Chest</option>
+              <option value="Biceps">Biceps</option>
+              <option value="Triceps">Triceps</option>
+              <option value="Shoulders">Shoulders</option>
+              <option value="Lats">Lats</option>
+              <option value="Back">Back</option>
+              <option value="Legs">Legs</option>
+              <option value="Abs">Abs</option>
+              <option value="Forearms">Forearms</option>
+              <option value="Calves">Calves</option>
+              <option value="Glutes">Glutes</option>
+              <option value="Cardio">Cardio</option>
+              <option value="Full Body">Full Body</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Workout picker (populated by class filter) -->
+        <div id="learnWorkoutPickerRow" style="display:none;margin-top:4px">
+          <div class="learn-filter-group">
+            <label>Select Exercise</label>
+            <select id="learnWorkoutPicker" onchange="handleLearnWorkoutPick()" style="margin-top:0">
+              <option value="">— Choose an exercise —</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Workout Info Card (hidden until selection) -->
+      <div id="learnInfoCard" style="margin-top:18px;display:none"></div>
+
+      <!-- Empty state -->
+      <div id="learnEmptyState" class="section glass" style="margin-top:18px">
+        <div class="learn-empty-state">
+          <span class="empty-icon">🏋</span>
+          <p>Search for a workout or select a muscle group to start learning.</p>
+        </div>
+      </div>
+
+    </div><!-- /learnPage -->
 
     <!-- SOCIAL TAB -->
     <div id="socialPage" class="memberTab" style="display:none">
@@ -985,36 +1131,23 @@ function setTheme(t){
 <script>
 /* ===================== CLASS COLORS ===================== */
 const CLASS_COLORS={
-  'Chest':'#3b82f6',
-  'Biceps':'#f97316',
-  'Triceps':'#8b5cf6',
-  'Shoulders':'#a855f7',
-  'Lats':'#06b6d4',
-  'Legs':'#10b981',
-  'Abs':'#ec4899',
-  'Cardio':'#eab308',
-  'Rest':'#94a3b8',
-  'Unknown':'#6b7280'
+  'Chest':'#3b82f6','Biceps':'#f97316','Triceps':'#8b5cf6','Shoulders':'#a855f7',
+  'Lats':'#06b6d4','Legs':'#10b981','Abs':'#ec4899','Cardio':'#eab308',
+  'Rest':'#94a3b8','Unknown':'#6b7280','Back':'#0ea5e9','Forearms':'#d97706',
+  'Calves':'#84cc16','Glutes':'#f43f5e','Full Body':'#6366f1'
 };
 
 /* ===================== DURATION PARSER ===================== */
-// Parses varied formats: "80 min", "1Hr 1min", "45 min", "1Hr 20min", "In Progress"
-// Returns total minutes
 function parseDurationToMinutes(s){
   if(!s||s.trim()===""||s==="In Progress")return 0;
   let total=0;
-  // Match hours
   const hMatch=s.match(/(\d+)\s*[Hh][Rr]?/);
   if(hMatch)total+=parseInt(hMatch[1])*60;
-  // Match minutes
   const mMatch=s.match(/(\d+)\s*[Mm][Ii][Nn]/);
   if(mMatch)total+=parseInt(mMatch[1]);
-  // If no matches but purely numeric, treat as minutes
   if(!hMatch&&!mMatch){const n=parseInt(s);if(!isNaN(n))total=n}
   return total;
 }
-
-// Format minutes → "1Hr 20min" style
 function formatMinutesToDuration(m){
   if(!m||m<=0)return "0 min";
   const h=Math.floor(m/60),mn=m%60;
@@ -1022,7 +1155,6 @@ function formatMinutesToDuration(m){
   if(h>0)return `${h}Hr`;
   return `${mn}min`;
 }
-
 function formatMinutesToHoursText(m){
   if(!m)return "0";
   let h=Math.floor(m/60),mn=m%60;
@@ -1030,7 +1162,6 @@ function formatMinutesToHoursText(m){
 }
 
 /* ===================== STACKED BAR CHART ENGINE ===================== */
-// Custom Chart.js plugin to render stacked colored segments + vertical text inside bars
 const stackedMusclePlugin={
   id:'stackedMusclePlugin',
   afterDatasetsDraw(chart){
@@ -1041,15 +1172,12 @@ const stackedMusclePlugin={
       const workoutStr=data.datasets[0].rawWorkouts?data.datasets[0].rawWorkouts[i]:'Rest';
       const bx=bar.x,by=bar.y,bw=bar.width,bBase=bar.base;
       const bh=bBase-by;
-      if(bh<=2)return; // nothing to draw (rest day with 0 height or tiny)
-
+      if(bh<=2)return;
       let classes=[];
       if(workoutStr&&workoutStr!=='Rest'&&workoutStr!==''){
         classes=workoutStr.split(',').map(s=>s.trim()).filter(Boolean).slice(0,3);
       }
-
       if(classes.length===0){
-        // Rest day — draw grey bar with "Rest" label
         ctx.fillStyle='rgba(148,163,184,0.35)';
         ctx.beginPath();ctx.roundRect(bx-bw/2,by,bw,bh,4);ctx.fill();
         ctx.fillStyle='#94a3b8';
@@ -1058,47 +1186,29 @@ const stackedMusclePlugin={
         ctx.fillText('Rest',bx,by+bh/2);
         return;
       }
-
       const segH=bh/classes.length;
       classes.forEach((muscle,idx)=>{
         const color=CLASS_COLORS[muscle]||CLASS_COLORS['Unknown'];
         const sy=bBase-(idx+1)*segH;
-        // Draw segment
         ctx.fillStyle=color;
         ctx.beginPath();
-        if(idx===0&&idx===classes.length-1){
-          // only one segment
-          ctx.roundRect(bx-bw/2,sy,bw,segH,4);
-        } else if(idx===0){
-          // bottom segment
-          ctx.roundRect(bx-bw/2,sy,bw,segH,[0,0,4,4]);
-        } else if(idx===classes.length-1){
-          // top segment
-          ctx.roundRect(bx-bw/2,sy,bw,segH,[4,4,0,0]);
-        } else {
-          ctx.rect(bx-bw/2,sy,bw,segH);
-        }
+        if(idx===0&&idx===classes.length-1){ctx.roundRect(bx-bw/2,sy,bw,segH,4)}
+        else if(idx===0){ctx.roundRect(bx-bw/2,sy,bw,segH,[0,0,4,4])}
+        else if(idx===classes.length-1){ctx.roundRect(bx-bw/2,sy,bw,segH,[4,4,0,0])}
+        else{ctx.rect(bx-bw/2,sy,bw,segH)}
         ctx.fill();
-
-        // Segment border
         ctx.strokeStyle='rgba(255,255,255,0.25)';ctx.lineWidth=1;
-        if(idx<classes.length-1){
-          ctx.beginPath();ctx.moveTo(bx-bw/2,sy);ctx.lineTo(bx+bw/2,sy);ctx.stroke();
-        }
-
-        // Vertical text inside segment (only if segment tall enough)
+        if(idx<classes.length-1){ctx.beginPath();ctx.moveTo(bx-bw/2,sy);ctx.lineTo(bx+bw/2,sy);ctx.stroke()}
         if(segH>=20){
           ctx.save();
           ctx.translate(bx,sy+segH/2);
           ctx.rotate(-Math.PI/2);
-          // Text color: use white for most, dark for yellow
           ctx.fillStyle=(color==='#eab308'||color==='#ffcc00')?'#111':'#fff';
           const fontSize=Math.min(10,Math.max(7,bw*0.35));
           ctx.font=`bold ${fontSize}px Rajdhani,sans-serif`;
           ctx.textAlign='center';ctx.textBaseline='middle';
           let txt=muscle;
           const maxW=segH-6;
-          // Truncate if needed
           while(ctx.measureText(txt).width>maxW&&txt.length>2){txt=txt.slice(0,-1)}
           if(txt!==muscle)txt=txt+'..';
           ctx.fillText(txt,0,0);
@@ -1109,8 +1219,6 @@ const stackedMusclePlugin={
     ctx.restore();
   }
 };
-
-// Try to use roundRect polyfill if not supported
 if(!CanvasRenderingContext2D.prototype.roundRect){
   CanvasRenderingContext2D.prototype.roundRect=function(x,y,w,h,r){
     if(typeof r==='number')r=[r,r,r,r];
@@ -1124,16 +1232,7 @@ if(!CanvasRenderingContext2D.prototype.roundRect){
     this.closePath();
   };
 }
-
 Chart.register(stackedMusclePlugin);
-
-function lightenColor(hex,percent){
-  if(hex.indexOf('#')===0)hex=hex.slice(1);
-  if(hex.length===3)hex=hex[0]+hex[0]+hex[1]+hex[1]+hex[2]+hex[2];
-  let num=parseInt(hex,16),amt=Math.round(2.55*percent);
-  let R=(num>>16)+amt,G=(num>>8&0x00FF)+amt,B=(num&0x0000FF)+amt;
-  return '#'+(0x1000000+(R<255?R<0?0:R:255)*0x10000+(G<255?G<0?0:G:255)*0x100+(B<255?B<0?0:B:255)).toString(16).slice(1);
-}
 </script>
 
 <script>
@@ -1210,6 +1309,7 @@ async function switchMemberTab(id){
   else if(id==='statsPage')await updateStatsChart();
   else if(id==='attPage')await loadAttendanceHistoryRecords();
   else if(id==='workPage')await loadWorkoutsForDate();
+  else if(id==='learnPage')initLearnPage();
   else if(id==='socialPage')loadSocialPage();
 }
 
@@ -1251,34 +1351,23 @@ function handleClassSelection(){
   selected.forEach(val=>{if(cm[val])cm[val].forEach(id=>{let el=document.getElementById(id);if(el)el.style.fill=cc[val]||"#2563eb"})});
 }
 
-/* ===================== CHECK-IN / CHECK-OUT (UPDATED FLOW) ===================== */
+/* ===================== CHECK-IN / CHECK-OUT ===================== */
 async function processCheckIn(){
   let uid=localStorage.getItem("user_id"),session=document.getElementById("session").value;
   let today=new Date().toISOString().split("T")[0];
   if(!uid)return;
   const{data:ex}=await db.from("attendance").select("*").eq("user_id",uid).eq("attendance_date",today).eq("session",session);
   if(ex&&ex.length>0){alert(`Already checked in for ${session} today.`);return}
-
-  // Insert attendance record with "In Progress" duration
   const{error}=await db.from("attendance").insert([{user_id:uid,attendance_date:today,session,workout:"",status:"Present",duration:"In Progress"}]);
   if(error){alert(error.message);return}
-
-  // Disable the check-in button (blur it)
   const btn=document.getElementById("submitCheckinBtn");
-  btn.disabled=true;
-  btn.textContent="✅ CHECKED IN — WORKOUT IN PROGRESS";
-
-  // Show the stopwatch area
+  btn.disabled=true;btn.textContent="✅ CHECKED IN — WORKOUT IN PROGRESS";
   chronometerSeconds=0;
   document.getElementById("clockBox").classList.add("visible");
   startStopwatch();
-
-  // Show the workout selector + body
   document.getElementById("workoutSelectorArea").classList.add("visible");
-
   await syncCoreDashboardMetrics();
 }
-
 function startStopwatch(){
   if(activeWorkoutTimer)clearInterval(activeWorkoutTimer);
   activeWorkoutTimer=setInterval(()=>{
@@ -1287,44 +1376,28 @@ function startStopwatch(){
     document.getElementById("stopwatch").innerText=`${h}:${m}:${s}`;
   },1000);
 }
-
 async function processCheckOut(){
   if(!activeWorkoutTimer){alert("No active session.");return}
   clearInterval(activeWorkoutTimer);activeWorkoutTimer=null;
-
   let hrs=Math.floor(chronometerSeconds/3600),mins=Math.floor((chronometerSeconds%3600)/60);
   let fmt=hrs>0?`${hrs}Hr ${mins}min`:`${mins}min`;
-
-  // Get selected workout classes
   let sel=document.getElementById("workout");
   let selectedClasses=Array.from(sel.options).filter(o=>o.selected).map(o=>o.value);
   if(selectedClasses.length===0){alert("Please select at least one workout class before checking out.");return}
   let workoutStr=selectedClasses.join(", ");
-
   document.getElementById("gymDuration").innerText=`Today you spent ${hrs>0?hrs+'Hr ':''} ${mins}min at the gym 💪`;
-
   let uid=localStorage.getItem("user_id"),today=new Date().toISOString().split("T")[0];
   let session=document.getElementById("session").value;
-
-  // Update the attendance record with duration + workout
   const{data:lr}=await db.from("attendance").select("id").eq("user_id",uid).eq("attendance_date",today).eq("session",session).order("created_at",{ascending:false}).limit(1);
-  if(lr&&lr.length>0){
-    await db.from("attendance").update({duration:fmt,workout:workoutStr}).eq("id",lr[0].id);
-  }
-
-  // Reset UI
+  if(lr&&lr.length>0){await db.from("attendance").update({duration:fmt,workout:workoutStr}).eq("id",lr[0].id)}
   document.getElementById("clockBox").classList.remove("visible");
   document.getElementById("workoutSelectorArea").classList.remove("visible");
   const btn=document.getElementById("submitCheckinBtn");
-  btn.disabled=false;
-  btn.textContent="⚡ SUBMIT CHECK-IN (+50 XP)";
-  // Reset selections
+  btn.disabled=false;btn.textContent="⚡ SUBMIT CHECK-IN (+50 XP)";
   Array.from(sel.options).forEach(o=>o.selected=false);
   document.querySelectorAll(".muscle-group").forEach(el=>el.style.fill="var(--muscle-idle)");
-
   alert(`✅ Check-Out saved! Duration: ${fmt}`);
-  await loadAttendanceHistoryRecords();
-  await syncCoreDashboardMetrics();
+  await loadAttendanceHistoryRecords();await syncCoreDashboardMetrics();
 }
 
 async function loadAttendanceHistoryRecords(){
@@ -1332,7 +1405,6 @@ async function loadAttendanceHistoryRecords(){
   const{data,error}=await db.from("attendance").select("*").eq("user_id",uid).order("attendance_date",{ascending:false});
   if(error)return;window.cachedAttendance=data;renderAttendanceHistory();
 }
-
 function renderAttendanceHistory(){
   let data=window.cachedAttendance||[],filter=document.getElementById("weekFilter").value;
   let now=new Date(),month=now.getMonth(),year=now.getFullYear();
@@ -1354,16 +1426,12 @@ function renderAttendanceHistory(){
   if(tbody.children.length===0)tbody.innerHTML=`<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:20px;font-family:var(--font-alt)">No records for this filter.</td></tr>`;
 }
 
-/* ===================== STATS CHART (STACKED BAR — UPDATED) ===================== */
-// Tooltip element
+/* ===================== STATS CHART ===================== */
 const statsTooltip=document.getElementById('statsTooltip');
-let statsChartDayData=[]; // [{label, duration, workout, classes}]
-
+let statsChartDayData=[];
 function buildStatsLegend(classes){
-  const el=document.getElementById('statsChartLegend');
-  if(!el)return;
-  const seen=new Set();
-  let html='';
+  const el=document.getElementById('statsChartLegend');if(!el)return;
+  const seen=new Set();let html='';
   classes.forEach(c=>{
     if(!seen.has(c)&&c!=='Rest'){
       seen.add(c);
@@ -1374,170 +1442,61 @@ function buildStatsLegend(classes){
   if(!html)html=`<span style="font-size:11px;color:var(--text-muted);font-family:var(--font-alt)">No workouts in this range</span>`;
   el.innerHTML=html;
 }
-
 function showStatsTooltip(evt,dayData){
   if(!dayData)return;
-  const totalMins=dayData.duration;
-  const durationFmt=formatMinutesToDuration(totalMins);
-  const classes=dayData.classes;
-
+  const totalMins=dayData.duration,durationFmt=formatMinutesToDuration(totalMins),classes=dayData.classes;
   let muscleHtml='';
-  if(classes.length>0){
-    classes.forEach(c=>{
-      const color=CLASS_COLORS[c]||CLASS_COLORS['Unknown'];
-      muscleHtml+=`<div class="stats-tooltip-muscle"><span class="stats-tooltip-dot" style="background:${color}"></span><span>${c}</span></div>`;
-    });
-  } else {
-    muscleHtml='<div style="color:#94a3b8;font-size:12px">Rest Day</div>';
-  }
-
-  statsTooltip.innerHTML=`
-    <div class="stats-tooltip-title">Day ${dayData.label}</div>
-    ${muscleHtml}
-    <div class="stats-tooltip-duration">⏱ Total Duration: <strong>${durationFmt}</strong></div>
-  `;
+  if(classes.length>0){classes.forEach(c=>{const color=CLASS_COLORS[c]||CLASS_COLORS['Unknown'];muscleHtml+=`<div class="stats-tooltip-muscle"><span class="stats-tooltip-dot" style="background:${color}"></span><span>${c}</span></div>`})}
+  else{muscleHtml='<div style="color:#94a3b8;font-size:12px">Rest Day</div>'}
+  statsTooltip.innerHTML=`<div class="stats-tooltip-title">Day ${dayData.label}</div>${muscleHtml}<div class="stats-tooltip-duration">⏱ Total Duration: <strong>${durationFmt}</strong></div>`;
   statsTooltip.style.display='block';
-
-  // Position tooltip
-  const x=evt.clientX,y=evt.clientY;
-  const tw=180,th=statsTooltip.offsetHeight||120;
+  const x=evt.clientX,y=evt.clientY,tw=180,th=statsTooltip.offsetHeight||120;
   let left=x+14,top=y-th/2;
   if(left+tw>window.innerWidth-20)left=x-tw-14;
   if(top<8)top=8;
   if(top+th>window.innerHeight-8)top=window.innerHeight-th-8;
-  statsTooltip.style.left=left+'px';
-  statsTooltip.style.top=top+'px';
+  statsTooltip.style.left=left+'px';statsTooltip.style.top=top+'px';
 }
 function hideStatsTooltip(){statsTooltip.style.display='none'}
-
 async function updateStatsChart(){
   let uid=localStorage.getItem("user_id");if(!uid)return;
   const{data,error}=await db.from("attendance").select("*").eq("user_id",uid).order("attendance_date",{ascending:true});
   if(error||!data)return;
-
   let tf=document.getElementById("statsTimeframe").value;
   let ranges={w1:[1,7],w2:[8,14],w3:[15,21],w4:[22,28],w5:[29,31]};
   let[sd,ed]=ranges[tf]||[1,7];
-
   let fd=data.filter(r=>{let d=new Date(r.attendance_date);return d.getDate()>=sd&&d.getDate()<=ed});
-
-  // Build day map, sum duration for multiple sessions on same day
   let dm={};
-  for(let i=sd;i<=ed;i++){
-    dm[i]={label:i.toString(),duration:0,workout:'',classes:[]};
-  }
+  for(let i=sd;i<=ed;i++){dm[i]={label:i.toString(),duration:0,workout:'',classes:[]}}
   fd.forEach(r=>{
     let d=new Date(r.attendance_date),day=d.getDate();
     if(dm[day]){
       dm[day].duration+=parseDurationToMinutes(r.duration);
-      if(r.workout&&r.workout.trim()!==""){
-        if(dm[day].workout)dm[day].workout+=', '+r.workout;
-        else dm[day].workout=r.workout;
-      }
+      if(r.workout&&r.workout.trim()!==""){if(dm[day].workout)dm[day].workout+=', '+r.workout;else dm[day].workout=r.workout}
     }
   });
-
-  // Build classes per day (unique, max 3)
-  Object.values(dm).forEach(d=>{
-    if(d.workout){
-      let cls=[...new Set(d.workout.split(',').map(s=>s.trim()).filter(Boolean))].slice(0,3);
-      d.classes=cls;
-    }
-  });
-
-  let days=Object.values(dm);
-  statsChartDayData=days;
-
-  let labels=days.map(d=>'Day '+d.label);
-  let durations=days.map(d=>d.duration||0);
-  // For bars with 0 duration on workout days (rare), give a tiny value so segment shows
-  let chartData=durations.map((v,i)=>{
-    if(v===0&&days[i].classes.length>0)return 30; // show minimum bar height
-    return v||0;
-  });
-
+  Object.values(dm).forEach(d=>{if(d.workout){let cls=[...new Set(d.workout.split(',').map(s=>s.trim()).filter(Boolean))].slice(0,3);d.classes=cls}});
+  let days=Object.values(dm);statsChartDayData=days;
+  let labels=days.map(d=>'Day '+d.label),durations=days.map(d=>d.duration||0);
+  let chartData=durations.map((v,i)=>{if(v===0&&days[i].classes.length>0)return 30;return v||0});
   let rawWorkouts=days.map(d=>d.classes.join(', '));
-
-  if(userStatsInstanceChart){userStatsInstanceChart.destroy();userStatsInstanceChart=null;}
-
-  const canvas=document.getElementById("workoutChart");
-  const ctx=canvas.getContext("2d");
-
+  if(userStatsInstanceChart){userStatsInstanceChart.destroy();userStatsInstanceChart=null}
+  const canvas=document.getElementById("workoutChart"),ctx=canvas.getContext("2d");
   userStatsInstanceChart=new Chart(ctx,{
     type:'bar',
-    data:{
-      labels,
-      datasets:[{
-        label:'Duration (min)',
-        data:chartData,
-        rawWorkouts, // custom field read by our plugin
-        backgroundColor:'rgba(37,99,235,0)', // transparent — plugin draws its own colors
-        borderColor:'transparent',
-        borderWidth:0,
-        borderRadius:6,
-        barPercentage:0.65,
-        categoryPercentage:0.8,
-      }]
-    },
-    options:{
-      responsive:true,
-      maintainAspectRatio:false,
-      plugins:{
-        legend:{display:false},
-        tooltip:{enabled:false}, // we use custom tooltip
-      },
-      scales:{
-        y:{
-          beginAtZero:true,
-          grid:{color:'rgba(128,128,128,0.08)'},
-          ticks:{
-            color:'#6b7280',
-            font:{family:'Rajdhani',size:12},
-            callback(v){return v+'m'}
-          }
-        },
-        x:{
-          grid:{display:false},
-          ticks:{color:'#6b7280',font:{family:'Rajdhani',size:12}}
-        }
-      },
-      onHover(evt,elements){
-        canvas.style.cursor=elements.length?'pointer':'default';
-      }
-    },
+    data:{labels,datasets:[{label:'Duration (min)',data:chartData,rawWorkouts,backgroundColor:'rgba(37,99,235,0)',borderColor:'transparent',borderWidth:0,borderRadius:6,barPercentage:0.65,categoryPercentage:0.8}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{enabled:false}},
+    scales:{y:{beginAtZero:true,grid:{color:'rgba(128,128,128,0.08)'},ticks:{color:'#6b7280',font:{family:'Rajdhani',size:12},callback(v){return v+'m'}}},x:{grid:{display:false},ticks:{color:'#6b7280',font:{family:'Rajdhani',size:12}}}},
+    onHover(evt,elements){canvas.style.cursor=elements.length?'pointer':'default'}},
     plugins:[stackedMusclePlugin]
   });
-
-  // Mouse events for custom tooltip
-  canvas.onmousemove=function(evt){
-    const pts=userStatsInstanceChart.getElementsAtEventForMode(evt,'index',{intersect:false},false);
-    if(pts.length){
-      const idx=pts[0].index;
-      showStatsTooltip(evt,statsChartDayData[idx]);
-    } else {
-      hideStatsTooltip();
-    }
-  };
+  canvas.onmousemove=function(evt){const pts=userStatsInstanceChart.getElementsAtEventForMode(evt,'index',{intersect:false},false);if(pts.length){showStatsTooltip(evt,statsChartDayData[pts[0].index])}else{hideStatsTooltip()}};
   canvas.onmouseleave=function(){hideStatsTooltip()};
-  canvas.onclick=function(evt){
-    const pts=userStatsInstanceChart.getElementsAtEventForMode(evt,'index',{intersect:true},false);
-    if(pts.length){
-      const idx=pts[0].index;
-      showStatsTooltip(evt,statsChartDayData[idx]);
-    }
-  };
-
-  // Build legend from all unique classes in this range
-  let allClasses=[];days.forEach(d=>allClasses.push(...d.classes));
-  buildStatsLegend(allClasses);
-
-  // Summary stats
-  let nz=days.filter(d=>d.duration>0);
-  let avg=nz.length?Math.round(nz.reduce((s,d)=>s+d.duration,0)/nz.length):0;
+  canvas.onclick=function(evt){const pts=userStatsInstanceChart.getElementsAtEventForMode(evt,'index',{intersect:true},false);if(pts.length){showStatsTooltip(evt,statsChartDayData[pts[0].index])}};
+  let allClasses=[];days.forEach(d=>allClasses.push(...d.classes));buildStatsLegend(allClasses);
+  let nz=days.filter(d=>d.duration>0),avg=nz.length?Math.round(nz.reduce((s,d)=>s+d.duration,0)/nz.length):0;
   document.getElementById("avgTimeLabel").textContent=formatMinutesToDuration(avg);
-
-  let mc={};
-  days.forEach(d=>d.classes.forEach(m=>{mc[m]=(mc[m]||0)+1}));
+  let mc={};days.forEach(d=>d.classes.forEach(m=>{mc[m]=(mc[m]||0)+1}));
   let sorted=Object.entries(mc).sort((a,b)=>b[1]-a[1]);
   document.getElementById("mostTrainedLabel").textContent=sorted[0]?sorted[0][0]:'None';
   document.getElementById("lessTrainedLabel").textContent=sorted[sorted.length-1]?sorted[sorted.length-1][0]:'None';
@@ -1555,14 +1514,15 @@ document.addEventListener("click",e=>{
   if(e.target.id!=="workoutNameInput")document.getElementById("autoSuggestions").style.display="none";
   if(e.target.id!=="liveWorkoutNameInput")document.getElementById("liveAutoSuggestions").style.display="none";
   let sr=document.getElementById("gymBroSearchResults");if(sr&&e.target.id!=="gymBroSearchInput"&&!sr.contains(e.target))sr.style.display="none";
-  // Hide stats tooltip on click outside canvas
   if(e.target.id!=="workoutChart")hideStatsTooltip();
+  // Hide learn suggestions
+  const ls=document.getElementById("learnSuggestions");
+  if(ls&&e.target.id!=="learnSearchInput"&&!ls.contains(e.target))ls.style.display="none";
 });
 function buildSetsInputFields(){
   let cnt=parseInt(document.getElementById("setsCountSelect").value),c=document.getElementById("dynamicSetsContainer");c.innerHTML="";
   for(let i=1;i<=cnt;i++)c.innerHTML+=`<div class="set-row"><span>Set ${i}</span><input type="number" placeholder="Kgs" id="weight_set_${i}" min="1" value="" style="margin-top:0;padding:9px;flex:1"><input type="number" placeholder="Reps" id="reps_set_${i}" min="1" value="" style="margin-top:0;padding:9px;flex:1"></div>`;
 }
-
 async function saveWorkoutLogEntry(){
   let uid=localStorage.getItem("user_uuid")||localStorage.getItem("user_id");
   let name=document.getElementById("workoutNameInput").value.trim();
@@ -1587,25 +1547,13 @@ async function saveWorkoutLogEntry(){
 }
 
 /* ===================== LIVE MODE ===================== */
-let liveMode=false;
-let liveSetTimers={};
-let liveSetSeconds={};
-let liveBreakTimers={};
-let liveBreakSeconds={};
-let liveTotalSets=0;
-let liveCurrentSet=1;
-let liveSetResults=[];
-let liveSessionSlot=null;
-
+let liveMode=false,liveSetTimers={},liveSetSeconds={},liveBreakTimers={},liveBreakSeconds={},liveTotalSets=0,liveCurrentSet=1,liveSetResults=[],liveSessionSlot=null;
 function toggleLiveMode(){
   liveMode=!liveMode;
-  const tog=document.getElementById("liveModeToggle");
-  const lbl=document.getElementById("liveModeLabel");
-  tog.classList.toggle("on",liveMode);
-  lbl.textContent=liveMode?"ON":"OFF";
+  const tog=document.getElementById("liveModeToggle"),lbl=document.getElementById("liveModeLabel");
+  tog.classList.toggle("on",liveMode);lbl.textContent=liveMode?"ON":"OFF";
   lbl.style.color=liveMode?"var(--accent)":"var(--text-muted)";
 }
-
 function showAddWorkoutForm(){
   currentEditingIndex=null;
   if(liveMode){
@@ -1627,7 +1575,6 @@ function showAddWorkoutForm(){
     buildSetsInputFields();
   }
 }
-
 function cancelWorkoutLogging(){
   currentEditingIndex=null;
   document.getElementById("workoutNameInput").value="";
@@ -1636,20 +1583,17 @@ function cancelWorkoutLogging(){
   document.getElementById("initialWorkoutBox").style.display="block";
   stopAllLiveTimers();
 }
-
 function cancelLiveWorkout(){
   stopAllLiveTimers();
   document.getElementById("liveWorkoutForm").style.display="none";
   document.getElementById("initialWorkoutBox").style.display="block";
   liveSetResults=[];liveSessionSlot=null;
 }
-
 function stopAllLiveTimers(){
   Object.values(liveSetTimers).forEach(t=>clearInterval(t));
   Object.values(liveBreakTimers).forEach(t=>clearInterval(t));
   liveSetTimers={};liveSetSeconds={};liveBreakTimers={};liveBreakSeconds={};
 }
-
 function handleLiveSearchAuto(){
   let val=document.getElementById("liveWorkoutNameInput").value.toLowerCase();
   let box=document.getElementById("liveAutoSuggestions");box.innerHTML="";box.style.display="none";if(!val)return;
@@ -1657,7 +1601,6 @@ function handleLiveSearchAuto(){
   box.style.display="block";
   matches.forEach(item=>{let div=document.createElement("div");div.textContent=item.name;div.onclick=()=>{document.getElementById("liveWorkoutNameInput").value=item.name;box.style.display="none"};box.appendChild(div)});
 }
-
 function startLiveSession(){
   let name=document.getElementById("liveWorkoutNameInput").value.trim();
   if(!name){alert("Please enter exercise name.");return}
@@ -1667,17 +1610,12 @@ function startLiveSession(){
   let titleEl=document.getElementById("liveSessionTitle");
   titleEl.textContent="🏋 "+name+" — "+liveTotalSets+" Set"+(liveTotalSets>1?"s":"");
   titleEl.style.display="block";
-  const container=document.getElementById("liveSetsContainer");
-  container.innerHTML="";
+  const container=document.getElementById("liveSetsContainer");container.innerHTML="";
   for(let i=1;i<=liveTotalSets;i++){container.innerHTML+=buildLiveSetHTML(i,i===1)}
 }
-
 function buildLiveSetHTML(idx,active){
   return `<div class="live-set-block${active?' set-active':''}" id="liveSetBlock_${idx}">
-    <div class="live-set-header">
-      <span class="live-set-title">SET ${idx}</span>
-      <span class="live-set-done-badge" id="liveSetDoneBadge_${idx}" style="display:none">✓ DONE</span>
-    </div>
+    <div class="live-set-header"><span class="live-set-title">SET ${idx}</span><span class="live-set-done-badge" id="liveSetDoneBadge_${idx}" style="display:none">✓ DONE</span></div>
     <div class="live-set-inputs" id="liveSetInputs_${idx}" ${!active?'style="opacity:0.4;pointer-events:none"':''}>
       <input type="number" id="liveKg_${idx}" placeholder="Kgs" min="0.5" step="0.5" style="margin-top:0;padding:9px">
       <input type="number" id="liveReps_${idx}" placeholder="Reps" min="1" style="margin-top:0;padding:9px">
@@ -1700,7 +1638,6 @@ function buildLiveSetHTML(idx,active){
     </div>
   </div>`;
 }
-
 function toggleLiveSetTimer(idx){
   const btn=document.getElementById(`liveTimerBtn_${idx}`);
   if(liveSetTimers[idx]){
@@ -1718,92 +1655,57 @@ function toggleLiveSetTimer(idx){
     },1000);
   }
 }
-
 async function saveLiveSet(idx){
-  let kg=parseFloat(document.getElementById(`liveKg_${idx}`).value)||0;
-  let reps=parseInt(document.getElementById(`liveReps_${idx}`).value)||0;
+  let kg=parseFloat(document.getElementById(`liveKg_${idx}`).value)||0,reps=parseInt(document.getElementById(`liveReps_${idx}`).value)||0;
   if(kg<0.5||reps<1){alert(`Set ${idx}: Please enter Kgs and Reps before saving.`);return}
   if(liveSetTimers[idx]){clearInterval(liveSetTimers[idx]);delete liveSetTimers[idx]}
   let secs=liveSetSeconds[idx]||0;
-  let timeLabel;
-  if(secs===0){timeLabel="0 sec"}
-  else if(secs<60){timeLabel=`${secs} sec`}
-  else{let m=Math.floor(secs/60),s=secs%60;timeLabel=s>0?`${m} min ${s} sec`:`${m} min`}
-  let setStr=`${kg}Kg x ${reps} x ${timeLabel}`;
-  liveSetResults.push(setStr);
-  let name=document.getElementById("liveWorkoutNameInput").value.trim();
-  let uid=localStorage.getItem("user_uuid")||localStorage.getItem("user_id");
-  let td=document.getElementById("workoutCalendarFilter").value;
+  let timeLabel=secs===0?"0 sec":secs<60?`${secs} sec`:secs%60>0?`${Math.floor(secs/60)} min ${secs%60} sec`:`${Math.floor(secs/60)} min`;
+  let setStr=`${kg}Kg x ${reps} x ${timeLabel}`;liveSetResults.push(setStr);
+  let name=document.getElementById("liveWorkoutNameInput").value.trim(),uid=localStorage.getItem("user_uuid")||localStorage.getItem("user_id"),td=document.getElementById("workoutCalendarFilter").value;
   let combinedEntry=`${name}: ${liveSetResults.join(", ")}`;
   const{data:er}=await db.from("workouts").select("*").eq("user_id",uid).eq("date",td).maybeSingle();
   let p={};
-  if(liveSessionSlot){
-    p[liveSessionSlot]=combinedEntry;
-    await db.from("workouts").update(p).eq("user_id",uid).eq("date",td);
-  } else if(er){
-    let slot=null;
-    for(let i=1;i<=15;i++){if(!er[`workout_${i}`]){slot=`workout_${i}`;break}}
-    if(!slot){alert("Daily capacity of 15 entries reached.");return}
-    liveSessionSlot=slot;p[slot]=combinedEntry;
-    await db.from("workouts").update(p).eq("user_id",uid).eq("date",td);
-  } else {
-    liveSessionSlot="workout_1";
-    p={user_id:uid,date:td,workout_1:combinedEntry};
-    await db.from("workouts").insert([p]);
-  }
+  if(liveSessionSlot){p[liveSessionSlot]=combinedEntry;await db.from("workouts").update(p).eq("user_id",uid).eq("date",td)}
+  else if(er){let slot=null;for(let i=1;i<=15;i++){if(!er[`workout_${i}`]){slot=`workout_${i}`;break}}if(!slot){alert("Daily capacity of 15 entries reached.");return}liveSessionSlot=slot;p[slot]=combinedEntry;await db.from("workouts").update(p).eq("user_id",uid).eq("date",td)}
+  else{liveSessionSlot="workout_1";p={user_id:uid,date:td,workout_1:combinedEntry};await db.from("workouts").insert([p])}
   document.getElementById(`liveSetSaveBtn_${idx}`).style.display="none";
   document.getElementById(`liveTimerRow_${idx}`).style.display="none";
   document.getElementById(`liveSetInputs_${idx}`).style.pointerEvents="none";
   document.getElementById(`liveSetInputs_${idx}`).style.opacity="0.6";
-  let resultEl=document.getElementById(`liveSetResult_${idx}`);
-  resultEl.textContent=`✓ ${setStr}`;resultEl.style.display="block";
+  let resultEl=document.getElementById(`liveSetResult_${idx}`);resultEl.textContent=`✓ ${setStr}`;resultEl.style.display="block";
   document.getElementById(`liveSetDoneBadge_${idx}`).style.display="inline-block";
   document.getElementById(`liveSetBlock_${idx}`).classList.remove("set-active");
   document.getElementById(`liveSetBlock_${idx}`).classList.add("set-done");
-  if(idx<liveTotalSets){document.getElementById(`liveBreakRow_${idx}`).style.display="block"}
-  else{finishLiveSession(name)}
+  if(idx<liveTotalSets){document.getElementById(`liveBreakRow_${idx}`).style.display="block"}else{finishLiveSession(name)}
   await loadWorkoutsForDate();await syncCoreDashboardMetrics();
 }
-
 function skipLiveBreak(idx){document.getElementById(`liveBreakRow_${idx}`).style.display="none";activateNextLiveSet(idx+1)}
-
 function startLiveBreak(idx){
   let mins=parseInt(document.getElementById(`liveBreakMin_${idx}`).value)||0;
   if(mins<1){alert("Enter break time in minutes (minimum 1).");return}
-  let totalSecs=mins*60;
-  let timerEl=document.getElementById(`liveBreakTimer_${idx}`);
-  let msgEl=document.getElementById(`liveBreakMsg_${idx}`);
+  let totalSecs=mins*60,timerEl=document.getElementById(`liveBreakTimer_${idx}`),msgEl=document.getElementById(`liveBreakMsg_${idx}`);
   timerEl.style.display="block";msgEl.style.display="none";
-  let startBtn=document.querySelector(`#liveBreakRow_${idx} .live-break-btn.start`);
-  let skipBtn=document.querySelectorAll(`#liveBreakRow_${idx} .live-break-btn`)[1];
+  let startBtn=document.querySelector(`#liveBreakRow_${idx} .live-break-btn.start`),skipBtn=document.querySelectorAll(`#liveBreakRow_${idx} .live-break-btn`)[1];
   if(startBtn){startBtn.disabled=true;startBtn.style.opacity="0.5"}
   if(skipBtn){skipBtn.disabled=true;skipBtn.style.opacity="0.5"}
   liveBreakSeconds[idx]=0;
   liveBreakTimers[idx]=setInterval(()=>{
-    liveBreakSeconds[idx]++;
-    let rem=totalSecs-liveBreakSeconds[idx];
+    liveBreakSeconds[idx]++;let rem=totalSecs-liveBreakSeconds[idx];
     if(rem<=0){
       clearInterval(liveBreakTimers[idx]);delete liveBreakTimers[idx];
-      timerEl.textContent="00:00";
-      msgEl.textContent="🔔 Break over! Time to crush the next set!";
-      msgEl.style.display="block";timerEl.style.display="none";
-      playBreakAlertSound();
-      setTimeout(()=>{
-        document.getElementById(`liveBreakRow_${idx}`).style.display="none";
-        activateNextLiveSet(idx+1);
-      },1500);
-      return;
+      timerEl.textContent="00:00";msgEl.textContent="🔔 Break over! Time to crush the next set!";
+      msgEl.style.display="block";timerEl.style.display="none";playBreakAlertSound();
+      setTimeout(()=>{document.getElementById(`liveBreakRow_${idx}`).style.display="none";activateNextLiveSet(idx+1)},1500);return;
     }
-    let m=Math.floor(rem/60),s=rem%60;
-    timerEl.textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+    let m=Math.floor(rem/60),s=rem%60;timerEl.textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
   },1000);
 }
-
 function playBreakAlertSound(){
   try{
     const ctx=new(window.AudioContext||window.webkitAudioContext)();
     [0,0.25,0.5].forEach(delay=>{
-      const osc=ctx.createOscillator();const gain=ctx.createGain();
+      const osc=ctx.createOscillator(),gain=ctx.createGain();
       osc.connect(gain);gain.connect(ctx.destination);
       osc.type='triangle';osc.frequency.setValueAtTime(880,ctx.currentTime+delay);
       gain.gain.setValueAtTime(0.4,ctx.currentTime+delay);
@@ -1812,7 +1714,6 @@ function playBreakAlertSound(){
     });
   }catch(e){}
 }
-
 function activateNextLiveSet(idx){
   if(idx>liveTotalSets)return;
   const block=document.getElementById(`liveSetBlock_${idx}`);if(!block)return;
@@ -1822,7 +1723,6 @@ function activateNextLiveSet(idx){
   document.getElementById(`liveTimerRow_${idx}`).style.display="flex";
   block.scrollIntoView({behavior:"smooth",block:"center"});
 }
-
 function finishLiveSession(name){
   const container=document.getElementById("liveSetsContainer");
   let doneMsg=document.createElement("div");
@@ -1832,10 +1732,8 @@ function finishLiveSession(name){
   container.appendChild(doneMsg);
   let closeBtn=document.createElement("button");
   closeBtn.className="btn";closeBtn.style.cssText="margin-top:12px;background:linear-gradient(135deg,#64748b,#475569)";
-  closeBtn.textContent="DONE";closeBtn.onclick=cancelLiveWorkout;
-  container.appendChild(closeBtn);
+  closeBtn.textContent="DONE";closeBtn.onclick=cancelLiveWorkout;container.appendChild(closeBtn);
 }
-
 async function loadWorkoutsForDate(){
   let uid=localStorage.getItem("user_id"),date=document.getElementById("workoutCalendarFilter").value;
   let con=document.getElementById("savedWorkoutLogsContainer");
@@ -1854,7 +1752,6 @@ async function loadWorkoutsForDate(){
   });
   con.innerHTML=html||`<p style="font-size:13px;color:var(--text-muted);text-align:center;padding:10px;font-family:var(--font-alt)">No entries for this date.</p>`;
 }
-
 function toggleCardSelectionState(el,ci,rv){let a=el.classList.contains("selected-active");document.querySelectorAll(".workout-log-card").forEach(c=>c.classList.remove("selected-active"));if(!a)el.classList.add("selected-active")}
 function initiateWorkoutEdit(e,ci,rv){
   e.stopPropagation();currentEditingIndex=ci;
@@ -1912,36 +1809,27 @@ function populateFeedGrid(){
 
 <!-- ===================== WORKOUT TRACKER ENGINE ===================== -->
 <script>
-let trackerAllData=[];
-let trackerSortedList=[];
-let trackerCurrentPage=1;
+let trackerAllData=[],trackerSortedList=[],trackerCurrentPage=1;
 const TRACKER_PAGE_SIZE=5;
 let trackerAnalyticsChartInstance=null;
-
 function formatTrackerDate(dateStr){
-  const d=new Date(dateStr+'T00:00:00');
-  const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const d=new Date(dateStr+'T00:00:00'),months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   return `${months[d.getMonth()]} ${String(d.getDate()).padStart(2,'0')}/${d.getFullYear()}`;
 }
 function parseSetVolume(setStr){
   const m=setStr.trim().match(/^([\d.]+)\s*[Kk][Gg]?\s*x\s*(\d+)/);
-  if(!m)return 0;
-  return parseFloat(m[1])*(parseInt(m[2])||0);
+  if(!m)return 0;return parseFloat(m[1])*(parseInt(m[2])||0);
 }
 function formatSetDisplay(setStr){
   const s=setStr.trim();
   const full=s.match(/^([\d.]+)\s*[Kk][Gg]?\s*x\s*(\d+)\s*x\s*(.+)$/);
   if(full)return `${full[1]}kgs x ${full[2]} [${full[3].trim()}]`;
   const basic=s.match(/^([\d.]+)\s*[Kk][Gg]?\s*x\s*(\d+)/);
-  if(basic)return `${basic[1]}kgs x ${basic[2]}`;
-  return s;
+  if(basic)return `${basic[1]}kgs x ${basic[2]}`;return s;
 }
-
 async function runWorkoutTracker(){
-  const uid=localStorage.getItem("user_id");
-  if(!uid){alert("Please log in first.");return}
-  const fromDate=document.getElementById("trackerFromDate").value;
-  const toDate=document.getElementById("trackerToDate").value;
+  const uid=localStorage.getItem("user_id");if(!uid){alert("Please log in first.");return}
+  const fromDate=document.getElementById("trackerFromDate").value,toDate=document.getElementById("trackerToDate").value;
   if(!fromDate||!toDate){alert("Please select both From and To dates.");return}
   if(fromDate>toDate){alert("From Date must be before or equal to To Date.");return}
   const area=document.getElementById("trackerResultsArea");
@@ -1954,8 +1842,7 @@ async function runWorkoutTracker(){
   data.forEach(row=>{
     const rowDate=row.date;
     for(let ci=1;ci<=15;ci++){
-      const cell=row[`workout_${ci}`];
-      if(!cell||!cell.trim())continue;
+      const cell=row[`workout_${ci}`];if(!cell||!cell.trim())continue;
       let exName='Unknown',setsRaw=[];
       if(cell.includes(':')){const ci2=cell.indexOf(':');exName=cell.substring(0,ci2).trim();setsRaw=cell.substring(ci2+1).split(',').map(s=>s.trim()).filter(Boolean)}
       else{exName=cell.trim()}
@@ -1971,13 +1858,10 @@ async function runWorkoutTracker(){
   }));
   trackerAllData=exerciseMap;trackerCurrentPage=1;renderTrackerTable();
 }
-
 function renderTrackerTable(){
   const area=document.getElementById("trackerResultsArea");
   if(!trackerSortedList.length){area.innerHTML=`<div class="tracker-empty">No exercises found.</div>`;return}
-  const totalPages=Math.ceil(trackerSortedList.length/TRACKER_PAGE_SIZE);
-  const start=(trackerCurrentPage-1)*TRACKER_PAGE_SIZE;
-  const pageItems=trackerSortedList.slice(start,start+TRACKER_PAGE_SIZE);
+  const totalPages=Math.ceil(trackerSortedList.length/TRACKER_PAGE_SIZE),start=(trackerCurrentPage-1)*TRACKER_PAGE_SIZE,pageItems=trackerSortedList.slice(start,start+TRACKER_PAGE_SIZE);
   let rowsHtml=pageItems.map(item=>{
     const lowestHtml=item.lowestSet?`<span class="tracker-vol-date">${formatTrackerDate(item.lowestSet.date)}</span><span class="tracker-vol-raw">{${formatSetDisplay(item.lowestSet.raw)}}</span>`:`<span style="color:var(--text-muted);font-size:11px;font-family:var(--font-alt)">—</span>`;
     const highestHtml=item.highestSet?`<span class="tracker-vol-date">${formatTrackerDate(item.highestSet.date)}</span><span class="tracker-vol-raw">{${formatSetDisplay(item.highestSet.raw)}}</span>`:`<span style="color:var(--text-muted);font-size:11px;font-family:var(--font-alt)">—</span>`;
@@ -1994,53 +1878,1012 @@ function renderTrackerTable(){
   const totalItems=trackerSortedList.length;
   area.innerHTML=`<div style="margin-bottom:10px;font-size:12px;color:var(--text-muted);font-family:var(--font-alt);letter-spacing:0.3px">Showing ${start+1}–${Math.min(start+TRACKER_PAGE_SIZE,totalItems)} of ${totalItems} exercises</div><div class="tracker-table-wrapper"><table class="tracker-table"><thead><tr><th>S.No</th><th>Workout Name</th><th>Frequency</th><th>Lowest Volume Set</th><th>Highest Volume Set</th><th>Actions</th></tr></thead><tbody>${rowsHtml}</tbody></table></div>${paginationHtml}`;
 }
-
 function goTrackerPage(page){trackerCurrentPage=page;renderTrackerTable();document.getElementById("workoutTrackerSection").scrollIntoView({behavior:"smooth",block:"start"})}
-
 function showTrackerAnalytics(exName){
   const decoded=exName.replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&#039;/g,"'");
   const exData=trackerAllData[decoded];
   if(!exData||!exData.sets.length){alert("No set data available for this exercise.");return}
   const dateMap={};
-  exData.sets.forEach(s=>{
-    if(!dateMap[s.date])dateMap[s.date]={totalVol:0,bestVol:0,bestRaw:''};
-    dateMap[s.date].totalVol+=s.vol;
-    if(s.vol>dateMap[s.date].bestVol){dateMap[s.date].bestVol=s.vol;dateMap[s.date].bestRaw=s.raw}
-  });
-  const sortedDates=Object.keys(dateMap).sort();
-  const labels=sortedDates.map(d=>formatTrackerDate(d));
-  const volumes=sortedDates.map(d=>dateMap[d].totalVol);
-  const tooltipLabels=sortedDates.map(d=>formatSetDisplay(dateMap[d].bestRaw)||'—');
-  const panel=document.getElementById("trackerAnalyticsPanel");
-  panel.classList.add("visible");
+  exData.sets.forEach(s=>{if(!dateMap[s.date])dateMap[s.date]={totalVol:0,bestVol:0,bestRaw:''};dateMap[s.date].totalVol+=s.vol;if(s.vol>dateMap[s.date].bestVol){dateMap[s.date].bestVol=s.vol;dateMap[s.date].bestRaw=s.raw}});
+  const sortedDates=Object.keys(dateMap).sort(),labels=sortedDates.map(d=>formatTrackerDate(d)),volumes=sortedDates.map(d=>dateMap[d].totalVol),tooltipLabels=sortedDates.map(d=>formatSetDisplay(dateMap[d].bestRaw)||'—');
+  const panel=document.getElementById("trackerAnalyticsPanel");panel.classList.add("visible");
   document.getElementById("trackerAnalyticsTitle").textContent=`📊 ${decoded} — Volume Journey`;
   document.getElementById("trackerAnalyticsSubtitle").textContent=`Total volume (kg × reps) per session across ${sortedDates.length} training day${sortedDates.length!==1?'s':''}`;
   if(trackerAnalyticsChartInstance){trackerAnalyticsChartInstance.destroy();trackerAnalyticsChartInstance=null}
   const ctx=document.getElementById("trackerAnalyticsChart").getContext("2d");
-  const isGod=document.body.classList.contains("theme-godmode");
-  const isBat=document.body.classList.contains("theme-batman");
-  const lineColor=isGod?"#ff2200":isBat?"#ffcc00":"#2563eb";
-  const pointColor=isGod?"#ff6600":isBat?"#ffe066":"#1d4ed8";
-  const fillColor=isGod?"rgba(255,34,0,0.12)":isBat?"rgba(255,204,0,0.1)":"rgba(37,99,235,0.1)";
+  const isGod=document.body.classList.contains("theme-godmode"),isBat=document.body.classList.contains("theme-batman");
+  const lineColor=isGod?"#ff2200":isBat?"#ffcc00":"#2563eb",pointColor=isGod?"#ff6600":isBat?"#ffe066":"#1d4ed8",fillColor=isGod?"rgba(255,34,0,0.12)":isBat?"rgba(255,204,0,0.1)":"rgba(37,99,235,0.1)";
   trackerAnalyticsChartInstance=new Chart(ctx,{
     type:'line',data:{labels,datasets:[{label:'Volume (kg × reps)',data:volumes,borderColor:lineColor,backgroundColor:fillColor,pointBackgroundColor:pointColor,pointBorderColor:'#fff',pointBorderWidth:2,pointRadius:6,pointHoverRadius:9,borderWidth:2.5,fill:true,tension:0.35,_tooltipLabels:tooltipLabels}]},
-    options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{display:false},tooltip:{backgroundColor:'rgba(15,23,42,0.92)',titleFont:{family:'Rajdhani',size:13,weight:'bold'},bodyFont:{family:'Rajdhani',size:12},padding:12,cornerRadius:10,callbacks:{title(items){return labels[items[0].dataIndex]},label(item){const vol=item.raw;const raw=item.dataset._tooltipLabels[item.dataIndex];return[`Total Volume: ${vol} kg`,`Best Set: ${raw}`]}}}},scales:{y:{beginAtZero:true,grid:{color:'rgba(128,128,128,0.08)'},ticks:{color:'#6b7280',font:{family:'Rajdhani',size:12},callback(v){return v+'kg'}},title:{display:true,text:'Volume (kg × reps)',color:'#6b7280',font:{family:'Rajdhani',size:11}}},x:{grid:{display:false},ticks:{color:'#6b7280',font:{family:'Rajdhani',size:11},maxRotation:35}}}}
+    options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{display:false},tooltip:{backgroundColor:'rgba(15,23,42,0.92)',titleFont:{family:'Rajdhani',size:13,weight:'bold'},bodyFont:{family:'Rajdhani',size:12},padding:12,cornerRadius:10,callbacks:{title(items){return labels[items[0].dataIndex]},label(item){const vol=item.raw,raw=item.dataset._tooltipLabels[item.dataIndex];return[`Total Volume: ${vol} kg`,`Best Set: ${raw}`]}}}},scales:{y:{beginAtZero:true,grid:{color:'rgba(128,128,128,0.08)'},ticks:{color:'#6b7280',font:{family:'Rajdhani',size:12},callback(v){return v+'kg'}},title:{display:true,text:'Volume (kg × reps)',color:'#6b7280',font:{family:'Rajdhani',size:11}}},x:{grid:{display:false},ticks:{color:'#6b7280',font:{family:'Rajdhani',size:11},maxRotation:35}}}}
   });
   panel.scrollIntoView({behavior:"smooth",block:"start"});
 }
-
 function closeTrackerAnalytics(){
-  const panel=document.getElementById("trackerAnalyticsPanel");
-  panel.classList.remove("visible");
+  const panel=document.getElementById("trackerAnalyticsPanel");panel.classList.remove("visible");
   if(trackerAnalyticsChartInstance){trackerAnalyticsChartInstance.destroy();trackerAnalyticsChartInstance=null}
 }
-
 (function initTrackerDates(){
-  const now=new Date();
-  const y=now.getFullYear(),m=String(now.getMonth()+1).padStart(2,'0');
+  const now=new Date(),y=now.getFullYear(),m=String(now.getMonth()+1).padStart(2,'0');
   document.getElementById("trackerFromDate").value=`${y}-${m}-01`;
   document.getElementById("trackerToDate").value=now.toISOString().split('T')[0];
 })();
+</script>
+
+<!-- ===================== LEARN PAGE ENGINE ===================== -->
+<script>
+/* ===================== LEARN DATABASE ===================== */
+const LEARN_DB = {
+  "Bench Press": {
+    class: "Chest",
+    gifEmoji: "🏋",
+    gifLabel: "Bench Press Animation",
+    youtubeUrl: "https://www.youtube.com/watch?v=rT7DgCr-3pg",
+    youtubeLabel: "Bench Press — Perfect Form Tutorial",
+    steps: [
+      "Lie flat on the bench with your eyes directly under the bar.",
+      "Plant your feet firmly on the floor and maintain a natural arch in your lower back.",
+      "Grip the bar slightly wider than shoulder width with a full thumbs-around grip.",
+      "Unrack the bar and position it over your chest with arms fully extended.",
+      "Lower the bar slowly and under control to your mid-chest.",
+      "Press the bar back up in a slight arc until arms are fully extended.",
+      "Repeat for the desired number of reps with full control throughout."
+    ],
+    mistakes: [
+      "Bouncing the bar off the chest instead of controlled lowering",
+      "Flaring elbows out at 90° — keep them at 45–75° from your torso",
+      "Lifting hips off the bench during the press",
+      "Using too much weight with incomplete range of motion",
+      "Not retracting and depressing the shoulder blades before pressing"
+    ],
+    primaryMuscle: "Chest (Pectoralis Major)",
+    secondaryMuscles: ["Triceps", "Front Deltoids", "Serratus Anterior"]
+  },
+  "Incline Bench Press": {
+    class: "Chest",
+    gifEmoji: "📐",
+    gifLabel: "Incline Bench Press Animation",
+    youtubeUrl: "https://www.youtube.com/watch?v=DbFgADa2PL8",
+    youtubeLabel: "Incline Bench Press — Full Tutorial",
+    steps: [
+      "Set the bench to a 30–45 degree incline.",
+      "Lie back and grip the bar slightly wider than shoulder width.",
+      "Retract your shoulder blades and plant your feet on the floor.",
+      "Unrack the bar and hold it above your upper chest.",
+      "Lower the bar slowly to your upper chest (collarbone area).",
+      "Press back up powerfully until arms are fully extended.",
+      "Control the descent on every rep."
+    ],
+    mistakes: [
+      "Setting the incline too steep — keep it 30–45 degrees",
+      "Letting the bar drift too far down toward the lower chest",
+      "Flaring the elbows too wide",
+      "Not keeping the upper back tight against the bench",
+      "Using excessive arch that turns it into a flat press"
+    ],
+    primaryMuscle: "Upper Chest (Clavicular Head)",
+    secondaryMuscles: ["Front Deltoids", "Triceps"]
+  },
+  "Decline Bench Press": {
+    class: "Chest",
+    gifEmoji: "📉",
+    gifLabel: "Decline Bench Press Animation",
+    youtubeUrl: "https://www.youtube.com/watch?v=LfyQBUKR8SE",
+    youtubeLabel: "Decline Bench Press Tutorial",
+    steps: [
+      "Set the bench to a 15–30 degree decline.",
+      "Hook your feet under the padded rollers for stability.",
+      "Grip the bar slightly wider than shoulder width.",
+      "Unrack the bar and hold it over your lower chest.",
+      "Lower the bar to your lower pec line in a controlled manner.",
+      "Press back up explosively until arms are extended.",
+      "Re-rack safely with a spotter if possible."
+    ],
+    mistakes: [
+      "Going too steep on the decline angle",
+      "Lowering the bar to the wrong chest zone",
+      "Not using a spotter when going heavy",
+      "Rushing reps without controlling the eccentric",
+      "Gripping the bar too narrow"
+    ],
+    primaryMuscle: "Lower Chest (Sternal Head)",
+    secondaryMuscles: ["Triceps", "Front Deltoids"]
+  },
+  "Cable Fly": {
+    class: "Chest",
+    gifEmoji: "🔄",
+    gifLabel: "Cable Fly Animation",
+    youtubeUrl: "https://www.youtube.com/watch?v=Iwe6AmxVf7o",
+    youtubeLabel: "Cable Fly — Proper Form & Technique",
+    steps: [
+      "Set both cable pulleys to chest height on each side.",
+      "Stand in the center and grab a handle in each hand.",
+      "Step slightly forward into a split stance for balance.",
+      "Bring your hands out to your sides with a slight bend in the elbows.",
+      "Arc your arms forward and inward until your hands meet at chest level.",
+      "Squeeze your chest hard at the peak contraction point.",
+      "Slowly return to the starting position maintaining the arc."
+    ],
+    mistakes: [
+      "Straightening arms fully — always keep a slight bend",
+      "Pulling with the arms instead of driving with the chest",
+      "Using too much weight causing poor range of motion",
+      "Not getting a full stretch at the start position",
+      "Rounding the back or leaning too far forward"
+    ],
+    primaryMuscle: "Chest (Pectoralis Major)",
+    secondaryMuscles: ["Front Deltoids", "Biceps (stabilizer)"]
+  },
+  "Dumbbell Fly": {
+    class: "Chest",
+    gifEmoji: "🦅",
+    gifLabel: "Dumbbell Fly Animation",
+    youtubeUrl: "https://www.youtube.com/watch?v=eozdVDA78K0",
+    youtubeLabel: "Dumbbell Fly — Perfect Form Guide",
+    steps: [
+      "Lie on a flat bench holding a dumbbell in each hand.",
+      "Press the dumbbells up above your chest with palms facing each other.",
+      "Slightly bend your elbows and keep them in that position throughout.",
+      "Lower the dumbbells out to your sides in a wide arc.",
+      "Feel a deep stretch in your chest at the bottom.",
+      "Drive the dumbbells back up along the same arc.",
+      "Squeeze your chest at the top of the movement."
+    ],
+    mistakes: [
+      "Going too heavy and turning it into a press",
+      "Locking out the elbows — always keep a slight bend",
+      "Lowering too fast and losing control",
+      "Not achieving a full stretch at the bottom",
+      "Letting the arms drift behind the shoulder plane"
+    ],
+    primaryMuscle: "Chest (Pectoralis Major)",
+    secondaryMuscles: ["Front Deltoids", "Biceps (minor)"]
+  },
+  "Push Up": {
+    class: "Chest",
+    gifEmoji: "⬇",
+    gifLabel: "Push Up Animation",
+    youtubeUrl: "https://www.youtube.com/watch?v=IODxDxX7oi4",
+    youtubeLabel: "Perfect Push Up Form Tutorial",
+    steps: [
+      "Start in a high plank position with hands slightly wider than shoulder width.",
+      "Keep your body in a straight line from head to heels.",
+      "Engage your core and glutes throughout the movement.",
+      "Lower your chest toward the floor by bending your elbows.",
+      "Keep your elbows at about 45 degrees from your torso.",
+      "Press back up powerfully until arms are fully extended.",
+      "Maintain rigid body alignment on every rep."
+    ],
+    mistakes: [
+      "Sagging hips or piking the hips up in the air",
+      "Flaring the elbows out at 90 degrees",
+      "Not achieving full range of motion",
+      "Looking up and straining the neck",
+      "Holding the breath — breathe out on the way up"
+    ],
+    primaryMuscle: "Chest (Pectoralis Major)",
+    secondaryMuscles: ["Triceps", "Front Deltoids", "Core"]
+  },
+  "Machine Press": {
+    class: "Chest",
+    gifEmoji: "🔩",
+    gifLabel: "Machine Chest Press Animation",
+    youtubeUrl: "https://www.youtube.com/watch?v=xUm0BiZCWlQ",
+    youtubeLabel: "Chest Press Machine — Full Tutorial",
+    steps: [
+      "Adjust the seat so handles are at chest height.",
+      "Sit upright and plant your feet flat on the floor.",
+      "Grip the handles with palms facing forward.",
+      "Retract your shoulder blades and press your back into the pad.",
+      "Push the handles forward until arms are nearly extended.",
+      "Slowly return to the starting position controlling the weight.",
+      "Keep your chest up and avoid rounding your back."
+    ],
+    mistakes: [
+      "Seat height too high — strains the shoulders",
+      "Letting the weight stack touch at the bottom — maintain tension",
+      "Flaring elbows too wide",
+      "Arching the lower back off the pad excessively",
+      "Rushing through reps without controlling the return"
+    ],
+    primaryMuscle: "Chest (Pectoralis Major)",
+    secondaryMuscles: ["Triceps", "Front Deltoids"]
+  },
+  "Chest Dips": {
+    class: "Chest",
+    gifEmoji: "🤸",
+    gifLabel: "Chest Dips Animation",
+    youtubeUrl: "https://www.youtube.com/watch?v=2z8JmcrW-As",
+    youtubeLabel: "Chest Dips — Proper Form Guide",
+    steps: [
+      "Grip parallel bars and press up to starting position with arms extended.",
+      "Lean your torso forward at about 30 degrees — this shifts emphasis to the chest.",
+      "Lower yourself by bending your elbows, flaring them slightly outward.",
+      "Descend until you feel a good stretch in your pecs.",
+      "Drive back up powerfully to the starting position.",
+      "Do not fully lock out the elbows at the top to maintain tension.",
+      "Control the movement throughout — avoid swinging."
+    ],
+    mistakes: [
+      "Staying too upright — this makes it a triceps dip, not chest",
+      "Flaring elbows out too wide — strains the shoulders",
+      "Not leaning forward enough to target the chest",
+      "Going too fast without controlling the descent",
+      "Lowering past the point of shoulder comfort"
+    ],
+    primaryMuscle: "Lower Chest (Sternal Head)",
+    secondaryMuscles: ["Triceps", "Front Deltoids"]
+  },
+  "Bicep Curl": {
+    class: "Biceps",
+    gifEmoji: "💪",
+    gifLabel: "Bicep Curl Animation",
+    youtubeUrl: "https://www.youtube.com/watch?v=ykJmrZ5v0Oo",
+    youtubeLabel: "Bicep Curl — Perfect Form Tutorial",
+    steps: [
+      "Stand upright holding a dumbbell in each hand at arm's length.",
+      "Keep your elbows close to your torso with palms facing forward.",
+      "Curl the weights upward while contracting your biceps.",
+      "Continue curling until your forearms are vertical and biceps are fully contracted.",
+      "Hold the top position for a beat and squeeze your biceps hard.",
+      "Slowly lower the weights back to the starting position.",
+      "Avoid swinging the body — all movement should come from the forearms."
+    ],
+    mistakes: [
+      "Swinging the torso to generate momentum",
+      "Letting the elbows drift forward during the curl",
+      "Not achieving full range of motion at the bottom",
+      "Rushing the descent — control the negative for more gains",
+      "Using too heavy a weight that compromises form"
+    ],
+    primaryMuscle: "Biceps (Biceps Brachii)",
+    secondaryMuscles: ["Brachialis", "Brachioradialis", "Forearms"]
+  },
+  "Hammer Curl": {
+    class: "Biceps",
+    gifEmoji: "🔨",
+    gifLabel: "Hammer Curl Animation",
+    youtubeUrl: "https://www.youtube.com/watch?v=zC3nLlEvin4",
+    youtubeLabel: "Hammer Curl — Proper Form & Benefits",
+    steps: [
+      "Stand holding dumbbells at your sides with palms facing your thighs (neutral grip).",
+      "Keep your elbows pinned close to your torso throughout.",
+      "Curl one or both dumbbells upward keeping the neutral wrist position.",
+      "Continue curling until your forearm is vertical.",
+      "Squeeze at the top for a full contraction.",
+      "Lower slowly back to the starting position.",
+      "Can be done alternating arms or both simultaneously."
+    ],
+    mistakes: [
+      "Rotating the wrist during the curl — keep it neutral",
+      "Swinging the arms to use momentum",
+      "Letting the elbow swing forward away from the body",
+      "Dropping the weight too fast on the lowering phase",
+      "Too narrow a range of motion"
+    ],
+    primaryMuscle: "Brachialis",
+    secondaryMuscles: ["Biceps Brachii", "Brachioradialis", "Forearms"]
+  },
+  "Cable Curl": {
+    class: "Biceps",
+    gifEmoji: "🔗",
+    gifLabel: "Cable Curl Animation",
+    youtubeUrl: "https://www.youtube.com/watch?v=NFzTWp2qpiE",
+    youtubeLabel: "Cable Bicep Curl — Form Guide",
+    steps: [
+      "Attach a straight or EZ-curl bar to the low pulley of a cable machine.",
+      "Stand close to the machine and grasp the bar with an underhand grip.",
+      "Keep your elbows close to your sides and start with arms extended.",
+      "Curl the bar up toward your chin keeping your elbows stationary.",
+      "Squeeze the biceps hard at the top of the movement.",
+      "Slowly lower the bar back down under full control.",
+      "The constant cable tension keeps muscles under load throughout."
+    ],
+    mistakes: [
+      "Standing too far from the machine reducing the tension angle",
+      "Using too much body English and swinging the hips",
+      "Letting elbows flare out to the sides",
+      "Not fully extending at the bottom — lose the stretch benefit",
+      "Going too heavy and losing strict form"
+    ],
+    primaryMuscle: "Biceps (Biceps Brachii)",
+    secondaryMuscles: ["Brachialis", "Forearms"]
+  },
+  "Preacher Curl": {
+    class: "Biceps",
+    gifEmoji: "🙏",
+    gifLabel: "Preacher Curl Animation",
+    youtubeUrl: "https://www.youtube.com/watch?v=fIWP-FRFNU0",
+    youtubeLabel: "Preacher Curl — Perfect Technique",
+    steps: [
+      "Adjust the preacher bench so the armrest pad is at armpit height.",
+      "Grip an EZ-bar or dumbbells with an underhand grip.",
+      "Rest your upper arms flat on the angled pad.",
+      "Start with arms almost fully extended at the bottom.",
+      "Curl the weight upward until the forearms are vertical.",
+      "Squeeze the biceps at the peak contraction.",
+      "Lower slowly back to the starting position for a full stretch."
+    ],
+    mistakes: [
+      "Lifting the elbows off the pad during the curl",
+      "Not fully lowering to get the deep stretch at the bottom",
+      "Going too heavy causing poor range of motion",
+      "Jerking the weight at the start",
+      "Rushing — slow controlled reps work best here"
+    ],
+    primaryMuscle: "Biceps (lower/long head emphasis)",
+    secondaryMuscles: ["Brachialis", "Brachioradialis"]
+  },
+  "Concentration Curl": {
+    class: "Biceps",
+    gifEmoji: "🎯",
+    gifLabel: "Concentration Curl Animation",
+    youtubeUrl: "https://www.youtube.com/watch?v=0AUGkch3tzc",
+    youtubeLabel: "Concentration Curl — Perfect Form",
+    steps: [
+      "Sit on a bench with your legs spread and feet flat on the floor.",
+      "Hold a dumbbell in one hand and rest that elbow against your inner thigh.",
+      "Let the arm hang straight down in the starting position.",
+      "Curl the dumbbell up toward your shoulder.",
+      "Squeeze the bicep hard at the top.",
+      "Slowly lower back to the starting position.",
+      "Complete all reps on one side before switching."
+    ],
+    mistakes: [
+      "Moving the upper arm away from the thigh",
+      "Swinging or using body momentum",
+      "Incomplete range of motion at the top or bottom",
+      "Going too heavy and compromising the isolation",
+      "Not squeezing at the peak contraction"
+    ],
+    primaryMuscle: "Biceps (Biceps Brachii — peak focus)",
+    secondaryMuscles: ["Brachialis"]
+  },
+  "EZ Bar Curl": {
+    class: "Biceps",
+    gifEmoji: "〰",
+    gifLabel: "EZ Bar Curl Animation",
+    youtubeUrl: "https://www.youtube.com/watch?v=zG2i9tiwlXo",
+    youtubeLabel: "EZ Bar Curl — Technique & Tips",
+    steps: [
+      "Hold an EZ-bar with an underhand grip using the angled grip sections.",
+      "Stand upright with feet shoulder-width apart.",
+      "Let the bar hang at arm's length in front of your thighs.",
+      "Keep your elbows close to your torso throughout.",
+      "Curl the bar upward until your forearms are vertical.",
+      "Squeeze hard at the top and hold briefly.",
+      "Lower the bar slowly back to the starting position."
+    ],
+    mistakes: [
+      "Swinging the torso to generate momentum",
+      "Gripping the straight sections instead of the angled grip zones",
+      "Elbows drifting too far forward during the curl",
+      "Not fully lowering for the complete stretch",
+      "Using excessively heavy weight"
+    ],
+    primaryMuscle: "Biceps (Biceps Brachii)",
+    secondaryMuscles: ["Brachialis", "Forearms"]
+  },
+  "Tricep Pushdown": {
+    class: "Triceps",
+    gifEmoji: "⬇",
+    gifLabel: "Tricep Pushdown Animation",
+    youtubeUrl: "https://www.youtube.com/watch?v=2-LAMcpzODU",
+    youtubeLabel: "Tricep Pushdown — Form Guide",
+    steps: [
+      "Attach a straight bar or rope to the high cable pulley.",
+      "Stand facing the machine and grip the attachment with both hands.",
+      "Keep your elbows at your sides and slightly in front of your torso.",
+      "Start with forearms parallel to the floor.",
+      "Push the bar or rope downward until your arms are fully extended.",
+      "Squeeze your triceps hard at the bottom.",
+      "Slowly allow the weight to return to the starting position."
+    ],
+    mistakes: [
+      "Letting the elbows flare out or move forward during the movement",
+      "Using body weight to push the bar down instead of the triceps",
+      "Not fully extending the arms at the bottom",
+      "Going too heavy — limits the range of motion",
+      "Rushing through reps without controlling the return"
+    ],
+    primaryMuscle: "Triceps (all three heads)",
+    secondaryMuscles: ["Forearms (stabilizer)", "Anconeus"]
+  },
+  "Skull Crushers": {
+    class: "Triceps",
+    gifEmoji: "💀",
+    gifLabel: "Skull Crushers Animation",
+    youtubeUrl: "https://www.youtube.com/watch?v=d_KZxkY_0cM",
+    youtubeLabel: "Skull Crushers — Proper Form",
+    steps: [
+      "Lie flat on a bench holding an EZ-bar or dumbbells with an overhand grip.",
+      "Extend your arms directly above your chest — this is the start position.",
+      "Keep your upper arms vertical and stationary throughout.",
+      "Slowly lower the bar toward your forehead by bending only at the elbows.",
+      "Stop just before the bar reaches your forehead.",
+      "Extend your arms back to the start by contracting the triceps.",
+      "Keep the movement smooth and controlled at all times."
+    ],
+    mistakes: [
+      "Letting the upper arms drift back toward the head",
+      "Using too much weight that causes loss of control",
+      "Not keeping the upper arms locked vertical",
+      "Flaring the elbows outward during the lowering phase",
+      "Rushing the movement near your head — safety first"
+    ],
+    primaryMuscle: "Triceps (Long Head emphasis)",
+    secondaryMuscles: ["Medial Head", "Lateral Head"]
+  },
+  "Overhead Press": {
+    class: "Shoulders",
+    gifEmoji: "🏋",
+    gifLabel: "Overhead Press Animation",
+    youtubeUrl: "https://www.youtube.com/watch?v=2yjwXTZQDDI",
+    youtubeLabel: "Overhead Press — Perfect Form Tutorial",
+    steps: [
+      "Stand with feet shoulder-width apart holding a barbell at shoulder level.",
+      "Grip the bar slightly wider than shoulder width with an overhand grip.",
+      "Take a deep breath, brace your core and squeeze your glutes.",
+      "Press the bar directly overhead, tilting your head back slightly as it passes your face.",
+      "Extend your arms fully overhead with the bar over your heels.",
+      "Lock out at the top and hold briefly.",
+      "Lower the bar back to the front-rack position under control."
+    ],
+    mistakes: [
+      "Excessive lower back arch (hyperextension) under load",
+      "Pressing in front of the body instead of directly overhead",
+      "Not fully locking out the elbows at the top",
+      "Using leg drive when it's not intended (strict press)",
+      "Gripping too wide or too narrow"
+    ],
+    primaryMuscle: "Anterior Deltoids (Front Shoulders)",
+    secondaryMuscles: ["Medial Deltoids", "Triceps", "Upper Traps", "Core"]
+  },
+  "Lateral Raises": {
+    class: "Shoulders",
+    gifEmoji: "✈",
+    gifLabel: "Lateral Raises Animation",
+    youtubeUrl: "https://www.youtube.com/watch?v=3VcKaXpzqRo",
+    youtubeLabel: "Lateral Raises — Proper Form & Common Mistakes",
+    steps: [
+      "Stand holding light dumbbells at your sides with palms facing inward.",
+      "Keep a slight bend in your elbows throughout the movement.",
+      "Maintain an upright posture with a slight forward lean (10–15 degrees).",
+      "Raise both arms out to the sides until they reach shoulder height.",
+      "Lead with your elbows, not your hands.",
+      "Pause at the top and squeeze the lateral delts.",
+      "Lower slowly back to your sides over 2–3 seconds."
+    ],
+    mistakes: [
+      "Using too heavy a weight — this is an isolation movement",
+      "Raising arms above shoulder height — reduces delt tension",
+      "Shrugging the traps during the raise",
+      "Swinging the torso or using momentum",
+      "Tilting the dumbbells with pinky too high instead of leading with the elbows"
+    ],
+    primaryMuscle: "Medial Deltoids (Side Shoulders)",
+    secondaryMuscles: ["Anterior Deltoids", "Supraspinatus", "Traps (minor)"]
+  },
+  "Lat Pulldown": {
+    class: "Lats",
+    gifEmoji: "⬇",
+    gifLabel: "Lat Pulldown Animation",
+    youtubeUrl: "https://www.youtube.com/watch?v=CAwf7n6Luuc",
+    youtubeLabel: "Lat Pulldown — Perfect Form & Technique",
+    steps: [
+      "Sit at the lat pulldown machine and secure your thighs under the pad.",
+      "Grip the bar with an overhand grip wider than shoulder width.",
+      "Lean back slightly at about 10–15 degrees and keep your chest up.",
+      "Initiate the pull by depressing and retracting your shoulder blades.",
+      "Pull the bar down toward your upper chest in an arc.",
+      "Focus on driving your elbows down and back — not just pulling with your hands.",
+      "Slowly extend your arms back up under full control."
+    ],
+    mistakes: [
+      "Pulling behind the neck — serious neck and shoulder injury risk",
+      "Using too much momentum and swinging the torso",
+      "Not depressing the shoulder blades before pulling",
+      "Gripping too wide — reduces lat activation",
+      "Not achieving a full stretch at the top of each rep"
+    ],
+    primaryMuscle: "Latissimus Dorsi",
+    secondaryMuscles: ["Biceps", "Rear Deltoids", "Rhomboids", "Teres Major"]
+  },
+  "Barbell Row": {
+    class: "Lats",
+    gifEmoji: "🚣",
+    gifLabel: "Barbell Row Animation",
+    youtubeUrl: "https://www.youtube.com/watch?v=9efgcAjQe7E",
+    youtubeLabel: "Barbell Row — Full Form Guide",
+    steps: [
+      "Stand with feet shoulder-width apart and hinge at the hips to about 45–60 degrees.",
+      "Grip the barbell with an overhand grip slightly wider than shoulder width.",
+      "Keep your back flat, core braced, and maintain a neutral spine.",
+      "Let the bar hang at arm's length below your chest.",
+      "Row the bar toward your lower chest or upper abdomen.",
+      "Drive your elbows back and squeeze your shoulder blades together at the top.",
+      "Lower the bar under control back to the hanging position."
+    ],
+    mistakes: [
+      "Rounding the lower back — very common injury risk",
+      "Standing too upright — reduces lat engagement",
+      "Using too much body English and heaving the bar up",
+      "Not squeezing the scapulae at the top",
+      "Letting the bar drift away from the body path"
+    ],
+    primaryMuscle: "Latissimus Dorsi",
+    secondaryMuscles: ["Rhomboids", "Rear Deltoids", "Biceps", "Erector Spinae"]
+  },
+  "Deadlift": {
+    class: "Lats",
+    gifEmoji: "🏋",
+    gifLabel: "Deadlift Animation",
+    youtubeUrl: "https://www.youtube.com/watch?v=op9kVnSso6Q",
+    youtubeLabel: "Deadlift — Step-by-Step Form Tutorial",
+    steps: [
+      "Stand with the bar over your mid-foot, feet about hip-width apart.",
+      "Hinge at the hips and bend your knees to grip the bar just outside your legs.",
+      "Take a deep breath and brace your core hard (360-degree pressure).",
+      "Pull your shoulder blades back and down — squeeze the lats.",
+      "Drive through the floor with your legs while keeping the bar close to your body.",
+      "As the bar passes your knees, drive your hips forward to lockout.",
+      "Lower the bar by pushing the hips back first, then bending the knees."
+    ],
+    mistakes: [
+      "Rounding the lower back under load — highest injury risk",
+      "Bar drifting away from the body during the pull",
+      "Jerking the bar off the floor instead of applying steady tension",
+      "Hyperextending at the top lockout",
+      "Not bracing the core sufficiently before pulling"
+    ],
+    primaryMuscle: "Posterior Chain (Hamstrings, Glutes, Erectors)",
+    secondaryMuscles: ["Latissimus Dorsi", "Traps", "Forearms", "Core"]
+  },
+  "Squats": {
+    class: "Legs",
+    gifEmoji: "🏋",
+    gifLabel: "Squat Animation",
+    youtubeUrl: "https://www.youtube.com/watch?v=ultWZbUMPL8",
+    youtubeLabel: "Squat — Perfect Form Tutorial",
+    steps: [
+      "Position the bar on your upper traps (high bar) or rear delts (low bar).",
+      "Unrack the bar and step back to a comfortable width — typically hip to shoulder width.",
+      "Brace your core and take a deep breath before descending.",
+      "Begin the squat by pushing the knees out in the direction of your toes.",
+      "Descend until your thighs are at least parallel to the floor.",
+      "Drive back up through your heels while keeping your chest tall.",
+      "Finish at full extension with hips locked out."
+    ],
+    mistakes: [
+      "Knees caving inward during the squat or rise",
+      "Leaning too far forward — chest should stay as upright as possible",
+      "Rising onto the toes — keep heels grounded",
+      "Not reaching parallel depth",
+      "Relaxing at the bottom — maintain tension throughout"
+    ],
+    primaryMuscle: "Quadriceps",
+    secondaryMuscles: ["Glutes", "Hamstrings", "Core", "Erector Spinae"]
+  },
+  "Leg Press": {
+    class: "Legs",
+    gifEmoji: "🦵",
+    gifLabel: "Leg Press Animation",
+    youtubeUrl: "https://www.youtube.com/watch?v=IZxyjW7MPJQ",
+    youtubeLabel: "Leg Press — Form & Foot Placement Guide",
+    steps: [
+      "Sit in the leg press machine with your back and head against the pad.",
+      "Place your feet shoulder-width apart on the platform.",
+      "Disengage the safety handles and lower the platform.",
+      "Bend your knees until they reach approximately 90 degrees.",
+      "Press through your heels and the entire foot to extend your legs.",
+      "Do not fully lock out the knees at the top — keep tension on the quads.",
+      "Lower the platform back under control."
+    ],
+    mistakes: [
+      "Allowing the lower back to round off the pad at the bottom",
+      "Letting the knees cave inward during the press",
+      "Full knee lockout at the top — strains the joint",
+      "Placing feet too low — puts strain on the knees",
+      "Going too heavy with shallow range of motion"
+    ],
+    primaryMuscle: "Quadriceps",
+    secondaryMuscles: ["Glutes", "Hamstrings", "Calves (minor)"]
+  },
+  "Lunges": {
+    class: "Legs",
+    gifEmoji: "🚶",
+    gifLabel: "Lunges Animation",
+    youtubeUrl: "https://www.youtube.com/watch?v=QOVaHwm-Q6U",
+    youtubeLabel: "Lunges — Proper Form & Common Mistakes",
+    steps: [
+      "Stand tall with feet hip-width apart, hands on your hips or holding dumbbells.",
+      "Take a large step forward with your right foot.",
+      "Lower your body straight down until both knees form 90-degree angles.",
+      "Your rear knee should hover just above the floor.",
+      "Push through your front heel to return to the starting position.",
+      "Step forward with the opposite leg and repeat.",
+      "Keep your torso upright throughout — avoid leaning forward."
+    ],
+    mistakes: [
+      "Front knee traveling far past the toes",
+      "Leaning the torso forward instead of staying upright",
+      "Taking steps that are too short — causes knee stress",
+      "Not lowering deep enough for full glute and quad activation",
+      "Letting the rear knee slam the floor"
+    ],
+    primaryMuscle: "Quadriceps",
+    secondaryMuscles: ["Glutes", "Hamstrings", "Calves", "Core (balance)"]
+  },
+  "Leg Extension": {
+    class: "Legs",
+    gifEmoji: "🦿",
+    gifLabel: "Leg Extension Animation",
+    youtubeUrl: "https://www.youtube.com/watch?v=YyvSfVjQeL0",
+    youtubeLabel: "Leg Extension — Form & Tips",
+    steps: [
+      "Sit in the leg extension machine with your back against the pad.",
+      "Place your shins behind the roller pad just above the ankles.",
+      "Grip the handles on the sides for stability.",
+      "Exhale and extend your legs fully to contract the quadriceps.",
+      "Hold the top position for a 1-second squeeze.",
+      "Lower the weight slowly back to the starting position.",
+      "Avoid swinging or using momentum."
+    ],
+    mistakes: [
+      "Going too heavy — the knee joint is under a lot of stress here",
+      "Not controlling the lowering phase",
+      "Lifting your glutes off the seat to assist the movement",
+      "Not achieving full extension at the top",
+      "Performing too many sets which can irritate the patellar tendon"
+    ],
+    primaryMuscle: "Quadriceps (Rectus Femoris emphasis)",
+    secondaryMuscles: ["Vastus Lateralis", "Vastus Medialis"]
+  },
+  "Leg Curl": {
+    class: "Legs",
+    gifEmoji: "🦵",
+    gifLabel: "Leg Curl Animation",
+    youtubeUrl: "https://www.youtube.com/watch?v=1Tq3QdYUuHs",
+    youtubeLabel: "Lying Leg Curl — Proper Form",
+    steps: [
+      "Lie face down on the leg curl machine.",
+      "Position the pad just above your heels, not on the calf.",
+      "Grip the handles and press your hips lightly into the pad.",
+      "Curl your legs upward bringing your heels toward your glutes.",
+      "Squeeze your hamstrings hard at the top of the movement.",
+      "Lower the weight slowly under full control.",
+      "Avoid lifting your hips off the bench to assist the curl."
+    ],
+    mistakes: [
+      "Lifting the hips off the bench to use the lower back",
+      "Not achieving full range of motion",
+      "Letting the weight slam down at the bottom",
+      "Swinging the hips to generate momentum",
+      "Going too heavy with poor control"
+    ],
+    primaryMuscle: "Hamstrings (Biceps Femoris, Semimembranosus)",
+    secondaryMuscles: ["Gastrocnemius", "Glutes (minor)"]
+  },
+  "Hack Squat": {
+    class: "Legs",
+    gifEmoji: "🔧",
+    gifLabel: "Hack Squat Animation",
+    youtubeUrl: "https://www.youtube.com/watch?v=0tn5K9NlCfo",
+    youtubeLabel: "Hack Squat Machine — Form Guide",
+    steps: [
+      "Position yourself on the hack squat machine with your back against the pad.",
+      "Place your feet shoulder-width apart on the platform — toes slightly out.",
+      "Disengage the safety handles and lower the platform.",
+      "Descend by bending your knees until they reach 90 degrees or below.",
+      "Keep your lower back pressed against the pad throughout.",
+      "Push through your heels and quads to rise back up.",
+      "Re-engage the safety handles at the end of your set."
+    ],
+    mistakes: [
+      "Letting the lower back round off the pad",
+      "Knees caving inward during the movement",
+      "Cutting depth short — aim for at least 90 degrees",
+      "Too much weight causing form breakdown",
+      "Placing feet too low on the platform — strains the knees"
+    ],
+    primaryMuscle: "Quadriceps",
+    secondaryMuscles: ["Glutes", "Hamstrings", "Core"]
+  },
+  "Bulgarian Split Squat": {
+    class: "Legs",
+    gifEmoji: "🇧🇬",
+    gifLabel: "Bulgarian Split Squat Animation",
+    youtubeUrl: "https://www.youtube.com/watch?v=2C-uNgKwPLE",
+    youtubeLabel: "Bulgarian Split Squat — Full Tutorial",
+    steps: [
+      "Stand about 2 feet in front of a bench. Place your rear foot on the bench behind you.",
+      "Hold dumbbells at your sides or a barbell on your back.",
+      "Your front foot should be far enough out that the knee doesn't pass the toes excessively.",
+      "Lower your body straight down by bending the front knee.",
+      "Descend until your rear knee nearly touches the floor.",
+      "Drive through the heel of your front foot to rise back up.",
+      "Complete all reps on one side, then switch legs."
+    ],
+    mistakes: [
+      "Front foot too close to the bench — causes excessive forward knee travel",
+      "Letting the torso lean excessively forward",
+      "Not achieving full depth for maximum glute activation",
+      "Rushing the descent without control",
+      "Rear foot placement too awkward — adjust the bench height"
+    ],
+    primaryMuscle: "Quadriceps",
+    secondaryMuscles: ["Glutes", "Hamstrings", "Hip Flexors", "Core (balance)"]
+  },
+  "Hanging Leg Raises": {
+    class: "Abs",
+    gifEmoji: "🧗",
+    gifLabel: "Hanging Leg Raises Animation",
+    youtubeUrl: "https://www.youtube.com/watch?v=hdng3Nm1x_E",
+    youtubeLabel: "Hanging Leg Raises — Proper Form",
+    steps: [
+      "Hang from a pull-up bar with an overhand grip, arms fully extended.",
+      "Let your legs hang straight down in the starting position.",
+      "Brace your core and avoid swinging.",
+      "Raise your legs upward by flexing your hips and lower abs.",
+      "Continue raising until your legs are parallel to the floor or higher.",
+      "Pause at the top and squeeze the abs.",
+      "Lower your legs slowly back to the starting position."
+    ],
+    mistakes: [
+      "Swinging the body to use momentum",
+      "Not bracing the core — just using hip flexors",
+      "Bending the knees excessively on the way up",
+      "Dropping legs fast on the way down without control",
+      "Not achieving a full range of motion"
+    ],
+    primaryMuscle: "Lower Abdominals",
+    secondaryMuscles: ["Hip Flexors", "Rectus Abdominis", "Forearms (grip)"]
+  },
+  "Crunches": {
+    class: "Abs",
+    gifEmoji: "🥜",
+    gifLabel: "Crunches Animation",
+    youtubeUrl: "https://www.youtube.com/watch?v=Xyd_fa5zoEU",
+    youtubeLabel: "Crunches — Proper Form & Tips",
+    steps: [
+      "Lie flat on your back with knees bent and feet flat on the floor.",
+      "Place your hands lightly behind your head — do not interlock fingers.",
+      "Keep your chin slightly tucked toward your chest.",
+      "Contract your abs to lift your shoulders and upper back off the floor.",
+      "Lift only until your shoulder blades clear the ground — this is enough.",
+      "Hold the contraction at the top for 1 second.",
+      "Slowly lower back down without fully relaxing the abs."
+    ],
+    mistakes: [
+      "Pulling the neck with your hands — strains the cervical spine",
+      "Raising too high turning it into a sit-up",
+      "Not keeping tension throughout — don't let the back touch the floor between reps",
+      "Speeding through reps without squeezing",
+      "Using momentum instead of ab strength"
+    ],
+    primaryMuscle: "Rectus Abdominis (upper focus)",
+    secondaryMuscles: ["Obliques", "Hip Flexors (minor)"]
+  },
+  "Treadmill Sprint": {
+    class: "Cardio",
+    gifEmoji: "🏃",
+    gifLabel: "Treadmill Sprint Animation",
+    youtubeUrl: "https://www.youtube.com/watch?v=AxBpz2ULjmw",
+    youtubeLabel: "Treadmill Sprint HIIT — Full Guide",
+    steps: [
+      "Set the treadmill to a moderate speed and start with a 3–5 minute warm-up walk.",
+      "Gradually increase the speed to a fast jog, then sprint pace.",
+      "For HIIT: Sprint at maximum effort for 20–30 seconds.",
+      "Reduce to a walk or slow jog for 40–60 seconds of recovery.",
+      "Repeat the sprint-rest cycle for 8–12 rounds.",
+      "Maintain upright posture with forward lean from the ankles, not the waist.",
+      "Cool down with a 3–5 minute walk at the end."
+    ],
+    mistakes: [
+      "Holding onto the handrails — this reduces calorie burn significantly",
+      "Overstriding — land under your center of mass",
+      "Not warming up before high-intensity sprints",
+      "Setting the speed too fast before being conditioned for it",
+      "Skipping the cool-down — sudden stops spike heart rate"
+    ],
+    primaryMuscle: "Cardiovascular System",
+    secondaryMuscles: ["Quadriceps", "Hamstrings", "Calves", "Glutes", "Core"]
+  }
+};
+
+/* ===================== LEARN: EXERCISE LIST BY CLASS ===================== */
+const LEARN_BY_CLASS = {
+  "Chest":     ["Bench Press","Incline Bench Press","Decline Bench Press","Cable Fly","Dumbbell Fly","Push Up","Machine Press","Chest Dips"],
+  "Biceps":    ["Bicep Curl","Hammer Curl","Cable Curl","Preacher Curl","Concentration Curl","EZ Bar Curl"],
+  "Triceps":   ["Tricep Pushdown","Skull Crushers"],
+  "Shoulders": ["Overhead Press","Lateral Raises"],
+  "Lats":      ["Lat Pulldown","Barbell Row","Deadlift"],
+  "Back":      ["Barbell Row","Deadlift","Lat Pulldown"],
+  "Legs":      ["Squats","Leg Press","Lunges","Leg Extension","Leg Curl","Hack Squat","Bulgarian Split Squat"],
+  "Abs":       ["Hanging Leg Raises","Crunches"],
+  "Forearms":  ["Hammer Curl","Cable Curl","EZ Bar Curl"],
+  "Calves":    ["Leg Press"],
+  "Glutes":    ["Squats","Lunges","Bulgarian Split Squat","Deadlift"],
+  "Cardio":    ["Treadmill Sprint"],
+  "Full Body": ["Deadlift","Squats","Treadmill Sprint"]
+};
+
+/* All exercises sorted by popularity for search suggestions */
+const LEARN_ALL_SORTED = [
+  "Bench Press","Squat","Deadlift","Bicep Curl","Lat Pulldown","Overhead Press",
+  "Barbell Row","Leg Press","Tricep Pushdown","Lateral Raises","Hammer Curl",
+  "Incline Bench Press","Cable Fly","Push Up","Lunges","Preacher Curl",
+  "Cable Curl","Dumbbell Fly","Skull Crushers","Hanging Leg Raises","Crunches",
+  "Leg Extension","Leg Curl","Hack Squat","Bulgarian Split Squat","Treadmill Sprint",
+  "Concentration Curl","EZ Bar Curl","Decline Bench Press","Machine Press","Chest Dips",
+  // aliases
+  "Squats"
+];
+
+function initLearnPage(){
+  // Reset state on tab entry
+  document.getElementById("learnSearchInput").value="";
+  document.getElementById("learnClassFilter").value="";
+  document.getElementById("learnWorkoutPickerRow").style.display="none";
+  document.getElementById("learnInfoCard").style.display="none";
+  document.getElementById("learnEmptyState").style.display="block";
+  document.getElementById("learnSuggestions").style.display="none";
+}
+
+function handleLearnSearch(){
+  const val = document.getElementById("learnSearchInput").value.trim();
+  const sugBox = document.getElementById("learnSuggestions");
+
+  if(val.length < 1){
+    sugBox.style.display = "none";
+    return;
+  }
+  const lower = val.toLowerCase();
+  const matches = Object.keys(LEARN_DB).filter(name =>
+    name.toLowerCase().includes(lower)
+  ).slice(0, 8);
+
+  if(!matches.length){
+    sugBox.style.display = "none";
+    return;
+  }
+
+  sugBox.innerHTML = matches.map(name => {
+    const ex = LEARN_DB[name];
+    return `<div class="sug-item" onclick="selectLearnExercise('${name.replace(/'/g,"\\'")}')">
+      ${name}
+      <span class="sug-badge">${ex.class}</span>
+    </div>`;
+  }).join("");
+  sugBox.style.display = "block";
+}
+
+function handleLearnClassFilter(){
+  const cls = document.getElementById("learnClassFilter").value;
+  const pickerRow = document.getElementById("learnWorkoutPickerRow");
+  const picker = document.getElementById("learnWorkoutPicker");
+
+  if(!cls){
+    pickerRow.style.display = "none";
+    return;
+  }
+
+  const exercises = LEARN_BY_CLASS[cls] || [];
+  picker.innerHTML = `<option value="">— Choose an exercise —</option>` +
+    exercises.map(ex => `<option value="${ex}">${ex}</option>`).join("");
+  pickerRow.style.display = "block";
+
+  // Reset card
+  document.getElementById("learnInfoCard").style.display = "none";
+  document.getElementById("learnEmptyState").style.display = "block";
+}
+
+function handleLearnWorkoutPick(){
+  const name = document.getElementById("learnWorkoutPicker").value;
+  if(!name) return;
+  selectLearnExercise(name);
+}
+
+function selectLearnExercise(name){
+  // hide suggestions
+  document.getElementById("learnSuggestions").style.display = "none";
+  // update search input to show what was selected
+  document.getElementById("learnSearchInput").value = name;
+
+  // Look up in DB — handle alias like "Squats" vs "Squat"
+  let data = LEARN_DB[name];
+  if(!data){
+    // try find with slight variation
+    const key = Object.keys(LEARN_DB).find(k => k.toLowerCase() === name.toLowerCase());
+    if(key) data = LEARN_DB[key];
+  }
+  if(!data){
+    document.getElementById("learnInfoCard").innerHTML = `<div class="learn-info-card"><p style="color:var(--text-muted);font-family:var(--font-alt);padding:20px">Exercise data not found. Please search again.</p></div>`;
+    document.getElementById("learnInfoCard").style.display = "block";
+    document.getElementById("learnEmptyState").style.display = "none";
+    return;
+  }
+
+  renderLearnCard(name, data);
+}
+
+function renderLearnCard(name, data){
+  const stepsHtml = data.steps.map((s, i) =>
+    `<li><span class="learn-step-num">${i+1}</span><span>${s}</span></li>`
+  ).join("");
+
+  const mistakesHtml = data.mistakes.map(m =>
+    `<li><span>❌</span><span>${m}</span></li>`
+  ).join("");
+
+  const secondaryHtml = data.secondaryMuscles.map(m =>
+    `<span class="learn-muscle-chip secondary">${m}</span>`
+  ).join("");
+
+  const html = `
+  <div class="learn-info-card glass">
+    <!-- Header -->
+    <div class="learn-info-card-header">
+      <div class="learn-exercise-title">${name}</div>
+      <span class="learn-muscle-badge">${data.class}</span>
+    </div>
+
+    <!-- Main grid: GIF left, details right -->
+    <div class="learn-main-grid">
+      <!-- GIF column -->
+      <div class="learn-gif-col">
+        <div class="learn-gif-container">
+          <div class="learn-gif-fallback">
+            <span class="gif-emoji">${data.gifEmoji}</span>
+            <div class="gif-label">${name}</div>
+            <div style="font-size:11px;color:var(--text-muted);font-family:var(--font-alt);margin-top:6px;letter-spacing:0.3px">3D DEMONSTRATION</div>
+          </div>
+        </div>
+
+        <!-- YouTube link -->
+        <a href="${data.youtubeUrl}" target="_blank" rel="noopener" class="learn-yt-link">
+          <span class="learn-yt-icon">▶</span>
+          <span>${data.youtubeLabel}</span>
+        </a>
+
+        <!-- Target Muscles -->
+        <div class="learn-section-block" style="margin-top:12px">
+          <div class="learn-block-title">🎯 Target Muscles</div>
+          <div style="margin-bottom:10px">
+            <div style="font-size:11px;font-weight:700;color:var(--text-muted);font-family:var(--font-alt);letter-spacing:0.5px;margin-bottom:6px;text-transform:uppercase">PRIMARY</div>
+            <span class="learn-muscle-chip primary">${data.primaryMuscle}</span>
+          </div>
+          <div>
+            <div style="font-size:11px;font-weight:700;color:var(--text-muted);font-family:var(--font-alt);letter-spacing:0.5px;margin-bottom:6px;text-transform:uppercase">SECONDARY</div>
+            <div class="learn-muscles-row">${secondaryHtml}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Details column -->
+      <div class="learn-details-col">
+        <!-- How to perform -->
+        <div class="learn-section-block">
+          <div class="learn-block-title">📋 How To Perform</div>
+          <ul class="learn-steps-list">${stepsHtml}</ul>
+        </div>
+
+        <!-- Common mistakes -->
+        <div class="learn-section-block">
+          <div class="learn-block-title">⚠️ Common Mistakes</div>
+          <ul class="learn-mistakes-list">${mistakesHtml}</ul>
+        </div>
+      </div>
+    </div>
+  </div>`;
+
+  document.getElementById("learnInfoCard").innerHTML = html;
+  document.getElementById("learnInfoCard").style.display = "block";
+  document.getElementById("learnEmptyState").style.display = "none";
+
+  // Scroll to card
+  document.getElementById("learnInfoCard").scrollIntoView({behavior:"smooth", block:"start"});
+}
 </script>
 </body>
 </html>
