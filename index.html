@@ -202,10 +202,12 @@ body.theme-godmode input,body.theme-godmode select{font-style:italic;font-weight
 .btn{width:100%;padding:13px;margin-top:13px;border:none;border-radius:13px;cursor:pointer;font-size:15px;font-weight:700;font-family:var(--font-alt);letter-spacing:1px;background:var(--btn-bg);color:var(--follow-btn-text);box-shadow:var(--btn-shadow);transition:all 0.3s cubic-bezier(0.4,0,0.2,1);position:relative;overflow:hidden}
 .btn::after{content:'';position:absolute;top:50%;left:50%;width:0;height:0;background:rgba(255,255,255,0.15);border-radius:50%;transform:translate(-50%,-50%);transition:width 0.4s,height 0.4s;pointer-events:none}
 .btn:active::after{width:300px;height:300px;opacity:0}
-.btn:hover{transform:translateY(-2px);box-shadow:0 8px 24px var(--accent-glow)}
-.btn:active{transform:translateY(1px)}
+.btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 8px 24px var(--accent-glow)}
+.btn:active:not(:disabled){transform:translateY(1px)}
+.btn:disabled{opacity:0.45;cursor:not-allowed;transform:none!important;box-shadow:none!important;filter:grayscale(0.3)}
 body.theme-batman .btn{color:#07080a;font-weight:900}
 body.theme-godmode .btn{font-style:italic;letter-spacing:1.5px;animation:lavaGlow 2.5s ease-in-out infinite}
+body.theme-godmode .btn:disabled{animation:none}
 @keyframes lavaGlow{0%,100%{box-shadow:0 4px 18px rgba(255,0,0,0.5)}50%{box-shadow:0 6px 32px rgba(255,80,0,0.85),0 0 20px rgba(255,0,0,0.5)}}
 
 /* ===================== LOGIN ===================== */
@@ -240,14 +242,23 @@ body.theme-batman .rank-badge{color:#07080a}
 body.theme-batman .section-title::before{content:'';display:inline-block;width:20px;height:12px;margin-right:2px;background:var(--accent);opacity:0.3;clip-path:polygon(50% 0%,20% 30%,0% 20%,10% 50%,0% 80%,20% 70%,50% 100%,80% 70%,100% 80%,90% 50%,100% 20%,80% 30%)}
 body.theme-godmode .section-title{font-style:italic;letter-spacing:1px}
 
-/* ===================== CHECK-IN ===================== */
-.compact-checkin-wrapper{display:flex;gap:18px;align-items:flex-start}
+/* ===================== CHECK-IN (UPDATED FLOW) ===================== */
+.checkin-flow-step{margin-top:14px}
+.checkin-session-row{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap}
+.checkin-session-row select{flex:1;min-width:160px;margin-top:0}
+
+/* Post-checkin area: workout selector + body highlight (hidden until after check-in) */
+.compact-checkin-wrapper{display:flex;gap:18px;align-items:flex-start;margin-top:14px}
 .checkin-left-controls{width:44%;display:flex;flex-direction:column;gap:10px}
 .checkin-right-body{width:52%;background:var(--checkin-right-bg);border-radius:16px;padding:10px;border:1px solid var(--border-col);transition:background 0.4s}
 .bodyWrapper{display:flex;gap:8px;justify-content:center;align-items:center}
 #frontBody,#backBody{background:transparent;border:1px solid var(--border-col);border-radius:10px;padding:5px;width:100%;max-width:112px;height:auto;max-height:175px;transition:all 0.3s ease}
 .muscle-group{fill:var(--muscle-idle);transition:fill 0.3s cubic-bezier(0.4,0,0.2,1);cursor:pointer}
 .muscle-group:hover{opacity:0.8}
+
+/* Workout selector area hidden by default, shown after check-in */
+#workoutSelectorArea{display:none;animation:fadeIn 0.4s ease}
+#workoutSelectorArea.visible{display:block}
 
 /* ===================== STOPWATCH ===================== */
 .stopwatch-container{text-align:center;margin:14px 0 0;padding:16px;background:var(--stopwatch-bg);border-radius:16px;border:2px dashed var(--stopwatch-border);display:none;opacity:0;transform:translateY(10px);transition:all 0.4s cubic-bezier(0.4,0,0.2,1)}
@@ -285,7 +296,23 @@ body.theme-godmode .duration-display{color:#ff4422}
 .action-icon-btn.edit:hover{background:#dbeafe}.action-icon-btn.delete:hover{background:#fee2e2}
 .stats-summary-row{display:flex;justify-content:space-between;background:var(--accent-soft);padding:13px;border-radius:14px;font-size:13px;color:var(--text-secondary);margin-top:12px;border:1px solid var(--border-col);font-family:var(--font-alt)}
 .analytics-box{background:var(--accent-soft);padding:14px;border-radius:18px;border:1px solid var(--border-col);margin-top:8px}
-.graph-container{position:relative;height:310px;width:100%}
+.graph-container{position:relative;height:320px;width:100%}
+
+/* ===================== STATS TOOLTIP ===================== */
+.stats-tooltip{
+  position:fixed;background:rgba(15,23,42,0.95);color:#fff;
+  border-radius:12px;padding:12px 16px;font-family:var(--font-alt);
+  font-size:13px;pointer-events:none;z-index:9999;
+  box-shadow:0 8px 24px rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.1);
+  min-width:160px;display:none;line-height:1.6;
+}
+body.theme-batman .stats-tooltip{background:rgba(7,8,10,0.97);border-color:rgba(255,204,0,0.3)}
+body.theme-godmode .stats-tooltip{background:rgba(8,0,0,0.97);border-color:rgba(255,0,0,0.3)}
+.stats-tooltip-title{font-weight:800;font-size:14px;color:var(--accent);margin-bottom:6px;letter-spacing:0.5px}
+.stats-tooltip-muscle{display:flex;align-items:center;gap:7px;margin-top:4px}
+.stats-tooltip-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.stats-tooltip-duration{margin-top:8px;padding-top:7px;border-top:1px solid rgba(255,255,255,0.12);font-size:12px;color:#94a3b8}
+.stats-tooltip-duration strong{color:#fff}
 
 /* ===================== ADMIN ===================== */
 .sideMenu{position:fixed;left:-360px;top:0;width:320px;height:100%;background:var(--bg-panel);z-index:9999;overflow:auto;transition:left 0.4s cubic-bezier(0.4,0,0.2,1);padding:24px;box-shadow:20px 0 50px rgba(0,0,0,0.2);border-right:1px solid var(--border-col)}
@@ -457,6 +484,7 @@ body.theme-batman .tracker-page-btn.active{color:#07080a}
   .headerRight{justify-content:center}
   .tracker-date-row{flex-direction:column}
   .tracker-track-btn{width:100%}
+  .checkin-session-row{flex-direction:column}
 }
 </style>
 </head>
@@ -466,8 +494,6 @@ body.theme-batman .tracker-page-btn.active{color:#07080a}
 <div id="cinematicOverlay">
   <div id="cinBg"></div>
   <div id="cinScanlines"></div>
-
-  <!-- BATMAN TRANSITION -->
   <div id="batContainer">
     <svg id="batSVG" viewBox="0 0 220 130" xmlns="http://www.w3.org/2000/svg">
       <defs>
@@ -484,16 +510,16 @@ body.theme-batman .tracker-page-btn.active{color:#07080a}
     </svg>
     <div id="batText">DARK KNIGHT MODE ACTIVATED</div>
   </div>
-
-  <!-- GOD MODE TRANSITION -->
   <div id="godContainer">
     <div id="fireChain"></div>
     <div id="godText">GOD MODE — KARUPPU 2026</div>
   </div>
-
   <div id="cinFlash"></div>
   <div id="cinProgress"><div id="cinProgressFill"></div></div>
 </div>
+
+<!-- Stats tooltip (global) -->
+<div class="stats-tooltip" id="statsTooltip"></div>
 
 <!-- ===================== MAIN CONTAINER ===================== -->
 <div class="container">
@@ -560,60 +586,82 @@ body.theme-batman .tracker-page-btn.active{color:#07080a}
         <div class="xp-bar-track"><div class="xp-bar-fill" id="xpBarFill" style="width:0%"></div></div>
         <div class="xp-next-label" id="xpNextLabel">Next rank: Intermediate at 501 XP</div>
       </div>
-      <!-- INLINE CHECK-IN -->
+
+      <!-- ===================== INLINE CHECK-IN (UPDATED FLOW) ===================== -->
       <div class="section glass" style="margin-top:18px">
         <div class="section-title">🏟 Gym Check-In</div>
-        <div class="compact-checkin-wrapper">
-          <div class="checkin-left-controls">
-            <select id="session" style="margin-top:0;width:100%">
-              <option value="Morning">Morning Session</option>
-              <option value="Evening">Evening Session</option>
-            </select>
-            <select id="workout" multiple size="5" style="margin-top:0;height:115px;width:100%" onchange="handleClassSelection()">
-              <option value="Chest">Chest</option><option value="Biceps">Biceps</option>
-              <option value="Triceps">Triceps</option><option value="Shoulders">Shoulders</option>
-              <option value="Lats">Lats</option><option value="Legs">Legs</option>
-              <option value="Abs">Abs</option><option value="Cardio">Cardio</option>
+
+        <!-- STEP 1: Session selection + Submit Check-In button -->
+        <div class="checkin-flow-step" id="checkinStep1">
+          <div class="checkin-session-row">
+            <select id="session" style="margin-top:0">
+              <option value="Morning">🌅 Morning Session</option>
+              <option value="Evening">🌆 Evening Session</option>
             </select>
           </div>
-          <div class="checkin-right-body">
-            <div class="bodyWrapper">
-              <svg id="frontBody" viewBox="0 0 200 500">
-                <text x="10" y="20" fill="var(--text-muted)" font-size="12" font-weight="bold" font-family="Rajdhani">FRONT</text>
-                <circle cx="100" cy="50" r="18" fill="var(--muscle-idle)" stroke="var(--border-col)" stroke-width="2"/>
-                <rect x="94" y="68" width="12" height="15" fill="var(--muscle-idle)" stroke="var(--border-col)" stroke-width="1"/>
-                <path id="Chest_Left" class="muscle-group" d="M62 85h36v30H68z" rx="4" stroke="var(--border-col)"/>
-                <path id="Chest_Right" class="muscle-group" d="M102 85h36v30h-30z" rx="4" stroke="var(--border-col)"/>
-                <path id="Shoulders_Left" class="muscle-group" d="M35 85c5-10 20-10 25 0v20h-25z" stroke="var(--border-col)"/>
-                <path id="Shoulders_Right" class="muscle-group" d="M140 85c5-10 20-10 25 0v20h-25z" stroke="var(--border-col)"/>
-                <path id="Biceps_Left" class="muscle-group" d="M38 108c0 10 5 35 5 45h15v-45z" stroke="var(--border-col)"/>
-                <path id="Biceps_Right" class="muscle-group" d="M142 108c0 10-5 35-5 45h-15v-45z" stroke="var(--border-col)"/>
-                <rect id="Abs" class="muscle-group" x="72" y="120" width="56" height="75" rx="6" stroke="var(--border-col)"/>
-                <path fill="var(--muscle-idle)" d="M43 156l5 45h12l-2-45z" stroke="var(--border-col)"/>
-                <path fill="var(--muscle-idle)" d="M151 156l-5 45h-12l2-45z" stroke="var(--border-col)"/>
-                <path id="Legs_Front_L" class="muscle-group" d="M68 205h28v110H64z" rx="5" stroke="var(--border-col)"/>
-                <path id="Legs_Front_R" class="muscle-group" d="M104 205h28v110h-28z" rx="5" stroke="var(--border-col)"/>
-              </svg>
-              <svg id="backBody" viewBox="0 0 200 500">
-                <text x="10" y="20" fill="var(--text-muted)" font-size="12" font-weight="bold" font-family="Rajdhani">BACK</text>
-                <circle cx="100" cy="50" r="18" fill="var(--muscle-idle)" stroke="var(--border-col)" stroke-width="2"/>
-                <rect x="94" y="68" width="12" height="15" fill="var(--muscle-idle)" stroke="var(--border-col)" stroke-width="1"/>
-                <path id="Lats_Left" class="muscle-group" d="M55 88c15 0 20 15 42 35v45H60z" rx="4" stroke="var(--border-col)"/>
-                <path id="Lats_Right" class="muscle-group" d="M145 88c-15 0-20 15-42 35v45h37z" rx="4" stroke="var(--border-col)"/>
-                <path id="Triceps_Left" class="muscle-group" d="M36 108h16v45H42z" stroke="var(--border-col)"/>
-                <path id="Triceps_Right" class="muscle-group" d="M148 108h-16v45h10z" stroke="var(--border-col)"/>
-                <rect id="Lower_Back" fill="var(--muscle-idle)" x="72" y="170" width="56" height="32" rx="4" stroke="var(--border-col)"/>
-                <path id="Legs_Back_L" class="muscle-group" d="M66 205h30v110H62z" rx="5" stroke="var(--border-col)"/>
-                <path id="Legs_Back_R" class="muscle-group" d="M104 205h30v110h-30z" rx="5" stroke="var(--border-col)"/>
-              </svg>
-            </div>
-          </div>
+          <button class="btn" id="submitCheckinBtn" onclick="processCheckIn()">⚡ SUBMIT CHECK-IN (+50 XP)</button>
         </div>
-        <button class="btn" onclick="processCheckIn()">⚡ SUBMIT CHECK-IN (+50 XP)</button>
+
+        <!-- STEP 2: Stopwatch (shown after check-in) -->
         <div class="stopwatch-container" id="clockBox">
           <h3 id="stopwatch">00:00:00</h3>
-          <button class="btn" style="background:linear-gradient(135deg,#dc2626,#b91c1c);margin-top:10px;padding:10px" onclick="processCheckOut()">🏁 CHECK-OUT</button>
           <div id="gymDuration" class="duration-display"></div>
+
+          <!-- STEP 3: Workout class selector + body highlight (shown after check-in inside stopwatch area) -->
+          <div id="workoutSelectorArea">
+            <div style="margin-top:14px;font-size:13px;font-weight:700;color:var(--accent);font-family:var(--font-alt);letter-spacing:0.5px;margin-bottom:8px">
+              💪 SELECT WORKOUT CLASSES
+            </div>
+            <div class="compact-checkin-wrapper" style="margin-top:0">
+              <div class="checkin-left-controls">
+                <select id="workout" multiple size="5" style="margin-top:0;height:130px;width:100%" onchange="handleClassSelection()">
+                  <option value="Chest">Chest</option>
+                  <option value="Biceps">Biceps</option>
+                  <option value="Triceps">Triceps</option>
+                  <option value="Shoulders">Shoulders</option>
+                  <option value="Lats">Lats</option>
+                  <option value="Legs">Legs</option>
+                  <option value="Abs">Abs</option>
+                  <option value="Cardio">Cardio</option>
+                </select>
+                <div style="font-size:11px;color:var(--text-muted);font-family:var(--font-alt);margin-top:4px">Hold Ctrl / Cmd to select up to 3 classes</div>
+              </div>
+              <div class="checkin-right-body">
+                <div class="bodyWrapper">
+                  <svg id="frontBody" viewBox="0 0 200 500">
+                    <text x="10" y="20" fill="var(--text-muted)" font-size="12" font-weight="bold" font-family="Rajdhani">FRONT</text>
+                    <circle cx="100" cy="50" r="18" fill="var(--muscle-idle)" stroke="var(--border-col)" stroke-width="2"/>
+                    <rect x="94" y="68" width="12" height="15" fill="var(--muscle-idle)" stroke="var(--border-col)" stroke-width="1"/>
+                    <path id="Chest_Left" class="muscle-group" d="M62 85h36v30H68z" rx="4" stroke="var(--border-col)"/>
+                    <path id="Chest_Right" class="muscle-group" d="M102 85h36v30h-30z" rx="4" stroke="var(--border-col)"/>
+                    <path id="Shoulders_Left" class="muscle-group" d="M35 85c5-10 20-10 25 0v20h-25z" stroke="var(--border-col)"/>
+                    <path id="Shoulders_Right" class="muscle-group" d="M140 85c5-10 20-10 25 0v20h-25z" stroke="var(--border-col)"/>
+                    <path id="Biceps_Left" class="muscle-group" d="M38 108c0 10 5 35 5 45h15v-45z" stroke="var(--border-col)"/>
+                    <path id="Biceps_Right" class="muscle-group" d="M142 108c0 10-5 35-5 45h-15v-45z" stroke="var(--border-col)"/>
+                    <rect id="Abs" class="muscle-group" x="72" y="120" width="56" height="75" rx="6" stroke="var(--border-col)"/>
+                    <path fill="var(--muscle-idle)" d="M43 156l5 45h12l-2-45z" stroke="var(--border-col)"/>
+                    <path fill="var(--muscle-idle)" d="M151 156l-5 45h-12l2-45z" stroke="var(--border-col)"/>
+                    <path id="Legs_Front_L" class="muscle-group" d="M68 205h28v110H64z" rx="5" stroke="var(--border-col)"/>
+                    <path id="Legs_Front_R" class="muscle-group" d="M104 205h28v110h-28z" rx="5" stroke="var(--border-col)"/>
+                  </svg>
+                  <svg id="backBody" viewBox="0 0 200 500">
+                    <text x="10" y="20" fill="var(--text-muted)" font-size="12" font-weight="bold" font-family="Rajdhani">BACK</text>
+                    <circle cx="100" cy="50" r="18" fill="var(--muscle-idle)" stroke="var(--border-col)" stroke-width="2"/>
+                    <rect x="94" y="68" width="12" height="15" fill="var(--muscle-idle)" stroke="var(--border-col)" stroke-width="1"/>
+                    <path id="Lats_Left" class="muscle-group" d="M55 88c15 0 20 15 42 35v45H60z" rx="4" stroke="var(--border-col)"/>
+                    <path id="Lats_Right" class="muscle-group" d="M145 88c-15 0-20 15-42 35v45h37z" rx="4" stroke="var(--border-col)"/>
+                    <path id="Triceps_Left" class="muscle-group" d="M36 108h16v45H42z" stroke="var(--border-col)"/>
+                    <path id="Triceps_Right" class="muscle-group" d="M148 108h-16v45h10z" stroke="var(--border-col)"/>
+                    <rect id="Lower_Back" fill="var(--muscle-idle)" x="72" y="170" width="56" height="32" rx="4" stroke="var(--border-col)"/>
+                    <path id="Legs_Back_L" class="muscle-group" d="M66 205h30v110H62z" rx="5" stroke="var(--border-col)"/>
+                    <path id="Legs_Back_R" class="muscle-group" d="M104 205h30v110h-30z" rx="5" stroke="var(--border-col)"/>
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <button class="btn" style="background:linear-gradient(135deg,#dc2626,#b91c1c);margin-top:14px;padding:10px" onclick="processCheckOut()">🏁 CHECK-OUT &amp; SAVE</button>
         </div>
       </div>
     </div>
@@ -631,7 +679,16 @@ body.theme-batman .tracker-page-btn.active{color:#07080a}
             <option value="w5">Remaining (29th – End)</option>
           </select>
         </div>
-        <div class="analytics-box"><div class="graph-container"><canvas id="workoutChart"></canvas></div></div>
+        <div class="analytics-box">
+          <div class="graph-container">
+            <canvas id="workoutChart"></canvas>
+          </div>
+        </div>
+        <!-- Legend -->
+        <div id="statsChartLegend" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px"></div>
+        <div style="font-size:11px;color:var(--text-muted);font-family:var(--font-alt);margin-top:6px">
+          💡 Hover or click a bar to see workout details &amp; duration
+        </div>
         <div class="stats-summary-row">
           <div>Avg Time: <strong id="avgTimeLabel" style="color:var(--accent)">0 Mins</strong></div>
           <div>Most Trained: <strong id="mostTrainedLabel" style="color:var(--accent)">None</strong></div>
@@ -667,7 +724,6 @@ body.theme-batman .tracker-page-btn.active{color:#07080a}
 
     <!-- WORKOUTS TAB -->
     <div id="workPage" class="memberTab" style="display:none">
-      <!-- ===== WORKOUT LOG MANAGER ===== -->
       <div class="section glass">
         <div class="section-title" style="justify-content:space-between">
           <span>🏋 Workout Log Manager</span>
@@ -686,7 +742,6 @@ body.theme-batman .tracker-page-btn.active{color:#07080a}
         <div id="initialWorkoutBox">
           <button class="btn" onclick="showAddWorkoutForm()">+ ADD WORKOUT ENTRY</button>
         </div>
-        <!-- NORMAL (non-live) FORM -->
         <div id="workoutFormStructure" class="workout-form-wrapper" style="display:none">
           <h4 id="formActionTitle">LOG NEW ENTRY</h4>
           <label style="font-size:12px;font-weight:700;color:var(--text-muted);font-family:var(--font-alt)">EXERCISE NAME:</label>
@@ -703,7 +758,6 @@ body.theme-batman .tracker-page-btn.active{color:#07080a}
           <button class="btn" style="background:linear-gradient(135deg,#16a34a,#15803d);margin-top:12px" onclick="saveWorkoutLogEntry()">💾 SAVE ENTRY</button>
           <button class="btn" style="background:linear-gradient(135deg,#64748b,#475569);margin-top:7px" onclick="cancelWorkoutLogging()">CANCEL</button>
         </div>
-        <!-- LIVE MODE FORM -->
         <div id="liveWorkoutForm" class="workout-form-wrapper" style="display:none">
           <h4 style="color:var(--accent);display:flex;align-items:center;gap:8px">
             <span class="live-dot"></span> LIVE WORKOUT SESSION
@@ -728,12 +782,10 @@ body.theme-batman .tracker-page-btn.active{color:#07080a}
         <div id="savedWorkoutLogsContainer" style="margin-top:18px"></div>
       </div>
 
-      <!-- ===== WORKOUT TRACKER (NEW SECTION) ===== -->
+      <!-- WORKOUT TRACKER SECTION -->
       <div class="section glass" style="margin-top:18px" id="workoutTrackerSection">
         <div class="section-title">📈 Workout Tracker</div>
         <p class="tracker-subtitle">Analyse your training volume and frequency across any custom date range.</p>
-
-        <!-- Date range + button -->
         <div class="tracker-date-row">
           <div class="tracker-date-group">
             <label>From Date</label>
@@ -745,11 +797,7 @@ body.theme-batman .tracker-page-btn.active{color:#07080a}
           </div>
           <button class="tracker-track-btn" onclick="runWorkoutTracker()">🔍 Track Workouts</button>
         </div>
-
-        <!-- Results area -->
         <div id="trackerResultsArea"></div>
-
-        <!-- Analytics Graph Panel (hidden until Show Analytics clicked) -->
         <div class="tracker-analytics-panel" id="trackerAnalyticsPanel">
           <div class="tracker-analytics-header">
             <div>
@@ -866,7 +914,6 @@ function triggerCinematic(type,callback){
   bc.style.opacity='0';gc.style.opacity='0';
   document.querySelectorAll('.bat-smoke,.ember-particle').forEach(e=>e.remove());
   if(_cinTimer){clearTimeout(_cinTimer);_cinTimer=null}
-
   if(type==='batman'){
     bc.style.opacity='1';
     ov.classList.add('bat-swooping','cin-flash-gold');
@@ -936,34 +983,153 @@ function setTheme(t){
 </script>
 
 <script>
-/* ===================== CHART.JS PLUGIN ===================== */
-const CLASS_COLORS={'Chest':'#3b82f6','Biceps':'#f97316','Triceps':'#111827','Shoulders':'#a855f7','Lats':'#06b6d4','Legs':'#10b981','Abs':'#ec4899','Cardio':'#eab308','Rest':'#94a3b8','Unknown':'#6b7280'};
-const barTextLabelPlugin={
-  id:'barTextLabelPlugin',
+/* ===================== CLASS COLORS ===================== */
+const CLASS_COLORS={
+  'Chest':'#3b82f6',
+  'Biceps':'#f97316',
+  'Triceps':'#8b5cf6',
+  'Shoulders':'#a855f7',
+  'Lats':'#06b6d4',
+  'Legs':'#10b981',
+  'Abs':'#ec4899',
+  'Cardio':'#eab308',
+  'Rest':'#94a3b8',
+  'Unknown':'#6b7280'
+};
+
+/* ===================== DURATION PARSER ===================== */
+// Parses varied formats: "80 min", "1Hr 1min", "45 min", "1Hr 20min", "In Progress"
+// Returns total minutes
+function parseDurationToMinutes(s){
+  if(!s||s.trim()===""||s==="In Progress")return 0;
+  let total=0;
+  // Match hours
+  const hMatch=s.match(/(\d+)\s*[Hh][Rr]?/);
+  if(hMatch)total+=parseInt(hMatch[1])*60;
+  // Match minutes
+  const mMatch=s.match(/(\d+)\s*[Mm][Ii][Nn]/);
+  if(mMatch)total+=parseInt(mMatch[1]);
+  // If no matches but purely numeric, treat as minutes
+  if(!hMatch&&!mMatch){const n=parseInt(s);if(!isNaN(n))total=n}
+  return total;
+}
+
+// Format minutes → "1Hr 20min" style
+function formatMinutesToDuration(m){
+  if(!m||m<=0)return "0 min";
+  const h=Math.floor(m/60),mn=m%60;
+  if(h>0&&mn>0)return `${h}Hr ${mn}min`;
+  if(h>0)return `${h}Hr`;
+  return `${mn}min`;
+}
+
+function formatMinutesToHoursText(m){
+  if(!m)return "0";
+  let h=Math.floor(m/60),mn=m%60;
+  return h>0?`${h}h ${mn}m`:`${mn}m`;
+}
+
+/* ===================== STACKED BAR CHART ENGINE ===================== */
+// Custom Chart.js plugin to render stacked colored segments + vertical text inside bars
+const stackedMusclePlugin={
+  id:'stackedMusclePlugin',
   afterDatasetsDraw(chart){
-    const{ctx}=chart;ctx.save();
-    chart.data.datasets.forEach((dataset,i)=>{
-      chart.getDatasetMeta(i).data.forEach((bar)=>{
-        const rawLabel=dataset.barLabels?dataset.barLabels[i]:'Rest';
-        if(!rawLabel||rawLabel==='Rest'||rawLabel==='None'){ctx.fillStyle='#6b7280';ctx.font='bold 11px Rajdhani';ctx.textAlign='center';ctx.textBaseline='bottom';ctx.fillText('Rest',bar.x,bar.base-8);return}
-        const classes=rawLabel.split(',').map(s=>s.trim());
-        const bw=bar.width,bh=bar.base-bar.y;if(bh<=5)return;
-        ctx.clearRect(bar.x-bw/2,bar.y,bw,bh);
-        let cy=bar.base;const sh=bh/classes.length;
-        classes.forEach((muscle)=>{
-          const color=CLASS_COLORS[muscle]||CLASS_COLORS['Unknown'];
-          let g=ctx.createLinearGradient(bar.x-bw/2,0,bar.x+bw/2,0);g.addColorStop(0,color);g.addColorStop(0.5,lightenColor(color,25));g.addColorStop(1,color);
-          ctx.fillStyle=g;ctx.beginPath();ctx.rect(bar.x-bw/2,cy-sh,bw,sh);ctx.fill();
-          ctx.save();ctx.fillStyle=(color==='#eab308')?'#111827':'#ffffff';ctx.font='bold 10px Rajdhani';ctx.textAlign='center';ctx.textBaseline='middle';
-          ctx.translate(bar.x,cy-sh/2);ctx.rotate(-Math.PI/2);let txt=muscle;if(txt.length>9)txt=txt.substring(0,7)+'..';ctx.fillText(txt,0,0);ctx.restore();cy-=sh;
-        });
+    const{ctx,data}=chart;
+    ctx.save();
+    const meta=chart.getDatasetMeta(0);
+    meta.data.forEach((bar,i)=>{
+      const workoutStr=data.datasets[0].rawWorkouts?data.datasets[0].rawWorkouts[i]:'Rest';
+      const bx=bar.x,by=bar.y,bw=bar.width,bBase=bar.base;
+      const bh=bBase-by;
+      if(bh<=2)return; // nothing to draw (rest day with 0 height or tiny)
+
+      let classes=[];
+      if(workoutStr&&workoutStr!=='Rest'&&workoutStr!==''){
+        classes=workoutStr.split(',').map(s=>s.trim()).filter(Boolean).slice(0,3);
+      }
+
+      if(classes.length===0){
+        // Rest day — draw grey bar with "Rest" label
+        ctx.fillStyle='rgba(148,163,184,0.35)';
+        ctx.beginPath();ctx.roundRect(bx-bw/2,by,bw,bh,4);ctx.fill();
+        ctx.fillStyle='#94a3b8';
+        ctx.font='bold 10px Rajdhani,sans-serif';
+        ctx.textAlign='center';ctx.textBaseline='middle';
+        ctx.fillText('Rest',bx,by+bh/2);
+        return;
+      }
+
+      const segH=bh/classes.length;
+      classes.forEach((muscle,idx)=>{
+        const color=CLASS_COLORS[muscle]||CLASS_COLORS['Unknown'];
+        const sy=bBase-(idx+1)*segH;
+        // Draw segment
+        ctx.fillStyle=color;
+        ctx.beginPath();
+        if(idx===0&&idx===classes.length-1){
+          // only one segment
+          ctx.roundRect(bx-bw/2,sy,bw,segH,4);
+        } else if(idx===0){
+          // bottom segment
+          ctx.roundRect(bx-bw/2,sy,bw,segH,[0,0,4,4]);
+        } else if(idx===classes.length-1){
+          // top segment
+          ctx.roundRect(bx-bw/2,sy,bw,segH,[4,4,0,0]);
+        } else {
+          ctx.rect(bx-bw/2,sy,bw,segH);
+        }
+        ctx.fill();
+
+        // Segment border
+        ctx.strokeStyle='rgba(255,255,255,0.25)';ctx.lineWidth=1;
+        if(idx<classes.length-1){
+          ctx.beginPath();ctx.moveTo(bx-bw/2,sy);ctx.lineTo(bx+bw/2,sy);ctx.stroke();
+        }
+
+        // Vertical text inside segment (only if segment tall enough)
+        if(segH>=20){
+          ctx.save();
+          ctx.translate(bx,sy+segH/2);
+          ctx.rotate(-Math.PI/2);
+          // Text color: use white for most, dark for yellow
+          ctx.fillStyle=(color==='#eab308'||color==='#ffcc00')?'#111':'#fff';
+          const fontSize=Math.min(10,Math.max(7,bw*0.35));
+          ctx.font=`bold ${fontSize}px Rajdhani,sans-serif`;
+          ctx.textAlign='center';ctx.textBaseline='middle';
+          let txt=muscle;
+          const maxW=segH-6;
+          // Truncate if needed
+          while(ctx.measureText(txt).width>maxW&&txt.length>2){txt=txt.slice(0,-1)}
+          if(txt!==muscle)txt=txt+'..';
+          ctx.fillText(txt,0,0);
+          ctx.restore();
+        }
       });
-    });ctx.restore();
+    });
+    ctx.restore();
   }
 };
-Chart.register(barTextLabelPlugin);
+
+// Try to use roundRect polyfill if not supported
+if(!CanvasRenderingContext2D.prototype.roundRect){
+  CanvasRenderingContext2D.prototype.roundRect=function(x,y,w,h,r){
+    if(typeof r==='number')r=[r,r,r,r];
+    const[tl,tr,br,bl]=Array.isArray(r)?[r[0]||0,r[1]||0,r[2]||0,r[3]||0]:[0,0,0,0];
+    this.beginPath();
+    this.moveTo(x+tl,y);
+    this.lineTo(x+w-tr,y);this.arcTo(x+w,y,x+w,y+tr,tr);
+    this.lineTo(x+w,y+h-br);this.arcTo(x+w,y+h,x+w-br,y+h,br);
+    this.lineTo(x+bl,y+h);this.arcTo(x,y+h,x,y+h-bl,bl);
+    this.lineTo(x,y+tl);this.arcTo(x,y,x+tl,y,tl);
+    this.closePath();
+  };
+}
+
+Chart.register(stackedMusclePlugin);
+
 function lightenColor(hex,percent){
-  if(hex.indexOf('#')===0)hex=hex.slice(1);if(hex.length===3)hex=hex[0]+hex[0]+hex[1]+hex[1]+hex[2]+hex[2];
+  if(hex.indexOf('#')===0)hex=hex.slice(1);
+  if(hex.length===3)hex=hex[0]+hex[0]+hex[1]+hex[1]+hex[2]+hex[2];
   let num=parseInt(hex,16),amt=Math.round(2.55*percent);
   let R=(num>>16)+amt,G=(num>>8&0x00FF)+amt,B=(num&0x0000FF)+amt;
   return '#'+(0x1000000+(R<255?R<0?0:R:255)*0x10000+(G<255?G<0?0:G:255)*0x100+(B<255?B<0?0:B:255)).toString(16).slice(1);
@@ -1068,31 +1234,49 @@ async function syncCoreDashboardMetrics(){
   document.getElementById("postCount").textContent=mw;
 }
 
-function parseDurationToMinutes(s){if(!s||s==="In Progress")return 0;let t=0,h=s.match(/(\d+)\s*Hr/i),m=s.match(/(\d+)\s*min/i);if(h)t+=parseInt(h[1])*60;if(m)t+=parseInt(m[1]);return t||0}
-function formatMinutesToHoursText(m){if(!m)return "0";let h=Math.floor(m/60),mn=m%60;return h>0?`${h}h ${mn}m`:`${mn}m`}
-
+/* ===================== MUSCLE HIGHLIGHT ===================== */
 function handleClassSelection(){
   document.querySelectorAll(".muscle-group").forEach(el=>el.style.fill="var(--muscle-idle)");
   let sel=document.getElementById("workout");
   let selected=Array.from(sel.options).filter(o=>o.selected).map(o=>o.value);
-  if(selected.length>3){alert("Maximum 3 classes at once.");for(let i=sel.options.length-1;i>=0;i--){if(sel.options[i].selected){sel.options[i].selected=false;break}}return handleClassSelection()}
+  if(selected.length>3){
+    alert("Maximum 3 classes at once.");
+    for(let i=sel.options.length-1;i>=0;i--){
+      if(sel.options[i].selected){sel.options[i].selected=false;break}
+    }
+    return handleClassSelection();
+  }
   const cm={Chest:["Chest_Left","Chest_Right"],Biceps:["Biceps_Left","Biceps_Right"],Triceps:["Triceps_Left","Triceps_Right"],Shoulders:["Shoulders_Left","Shoulders_Right"],Lats:["Lats_Left","Lats_Right"],Legs:["Legs_Front_L","Legs_Front_R","Legs_Back_L","Legs_Back_R"],Abs:["Abs"]};
-  const cc={Chest:"#3b82f6",Biceps:"#f97316",Triceps:"#111827",Shoulders:"#a855f7",Lats:"#06b6d4",Legs:"#10b981",Abs:"#ec4899"};
+  const cc={Chest:"#3b82f6",Biceps:"#f97316",Triceps:"#8b5cf6",Shoulders:"#a855f7",Lats:"#06b6d4",Legs:"#10b981",Abs:"#ec4899"};
   selected.forEach(val=>{if(cm[val])cm[val].forEach(id=>{let el=document.getElementById(id);if(el)el.style.fill=cc[val]||"#2563eb"})});
 }
 
+/* ===================== CHECK-IN / CHECK-OUT (UPDATED FLOW) ===================== */
 async function processCheckIn(){
-  let uid=localStorage.getItem("user_id"),session=document.getElementById("session").value,today=new Date().toISOString().split("T")[0];
+  let uid=localStorage.getItem("user_id"),session=document.getElementById("session").value;
+  let today=new Date().toISOString().split("T")[0];
   if(!uid)return;
   const{data:ex}=await db.from("attendance").select("*").eq("user_id",uid).eq("attendance_date",today).eq("session",session);
   if(ex&&ex.length>0){alert(`Already checked in for ${session} today.`);return}
-  let sc=Array.from(document.getElementById("workout").options).filter(o=>o.selected).map(o=>o.value);
-  if(sc.length===0){alert("Please select at least one workout class.");return}
-  const{error}=await db.from("attendance").insert([{user_id:uid,attendance_date:today,session,workout:sc.join(", "),status:"Present",duration:"In Progress"}]);
+
+  // Insert attendance record with "In Progress" duration
+  const{error}=await db.from("attendance").insert([{user_id:uid,attendance_date:today,session,workout:"",status:"Present",duration:"In Progress"}]);
   if(error){alert(error.message);return}
-  alert("✅ Check-In Saved! +50 XP Earned!");chronometerSeconds=0;
-  document.getElementById("clockBox").classList.add("visible");startStopwatch();
-  await loadAttendanceHistoryRecords();await syncCoreDashboardMetrics();
+
+  // Disable the check-in button (blur it)
+  const btn=document.getElementById("submitCheckinBtn");
+  btn.disabled=true;
+  btn.textContent="✅ CHECKED IN — WORKOUT IN PROGRESS";
+
+  // Show the stopwatch area
+  chronometerSeconds=0;
+  document.getElementById("clockBox").classList.add("visible");
+  startStopwatch();
+
+  // Show the workout selector + body
+  document.getElementById("workoutSelectorArea").classList.add("visible");
+
+  await syncCoreDashboardMetrics();
 }
 
 function startStopwatch(){
@@ -1107,13 +1291,40 @@ function startStopwatch(){
 async function processCheckOut(){
   if(!activeWorkoutTimer){alert("No active session.");return}
   clearInterval(activeWorkoutTimer);activeWorkoutTimer=null;
-  let hrs=Math.floor(chronometerSeconds/3600),mins=Math.floor((chronometerSeconds%3600)/60),fmt=`${hrs}Hr ${mins} min`;
-  document.getElementById("gymDuration").innerText=`Today you spent ${fmt} at the gym 💪`;
+
+  let hrs=Math.floor(chronometerSeconds/3600),mins=Math.floor((chronometerSeconds%3600)/60);
+  let fmt=hrs>0?`${hrs}Hr ${mins}min`:`${mins}min`;
+
+  // Get selected workout classes
+  let sel=document.getElementById("workout");
+  let selectedClasses=Array.from(sel.options).filter(o=>o.selected).map(o=>o.value);
+  if(selectedClasses.length===0){alert("Please select at least one workout class before checking out.");return}
+  let workoutStr=selectedClasses.join(", ");
+
+  document.getElementById("gymDuration").innerText=`Today you spent ${hrs>0?hrs+'Hr ':''} ${mins}min at the gym 💪`;
+
   let uid=localStorage.getItem("user_id"),today=new Date().toISOString().split("T")[0];
-  const{data:lr}=await db.from("attendance").select("id").eq("user_id",uid).eq("attendance_date",today).order("created_at",{ascending:false}).limit(1);
-  if(lr&&lr.length>0)await db.from("attendance").update({duration:fmt}).eq("id",lr[0].id);
+  let session=document.getElementById("session").value;
+
+  // Update the attendance record with duration + workout
+  const{data:lr}=await db.from("attendance").select("id").eq("user_id",uid).eq("attendance_date",today).eq("session",session).order("created_at",{ascending:false}).limit(1);
+  if(lr&&lr.length>0){
+    await db.from("attendance").update({duration:fmt,workout:workoutStr}).eq("id",lr[0].id);
+  }
+
+  // Reset UI
   document.getElementById("clockBox").classList.remove("visible");
-  await loadAttendanceHistoryRecords();await syncCoreDashboardMetrics();
+  document.getElementById("workoutSelectorArea").classList.remove("visible");
+  const btn=document.getElementById("submitCheckinBtn");
+  btn.disabled=false;
+  btn.textContent="⚡ SUBMIT CHECK-IN (+50 XP)";
+  // Reset selections
+  Array.from(sel.options).forEach(o=>o.selected=false);
+  document.querySelectorAll(".muscle-group").forEach(el=>el.style.fill="var(--muscle-idle)");
+
+  alert(`✅ Check-Out saved! Duration: ${fmt}`);
+  await loadAttendanceHistoryRecords();
+  await syncCoreDashboardMetrics();
 }
 
 async function loadAttendanceHistoryRecords(){
@@ -1143,29 +1354,196 @@ function renderAttendanceHistory(){
   if(tbody.children.length===0)tbody.innerHTML=`<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:20px;font-family:var(--font-alt)">No records for this filter.</td></tr>`;
 }
 
+/* ===================== STATS CHART (STACKED BAR — UPDATED) ===================== */
+// Tooltip element
+const statsTooltip=document.getElementById('statsTooltip');
+let statsChartDayData=[]; // [{label, duration, workout, classes}]
+
+function buildStatsLegend(classes){
+  const el=document.getElementById('statsChartLegend');
+  if(!el)return;
+  const seen=new Set();
+  let html='';
+  classes.forEach(c=>{
+    if(!seen.has(c)&&c!=='Rest'){
+      seen.add(c);
+      const color=CLASS_COLORS[c]||CLASS_COLORS['Unknown'];
+      html+=`<div style="display:flex;align-items:center;gap:5px;font-family:var(--font-alt);font-size:12px;font-weight:600;color:var(--text-secondary)"><span style="width:12px;height:12px;border-radius:3px;background:${color};display:inline-block;flex-shrink:0"></span>${c}</div>`;
+    }
+  });
+  if(!html)html=`<span style="font-size:11px;color:var(--text-muted);font-family:var(--font-alt)">No workouts in this range</span>`;
+  el.innerHTML=html;
+}
+
+function showStatsTooltip(evt,dayData){
+  if(!dayData)return;
+  const totalMins=dayData.duration;
+  const durationFmt=formatMinutesToDuration(totalMins);
+  const classes=dayData.classes;
+
+  let muscleHtml='';
+  if(classes.length>0){
+    classes.forEach(c=>{
+      const color=CLASS_COLORS[c]||CLASS_COLORS['Unknown'];
+      muscleHtml+=`<div class="stats-tooltip-muscle"><span class="stats-tooltip-dot" style="background:${color}"></span><span>${c}</span></div>`;
+    });
+  } else {
+    muscleHtml='<div style="color:#94a3b8;font-size:12px">Rest Day</div>';
+  }
+
+  statsTooltip.innerHTML=`
+    <div class="stats-tooltip-title">Day ${dayData.label}</div>
+    ${muscleHtml}
+    <div class="stats-tooltip-duration">⏱ Total Duration: <strong>${durationFmt}</strong></div>
+  `;
+  statsTooltip.style.display='block';
+
+  // Position tooltip
+  const x=evt.clientX,y=evt.clientY;
+  const tw=180,th=statsTooltip.offsetHeight||120;
+  let left=x+14,top=y-th/2;
+  if(left+tw>window.innerWidth-20)left=x-tw-14;
+  if(top<8)top=8;
+  if(top+th>window.innerHeight-8)top=window.innerHeight-th-8;
+  statsTooltip.style.left=left+'px';
+  statsTooltip.style.top=top+'px';
+}
+function hideStatsTooltip(){statsTooltip.style.display='none'}
+
 async function updateStatsChart(){
   let uid=localStorage.getItem("user_id");if(!uid)return;
   const{data,error}=await db.from("attendance").select("*").eq("user_id",uid).order("attendance_date",{ascending:true});
   if(error||!data)return;
+
   let tf=document.getElementById("statsTimeframe").value;
   let ranges={w1:[1,7],w2:[8,14],w3:[15,21],w4:[22,28],w5:[29,31]};
   let[sd,ed]=ranges[tf]||[1,7];
+
   let fd=data.filter(r=>{let d=new Date(r.attendance_date);return d.getDate()>=sd&&d.getDate()<=ed});
-  let dm={};for(let i=sd;i<=ed;i++)dm[i]={label:i.toString(),duration:0,workout:'Rest'};
-  fd.forEach(r=>{let d=new Date(r.attendance_date),day=d.getDate();if(dm[day]){dm[day].duration+=parseDurationToMinutes(r.duration);if(r.workout&&r.workout!=="")dm[day].workout=r.workout}});
-  let days=Object.values(dm),labels=days.map(d=>'Day '+d.label),durations=days.map(d=>d.duration||0),barLabels=days.map(d=>d.workout);
-  if(userStatsInstanceChart)userStatsInstanceChart.destroy();
-  let ctx=document.getElementById("workoutChart").getContext("2d");
-  userStatsInstanceChart=new Chart(ctx,{type:'bar',data:{labels,datasets:[{label:'Time (min)',data:durations,barLabels,backgroundColor:'rgba(37,99,235,0.6)',borderColor:'#2563eb',borderWidth:2,borderRadius:6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:'rgba(128,128,128,0.08)'},ticks:{color:'#6b7280',font:{family:'Rajdhani',size:12}}},x:{grid:{display:false},ticks:{color:'#6b7280',font:{family:'Rajdhani',size:12}}}}}});
-  let nz=days.filter(d=>d.duration>0),avg=nz.length?Math.round(nz.reduce((s,d)=>s+d.duration,0)/nz.length):0;
-  document.getElementById("avgTimeLabel").textContent=avg+' Mins';
-  let wd=days.filter(d=>d.workout!=='Rest'),mc={};
-  wd.forEach(d=>d.workout.split(',').forEach(m=>{m=m.trim();mc[m]=(mc[m]||0)+1}));
+
+  // Build day map, sum duration for multiple sessions on same day
+  let dm={};
+  for(let i=sd;i<=ed;i++){
+    dm[i]={label:i.toString(),duration:0,workout:'',classes:[]};
+  }
+  fd.forEach(r=>{
+    let d=new Date(r.attendance_date),day=d.getDate();
+    if(dm[day]){
+      dm[day].duration+=parseDurationToMinutes(r.duration);
+      if(r.workout&&r.workout.trim()!==""){
+        if(dm[day].workout)dm[day].workout+=', '+r.workout;
+        else dm[day].workout=r.workout;
+      }
+    }
+  });
+
+  // Build classes per day (unique, max 3)
+  Object.values(dm).forEach(d=>{
+    if(d.workout){
+      let cls=[...new Set(d.workout.split(',').map(s=>s.trim()).filter(Boolean))].slice(0,3);
+      d.classes=cls;
+    }
+  });
+
+  let days=Object.values(dm);
+  statsChartDayData=days;
+
+  let labels=days.map(d=>'Day '+d.label);
+  let durations=days.map(d=>d.duration||0);
+  // For bars with 0 duration on workout days (rare), give a tiny value so segment shows
+  let chartData=durations.map((v,i)=>{
+    if(v===0&&days[i].classes.length>0)return 30; // show minimum bar height
+    return v||0;
+  });
+
+  let rawWorkouts=days.map(d=>d.classes.join(', '));
+
+  if(userStatsInstanceChart){userStatsInstanceChart.destroy();userStatsInstanceChart=null;}
+
+  const canvas=document.getElementById("workoutChart");
+  const ctx=canvas.getContext("2d");
+
+  userStatsInstanceChart=new Chart(ctx,{
+    type:'bar',
+    data:{
+      labels,
+      datasets:[{
+        label:'Duration (min)',
+        data:chartData,
+        rawWorkouts, // custom field read by our plugin
+        backgroundColor:'rgba(37,99,235,0)', // transparent — plugin draws its own colors
+        borderColor:'transparent',
+        borderWidth:0,
+        borderRadius:6,
+        barPercentage:0.65,
+        categoryPercentage:0.8,
+      }]
+    },
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        tooltip:{enabled:false}, // we use custom tooltip
+      },
+      scales:{
+        y:{
+          beginAtZero:true,
+          grid:{color:'rgba(128,128,128,0.08)'},
+          ticks:{
+            color:'#6b7280',
+            font:{family:'Rajdhani',size:12},
+            callback(v){return v+'m'}
+          }
+        },
+        x:{
+          grid:{display:false},
+          ticks:{color:'#6b7280',font:{family:'Rajdhani',size:12}}
+        }
+      },
+      onHover(evt,elements){
+        canvas.style.cursor=elements.length?'pointer':'default';
+      }
+    },
+    plugins:[stackedMusclePlugin]
+  });
+
+  // Mouse events for custom tooltip
+  canvas.onmousemove=function(evt){
+    const pts=userStatsInstanceChart.getElementsAtEventForMode(evt,'index',{intersect:false},false);
+    if(pts.length){
+      const idx=pts[0].index;
+      showStatsTooltip(evt,statsChartDayData[idx]);
+    } else {
+      hideStatsTooltip();
+    }
+  };
+  canvas.onmouseleave=function(){hideStatsTooltip()};
+  canvas.onclick=function(evt){
+    const pts=userStatsInstanceChart.getElementsAtEventForMode(evt,'index',{intersect:true},false);
+    if(pts.length){
+      const idx=pts[0].index;
+      showStatsTooltip(evt,statsChartDayData[idx]);
+    }
+  };
+
+  // Build legend from all unique classes in this range
+  let allClasses=[];days.forEach(d=>allClasses.push(...d.classes));
+  buildStatsLegend(allClasses);
+
+  // Summary stats
+  let nz=days.filter(d=>d.duration>0);
+  let avg=nz.length?Math.round(nz.reduce((s,d)=>s+d.duration,0)/nz.length):0;
+  document.getElementById("avgTimeLabel").textContent=formatMinutesToDuration(avg);
+
+  let mc={};
+  days.forEach(d=>d.classes.forEach(m=>{mc[m]=(mc[m]||0)+1}));
   let sorted=Object.entries(mc).sort((a,b)=>b[1]-a[1]);
   document.getElementById("mostTrainedLabel").textContent=sorted[0]?sorted[0][0]:'None';
   document.getElementById("lessTrainedLabel").textContent=sorted[sorted.length-1]?sorted[sorted.length-1][0]:'None';
 }
 
+/* ===================== WORKOUT FORM ===================== */
 function handleWorkoutSearchAuto(){
   let val=document.getElementById("workoutNameInput").value.toLowerCase();
   let box=document.getElementById("autoSuggestions");box.innerHTML="";box.style.display="none";if(!val)return;
@@ -1177,6 +1555,8 @@ document.addEventListener("click",e=>{
   if(e.target.id!=="workoutNameInput")document.getElementById("autoSuggestions").style.display="none";
   if(e.target.id!=="liveWorkoutNameInput")document.getElementById("liveAutoSuggestions").style.display="none";
   let sr=document.getElementById("gymBroSearchResults");if(sr&&e.target.id!=="gymBroSearchInput"&&!sr.contains(e.target))sr.style.display="none";
+  // Hide stats tooltip on click outside canvas
+  if(e.target.id!=="workoutChart")hideStatsTooltip();
 });
 function buildSetsInputFields(){
   let cnt=parseInt(document.getElementById("setsCountSelect").value),c=document.getElementById("dynamicSetsContainer");c.innerHTML="";
@@ -1282,18 +1662,14 @@ function startLiveSession(){
   let name=document.getElementById("liveWorkoutNameInput").value.trim();
   if(!name){alert("Please enter exercise name.");return}
   liveTotalSets=parseInt(document.getElementById("liveSetsCountSelect").value);
-  liveCurrentSet=1;
-  liveSetResults=[];
-  liveSessionSlot=null;
+  liveCurrentSet=1;liveSetResults=[];liveSessionSlot=null;
   document.getElementById("liveSetupPanel").style.display="none";
   let titleEl=document.getElementById("liveSessionTitle");
   titleEl.textContent="🏋 "+name+" — "+liveTotalSets+" Set"+(liveTotalSets>1?"s":"");
   titleEl.style.display="block";
   const container=document.getElementById("liveSetsContainer");
   container.innerHTML="";
-  for(let i=1;i<=liveTotalSets;i++){
-    container.innerHTML+=buildLiveSetHTML(i,i===1);
-  }
+  for(let i=1;i<=liveTotalSets;i++){container.innerHTML+=buildLiveSetHTML(i,i===1)}
 }
 
 function buildLiveSetHTML(idx,active){
@@ -1328,15 +1704,12 @@ function buildLiveSetHTML(idx,active){
 function toggleLiveSetTimer(idx){
   const btn=document.getElementById(`liveTimerBtn_${idx}`);
   if(liveSetTimers[idx]){
-    clearInterval(liveSetTimers[idx]);
-    delete liveSetTimers[idx];
-    btn.textContent="▶";
-    btn.className="live-timer-btn start";
+    clearInterval(liveSetTimers[idx]);delete liveSetTimers[idx];
+    btn.textContent="▶";btn.className="live-timer-btn start";
     document.getElementById(`liveSetSaveBtn_${idx}`).style.display="block";
   } else {
     if(!liveSetSeconds[idx])liveSetSeconds[idx]=0;
-    btn.textContent="⏹";
-    btn.className="live-timer-btn stop";
+    btn.textContent="⏹";btn.className="live-timer-btn stop";
     document.getElementById(`liveSetSaveBtn_${idx}`).style.display="none";
     liveSetTimers[idx]=setInterval(()=>{
       liveSetSeconds[idx]++;
@@ -1371,8 +1744,7 @@ async function saveLiveSet(idx){
     let slot=null;
     for(let i=1;i<=15;i++){if(!er[`workout_${i}`]){slot=`workout_${i}`;break}}
     if(!slot){alert("Daily capacity of 15 entries reached.");return}
-    liveSessionSlot=slot;
-    p[slot]=combinedEntry;
+    liveSessionSlot=slot;p[slot]=combinedEntry;
     await db.from("workouts").update(p).eq("user_id",uid).eq("date",td);
   } else {
     liveSessionSlot="workout_1";
@@ -1384,24 +1756,16 @@ async function saveLiveSet(idx){
   document.getElementById(`liveSetInputs_${idx}`).style.pointerEvents="none";
   document.getElementById(`liveSetInputs_${idx}`).style.opacity="0.6";
   let resultEl=document.getElementById(`liveSetResult_${idx}`);
-  resultEl.textContent=`✓ ${setStr}`;
-  resultEl.style.display="block";
+  resultEl.textContent=`✓ ${setStr}`;resultEl.style.display="block";
   document.getElementById(`liveSetDoneBadge_${idx}`).style.display="inline-block";
   document.getElementById(`liveSetBlock_${idx}`).classList.remove("set-active");
   document.getElementById(`liveSetBlock_${idx}`).classList.add("set-done");
-  if(idx<liveTotalSets){
-    document.getElementById(`liveBreakRow_${idx}`).style.display="block";
-  } else {
-    finishLiveSession(name);
-  }
-  await loadWorkoutsForDate();
-  await syncCoreDashboardMetrics();
+  if(idx<liveTotalSets){document.getElementById(`liveBreakRow_${idx}`).style.display="block"}
+  else{finishLiveSession(name)}
+  await loadWorkoutsForDate();await syncCoreDashboardMetrics();
 }
 
-function skipLiveBreak(idx){
-  document.getElementById(`liveBreakRow_${idx}`).style.display="none";
-  activateNextLiveSet(idx+1);
-}
+function skipLiveBreak(idx){document.getElementById(`liveBreakRow_${idx}`).style.display="none";activateNextLiveSet(idx+1)}
 
 function startLiveBreak(idx){
   let mins=parseInt(document.getElementById(`liveBreakMin_${idx}`).value)||0;
@@ -1409,8 +1773,7 @@ function startLiveBreak(idx){
   let totalSecs=mins*60;
   let timerEl=document.getElementById(`liveBreakTimer_${idx}`);
   let msgEl=document.getElementById(`liveBreakMsg_${idx}`);
-  timerEl.style.display="block";
-  msgEl.style.display="none";
+  timerEl.style.display="block";msgEl.style.display="none";
   let startBtn=document.querySelector(`#liveBreakRow_${idx} .live-break-btn.start`);
   let skipBtn=document.querySelectorAll(`#liveBreakRow_${idx} .live-break-btn`)[1];
   if(startBtn){startBtn.disabled=true;startBtn.style.opacity="0.5"}
@@ -1420,12 +1783,10 @@ function startLiveBreak(idx){
     liveBreakSeconds[idx]++;
     let rem=totalSecs-liveBreakSeconds[idx];
     if(rem<=0){
-      clearInterval(liveBreakTimers[idx]);
-      delete liveBreakTimers[idx];
+      clearInterval(liveBreakTimers[idx]);delete liveBreakTimers[idx];
       timerEl.textContent="00:00";
       msgEl.textContent="🔔 Break over! Time to crush the next set!";
-      msgEl.style.display="block";
-      timerEl.style.display="none";
+      msgEl.style.display="block";timerEl.style.display="none";
       playBreakAlertSound();
       setTimeout(()=>{
         document.getElementById(`liveBreakRow_${idx}`).style.display="none";
@@ -1449,13 +1810,12 @@ function playBreakAlertSound(){
       gain.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+delay+0.35);
       osc.start(ctx.currentTime+delay);osc.stop(ctx.currentTime+delay+0.35);
     });
-  } catch(e){}
+  }catch(e){}
 }
 
 function activateNextLiveSet(idx){
   if(idx>liveTotalSets)return;
-  const block=document.getElementById(`liveSetBlock_${idx}`);
-  if(!block)return;
+  const block=document.getElementById(`liveSetBlock_${idx}`);if(!block)return;
   block.classList.add("set-active");
   document.getElementById(`liveSetInputs_${idx}`).style.opacity="1";
   document.getElementById(`liveSetInputs_${idx}`).style.pointerEvents="auto";
@@ -1472,8 +1832,7 @@ function finishLiveSession(name){
   container.appendChild(doneMsg);
   let closeBtn=document.createElement("button");
   closeBtn.className="btn";closeBtn.style.cssText="margin-top:12px;background:linear-gradient(135deg,#64748b,#475569)";
-  closeBtn.textContent="DONE";
-  closeBtn.onclick=cancelLiveWorkout;
+  closeBtn.textContent="DONE";closeBtn.onclick=cancelLiveWorkout;
   container.appendChild(closeBtn);
 }
 
@@ -1553,33 +1912,24 @@ function populateFeedGrid(){
 
 <!-- ===================== WORKOUT TRACKER ENGINE ===================== -->
 <script>
-/* --- State --- */
-let trackerAllData=[];       // full parsed aggregated map: { exerciseName: { frequency, sets:[{date,raw,vol}] } }
-let trackerSortedList=[];    // array sorted by frequency desc
+let trackerAllData=[];
+let trackerSortedList=[];
 let trackerCurrentPage=1;
-const TRACKER_PAGE_SIZE=10;
+const TRACKER_PAGE_SIZE=5;
 let trackerAnalyticsChartInstance=null;
 
-/* --- Date helpers --- */
 function formatTrackerDate(dateStr){
-  // dateStr: "2026-05-12" → "May 12/2026"
   const d=new Date(dateStr+'T00:00:00');
   const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   return `${months[d.getMonth()]} ${String(d.getDate()).padStart(2,'0')}/${d.getFullYear()}`;
 }
-
-/* --- Volume parser: "5Kg x 10 x 30 sec" → weight × reps --- */
 function parseSetVolume(setStr){
-  // Handles: "5Kg x 10 x 30 sec" | "5kg x 10" | "5Kg x 10" | "2.5Kg x 15 x 20 sec"
   const m=setStr.trim().match(/^([\d.]+)\s*[Kk][Gg]?\s*x\s*(\d+)/);
   if(!m)return 0;
   return parseFloat(m[1])*(parseInt(m[2])||0);
 }
-
-/* --- Friendly set display: "5Kg x 10 x 30 sec" → "5kgs x 10 [30 sec]" --- */
 function formatSetDisplay(setStr){
   const s=setStr.trim();
-  // try to extract weight, reps, time
   const full=s.match(/^([\d.]+)\s*[Kk][Gg]?\s*x\s*(\d+)\s*x\s*(.+)$/);
   if(full)return `${full[1]}kgs x ${full[2]} [${full[3].trim()}]`;
   const basic=s.match(/^([\d.]+)\s*[Kk][Gg]?\s*x\s*(\d+)/);
@@ -1587,7 +1937,6 @@ function formatSetDisplay(setStr){
   return s;
 }
 
-/* --- Main tracker function --- */
 async function runWorkoutTracker(){
   const uid=localStorage.getItem("user_id");
   if(!uid){alert("Please log in first.");return}
@@ -1595,245 +1944,97 @@ async function runWorkoutTracker(){
   const toDate=document.getElementById("trackerToDate").value;
   if(!fromDate||!toDate){alert("Please select both From and To dates.");return}
   if(fromDate>toDate){alert("From Date must be before or equal to To Date.");return}
-
   const area=document.getElementById("trackerResultsArea");
   area.innerHTML=`<div class="tracker-loading">⏳ Fetching workout data...</div>`;
   closeTrackerAnalytics();
-
-  const{data,error}=await db.from("workouts").select("*")
-    .eq("user_id",uid)
-    .gte("date",fromDate)
-    .lte("date",toDate)
-    .order("date",{ascending:true});
-
+  const{data,error}=await db.from("workouts").select("*").eq("user_id",uid).gte("date",fromDate).lte("date",toDate).order("date",{ascending:true});
   if(error){area.innerHTML=`<div class="tracker-empty">❌ Error fetching data: ${error.message}</div>`;return}
   if(!data||data.length===0){area.innerHTML=`<div class="tracker-empty">😴 No workouts found in this date range. Start logging!</div>`;return}
-
-  /* --- Parse & aggregate --- */
-  const exerciseMap={};  // { name: { frequency, sets:[{date,raw,vol}] } }
-
+  const exerciseMap={};
   data.forEach(row=>{
-    const rowDate=row.date; // "2026-05-12"
+    const rowDate=row.date;
     for(let ci=1;ci<=15;ci++){
       const cell=row[`workout_${ci}`];
       if(!cell||!cell.trim())continue;
-
       let exName='Unknown',setsRaw=[];
-      if(cell.includes(':')){
-        const colonIdx=cell.indexOf(':');
-        exName=cell.substring(0,colonIdx).trim();
-        setsRaw=cell.substring(colonIdx+1).split(',').map(s=>s.trim()).filter(Boolean);
-      } else {
-        exName=cell.trim();
-      }
-
-      if(!exerciseMap[exName]){
-        exerciseMap[exName]={frequency:0,sets:[]};
-      }
+      if(cell.includes(':')){const ci2=cell.indexOf(':');exName=cell.substring(0,ci2).trim();setsRaw=cell.substring(ci2+1).split(',').map(s=>s.trim()).filter(Boolean)}
+      else{exName=cell.trim()}
+      if(!exerciseMap[exName])exerciseMap[exName]={frequency:0,sets:[]};
       exerciseMap[exName].frequency++;
-
-      setsRaw.forEach(setStr=>{
-        const vol=parseSetVolume(setStr);
-        exerciseMap[exName].sets.push({date:rowDate,raw:setStr,vol});
-      });
+      setsRaw.forEach(setStr=>{const vol=parseSetVolume(setStr);exerciseMap[exName].sets.push({date:rowDate,raw:setStr,vol})});
     }
   });
-
-  /* --- Sort by frequency descending --- */
-  trackerSortedList=Object.entries(exerciseMap)
-    .sort((a,b)=>b[1].frequency-a[1].frequency)
-    .map(([name,data],idx)=>({
-      sno:idx+1,
-      name,
-      frequency:data.frequency,
-      sets:data.sets,
-      lowestSet: data.sets.length?data.sets.reduce((mn,s)=>s.vol<mn.vol?s:mn,data.sets[0]):null,
-      highestSet: data.sets.length?data.sets.reduce((mx,s)=>s.vol>mx.vol?s:mx,data.sets[0]):null
-    }));
-
-  trackerAllData=exerciseMap;
-  trackerCurrentPage=1;
-  renderTrackerTable();
+  trackerSortedList=Object.entries(exerciseMap).sort((a,b)=>b[1].frequency-a[1].frequency).map(([name,data],idx)=>({
+    sno:idx+1,name,frequency:data.frequency,sets:data.sets,
+    lowestSet:data.sets.length?data.sets.reduce((mn,s)=>s.vol<mn.vol?s:mn,data.sets[0]):null,
+    highestSet:data.sets.length?data.sets.reduce((mx,s)=>s.vol>mx.vol?s:mx,data.sets[0]):null
+  }));
+  trackerAllData=exerciseMap;trackerCurrentPage=1;renderTrackerTable();
 }
 
 function renderTrackerTable(){
   const area=document.getElementById("trackerResultsArea");
   if(!trackerSortedList.length){area.innerHTML=`<div class="tracker-empty">No exercises found.</div>`;return}
-
   const totalPages=Math.ceil(trackerSortedList.length/TRACKER_PAGE_SIZE);
   const start=(trackerCurrentPage-1)*TRACKER_PAGE_SIZE;
   const pageItems=trackerSortedList.slice(start,start+TRACKER_PAGE_SIZE);
-
   let rowsHtml=pageItems.map(item=>{
-    const lowestHtml=item.lowestSet
-      ?`<span class="tracker-vol-date">${formatTrackerDate(item.lowestSet.date)}</span><span class="tracker-vol-raw">{${formatSetDisplay(item.lowestSet.raw)}}</span>`
-      :`<span style="color:var(--text-muted);font-size:11px;font-family:var(--font-alt)">—</span>`;
-    const highestHtml=item.highestSet
-      ?`<span class="tracker-vol-date">${formatTrackerDate(item.highestSet.date)}</span><span class="tracker-vol-raw">{${formatSetDisplay(item.highestSet.raw)}}</span>`
-      :`<span style="color:var(--text-muted);font-size:11px;font-family:var(--font-alt)">—</span>`;
-    return `<tr>
-      <td>${item.sno}</td>
-      <td><span class="tracker-exercise-name">${item.name}</span></td>
-      <td><span class="tracker-freq-badge">×${item.frequency}</span></td>
-      <td><div class="tracker-vol-cell">${lowestHtml}</div></td>
-      <td><div class="tracker-vol-cell">${highestHtml}</div></td>
-      <td><button class="tracker-analytics-btn" onclick="showTrackerAnalytics('${escapeHtml(item.name)}')">📊 Show Analytics</button></td>
-    </tr>`;
+    const lowestHtml=item.lowestSet?`<span class="tracker-vol-date">${formatTrackerDate(item.lowestSet.date)}</span><span class="tracker-vol-raw">{${formatSetDisplay(item.lowestSet.raw)}}</span>`:`<span style="color:var(--text-muted);font-size:11px;font-family:var(--font-alt)">—</span>`;
+    const highestHtml=item.highestSet?`<span class="tracker-vol-date">${formatTrackerDate(item.highestSet.date)}</span><span class="tracker-vol-raw">{${formatSetDisplay(item.highestSet.raw)}}</span>`:`<span style="color:var(--text-muted);font-size:11px;font-family:var(--font-alt)">—</span>`;
+    return `<tr><td>${item.sno}</td><td><span class="tracker-exercise-name">${item.name}</span></td><td><span class="tracker-freq-badge">×${item.frequency}</span></td><td><div class="tracker-vol-cell">${lowestHtml}</div></td><td><div class="tracker-vol-cell">${highestHtml}</div></td><td><button class="tracker-analytics-btn" onclick="showTrackerAnalytics('${escapeHtml(item.name)}')">📊 Show Analytics</button></td></tr>`;
   }).join('');
-
   let paginationHtml='';
   if(totalPages>1){
     paginationHtml='<div class="tracker-pagination">';
-    if(trackerCurrentPage>1) paginationHtml+=`<button class="tracker-page-btn" onclick="goTrackerPage(${trackerCurrentPage-1})">‹</button>`;
-    for(let p=1;p<=totalPages;p++){
-      paginationHtml+=`<button class="tracker-page-btn${p===trackerCurrentPage?' active':''}" onclick="goTrackerPage(${p})">${p}</button>`;
-    }
-    if(trackerCurrentPage<totalPages) paginationHtml+=`<button class="tracker-page-btn" onclick="goTrackerPage(${trackerCurrentPage+1})">›</button>`;
+    if(trackerCurrentPage>1)paginationHtml+=`<button class="tracker-page-btn" onclick="goTrackerPage(${trackerCurrentPage-1})">‹</button>`;
+    for(let p=1;p<=totalPages;p++){paginationHtml+=`<button class="tracker-page-btn${p===trackerCurrentPage?' active':''}" onclick="goTrackerPage(${p})">${p}</button>`}
+    if(trackerCurrentPage<totalPages)paginationHtml+=`<button class="tracker-page-btn" onclick="goTrackerPage(${trackerCurrentPage+1})">›</button>`;
     paginationHtml+='</div>';
   }
-
   const totalItems=trackerSortedList.length;
-  area.innerHTML=`
-    <div style="margin-bottom:10px;font-size:12px;color:var(--text-muted);font-family:var(--font-alt);letter-spacing:0.3px">
-      Showing ${start+1}–${Math.min(start+TRACKER_PAGE_SIZE,totalItems)} of ${totalItems} exercises
-    </div>
-    <div class="tracker-table-wrapper">
-      <table class="tracker-table">
-        <thead>
-          <tr>
-            <th>S.No</th>
-            <th>Workout Name</th>
-            <th>Frequency</th>
-            <th>Lowest Volume Set</th>
-            <th>Highest Volume Set</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>${rowsHtml}</tbody>
-      </table>
-    </div>
-    ${paginationHtml}
-  `;
+  area.innerHTML=`<div style="margin-bottom:10px;font-size:12px;color:var(--text-muted);font-family:var(--font-alt);letter-spacing:0.3px">Showing ${start+1}–${Math.min(start+TRACKER_PAGE_SIZE,totalItems)} of ${totalItems} exercises</div><div class="tracker-table-wrapper"><table class="tracker-table"><thead><tr><th>S.No</th><th>Workout Name</th><th>Frequency</th><th>Lowest Volume Set</th><th>Highest Volume Set</th><th>Actions</th></tr></thead><tbody>${rowsHtml}</tbody></table></div>${paginationHtml}`;
 }
 
-function goTrackerPage(page){
-  trackerCurrentPage=page;
-  renderTrackerTable();
-  document.getElementById("workoutTrackerSection").scrollIntoView({behavior:"smooth",block:"start"});
-}
+function goTrackerPage(page){trackerCurrentPage=page;renderTrackerTable();document.getElementById("workoutTrackerSection").scrollIntoView({behavior:"smooth",block:"start"})}
 
-/* --- Analytics chart --- */
 function showTrackerAnalytics(exName){
   const decoded=exName.replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&#039;/g,"'");
   const exData=trackerAllData[decoded];
   if(!exData||!exData.sets.length){alert("No set data available for this exercise.");return}
-
-  // Group sets by date: sum volumes per day, collect best raw label per day
   const dateMap={};
   exData.sets.forEach(s=>{
-    if(!dateMap[s.date]){dateMap[s.date]={totalVol:0,bestVol:0,bestRaw:''}}
+    if(!dateMap[s.date])dateMap[s.date]={totalVol:0,bestVol:0,bestRaw:''};
     dateMap[s.date].totalVol+=s.vol;
-    if(s.vol>dateMap[s.date].bestVol){
-      dateMap[s.date].bestVol=s.vol;
-      dateMap[s.date].bestRaw=s.raw;
-    }
+    if(s.vol>dateMap[s.date].bestVol){dateMap[s.date].bestVol=s.vol;dateMap[s.date].bestRaw=s.raw}
   });
-
   const sortedDates=Object.keys(dateMap).sort();
   const labels=sortedDates.map(d=>formatTrackerDate(d));
   const volumes=sortedDates.map(d=>dateMap[d].totalVol);
   const tooltipLabels=sortedDates.map(d=>formatSetDisplay(dateMap[d].bestRaw)||'—');
-
-  // Show panel
   const panel=document.getElementById("trackerAnalyticsPanel");
   panel.classList.add("visible");
   document.getElementById("trackerAnalyticsTitle").textContent=`📊 ${decoded} — Volume Journey`;
   document.getElementById("trackerAnalyticsSubtitle").textContent=`Total volume (kg × reps) per session across ${sortedDates.length} training day${sortedDates.length!==1?'s':''}`;
-
-  // Destroy previous chart instance
-  if(trackerAnalyticsChartInstance){trackerAnalyticsChartInstance.destroy();trackerAnalyticsChartInstance=null;}
-
+  if(trackerAnalyticsChartInstance){trackerAnalyticsChartInstance.destroy();trackerAnalyticsChartInstance=null}
   const ctx=document.getElementById("trackerAnalyticsChart").getContext("2d");
-
-  // Detect accent color from theme
   const isGod=document.body.classList.contains("theme-godmode");
   const isBat=document.body.classList.contains("theme-batman");
   const lineColor=isGod?"#ff2200":isBat?"#ffcc00":"#2563eb";
   const pointColor=isGod?"#ff6600":isBat?"#ffe066":"#1d4ed8";
   const fillColor=isGod?"rgba(255,34,0,0.12)":isBat?"rgba(255,204,0,0.1)":"rgba(37,99,235,0.1)";
-
   trackerAnalyticsChartInstance=new Chart(ctx,{
-    type:'line',
-    data:{
-      labels,
-      datasets:[{
-        label:'Volume (kg × reps)',
-        data:volumes,
-        borderColor:lineColor,
-        backgroundColor:fillColor,
-        pointBackgroundColor:pointColor,
-        pointBorderColor:'#fff',
-        pointBorderWidth:2,
-        pointRadius:6,
-        pointHoverRadius:9,
-        borderWidth:2.5,
-        fill:true,
-        tension:0.35,
-        _tooltipLabels:tooltipLabels
-      }]
-    },
-    options:{
-      responsive:true,
-      maintainAspectRatio:false,
-      interaction:{mode:'index',intersect:false},
-      plugins:{
-        legend:{display:false},
-        tooltip:{
-          backgroundColor:'rgba(15,23,42,0.92)',
-          titleFont:{family:'Rajdhani',size:13,weight:'bold'},
-          bodyFont:{family:'Rajdhani',size:12},
-          padding:12,
-          cornerRadius:10,
-          callbacks:{
-            title(items){return labels[items[0].dataIndex]},
-            label(item){
-              const vol=item.raw;
-              const raw=item.dataset._tooltipLabels[item.dataIndex];
-              return [`Total Volume: ${vol} kg`, `Best Set: ${raw}`];
-            }
-          }
-        },
-        datalabels: false
-      },
-      scales:{
-        y:{
-          beginAtZero:true,
-          grid:{color:'rgba(128,128,128,0.08)'},
-          ticks:{
-            color:'#6b7280',
-            font:{family:'Rajdhani',size:12},
-            callback(v){return v+'kg'}
-          },
-          title:{display:true,text:'Volume (kg × reps)',color:'#6b7280',font:{family:'Rajdhani',size:11}}
-        },
-        x:{
-          grid:{display:false},
-          ticks:{color:'#6b7280',font:{family:'Rajdhani',size:11},maxRotation:35}
-        }
-      }
-    }
+    type:'line',data:{labels,datasets:[{label:'Volume (kg × reps)',data:volumes,borderColor:lineColor,backgroundColor:fillColor,pointBackgroundColor:pointColor,pointBorderColor:'#fff',pointBorderWidth:2,pointRadius:6,pointHoverRadius:9,borderWidth:2.5,fill:true,tension:0.35,_tooltipLabels:tooltipLabels}]},
+    options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{display:false},tooltip:{backgroundColor:'rgba(15,23,42,0.92)',titleFont:{family:'Rajdhani',size:13,weight:'bold'},bodyFont:{family:'Rajdhani',size:12},padding:12,cornerRadius:10,callbacks:{title(items){return labels[items[0].dataIndex]},label(item){const vol=item.raw;const raw=item.dataset._tooltipLabels[item.dataIndex];return[`Total Volume: ${vol} kg`,`Best Set: ${raw}`]}}}},scales:{y:{beginAtZero:true,grid:{color:'rgba(128,128,128,0.08)'},ticks:{color:'#6b7280',font:{family:'Rajdhani',size:12},callback(v){return v+'kg'}},title:{display:true,text:'Volume (kg × reps)',color:'#6b7280',font:{family:'Rajdhani',size:11}}},x:{grid:{display:false},ticks:{color:'#6b7280',font:{family:'Rajdhani',size:11},maxRotation:35}}}}
   });
-
   panel.scrollIntoView({behavior:"smooth",block:"start"});
 }
 
 function closeTrackerAnalytics(){
   const panel=document.getElementById("trackerAnalyticsPanel");
   panel.classList.remove("visible");
-  if(trackerAnalyticsChartInstance){trackerAnalyticsChartInstance.destroy();trackerAnalyticsChartInstance=null;}
+  if(trackerAnalyticsChartInstance){trackerAnalyticsChartInstance.destroy();trackerAnalyticsChartInstance=null}
 }
 
-/* --- Set default dates on page load (current month) --- */
 (function initTrackerDates(){
   const now=new Date();
   const y=now.getFullYear(),m=String(now.getMonth()+1).padStart(2,'0');
