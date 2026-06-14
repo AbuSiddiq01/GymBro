@@ -526,56 +526,6 @@ body.theme-batman .tracker-page-btn.active{color:#05050a}
 .tracker-graph-box{position:relative;height:300px;width:100%}
 .tracker-subtitle{font-size:11px;color:var(--text-muted);font-family:var(--font-alt);margin-bottom:16px;letter-spacing:0.3px}
 
-/* ===================== COMPARE MODE FULLSCREEN (mobile landscape) ===================== */
-#volCompareLandscape:fullscreen,
-#volCompareLandscape:-webkit-full-screen,
-#volCompareLandscape:-moz-full-screen {
-  background:var(--bg-base);
-  padding:14px 10px 10px;
-  overflow-y:auto;
-  display:flex!important;
-  flex-direction:row;
-  gap:10px;
-  width:100vw;
-  height:100vh;
-  box-sizing:border-box;
-}
-#volCompareLandscape:fullscreen .vol-panel,
-#volCompareLandscape:-webkit-full-screen .vol-panel,
-#volCompareLandscape:-moz-full-screen .vol-panel {
-  flex:1;
-  min-width:0;
-  overflow-y:auto;
-}
-#volCompareLandscape:fullscreen .volume-chart-wrap,
-#volCompareLandscape:-webkit-full-screen .volume-chart-wrap,
-#volCompareLandscape:-moz-full-screen .volume-chart-wrap {
-  height:220px;
-}
-/* Exit button shown only in fullscreen on mobile */
-#cmpExitFullscreenBtn {
-  display:none;
-}
-#volCompareLandscape:fullscreen #cmpExitFullscreenBtn,
-#volCompareLandscape:-webkit-full-screen #cmpExitFullscreenBtn,
-#volCompareLandscape:-moz-full-screen #cmpExitFullscreenBtn {
-  display:flex;
-  position:fixed;
-  top:10px;right:12px;
-  z-index:99999;
-  background:var(--btn-bg);
-  color:var(--follow-btn-text);
-  border:none;
-  border-radius:10px;
-  padding:7px 14px;
-  font-size:12px;
-  font-weight:700;
-  font-family:var(--font-alt);
-  letter-spacing:0.5px;
-  cursor:pointer;
-  box-shadow:var(--btn-shadow);
-}
-
 .learn-page-header{background:var(--header-bg);border-radius:20px;padding:28px 24px;margin-bottom:20px;box-shadow:0 10px 30px rgba(0,0,0,0.15);position:relative;overflow:hidden}
 .learn-page-header::before{content:'';position:absolute;top:-40%;right:-5%;width:220px;height:220px;border-radius:50%;background:rgba(255,255,255,0.04);pointer-events:none}
 .learn-page-header h1{font-family:var(--font-display);font-size:32px;color:var(--header-text);letter-spacing:2px;margin-bottom:6px}
@@ -969,8 +919,6 @@ body.theme-godmode .session-resumed-banner .resume-dot{background:#c0000a}
 
           <!-- COMPARE LANDSCAPE VIEW (shown when compare mode ON) -->
           <div class="vol-compare-landscape" id="volCompareLandscape">
-            <!-- Mobile fullscreen exit button -->
-            <button id="cmpExitFullscreenBtn" onclick="toggleCompareMode()">✕ EXIT COMPARE</button>
 
             <!-- LEFT PANEL -->
             <div class="vol-panel" id="volPanelLeft">
@@ -1791,49 +1739,30 @@ function initStatsMonthDropdowns(){
 /* ── Compare Mode ────────────────────────────────────────────── */
 let _cmpModeOn=false;
 
-/* ── Mobile landscape fullscreen helpers ── */
 function _isMobile(){return/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent)||window.innerWidth<=900}
 
-async function _enterCompareLandscape(){
-  if(!_isMobile())return;
-  const el=document.getElementById('volCompareLandscape')||document.documentElement;
-  // Request fullscreen
-  try{
-    if(el.requestFullscreen)await el.requestFullscreen();
-    else if(el.webkitRequestFullscreen)await el.webkitRequestFullscreen();
-    else if(el.mozRequestFullScreen)await el.mozRequestFullScreen();
-  }catch(e){console.warn('Fullscreen not granted',e)}
-  // Lock to landscape
-  try{
-    if(screen.orientation&&screen.orientation.lock)await screen.orientation.lock('landscape');
-  }catch(e){console.warn('Orientation lock not granted',e)}
+function _showCmpHint(){
+  let el=document.getElementById('cmpRotateHint');
+  if(el){clearTimeout(el._timer);el.remove();}
+  el=document.createElement('div');
+  el.id='cmpRotateHint';
+  el.innerHTML=`<span style="font-size:18px">📱</span><span>Rotate your screen or enable <strong>Desktop Site</strong> for the best compare view</span>`;
+  Object.assign(el.style,{
+    position:'fixed',bottom:'24px',left:'50%',transform:'translateX(-50%)',
+    background:'var(--toast-bg)',color:'#fff',borderRadius:'14px',
+    padding:'12px 18px',display:'flex',alignItems:'center',gap:'10px',
+    fontSize:'13px',fontFamily:'var(--font-alt)',fontWeight:'600',
+    boxShadow:'0 8px 28px rgba(0,0,0,0.35)',zIndex:'999999',
+    maxWidth:'88vw',textAlign:'center',lineHeight:'1.4',
+    animation:'fadeIn 0.3s ease',letterSpacing:'0.3px'
+  });
+  document.body.appendChild(el);
+  el._timer=setTimeout(()=>{if(el.parentNode)el.remove();},4500);
 }
 
-async function _exitCompareLandscape(){
-  if(!_isMobile())return;
-  // Unlock orientation first
-  try{if(screen.orientation&&screen.orientation.unlock)screen.orientation.unlock()}catch(e){}
-  // Exit fullscreen
-  try{
-    if(document.exitFullscreen&&document.fullscreenElement)await document.exitFullscreen();
-    else if(document.webkitExitFullscreen&&document.webkitFullscreenElement)document.webkitExitFullscreen();
-    else if(document.mozCancelFullScreen&&document.mozFullScreenElement)document.mozCancelFullScreen();
-  }catch(e){console.warn('Exit fullscreen error',e)}
-}
-
-// Also exit cleanly if user presses the device back / ESC key to exit fullscreen manually
+// Listener kept only to clean up if user somehow triggered fullscreen elsewhere
 document.addEventListener('fullscreenchange',()=>{
   if(!document.fullscreenElement&&_cmpModeOn){
-    // User exited fullscreen manually — turn off compare mode to stay in sync
-    _cmpModeOn=false;
-    const btn=document.getElementById('cmpToggleBtn');
-    const badge=document.getElementById('cmpModeBadge');
-    const single=document.getElementById('volSingleView');
-    const landscape=document.getElementById('volCompareLandscape');
-    if(btn)btn.classList.remove('on');
-    if(badge){badge.textContent='OFF';badge.style.color='var(--text-muted)';}
-    if(single)single.classList.remove('hidden');
-    if(landscape)landscape.classList.remove('active');
     try{if(screen.orientation&&screen.orientation.unlock)screen.orientation.unlock()}catch(e){}
   }
 });
@@ -1850,14 +1779,12 @@ function toggleCompareMode(){
   single.classList.toggle('hidden',_cmpModeOn);
   landscape.classList.toggle('active',_cmpModeOn);
   if(_cmpModeOn){
-    // sync L defaults from current main selects
     const tf=document.getElementById('volTimeframe').value;
     const mo=document.getElementById('volMonth').value;
     const tfL=document.getElementById('volTimeframeL');
     const moL=document.getElementById('volMonthL');
     if(tfL)tfL.value=tf;
     if(moL)moL.value=mo;
-    // R defaults: previous week or w1
     const wks=['w1','w2','w3','w4','w5'];
     const idx=wks.indexOf(tf);
     const tfR=document.getElementById('volTimeframeR');
@@ -1866,11 +1793,11 @@ function toggleCompareMode(){
     if(moR)moR.value=mo;
     updateVolumeChart('left');
     updateVolumeChart('right');
-    // Mobile: go fullscreen landscape
-    _enterCompareLandscape();
+    // Show hint on mobile only
+    if(_isMobile())_showCmpHint();
   } else {
-    // Mobile: exit fullscreen and restore portrait
-    _exitCompareLandscape();
+    // Remove hint if still visible
+    const h=document.getElementById('cmpRotateHint');if(h)h.remove();
   }
 }
 
