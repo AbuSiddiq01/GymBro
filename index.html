@@ -296,7 +296,83 @@ body.theme-godmode .stats-tooltip{background:rgba(8,0,0,0.97);border-color:rgba(
 .stats-tooltip-duration{margin-top:8px;padding-top:7px;border-top:1px solid rgba(255,255,255,0.12);font-size:12px;color:#94a3b8}
 .stats-tooltip-duration strong{color:#fff}
 
-/* ===================== ADMIN ===================== */
+/* ===================== STATS SUB-NAV ===================== */
+.stats-subnav{display:flex;gap:8px;margin-bottom:14px}
+.stats-subnav-btn{flex:1;padding:10px 18px;border:1px solid var(--border-col);border-radius:12px;background:var(--bg-card);color:var(--text-secondary);font-family:var(--font-alt);font-size:13px;font-weight:700;letter-spacing:0.5px;cursor:pointer;transition:all 0.25s ease}
+.stats-subnav-btn:hover{background:var(--accent-soft);color:var(--accent);border-color:var(--accent)}
+.stats-subnav-btn.active{background:var(--tab-active-bg);color:var(--follow-btn-text);border-color:transparent;box-shadow:var(--btn-shadow)}
+body.theme-batman .stats-subnav-btn.active{color:#05050a}
+
+/* ===================== VOLUME CHART STYLES ===================== */
+.volume-view{display:none}
+.volume-view.active{display:block}
+.duration-view{display:block}
+.duration-view.hidden{display:none}
+
+/* Calendar / period controls */
+.stats-period-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+.stats-period-row select{margin-top:0;padding:10px;flex:1;min-width:130px}
+
+/* Volume bar glossy hover */
+.volume-chart-wrap{position:relative;height:320px;background:var(--accent-soft);border-radius:18px;padding:14px;border:1px solid var(--border-col)}
+
+/* Drill-down report */
+.vol-drilldown{margin-top:14px;padding:16px;background:var(--bg-card);border-radius:16px;border:1px solid var(--border-col);animation:fadeIn 0.3s ease;min-height:80px}
+.vol-drilldown-title{font-family:var(--font-alt);font-size:14px;font-weight:800;color:var(--section-title-col);margin-bottom:12px;letter-spacing:0.5px}
+.vol-drill-row{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:var(--accent-soft);border-radius:10px;margin-bottom:6px;border:1px solid var(--border-col)}
+.vol-drill-name{font-family:var(--font-alt);font-size:13px;font-weight:700;color:var(--text-primary)}
+.vol-drill-val{font-family:var(--font-display);font-size:16px;color:var(--accent);letter-spacing:0.5px}
+.vol-drill-total{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:10px;margin-top:8px}
+.vol-drill-total span{font-family:var(--font-alt);font-size:13px;font-weight:800;color:#fff;letter-spacing:0.5px}
+body.theme-batman .vol-drill-total span{color:#05050a}
+.vol-drill-total strong{font-family:var(--font-display);font-size:18px;color:#fff;letter-spacing:1px}
+body.theme-batman .vol-drill-total strong{color:#05050a}
+
+/* Vol drill expandable rows */
+.vol-drill-row{cursor:pointer;transition:background 0.2s,border-color 0.2s}
+.vol-drill-row:hover{background:var(--accent-soft)!important;border-color:var(--accent)!important}
+.vol-drill-row.expanded{border-color:var(--accent);background:var(--accent-soft)!important}
+.vol-drill-chevron{margin-left:auto;font-size:11px;color:var(--text-muted);transition:transform 0.25s;flex-shrink:0;padding-left:8px}
+.vol-drill-row.expanded .vol-drill-chevron{transform:rotate(90deg);color:var(--accent)}
+.vol-drill-sets{display:none;margin-top:0;margin-bottom:6px;padding:12px 14px;background:var(--bg-card);border:1px solid var(--border-col);border-top:none;border-radius:0 0 10px 10px;animation:fadeIn 0.2s ease}
+.vol-drill-sets.open{display:block}
+.vol-set-line{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border-col);font-family:var(--font-alt);font-size:13px}
+.vol-set-line:last-child{border-bottom:none}
+.vol-set-desc{color:var(--text-primary);font-weight:600}
+.vol-set-vol{color:var(--accent);font-weight:700;font-family:var(--font-display);font-size:15px;letter-spacing:0.5px;white-space:nowrap;padding-left:12px}
+.vol-sets-total{display:flex;justify-content:space-between;align-items:center;margin-top:8px;padding:8px 12px;background:linear-gradient(135deg,rgba(37,99,235,0.12),rgba(37,99,235,0.06));border-radius:8px;border:1px solid var(--accent)}
+.vol-sets-total span{font-family:var(--font-alt);font-size:12px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:0.5px}
+.vol-sets-total strong{font-family:var(--font-display);font-size:17px;color:var(--accent);letter-spacing:1px}
+
+/* Compare Mode toggle button */
+.vol-compare-toggle-row{display:flex;align-items:center;gap:12px;margin-top:16px;padding:14px 16px;background:var(--accent-soft);border-radius:14px;border:1px solid var(--border-col)}
+.vol-compare-toggle-label{font-family:var(--font-alt);font-size:13px;font-weight:700;color:var(--text-secondary);letter-spacing:0.5px;flex:1}
+.cmp-toggle{width:52px;height:28px;background:var(--border-col);border-radius:99px;position:relative;cursor:pointer;transition:background 0.3s ease;flex-shrink:0;border:none;outline:none}
+.cmp-toggle.on{background:var(--accent)}
+.cmp-toggle-knob{position:absolute;top:4px;left:4px;width:20px;height:20px;background:#fff;border-radius:50%;transition:left 0.3s ease;box-shadow:0 2px 6px rgba(0,0,0,0.25);pointer-events:none}
+.cmp-toggle.on .cmp-toggle-knob{left:28px}
+.cmp-mode-badge{font-size:11px;font-weight:700;font-family:var(--font-alt);letter-spacing:0.5px;color:var(--text-muted);transition:color 0.3s}
+.cmp-toggle.on~.cmp-mode-badge{color:var(--accent)}
+
+/* Compare-mode landscape layout */
+.vol-compare-landscape{display:none;gap:16px;margin-top:0}
+.vol-compare-landscape.active{display:flex;flex-direction:row}
+.vol-panel{flex:1;min-width:0;display:flex;flex-direction:column;gap:0}
+.vol-panel-badge{display:inline-flex;align-items:center;gap:6px;font-family:var(--font-alt);font-size:11px;font-weight:800;letter-spacing:0.8px;text-transform:uppercase;padding:5px 12px;border-radius:8px;margin-bottom:8px}
+.vol-panel-badge.left{background:rgba(37,99,235,0.13);color:#2563eb;border:1px solid rgba(37,99,235,0.3)}
+.vol-panel-badge.right{background:rgba(139,92,246,0.13);color:#7c3aed;border:1px solid rgba(139,92,246,0.3)}
+body.theme-batman .vol-panel-badge.left{background:rgba(245,200,0,0.1);color:var(--accent);border-color:rgba(245,200,0,0.3)}
+body.theme-batman .vol-panel-badge.right{background:rgba(245,200,0,0.07);color:var(--accent);border-color:rgba(245,200,0,0.2)}
+body.theme-godmode .vol-panel-badge.left{background:rgba(192,0,10,0.12);color:#d43030;border-color:rgba(192,0,10,0.3)}
+body.theme-godmode .vol-panel-badge.right{background:rgba(192,0,10,0.07);color:#b01c1c;border-color:rgba(192,0,10,0.2)}
+.vol-panel .stats-period-row{margin-bottom:10px}
+.vol-panel .volume-chart-wrap{height:240px}
+.vol-panel .vol-drilldown{min-height:60px}
+/* hide single view when compare is on */
+.vol-single-view{transition:all 0.3s}
+.vol-single-view.hidden{display:none}
+
+/* ADMIN ===================== */
 .sideMenu{position:fixed;left:-360px;top:0;width:320px;height:100%;background:var(--bg-panel);z-index:9999;overflow:auto;transition:left 0.4s cubic-bezier(0.4,0,0.2,1);padding:24px;box-shadow:20px 0 50px rgba(0,0,0,0.2);border-right:1px solid var(--border-col)}
 .sideMenu.active{left:0}
 .menuHeader{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px}
@@ -450,7 +526,56 @@ body.theme-batman .tracker-page-btn.active{color:#05050a}
 .tracker-graph-box{position:relative;height:300px;width:100%}
 .tracker-subtitle{font-size:11px;color:var(--text-muted);font-family:var(--font-alt);margin-bottom:16px;letter-spacing:0.3px}
 
-/* ===================== LEARN PAGE STYLES ===================== */
+/* ===================== COMPARE MODE FULLSCREEN (mobile landscape) ===================== */
+#volCompareLandscape:fullscreen,
+#volCompareLandscape:-webkit-full-screen,
+#volCompareLandscape:-moz-full-screen {
+  background:var(--bg-base);
+  padding:14px 10px 10px;
+  overflow-y:auto;
+  display:flex!important;
+  flex-direction:row;
+  gap:10px;
+  width:100vw;
+  height:100vh;
+  box-sizing:border-box;
+}
+#volCompareLandscape:fullscreen .vol-panel,
+#volCompareLandscape:-webkit-full-screen .vol-panel,
+#volCompareLandscape:-moz-full-screen .vol-panel {
+  flex:1;
+  min-width:0;
+  overflow-y:auto;
+}
+#volCompareLandscape:fullscreen .volume-chart-wrap,
+#volCompareLandscape:-webkit-full-screen .volume-chart-wrap,
+#volCompareLandscape:-moz-full-screen .volume-chart-wrap {
+  height:220px;
+}
+/* Exit button shown only in fullscreen on mobile */
+#cmpExitFullscreenBtn {
+  display:none;
+}
+#volCompareLandscape:fullscreen #cmpExitFullscreenBtn,
+#volCompareLandscape:-webkit-full-screen #cmpExitFullscreenBtn,
+#volCompareLandscape:-moz-full-screen #cmpExitFullscreenBtn {
+  display:flex;
+  position:fixed;
+  top:10px;right:12px;
+  z-index:99999;
+  background:var(--btn-bg);
+  color:var(--follow-btn-text);
+  border:none;
+  border-radius:10px;
+  padding:7px 14px;
+  font-size:12px;
+  font-weight:700;
+  font-family:var(--font-alt);
+  letter-spacing:0.5px;
+  cursor:pointer;
+  box-shadow:var(--btn-shadow);
+}
+
 .learn-page-header{background:var(--header-bg);border-radius:20px;padding:28px 24px;margin-bottom:20px;box-shadow:0 10px 30px rgba(0,0,0,0.15);position:relative;overflow:hidden}
 .learn-page-header::before{content:'';position:absolute;top:-40%;right:-5%;width:220px;height:220px;border-radius:50%;background:rgba(255,255,255,0.04);pointer-events:none}
 .learn-page-header h1{font-family:var(--font-display);font-size:32px;color:var(--header-text);letter-spacing:2px;margin-bottom:6px}
@@ -760,31 +885,163 @@ body.theme-godmode .session-resumed-banner .resume-dot{background:#c0000a}
     <div id="statsPage" class="memberTab" style="display:none">
       <div class="section glass">
         <div class="section-title">📊 Analytics Performance</div>
-        <div style="margin-bottom:14px">
-          <select id="statsTimeframe" style="margin-top:0;padding:10px" onchange="updateStatsChart()">
-            <option value="w1">Week 1 (1st – 7th)</option>
-            <option value="w2">Week 2 (8th – 14th)</option>
-            <option value="w3">Week 3 (15th – 21st)</option>
-            <option value="w4">Week 4 (22nd – 28th)</option>
-            <option value="w5">Remaining (29th – End)</option>
-          </select>
+
+        <!-- Sub-nav: Duration / Volume -->
+        <div class="stats-subnav">
+          <button class="stats-subnav-btn active" id="subnavDuration" onclick="switchStatsSubnav('duration')">⏱ Duration</button>
+          <button class="stats-subnav-btn" id="subnavVolume" onclick="switchStatsSubnav('volume')">🏋 Volume</button>
         </div>
-        <div class="analytics-box">
-          <div class="graph-container">
-            <canvas id="workoutChart"></canvas>
+
+        <!-- ── DURATION VIEW ── -->
+        <div class="duration-view" id="durationView">
+          <div class="stats-period-row">
+            <select id="statsTimeframe" style="margin-top:0;padding:10px" onchange="updateStatsChart()">
+              <option value="w1">Week 1 (1st – 7th)</option>
+              <option value="w2">Week 2 (8th – 14th)</option>
+              <option value="w3">Week 3 (15th – 21st)</option>
+              <option value="w4">Week 4 (22nd – 28th)</option>
+              <option value="w5">Remaining (29th – End)</option>
+            </select>
+            <select id="statsMonth" style="margin-top:0;padding:10px;flex:1;min-width:130px" onchange="updateStatsChart()"></select>
+          </div>
+          <div class="analytics-box">
+            <div class="graph-container">
+              <canvas id="workoutChart"></canvas>
+            </div>
+          </div>
+          <div id="statsChartLegend" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px"></div>
+          <div style="font-size:11px;color:var(--text-muted);font-family:var(--font-alt);margin-top:6px">
+            💡 Hover or click a bar to see workout details &amp; duration
+          </div>
+          <div class="stats-summary-row">
+            <div>Avg Time: <strong id="avgTimeLabel" style="color:var(--accent)">0 Mins</strong></div>
+            <div>Most Trained: <strong id="mostTrainedLabel" style="color:var(--accent)">None</strong></div>
+          </div>
+          <div class="stats-summary-row" style="margin-top:6px;background:rgba(225,29,72,0.07);border-color:rgba(225,29,72,0.18)">
+            <div style="color:#e11d48">Weak Point: <strong id="lessTrainedLabel">None</strong></div>
           </div>
         </div>
-        <div id="statsChartLegend" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px"></div>
-        <div style="font-size:11px;color:var(--text-muted);font-family:var(--font-alt);margin-top:6px">
-          💡 Hover or click a bar to see workout details &amp; duration
+
+        <!-- ── VOLUME VIEW ── -->
+        <div class="volume-view" id="volumeView">
+
+          <!-- Compare Mode Toggle -->
+          <div class="vol-compare-toggle-row">
+            <span class="vol-compare-toggle-label">⚖️ Compare Mode</span>
+            <button class="cmp-toggle" id="cmpToggleBtn" onclick="toggleCompareMode()" aria-label="Toggle Compare Mode">
+              <div class="cmp-toggle-knob"></div>
+            </button>
+            <span class="cmp-mode-badge" id="cmpModeBadge">OFF</span>
+          </div>
+
+          <!-- SINGLE VIEW (default) -->
+          <div class="vol-single-view" id="volSingleView">
+            <div class="stats-period-row" style="margin-top:14px">
+              <select id="volTimeframe" style="margin-top:0;padding:10px" onchange="updateVolumeChart('main')">
+                <option value="w1">Week 1 (1st – 7th)</option>
+                <option value="w2">Week 2 (8th – 14th)</option>
+                <option value="w3">Week 3 (15th – 21st)</option>
+                <option value="w4">Week 4 (22nd – 28th)</option>
+                <option value="w5">Remaining (29th – End)</option>
+              </select>
+              <select id="volMonth" style="margin-top:0;padding:10px;flex:1;min-width:130px" onchange="updateVolumeChart('main')"></select>
+            </div>
+            <div class="volume-chart-wrap">
+              <canvas id="volumeChart"></canvas>
+            </div>
+            <div style="font-size:11px;color:var(--text-muted);font-family:var(--font-alt);margin-top:8px">
+              💡 Click or hover a bar to drill down into that day's workout breakdown
+            </div>
+            <div class="vol-drilldown" id="volDrilldown">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:8px">
+                <div class="vol-drilldown-title" id="volDrillTitle" style="margin-bottom:0">📋 Select a day to see details</div>
+                <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:12px;font-weight:700;color:var(--text-muted);font-family:var(--font-alt);letter-spacing:0.5px;flex-shrink:0">
+                  <span>DETAILED VIEW</span>
+                  <div class="live-toggle" id="detailToggleMain" onclick="toggleDetailedView('main')" style="width:36px;height:20px">
+                    <div class="live-toggle-knob"></div>
+                  </div>
+                  <span id="detailLabelMain" style="color:var(--text-muted)">OFF</span>
+                </label>
+              </div>
+              <div id="volDrillBody" style="color:var(--text-muted);font-family:var(--font-alt);font-size:13px">Hover or click on any bar above.</div>
+            </div>
+          </div>
+
+          <!-- COMPARE LANDSCAPE VIEW (shown when compare mode ON) -->
+          <div class="vol-compare-landscape" id="volCompareLandscape">
+            <!-- Mobile fullscreen exit button -->
+            <button id="cmpExitFullscreenBtn" onclick="toggleCompareMode()">✕ EXIT COMPARE</button>
+
+            <!-- LEFT PANEL -->
+            <div class="vol-panel" id="volPanelLeft">
+              <div class="vol-panel-badge left">📊 Panel A</div>
+              <div class="stats-period-row">
+                <select id="volTimeframeL" style="margin-top:0;padding:8px;font-size:12px" onchange="updateVolumeChart('left')">
+                  <option value="w1">Week 1</option>
+                  <option value="w2">Week 2</option>
+                  <option value="w3">Week 3</option>
+                  <option value="w4">Week 4</option>
+                  <option value="w5">Week 5</option>
+                </select>
+                <select id="volMonthL" style="margin-top:0;padding:8px;font-size:12px;flex:1;min-width:100px" onchange="updateVolumeChart('left')"></select>
+              </div>
+              <div class="volume-chart-wrap">
+                <canvas id="volumeChartL"></canvas>
+              </div>
+              <div style="font-size:10px;color:var(--text-muted);font-family:var(--font-alt);margin-top:6px">💡 Click a bar to see breakdown</div>
+              <div class="vol-drilldown" id="volDrilldownL" style="margin-top:10px">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;flex-wrap:wrap;gap:6px">
+                  <div class="vol-drilldown-title" id="volDrillTitleL" style="margin-bottom:0;font-size:12px">📋 Select a day</div>
+                  <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:10px;font-weight:700;color:var(--text-muted);font-family:var(--font-alt);flex-shrink:0">
+                    <span>DETAIL</span>
+                    <div class="live-toggle" id="detailToggleL" onclick="toggleDetailedView('left')" style="width:30px;height:17px">
+                      <div class="live-toggle-knob"></div>
+                    </div>
+                    <span id="detailLabelL" style="color:var(--text-muted)">OFF</span>
+                  </label>
+                </div>
+                <div id="volDrillBodyL" style="color:var(--text-muted);font-family:var(--font-alt);font-size:12px">Click on any bar above.</div>
+              </div>
+            </div>
+
+            <!-- DIVIDER -->
+            <div style="width:2px;background:var(--border-col);border-radius:2px;flex-shrink:0;align-self:stretch;margin-top:30px"></div>
+
+            <!-- RIGHT PANEL -->
+            <div class="vol-panel" id="volPanelRight">
+              <div class="vol-panel-badge right">📊 Panel B</div>
+              <div class="stats-period-row">
+                <select id="volTimeframeR" style="margin-top:0;padding:8px;font-size:12px" onchange="updateVolumeChart('right')">
+                  <option value="w1">Week 1</option>
+                  <option value="w2">Week 2</option>
+                  <option value="w3">Week 3</option>
+                  <option value="w4">Week 4</option>
+                  <option value="w5">Week 5</option>
+                </select>
+                <select id="volMonthR" style="margin-top:0;padding:8px;font-size:12px;flex:1;min-width:100px" onchange="updateVolumeChart('right')"></select>
+              </div>
+              <div class="volume-chart-wrap">
+                <canvas id="volumeChartR"></canvas>
+              </div>
+              <div style="font-size:10px;color:var(--text-muted);font-family:var(--font-alt);margin-top:6px">💡 Click a bar to see breakdown</div>
+              <div class="vol-drilldown" id="volDrilldownR" style="margin-top:10px">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;flex-wrap:wrap;gap:6px">
+                  <div class="vol-drilldown-title" id="volDrillTitleR" style="margin-bottom:0;font-size:12px">📋 Select a day</div>
+                  <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:10px;font-weight:700;color:var(--text-muted);font-family:var(--font-alt);flex-shrink:0">
+                    <span>DETAIL</span>
+                    <div class="live-toggle" id="detailToggleR" onclick="toggleDetailedView('right')" style="width:30px;height:17px">
+                      <div class="live-toggle-knob"></div>
+                    </div>
+                    <span id="detailLabelR" style="color:var(--text-muted)">OFF</span>
+                  </label>
+                </div>
+                <div id="volDrillBodyR" style="color:var(--text-muted);font-family:var(--font-alt);font-size:12px">Click on any bar above.</div>
+              </div>
+            </div>
+
+          </div><!-- /vol-compare-landscape -->
         </div>
-        <div class="stats-summary-row">
-          <div>Avg Time: <strong id="avgTimeLabel" style="color:var(--accent)">0 Mins</strong></div>
-          <div>Most Trained: <strong id="mostTrainedLabel" style="color:var(--accent)">None</strong></div>
-        </div>
-        <div class="stats-summary-row" style="margin-top:6px;background:rgba(225,29,72,0.07);border-color:rgba(225,29,72,0.18)">
-          <div style="color:#e11d48">Weak Point: <strong id="lessTrainedLabel">None</strong></div>
-        </div>
+
       </div>
     </div>
 
@@ -1210,7 +1467,7 @@ if(!CanvasRenderingContext2D.prototype.roundRect){
     this.lineTo(x,y+tl);this.arcTo(x,y,x+tl,y,tl);this.closePath();
   };
 }
-Chart.register(stackedMusclePlugin);
+/* stackedMusclePlugin is NOT globally registered — passed inline only to the duration chart */
 </script>
 
 <script>
@@ -1375,7 +1632,17 @@ async function switchMemberTab(id){
   document.querySelectorAll('.memberMenu button').forEach(b=>b.classList.remove('activeMenu'));
   document.getElementById(id).style.display='block';document.getElementById('menu-'+id).classList.add('activeMenu');
   if(id==='dashPage')await syncCoreDashboardMetrics();
-  else if(id==='statsPage')await updateStatsChart();
+  else if(id==='statsPage'){
+    initStatsMonthDropdowns();
+    // default timeframe to current week
+    const cwk=getCurrentWeekOption();
+    const tfSel=document.getElementById('statsTimeframe');if(tfSel)tfSel.value=cwk;
+    const vfSel=document.getElementById('volTimeframe');if(vfSel)vfSel.value=cwk;
+    await updateStatsChart();
+    // volume chart only if already in volume sub-nav
+    if(document.getElementById('subnavVolume')&&document.getElementById('subnavVolume').classList.contains('active'))
+      await updateVolumeChart('main');
+  }
   else if(id==='attPage')await loadAttendanceHistoryRecords();
   else if(id==='workPage')await loadWorkoutsForDate();
   else if(id==='learnPage')initLearnPage();
@@ -1502,6 +1769,127 @@ function renderAttendanceHistory(){
   if(tbody.children.length===0)tbody.innerHTML=`<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:20px;font-family:var(--font-alt)">No records for this filter.</td></tr>`;
 }
 
+/* ===================== STATS MONTH DROPDOWNS INIT ===================== */
+function initStatsMonthDropdowns(){
+  const now=new Date();
+  const selIds=['statsMonth','volMonth','volMonthL','volMonthR'];
+  selIds.forEach(id=>{
+    const sel=document.getElementById(id);if(!sel)return;sel.innerHTML='';
+    for(let i=0;i<12;i++){
+      const d=new Date(now.getFullYear(),now.getMonth()-i,1);
+      const val=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+      const lbl=d.toLocaleDateString('en-US',{month:'long',year:'numeric'});
+      const opt=document.createElement('option');opt.value=val;opt.textContent=lbl;
+      if(i===0)opt.selected=true;sel.appendChild(opt);
+    }
+  });
+  // Right panel defaults to previous week / same month
+  const rwk=document.getElementById('volTimeframeR');
+  if(rwk){const cur=document.getElementById('volTimeframe').value;const wks=['w1','w2','w3','w4','w5'];const idx=wks.indexOf(cur);rwk.value=wks[Math.max(0,idx-1)]||'w1';}
+}
+
+/* ── Compare Mode ────────────────────────────────────────────── */
+let _cmpModeOn=false;
+
+/* ── Mobile landscape fullscreen helpers ── */
+function _isMobile(){return/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent)||window.innerWidth<=900}
+
+async function _enterCompareLandscape(){
+  if(!_isMobile())return;
+  const el=document.getElementById('volCompareLandscape')||document.documentElement;
+  // Request fullscreen
+  try{
+    if(el.requestFullscreen)await el.requestFullscreen();
+    else if(el.webkitRequestFullscreen)await el.webkitRequestFullscreen();
+    else if(el.mozRequestFullScreen)await el.mozRequestFullScreen();
+  }catch(e){console.warn('Fullscreen not granted',e)}
+  // Lock to landscape
+  try{
+    if(screen.orientation&&screen.orientation.lock)await screen.orientation.lock('landscape');
+  }catch(e){console.warn('Orientation lock not granted',e)}
+}
+
+async function _exitCompareLandscape(){
+  if(!_isMobile())return;
+  // Unlock orientation first
+  try{if(screen.orientation&&screen.orientation.unlock)screen.orientation.unlock()}catch(e){}
+  // Exit fullscreen
+  try{
+    if(document.exitFullscreen&&document.fullscreenElement)await document.exitFullscreen();
+    else if(document.webkitExitFullscreen&&document.webkitFullscreenElement)document.webkitExitFullscreen();
+    else if(document.mozCancelFullScreen&&document.mozFullScreenElement)document.mozCancelFullScreen();
+  }catch(e){console.warn('Exit fullscreen error',e)}
+}
+
+// Also exit cleanly if user presses the device back / ESC key to exit fullscreen manually
+document.addEventListener('fullscreenchange',()=>{
+  if(!document.fullscreenElement&&_cmpModeOn){
+    // User exited fullscreen manually — turn off compare mode to stay in sync
+    _cmpModeOn=false;
+    const btn=document.getElementById('cmpToggleBtn');
+    const badge=document.getElementById('cmpModeBadge');
+    const single=document.getElementById('volSingleView');
+    const landscape=document.getElementById('volCompareLandscape');
+    if(btn)btn.classList.remove('on');
+    if(badge){badge.textContent='OFF';badge.style.color='var(--text-muted)';}
+    if(single)single.classList.remove('hidden');
+    if(landscape)landscape.classList.remove('active');
+    try{if(screen.orientation&&screen.orientation.unlock)screen.orientation.unlock()}catch(e){}
+  }
+});
+
+function toggleCompareMode(){
+  _cmpModeOn=!_cmpModeOn;
+  const btn=document.getElementById('cmpToggleBtn');
+  const badge=document.getElementById('cmpModeBadge');
+  const single=document.getElementById('volSingleView');
+  const landscape=document.getElementById('volCompareLandscape');
+  btn.classList.toggle('on',_cmpModeOn);
+  badge.textContent=_cmpModeOn?'ON':'OFF';
+  badge.style.color=_cmpModeOn?'var(--accent)':'var(--text-muted)';
+  single.classList.toggle('hidden',_cmpModeOn);
+  landscape.classList.toggle('active',_cmpModeOn);
+  if(_cmpModeOn){
+    // sync L defaults from current main selects
+    const tf=document.getElementById('volTimeframe').value;
+    const mo=document.getElementById('volMonth').value;
+    const tfL=document.getElementById('volTimeframeL');
+    const moL=document.getElementById('volMonthL');
+    if(tfL)tfL.value=tf;
+    if(moL)moL.value=mo;
+    // R defaults: previous week or w1
+    const wks=['w1','w2','w3','w4','w5'];
+    const idx=wks.indexOf(tf);
+    const tfR=document.getElementById('volTimeframeR');
+    if(tfR)tfR.value=wks[Math.max(0,idx-1)];
+    const moR=document.getElementById('volMonthR');
+    if(moR)moR.value=mo;
+    updateVolumeChart('left');
+    updateVolumeChart('right');
+    // Mobile: go fullscreen landscape
+    _enterCompareLandscape();
+  } else {
+    // Mobile: exit fullscreen and restore portrait
+    _exitCompareLandscape();
+  }
+}
+
+/* ===================== STATS SUB-NAV SWITCHER ===================== */
+function switchStatsSubnav(tab){
+  document.getElementById('subnavDuration').classList.toggle('active',tab==='duration');
+  document.getElementById('subnavVolume').classList.toggle('active',tab==='volume');
+  document.getElementById('durationView').classList.toggle('hidden',tab!=='duration');
+  document.getElementById('volumeView').classList.toggle('active',tab==='volume');
+  if(tab==='duration')updateStatsChart();
+  else{updateVolumeChart('main');}
+}
+
+/* ─── detect current week number in month ─── */
+function getCurrentWeekOption(){
+  const d=new Date().getDate();
+  if(d<=7)return'w1';if(d<=14)return'w2';if(d<=21)return'w3';if(d<=28)return'w4';return'w5';
+}
+
 /* ===================== STATS CHART ===================== */
 const statsTooltip=document.getElementById('statsTooltip');
 let statsChartDayData=[];
@@ -1530,14 +1918,23 @@ async function updateStatsChart(){
   let uid=localStorage.getItem("user_id");if(!uid)return;
   const{data,error}=await db.from("attendance").select("*").eq("user_id",uid).order("attendance_date",{ascending:true});
   if(error||!data)return;
+  // resolve month
+  const monthSel=document.getElementById('statsMonth');
+  let selMonth=monthSel?monthSel.value:null;
+  let filterYear,filterMonth;
+  if(selMonth){[filterYear,filterMonth]=[parseInt(selMonth.split('-')[0]),parseInt(selMonth.split('-')[1])-1]}
+  else{const n=new Date();filterYear=n.getFullYear();filterMonth=n.getMonth()}
   let tf=document.getElementById("statsTimeframe").value;
   let ranges={w1:[1,7],w2:[8,14],w3:[15,21],w4:[22,28],w5:[29,31]};let[sd,ed]=ranges[tf]||[1,7];
-  let fd=data.filter(r=>{let d=new Date(r.attendance_date);return d.getDate()>=sd&&d.getDate()<=ed});
+  let fd=data.filter(r=>{let d=new Date(r.attendance_date);return d.getFullYear()===filterYear&&d.getMonth()===filterMonth&&d.getDate()>=sd&&d.getDate()<=ed});
   let dm={};for(let i=sd;i<=ed;i++){dm[i]={label:i.toString(),duration:0,workout:'',classes:[]}}
   fd.forEach(r=>{let d=new Date(r.attendance_date),day=d.getDate();if(dm[day]){dm[day].duration+=parseDurationToMinutes(r.duration);if(r.workout&&r.workout.trim()!==""){if(dm[day].workout)dm[day].workout+=', '+r.workout;else dm[day].workout=r.workout}}});
   Object.values(dm).forEach(d=>{if(d.workout){let cls=[...new Set(d.workout.split(',').map(s=>s.trim()).filter(Boolean))].slice(0,3);d.classes=cls}});
   let days=Object.values(dm);statsChartDayData=days;
-  let labels=days.map(d=>'Day '+d.label),durations=days.map(d=>d.duration||0);
+  // build day labels Mon-Sun style
+  const dayNames=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  let labels=days.map(d=>{const dt=new Date(filterYear,filterMonth,parseInt(d.label));return `${d.label} ${dayNames[dt.getDay()]}`});
+  let durations=days.map(d=>d.duration||0);
   let chartData=durations.map((v,i)=>{if(v===0&&days[i].classes.length>0)return 30;return v||0});
   let rawWorkouts=days.map(d=>d.classes.join(', '));
   if(userStatsInstanceChart){userStatsInstanceChart.destroy();userStatsInstanceChart=null}
@@ -1559,6 +1956,372 @@ async function updateStatsChart(){
   document.getElementById("mostTrainedLabel").textContent=sorted[0]?sorted[0][0]:'None';
   document.getElementById("lessTrainedLabel").textContent=sorted[sorted.length-1]?sorted[sorted.length-1][0]:'None';
 }
+
+/* ===================== VOLUME PARSER ===================== */
+// parses "ExerciseName: 5kg x 10 x 30sec, 7kg x 8" → total volume (kg·reps)
+function parseWorkoutVolume(str){
+  if(!str||!str.trim())return 0;
+  let total=0;
+  // match patterns like 5kg x 10 or 5Kg x 10 x 30sec
+  const matches=str.matchAll(/(\d+(?:\.\d+)?)\s*[Kk]g\s*x\s*(\d+)/g);
+  for(const m of matches)total+=parseFloat(m[1])*parseInt(m[2]);
+  return total;
+}
+
+/* ===================== VOLUME CHART STATE ===================== */
+let volChartInstance=null,volDayDataCache=[];
+let volChartInstanceL=null,volDayDataCacheL=[];
+let volChartInstanceR=null,volDayDataCacheR=[];
+
+/* ── Detailed View state per panel ── */
+let _detailView={main:false,left:false,right:false};
+let _lastDrillDay={main:null,left:null,right:null};
+
+function toggleDetailedView(panel){
+  _detailView[panel]=!_detailView[panel];
+  const sfx=panel==='left'?'L':panel==='right'?'R':'Main';
+  const tog=document.getElementById('detailToggle'+sfx);
+  const lbl=document.getElementById('detailLabel'+sfx);
+  if(tog)tog.classList.toggle('on',_detailView[panel]);
+  if(lbl){lbl.textContent=_detailView[panel]?'ON':'OFF';lbl.style.color=_detailView[panel]?'var(--accent)':'var(--text-muted)';}
+  // Re-render current day if one is selected
+  const titleId=panel==='left'?'volDrillTitleL':panel==='right'?'volDrillTitleR':'volDrillTitle';
+  const bodyId=panel==='left'?'volDrillBodyL':panel==='right'?'volDrillBodyR':'volDrillBody';
+  if(_lastDrillDay[panel])renderVolDrilldown(_lastDrillDay[panel],titleId,bodyId,panel);
+}
+
+/* Glossy bar overlay plugin for Chart.js */
+const volGlossyPlugin={
+  id:'volGlossy',
+  afterDatasetsDraw(chart){
+    const ctx=chart.ctx;
+    chart.data.datasets.forEach((ds,di)=>{
+      const meta=chart.getDatasetMeta(di);
+      meta.data.forEach(bar=>{
+        const{x,y,width,height}=bar.getProps(['x','y','width','height'],true);
+        if(!height||height<=0)return;
+        const gw=width*0.6,gh=height*0.42;
+        const gx=x-gw/2,gy=y;
+        const gloss=ctx.createLinearGradient(gx,gy,gx,gy+gh);
+        gloss.addColorStop(0,'rgba(255,255,255,0.28)');
+        gloss.addColorStop(0.35,'rgba(255,255,255,0.10)');
+        gloss.addColorStop(1,'rgba(255,255,255,0)');
+        ctx.save();
+        const r=bar.options.borderRadius||10;
+        ctx.beginPath();
+        ctx.moveTo(x-width/2+r,y);
+        ctx.lineTo(x+width/2-r,y);
+        ctx.quadraticCurveTo(x+width/2,y,x+width/2,y+r);
+        ctx.lineTo(x+width/2,y+gh);
+        ctx.lineTo(x-width/2,y+gh);
+        ctx.lineTo(x-width/2,y+r);
+        ctx.quadraticCurveTo(x-width/2,y,x-width/2+r,y);
+        ctx.closePath();
+        ctx.fillStyle=gloss;
+        ctx.fill();
+        ctx.restore();
+      });
+    });
+  }
+};
+
+/* ── Detect current theme ── */
+function getCurrentTheme(){
+  if(document.body.classList.contains('theme-batman'))return'batman';
+  if(document.body.classList.contains('theme-godmode'))return'godmode';
+  return'light';
+}
+
+/* ── Theme-aware gradient factory ── */
+function makeVolGradients(ctx,side){
+  const theme=getCurrentTheme();
+  const isRight=side==='right';
+  const grad=ctx.createLinearGradient(0,0,0,280);
+  const hoverGrad=ctx.createLinearGradient(0,0,0,280);
+
+  if(theme==='batman'){
+    // Yellow/gold palette
+    grad.addColorStop(0,'rgba(245,185,0,1)');
+    grad.addColorStop(0.2,isRight?'rgba(220,160,0,1)':'rgba(255,200,0,1)');
+    grad.addColorStop(0.55,isRight?'rgba(180,120,0,1)':'rgba(210,155,0,1)');
+    grad.addColorStop(1,isRight?'rgba(120,75,0,1)':'rgba(150,100,0,1)');
+    hoverGrad.addColorStop(0,'rgba(255,230,80,1)');
+    hoverGrad.addColorStop(0.3,isRight?'rgba(245,195,30,1)':'rgba(255,215,50,1)');
+    hoverGrad.addColorStop(0.65,isRight?'rgba(210,155,10,1)':'rgba(235,175,20,1)');
+    hoverGrad.addColorStop(1,isRight?'rgba(150,105,0,1)':'rgba(175,120,0,1)');
+  } else if(theme==='godmode'){
+    // Red/blood palette
+    grad.addColorStop(0,'rgba(210,0,10,1)');
+    grad.addColorStop(0.2,isRight?'rgba(170,0,8,1)':'rgba(192,0,10,1)');
+    grad.addColorStop(0.55,isRight?'rgba(130,0,5,1)':'rgba(155,0,8,1)');
+    grad.addColorStop(1,isRight?'rgba(80,0,3,1)':'rgba(100,0,5,1)');
+    hoverGrad.addColorStop(0,'rgba(255,40,40,1)');
+    hoverGrad.addColorStop(0.3,isRight?'rgba(220,10,10,1)':'rgba(240,20,20,1)');
+    hoverGrad.addColorStop(0.65,isRight?'rgba(175,0,5,1)':'rgba(200,0,8,1)');
+    hoverGrad.addColorStop(1,isRight?'rgba(110,0,3,1)':'rgba(130,0,5,1)');
+  } else {
+    // Blue palette (light mode)
+    grad.addColorStop(0,isRight?'rgba(88,28,220,1)':'rgba(15,52,180,1)');
+    grad.addColorStop(0.18,isRight?'rgba(120,50,255,1)':'rgba(37,99,235,1)');
+    grad.addColorStop(0.45,isRight?'rgba(90,20,200,1)':'rgba(24,72,200,1)');
+    grad.addColorStop(1,isRight?'rgba(55,10,140,1)':'rgba(10,40,140,1)');
+    hoverGrad.addColorStop(0,isRight?'rgba(168,100,255,1)':'rgba(70,140,255,1)');
+    hoverGrad.addColorStop(0.22,isRight?'rgba(140,70,240,1)':'rgba(50,110,240,1)');
+    hoverGrad.addColorStop(0.55,isRight?'rgba(110,40,210,1)':'rgba(30,80,210,1)');
+    hoverGrad.addColorStop(1,isRight?'rgba(75,15,170,1)':'rgba(15,50,170,1)');
+  }
+  return{grad,hoverGrad};
+}
+
+/* ── Border color by theme ── */
+function getVolBorderColor(side){
+  const theme=getCurrentTheme();
+  if(theme==='batman')return side==='right'?'rgba(210,160,0,0.7)':'rgba(255,210,40,0.7)';
+  if(theme==='godmode')return side==='right'?'rgba(170,0,5,0.7)':'rgba(210,10,10,0.7)';
+  return side==='right'?'rgba(160,110,255,0.7)':'rgba(80,140,255,0.7)';
+}
+
+/* ── Attendance workout name cache per (uid+month) ── */
+const _attWorkoutCache={};
+async function fetchAttendanceWorkouts(uid,monthStr){
+  const key=uid+'|'+monthStr;
+  if(_attWorkoutCache[key])return _attWorkoutCache[key];
+  const lastDay=new Date(parseInt(monthStr.split('-')[0]),parseInt(monthStr.split('-')[1]),0).getDate();
+  const{data}=await db.from('attendance').select('attendance_date,workout').eq('user_id',uid)
+    .gte('attendance_date',`${monthStr}-01`).lte('attendance_date',`${monthStr}-${String(lastDay).padStart(2,'0')}`).eq('status','Present');
+  const map={};
+  if(data){
+    data.forEach(r=>{
+      if(!r.workout||!r.workout.trim())return;
+      const day=parseInt(r.attendance_date.split('-')[2]);
+      if(!map[day])map[day]=new Set();
+      r.workout.split(',').map(s=>s.trim()).filter(Boolean).forEach(w=>map[day].add(w));
+    });
+  }
+  const result={};Object.keys(map).forEach(d=>{result[d]=[...map[d]]});
+  _attWorkoutCache[key]=result;
+  return result;
+}
+
+/* side: 'main' | 'left' | 'right' */
+async function updateVolumeChart(side='main'){
+  const uid=localStorage.getItem('user_id');if(!uid)return;
+  const sfx=side==='left'?'L':side==='right'?'R':'';
+  const tfId='volTimeframe'+sfx;
+  const moId='volMonth'+sfx;
+  const canvasId='volumeChart'+sfx;
+  const drillTitleId='volDrillTitle'+(sfx||'');
+  const drillBodyId='volDrillBody'+(sfx||'');
+
+  const tf=document.getElementById(tfId)?document.getElementById(tfId).value:'w1';
+  const monthSel=document.getElementById(moId);
+  let selMonth=monthSel?monthSel.value:null;
+  let filterYear,filterMonth;
+  if(selMonth){[filterYear,filterMonth]=[parseInt(selMonth.split('-')[0]),parseInt(selMonth.split('-')[1])-1]}
+  else{const n=new Date();filterYear=n.getFullYear();filterMonth=n.getMonth()}
+  const ranges={w1:[1,7],w2:[8,14],w3:[15,21],w4:[22,28],w5:[29,31]};
+  const [sd,ed]=ranges[tf]||[1,7];
+  const monthStr=`${filterYear}-${String(filterMonth+1).padStart(2,'0')}`;
+  const lastDay=new Date(filterYear,filterMonth+1,0).getDate();
+
+  const{data,error}=await db.from('workouts').select('*').eq('user_id',uid).gte('date',`${monthStr}-01`).lte('date',`${monthStr}-${String(lastDay).padStart(2,'0')}`);
+  if(error){console.error(error);return}
+
+  // Fetch attendance workout names (for report box only — NOT drawn on bars)
+  const attWorkouts=await fetchAttendanceWorkouts(uid,monthStr);
+
+  const dayNames=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  let dm={};
+  for(let i=sd;i<=ed;i++){
+    const dt=new Date(filterYear,filterMonth,i);
+    const attNames=attWorkouts[i]||[];
+    dm[i]={day:i,label:`${i} ${dayNames[dt.getDay()]}`,volume:0,workouts:[],attendanceWorkouts:attNames};
+  }
+  if(data){
+    data.forEach(row=>{
+      const d=new Date(row.date);const day=d.getDate();if(!dm[day])return;
+      for(let i=1;i<=15;i++){
+        const w=row[`workout_${i}`];if(!w)continue;
+        const vol=parseWorkoutVolume(w);
+        dm[day].volume+=vol;
+        if(w.trim())dm[day].workouts.push({name:w,vol});
+      }
+    });
+  }
+  const days=Object.values(dm);
+  if(side==='left')volDayDataCacheL=days;
+  else if(side==='right')volDayDataCacheR=days;
+  else volDayDataCache=days;
+
+  const labels=days.map(d=>d.label);
+  const volumes=days.map(d=>Math.round(d.volume));
+
+  if(side==='left'&&volChartInstanceL){volChartInstanceL.destroy();volChartInstanceL=null}
+  if(side==='right'&&volChartInstanceR){volChartInstanceR.destroy();volChartInstanceR=null}
+  if(side==='main'&&volChartInstance){volChartInstance.destroy();volChartInstance=null}
+
+  const canvas=document.getElementById(canvasId);if(!canvas)return;
+  const ctx=canvas.getContext('2d');
+
+  // Theme-aware gradients — NO text drawn inside bars
+  const{grad,hoverGrad}=makeVolGradients(ctx,side);
+
+  const instance=new Chart(ctx,{
+    type:'bar',
+    data:{
+      labels,
+      datasets:[{
+        label:'Training Volume (kg·reps)',
+        data:volumes,
+        backgroundColor:volumes.map(()=>grad),
+        hoverBackgroundColor:volumes.map(()=>hoverGrad),
+        borderColor:getVolBorderColor(side),
+        borderWidth:1.5,borderRadius:10,barPercentage:0.65,categoryPercentage:0.8
+      }]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{enabled:false}},
+      scales:{
+        y:{beginAtZero:true,grid:{color:'rgba(128,128,128,0.08)'},ticks:{color:'#6b7280',font:{family:'Rajdhani',size:11},callback(v){return v>=1000?(v/1000).toFixed(1)+'k':v}}},
+        x:{grid:{display:false},ticks:{color:'#6b7280',font:{family:'Rajdhani',size:10},maxRotation:0}}
+      },
+      onHover(evt,els){canvas.style.cursor=els.length?'pointer':'default'}
+    },
+    plugins:[volGlossyPlugin]
+  });
+
+  if(side==='left')volChartInstanceL=instance;
+  else if(side==='right')volChartInstanceR=instance;
+  else volChartInstance=instance;
+
+  const cache=side==='left'?volDayDataCacheL:side==='right'?volDayDataCacheR:volDayDataCache;
+
+  // Hover: show report box for this panel only
+  canvas.onmousemove=function(evt){
+    const pts=instance.getElementsAtEventForMode(evt,'index',{intersect:false},false);
+    if(pts.length)renderVolDrilldown(cache[pts[0].index],drillTitleId,drillBodyId,side);
+  };
+
+  // Click: each panel is FULLY INDEPENDENT — never updates the other panel
+  canvas.onclick=function(evt){
+    const pts=instance.getElementsAtEventForMode(evt,'index',{intersect:true},false);
+    if(!pts.length)return;
+    const clickedDay=cache[pts[0].index];
+    _lastDrillDay[side]=clickedDay;
+    renderVolDrilldown(clickedDay,drillTitleId,drillBodyId,side);
+  };
+
+  // Default drilldown for today
+  const today=new Date();
+  if(filterYear===today.getFullYear()&&filterMonth===today.getMonth()){
+    const td=days.find(d=>d.day===today.getDate())||days[0];
+    if(td){_lastDrillDay[side]=td;renderVolDrilldown(td,drillTitleId,drillBodyId,side);}
+  }
+}
+
+/* Parse individual sets from a workout string.
+   Format: "ExerciseName: 10Kg x 10 x 35 sec, 5Kg x 15 x 26 sec"
+   Returns array of {desc, vol} per set */
+function parseWorkoutSets(rawStr){
+  if(!rawStr||!rawStr.trim())return[];
+  // strip exercise name prefix (everything before first colon)
+  const colonIdx=rawStr.indexOf(':');
+  const setsStr=colonIdx>=0?rawStr.slice(colonIdx+1):rawStr;
+  const sets=setsStr.split(',').map(s=>s.trim()).filter(Boolean);
+  return sets.map(seg=>{
+    // match weight x reps (x rest optional)
+    const m=seg.match(/([\d.]+)\s*[Kk]g\s*x\s*(\d+)/);
+    const vol=m?parseFloat(m[1])*parseInt(m[2]):0;
+    return{desc:seg,vol:Math.round(vol)};
+  });
+}
+
+function renderVolDrilldown(day,titleId,bodyId,panel){
+  if(!day)return;
+  panel=panel||'main';
+  const titleEl=document.getElementById(titleId||'volDrillTitle');
+  const bodyEl=document.getElementById(bodyId||'volDrillBody');
+  if(!titleEl||!bodyEl)return;
+
+  // Attendance workout name badges (from attendance table — shown in report box)
+  const attNames=(day.attendanceWorkouts||[]);
+  const attBadge=attNames.length
+    ? `<div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:4px">${attNames.map(n=>`<span style="display:inline-block;background:var(--btn-bg);color:var(--follow-btn-text);padding:2px 9px;border-radius:7px;font-size:10px;font-family:var(--font-alt);font-weight:700">${n}</span>`).join('')}</div>`
+    : '';
+
+  titleEl.innerHTML=`📋 <span style="color:var(--accent)">${day.label}</span> — Breakdown${attBadge}<small style="display:block;margin-top:4px;font-size:10px;color:var(--text-muted);font-family:var(--font-alt);font-weight:600">Click a row to expand · Toggle DETAIL VIEW for all</small>`;
+
+  if(!day.workouts||day.workouts.length===0){
+    bodyEl.innerHTML=`<div style="color:var(--text-muted);font-family:var(--font-alt);font-size:13px;padding:8px 0">No workouts logged for this day.</div>`;
+    return;
+  }
+
+  const detailOn=_detailView[panel]||false;
+  const uid=panel==='left'?'L':panel==='right'?'R':panel;
+
+  let html='';
+  day.workouts.forEach((w,idx)=>{
+    const parts=w.name.split(':');
+    const exName=(parts[0]||w.name).trim();
+    const sets=parseWorkoutSets(w.name);
+    const setsId=`volSets_${uid}_${idx}`;
+    const rowId=`volRow_${uid}_${idx}`;
+    const isOpen=detailOn;
+    const chevron=isOpen?'▼':'▶';
+    const openClass=isOpen?'open':'';
+    const topRadius=isOpen?'10px 10px 0 0':'10px';
+    const borderBottom=isOpen?'none':'';
+
+    html+=`<div class="vol-drill-row${isOpen?' expanded':''}" id="${rowId}" onclick="toggleVolSets('${rowId}','${setsId}')"
+      style="border-radius:${topRadius};margin-bottom:0;border:1px solid var(--border-col);${borderBottom?'border-bottom:none;':''}padding:10px 14px;display:flex;align-items:center;gap:10px;background:var(--bg-card);cursor:pointer">
+      <span class="vol-drill-name" style="flex:1">${exName}</span>
+      <span class="vol-drill-val">${Math.round(w.vol).toLocaleString()} <small style="font-size:10px;opacity:0.65">kg·reps</small></span>
+      <span class="vol-drill-chevron" id="chev_${rowId}">${chevron}</span>
+    </div>`;
+
+    html+=`<div class="vol-drill-sets ${openClass}" id="${setsId}" style="border-radius:0 0 10px 10px">`;
+    if(sets.length===0){
+      html+=`<div class="vol-set-line"><span class="vol-set-desc" style="color:var(--text-muted)">No set data found</span></div>`;
+    } else {
+      sets.forEach((s,si)=>{
+        html+=`<div class="vol-set-line">
+          <span class="vol-set-desc">Set ${si+1} &nbsp;·&nbsp; ${s.desc}</span>
+          <span class="vol-set-vol">${s.vol.toLocaleString()} kg</span>
+        </div>`;
+      });
+      html+=`<div class="vol-sets-total"><span>Total Volume</span><strong>${Math.round(w.vol).toLocaleString()} kg·reps</strong></div>`;
+    }
+    html+=`</div><div style="height:6px"></div>`;
+  });
+  html+=`<div class="vol-drill-total" style="margin-top:4px"><span>📦 Daily Total</span><strong>${Math.round(day.volume).toLocaleString()} kg·reps</strong></div>`;
+  bodyEl.innerHTML=html;
+}
+
+function toggleVolSets(rowId,setsId){
+  const row=document.getElementById(rowId);
+  const sets=document.getElementById(setsId);
+  if(!row||!sets)return;
+  const isOpen=sets.classList.contains('open');
+  const chev=document.getElementById('chev_'+rowId);
+  if(isOpen){
+    sets.classList.remove('open');
+    row.classList.remove('expanded');
+    row.style.borderRadius='10px';
+    row.style.borderBottom='';
+    if(chev)chev.textContent='▶';
+  } else {
+    sets.classList.add('open');
+    row.classList.add('expanded');
+    row.style.borderRadius='10px 10px 0 0';
+    row.style.borderBottom='none';
+    if(chev)chev.textContent='▼';
+  }
+}
+
+/* ===================== COMPARE BOX (removed — replaced by compare mode) ===================== */
+
+
 
 /* ===================== WORKOUT FORM ===================== */
 function handleWorkoutSearchAuto(){
