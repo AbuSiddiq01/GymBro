@@ -168,6 +168,14 @@ body.theme-batman .themeBtn.active{background:rgba(245,200,0,0.22);color:#f5c800
 body.theme-godmode .themeBtn.active{background:rgba(192,0,10,0.3);color:#d43030}
 .logoutBtn{background:rgba(220,38,38,0.85);color:white;border:none;padding:9px 16px;border-radius:12px;cursor:pointer;font-weight:700;font-size:13px;font-family:var(--font-alt);letter-spacing:0.5px;transition:all 0.3s ease}
 .logoutBtn:hover{background:#dc2626;transform:scale(1.04)}
+/* Member banner with no theme/logout controls — center the brand block for a clean, balanced look */
+.gymbroTopSolo{justify-content:center}
+.gymbroTopSolo .gymbroBrandWrap{display:flex;align-items:center;gap:14px}
+/* Theme toggle + logout reused inside the Settings page Appearance row */
+.settings-row-ctrl .themeToggle{background:rgba(0,0,0,0.2)}
+body.theme-batman .settings-row-ctrl .themeToggle,body.theme-godmode .settings-row-ctrl .themeToggle{background:rgba(0,0,0,0.35)}
+.settings-row-ctrl .themeBtn{color:var(--text-secondary)}
+.settings-row-ctrl .themeBtn.active{color:#fff}
 
 /* ===================== TAB MENU ===================== */
 .memberMenu{display:flex;overflow-x:auto;gap:12px;margin-bottom:18px;padding-bottom:8px;scrollbar-width:none;-ms-overflow-style:none}
@@ -887,8 +895,8 @@ body.theme-batman .settings-save-btn{color:#05050a}
 
   <!-- ===================== MEMBER DASHBOARD ===================== -->
   <div id="memberDashboard" class="dashboard">
-    <div class="gymbroTop">
-      <div style="display:flex;align-items:center;gap:14px">
+    <div class="gymbroTop gymbroTopSolo">
+      <div class="gymbroBrandWrap">
         <button class="hamburger-btn" id="hamburgerBtn" onclick="toggleHamburgerMenu()" aria-label="Open menu">
           <span></span><span></span><span></span>
         </button>
@@ -897,24 +905,13 @@ body.theme-batman .settings-save-btn{color:#05050a}
           <p>TRACK · TRAIN · DOMINATE</p>
         </div>
       </div>
-      <div class="headerRight">
-        <div class="themeToggle">
-          <button class="themeBtn active" id="theme-light" onclick="setTheme('light')">☀ LIGHT</button>
-          <button class="themeBtn" id="theme-batman" onclick="setTheme('batman')">🦇 BATMAN</button>
-          <button class="themeBtn" id="theme-godmode" onclick="setTheme('godmode')">🔥 GOD</button>
-        </div>
-        <button class="logoutBtn" onclick="logoutUser()">LOGOUT</button>
-      </div>
     </div>
 
     <div id="menuBackdrop" onclick="closeHamburgerMenu()"></div>
     <div class="memberMenu" id="memberMenuNav">
-      <button id="menu-dashPage" class="activeMenu" onclick="switchMemberTab('dashPage')">Dashboard</button>
-      <button id="menu-statsPage" onclick="switchMemberTab('statsPage')">Stats</button>
-      <button id="menu-attPage" onclick="switchMemberTab('attPage')">History</button>
-      <button id="menu-workPage" onclick="switchMemberTab('workPage')">Workouts</button>
+      <button id="menu-statsPage" onclick="switchMemberTab('statsPage')">📊 Stats</button>
+      <button id="menu-workPage" onclick="switchMemberTab('workPage')">🏋 Workouts</button>
       <button id="menu-learnPage" onclick="switchMemberTab('learnPage')">📚 Learn</button>
-      <button id="menu-socialPage" onclick="switchMemberTab('socialPage')">Profile</button>
       <button id="menu-settingsPage" onclick="switchMemberTab('settingsPage')">⚙️ Settings</button>
     </div>
 
@@ -1407,6 +1404,44 @@ body.theme-batman .settings-save-btn{color:#05050a}
         <div class="section-title">⚙️ Settings</div>
         <p style="font-size:12px;color:var(--text-muted);font-family:var(--font-alt);margin-bottom:6px;letter-spacing:0.3px">Tap any option below to configure it.</p>
 
+        <!-- Appearance & Account Accordion -->
+        <div class="settings-accordion" id="accordion-appearance">
+          <div class="settings-accordion-header" onclick="toggleSettingsAccordion('appearance')">
+            <div class="settings-accordion-title-wrap">
+              <span class="settings-accordion-icon">🎨</span>
+              <div>
+                <div class="settings-accordion-title">Appearance &amp; Account</div>
+                <div class="settings-accordion-sub">Switch theme mode &amp; manage your session</div>
+              </div>
+            </div>
+            <span class="settings-accordion-chevron">▼</span>
+          </div>
+          <div class="settings-accordion-body">
+            <div class="settings-row">
+              <div>
+                <div class="settings-row-label">Theme Mode</div>
+                <div class="settings-row-sub">Your chosen mode is remembered across refreshes and logins.</div>
+              </div>
+              <div class="settings-row-ctrl">
+                <div class="themeToggle">
+                  <button class="themeBtn active" id="theme-light" onclick="setTheme('light')">☀ LIGHT</button>
+                  <button class="themeBtn" id="theme-batman" onclick="setTheme('batman')">🦇 BATMAN</button>
+                  <button class="themeBtn" id="theme-godmode" onclick="setTheme('godmode')">🔥 GOD</button>
+                </div>
+              </div>
+            </div>
+            <div class="settings-row">
+              <div>
+                <div class="settings-row-label">Account</div>
+                <div class="settings-row-sub">Sign out of GymBro on this device.</div>
+              </div>
+              <div class="settings-row-ctrl">
+                <button class="logoutBtn" onclick="logoutUser()">LOGOUT</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- Workout Schedule Accordion -->
         <div class="settings-accordion" id="accordion-schedule">
           <div class="settings-accordion-header" onclick="toggleSettingsAccordion('schedule')">
@@ -1625,6 +1660,11 @@ function spawnBatTrails(parent){
 }
 
 /* ===================== THEME ENGINE ===================== */
+function syncThemeButtonsActive(t){
+  if(!t)t=document.body.classList.contains('theme-batman')?'batman':document.body.classList.contains('theme-godmode')?'godmode':'light';
+  document.querySelectorAll('.themeBtn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll(`[id="theme-${t}"]`).forEach(b=>b.classList.add('active'));
+}
 function setTheme(t){
   const prev=document.body.classList.contains('theme-batman')?'batman':document.body.classList.contains('theme-godmode')?'godmode':'light';
   if(t===prev)return;
@@ -1634,8 +1674,7 @@ function setTheme(t){
     if(t==='godmode')document.body.classList.add('theme-godmode');
     localStorage.setItem('gymbro_theme',t);
   };
-  document.querySelectorAll('.themeBtn').forEach(b=>b.classList.remove('active'));
-  document.querySelectorAll(`[id="theme-${t}"]`).forEach(b=>b.classList.add('active'));
+  syncThemeButtonsActive(t);
   // Batman: bat fly-up animation then apply
   if(t==='batman'){
     triggerBatTransition(applyTheme);
@@ -1644,17 +1683,14 @@ function setTheme(t){
     applyTheme();
   }
 }
-// Restore saved theme on load
+// Restore saved theme on load — persists across refresh, and across logout/login since it's
+// stored independently of the session/auth keys (see logoutUser(), which never clears this key).
 (function(){
   const s=localStorage.getItem('gymbro_theme');if(!s)return;
   document.body.classList.remove('theme-batman','theme-godmode');
   if(s==='batman')document.body.classList.add('theme-batman');
   if(s==='godmode')document.body.classList.add('theme-godmode');
-  document.querySelectorAll('.themeBtn').forEach(b=>b.classList.remove('active'));
-  // mark correct button active in each toggle group
-  if(s==='light'){document.querySelectorAll('[id="theme-light"]').forEach(b=>b.classList.add('active'))}
-  else if(s==='batman'){document.querySelectorAll('[id="theme-batman"]').forEach(b=>b.classList.add('active'))}
-  else if(s==='godmode'){document.querySelectorAll('[id="theme-godmode"]').forEach(b=>b.classList.add('active'))}
+  syncThemeButtonsActive(s);
 })();
 </script>
 
@@ -1971,6 +2007,7 @@ function toggleSettingsAccordion(key){
 function settingsUid(){return localStorage.getItem('user_id')||'default'}
 
 function initSettingsPage(){
+  syncThemeButtonsActive();
   renderScheduleEditor();
   // Load saved break default (in seconds) and mount min:sec picker
   const savedSecs=getDefaultBreakSeconds();
