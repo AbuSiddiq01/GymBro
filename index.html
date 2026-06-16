@@ -268,7 +268,14 @@ body.theme-godmode .duration-display{color:#d43030}
 .present{background:#16a34a}.absent{background:#dc2626}
 
 /* ===================== WORKOUT CARDS ===================== */
-.set-row{display:flex;gap:10px;align-items:center;margin-top:10px;background:var(--set-row-bg);padding:10px;border-radius:11px;border:1px solid var(--border-col);animation:fadeIn 0.3s ease}
+.set-row{display:flex;gap:10px;align-items:center;margin-top:10px;background:var(--set-row-bg);padding:10px;border-radius:11px;border:1px solid var(--border-col);animation:fadeIn 0.3s ease;flex-wrap:wrap}
+.set-time-locked{font-size:11px;font-weight:700;color:var(--accent);font-family:var(--font-alt);background:var(--accent-soft);padding:5px 10px;border-radius:9px;white-space:nowrap;flex-shrink:0}
+.set-new-timer-row{display:flex;align-items:center;gap:8px;width:100%;margin-top:6px;padding-top:8px;border-top:1px dashed var(--border-col)}
+.set-new-timer-display{font-family:var(--font-display);font-size:15px;color:var(--accent);letter-spacing:1px}
+.set-new-timer-btn{width:30px;height:30px;border-radius:50%;border:none;background:var(--btn-bg);color:var(--follow-btn-text);font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+body.theme-batman .set-new-timer-btn{color:#05050a}
+.set-new-timer-btn.running{background:#dc2626;color:#fff}
+.set-new-timer-label{font-size:10px;font-weight:700;color:var(--text-muted);font-family:var(--font-alt);letter-spacing:0.4px;text-transform:uppercase}
 .set-row span{font-weight:700;min-width:46px;font-size:13px;color:var(--accent);font-family:var(--font-alt)}
 .suggestion-box{position:relative;margin-bottom:8px}
 .suggestions-list{position:absolute;left:0;right:0;background:var(--bg-card);border:1px solid var(--border-col);border-radius:11px;max-height:180px;overflow-y:auto;z-index:100;box-shadow:0 10px 30px rgba(0,0,0,0.12);display:none}
@@ -476,13 +483,31 @@ body.theme-batman .live-timer-btn.start{color:#05050a}
 .live-set-result{font-size:13px;color:#16a34a;font-weight:700;font-family:var(--font-alt);margin-top:8px;letter-spacing:0.3px;display:none}
 .live-break-row{margin-top:12px;padding:12px;background:var(--accent-soft);border-radius:12px;border:1px solid var(--border-col);display:none}
 .live-break-title{font-size:12px;font-weight:700;color:var(--text-muted);font-family:var(--font-alt);letter-spacing:0.5px;margin-bottom:8px}
-.live-break-inputs{display:flex;gap:8px;align-items:center}
+.live-break-inputs{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .live-break-inputs input{flex:1;margin-top:0;padding:8px;font-size:13px}
 .live-break-btn{padding:8px 14px;border:none;border-radius:10px;font-size:12px;font-weight:700;font-family:var(--font-alt);cursor:pointer;white-space:nowrap;transition:all 0.2s}
 .live-break-btn.start{background:var(--btn-bg);color:var(--follow-btn-text)}
 body.theme-batman .live-break-btn.start{color:#05050a}
-.live-break-timer{font-family:var(--font-display);font-size:22px;color:var(--accent);letter-spacing:2px;margin-top:6px;display:none}
+.live-break-timer{font-family:var(--font-display);font-size:22px;color:var(--accent);letter-spacing:2px;display:none}
+.live-break-timer-row{display:flex;align-items:center;gap:10px;margin-top:6px;flex-wrap:wrap}
+.live-break-edit-btn{padding:6px 12px;border:1px solid var(--border-col);border-radius:10px;background:var(--bg-card);color:var(--accent);font-size:11px;font-weight:700;font-family:var(--font-alt);cursor:pointer;letter-spacing:0.3px;transition:all 0.2s ease;display:none;align-items:center;gap:4px}
+.live-break-edit-btn:hover{background:var(--accent-soft)}
+.live-break-edit-panel{margin-top:10px;padding:10px;background:var(--bg-panel);border:1px dashed var(--border-col);border-radius:10px;display:none;animation:fadeIn 0.2s ease}
+.live-break-edit-label{font-size:11px;color:var(--text-muted);font-family:var(--font-alt);margin-bottom:8px;letter-spacing:0.3px}
+.live-break-edit-actions{display:flex;gap:8px;margin-top:10px}
 .live-break-msg{font-size:12px;color:var(--text-muted);font-family:var(--font-alt);margin-top:4px;display:none}
+
+/* ===================== MIN:SEC PICKER WIDGET ===================== */
+.minsec-picker{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.minsec-scroll-group{display:flex;align-items:center;gap:4px;background:var(--input-bg);border:1px solid var(--input-border);border-radius:10px;padding:4px 6px}
+.minsec-scroll-col{display:flex;flex-direction:column;align-items:center}
+.minsec-scroll-list{height:34px;width:46px;overflow-y:auto;scroll-snap-type:y mandatory;text-align:center;font-family:var(--font-alt);font-weight:700;font-size:13px;color:var(--text-primary);scrollbar-width:thin}
+.minsec-scroll-list::-webkit-scrollbar{width:4px}
+.minsec-scroll-list::-webkit-scrollbar-thumb{background:var(--accent);border-radius:4px}
+.minsec-scroll-item{height:34px;display:flex;align-items:center;justify-content:center;scroll-snap-align:start;cursor:pointer}
+.minsec-scroll-item.picked{color:var(--accent);font-weight:800}
+.minsec-sep{font-family:var(--font-display);font-size:18px;color:var(--text-muted)}
+.minsec-unit-label{font-size:9px;color:var(--text-muted);font-family:var(--font-alt);letter-spacing:0.3px;margin-top:1px}
 
 /* ===================== WORKOUT TRACKER ===================== */
 .tracker-date-row{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;margin-bottom:16px}
@@ -645,6 +670,113 @@ body.theme-godmode .session-resumed-banner .resume-dot{background:#c0000a}
   .tracker-track-btn{width:100%}
   .checkin-session-row{flex-direction:column}
 }
+
+/* ===================== BOTTOM NAVIGATION BAR ===================== */
+#bottomNavBar{
+  position:fixed;bottom:0;left:0;right:0;z-index:9999;
+  display:none; /* shown after login */
+  background:var(--bg-card);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+  border-top:1px solid var(--border-col);
+  box-shadow:0 -4px 24px rgba(31,38,135,0.10);
+  padding:0;height:62px;
+}
+body.theme-batman #bottomNavBar{box-shadow:0 -4px 24px rgba(245,200,0,0.10)}
+body.theme-godmode #bottomNavBar{box-shadow:0 -4px 24px rgba(192,0,10,0.14)}
+#bottomNavBar .bnav-inner{
+  display:flex;align-items:stretch;justify-content:space-around;height:100%;max-width:480px;margin:0 auto;
+}
+.bnav-btn{
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+  background:none;border:none;cursor:pointer;padding:0 6px;
+  color:var(--text-muted);font-family:var(--font-alt);font-size:10px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;
+  transition:color 0.2s ease;
+  -webkit-tap-highlight-color:transparent;
+}
+.bnav-btn .bnav-icon{font-size:22px;line-height:1;transition:transform 0.2s ease}
+.bnav-btn:hover,.bnav-btn.active{color:var(--accent)}
+.bnav-btn:hover .bnav-icon,.bnav-btn.active .bnav-icon{transform:scale(1.18)}
+.bnav-btn.bnav-center .bnav-icon{
+  font-size:26px;
+  background:var(--btn-bg);
+  border-radius:50%;
+  width:46px;height:46px;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:var(--btn-shadow);
+  color:#fff;
+  transform:translateY(-8px);
+  transition:transform 0.2s ease,box-shadow 0.2s ease;
+}
+body.theme-batman .bnav-btn.bnav-center .bnav-icon{color:#05050a}
+.bnav-btn.bnav-center:hover .bnav-icon{transform:translateY(-12px) scale(1.08)}
+.bnav-btn.bnav-center.active .bnav-icon{transform:translateY(-12px) scale(1.08)}
+/* Push content up so bottom nav doesn't hide it */
+.dashboard.member-visible{padding-bottom:70px}
+
+/* ===================== TODAY'S WORKOUT BANNER ===================== */
+.today-workout-banner{
+  margin-top:14px;padding:14px 18px;
+  background:linear-gradient(135deg,var(--accent-soft),rgba(37,99,235,0.04));
+  border:1.5px solid var(--accent);border-radius:16px;
+  display:flex;align-items:center;gap:12px;
+  animation:fadeIn 0.4s ease;
+}
+body.theme-batman .today-workout-banner{background:rgba(245,200,0,0.06);border-color:var(--accent)}
+body.theme-godmode .today-workout-banner{background:rgba(192,0,10,0.07);border-color:var(--accent)}
+.today-workout-icon{font-size:28px;flex-shrink:0}
+.today-workout-text{flex:1}
+.today-workout-label{font-family:var(--font-alt);font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:0.8px;text-transform:uppercase;margin-bottom:3px}
+.today-workout-value{font-family:var(--font-display);font-size:20px;color:var(--accent);letter-spacing:1px}
+.today-workout-sub{font-family:var(--font-alt);font-size:11px;color:var(--text-muted);margin-top:2px}
+
+/* ===================== SETTINGS PAGE ===================== */
+#settingsPage{display:none}
+.settings-accordion{margin-bottom:14px;border:1px solid var(--border-col);border-radius:16px;overflow:hidden;background:var(--bg-panel)}
+.settings-accordion-header{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;cursor:pointer;gap:12px;transition:background 0.2s ease;-webkit-tap-highlight-color:transparent}
+.settings-accordion-header:hover{background:var(--accent-soft)}
+.settings-accordion-title-wrap{display:flex;align-items:center;gap:12px;min-width:0}
+.settings-accordion-icon{font-size:22px;flex-shrink:0}
+.settings-accordion-title{font-family:var(--font-alt);font-size:14px;font-weight:800;color:var(--text-primary);letter-spacing:0.4px}
+.settings-accordion-sub{font-size:11px;color:var(--text-muted);font-family:var(--font-alt);margin-top:2px}
+.settings-accordion-chevron{font-size:13px;color:var(--text-muted);flex-shrink:0;transition:transform 0.25s ease}
+.settings-accordion.open .settings-accordion-chevron{transform:rotate(180deg);color:var(--accent)}
+.settings-accordion-body{display:none;padding:0 18px 18px 18px;border-top:1px solid var(--border-col)}
+.settings-accordion.open .settings-accordion-body{display:block;animation:fadeIn 0.3s ease}
+.settings-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border-col);gap:12px;flex-wrap:wrap}
+.settings-row:last-child{border-bottom:none}
+.settings-row-label{font-family:var(--font-alt);font-size:14px;font-weight:600;color:var(--text-primary)}
+.settings-row-sub{font-size:11px;color:var(--text-muted);font-family:var(--font-alt);margin-top:2px}
+.settings-row-ctrl{flex-shrink:0}
+.sched-day-block{background:var(--bg-card);border:1px solid var(--border-col);border-radius:14px;padding:14px 16px;margin-bottom:10px;margin-top:14px}
+.sched-day-label{font-family:var(--font-alt);font-size:13px;font-weight:800;color:var(--accent);letter-spacing:0.5px;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.sched-day-badge{background:var(--btn-bg);color:var(--follow-btn-text);font-size:10px;padding:3px 9px;border-radius:7px;letter-spacing:0.4px}
+body.theme-batman .sched-day-badge{color:#05050a}
+.sched-class-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:6px}
+.sched-class-row label{font-size:11px;font-weight:700;color:var(--text-muted);font-family:var(--font-alt);letter-spacing:0.4px;width:46px;flex-shrink:0}
+.sched-class-row select{flex:1;margin-top:0;padding:7px 10px;font-size:12px;min-width:100px}
+.settings-save-btn{background:var(--btn-bg);color:var(--follow-btn-text);border:none;padding:10px 22px;border-radius:11px;font-family:var(--font-alt);font-size:13px;font-weight:800;cursor:pointer;letter-spacing:0.5px;box-shadow:var(--btn-shadow);transition:all 0.2s ease;margin-top:14px}
+body.theme-batman .settings-save-btn{color:#05050a}
+.settings-save-btn:hover{opacity:0.88;transform:scale(1.03)}
+.break-default-row{display:flex;align-items:center;gap:10px}
+.break-default-row input{margin-top:0;padding:9px;width:80px;text-align:center;font-size:14px;font-weight:700}
+.sched-start-row{display:flex;align-items:center;gap:10px;margin-top:14px;flex-wrap:wrap;background:var(--accent-soft);border:1px solid var(--border-col);border-radius:12px;padding:10px 14px}
+.sched-start-row label{font-size:12px;font-weight:700;color:var(--text-secondary);font-family:var(--font-alt)}
+.sched-start-row input{margin-top:0;padding:8px;font-size:12px;flex:1;min-width:140px}
+
+/* Sound option cards */
+.sound-option-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border-col)}
+.sound-option-row:last-child{border-bottom:none}
+.sound-option-row input[type="radio"]{width:18px;height:18px;accent-color:var(--accent);flex-shrink:0;cursor:pointer}
+.sound-option-row label{flex:1;font-family:var(--font-alt);font-size:13px;font-weight:600;color:var(--text-primary);cursor:pointer}
+.sound-preview-btn{background:var(--accent-soft);color:var(--accent);border:1px solid var(--accent);border-radius:9px;padding:6px 12px;font-size:11px;font-weight:700;font-family:var(--font-alt);cursor:pointer;flex-shrink:0;transition:all 0.2s ease}
+.sound-preview-btn:hover{background:var(--accent);color:#fff}
+.volume-slider-row{margin-top:16px;padding-top:14px;border-top:1px solid var(--border-col)}
+.volume-slider-row label{font-family:var(--font-alt);font-size:12px;font-weight:700;color:var(--text-secondary);display:flex;justify-content:space-between;margin-bottom:8px}
+.volume-slider-row input[type="range"]{width:100%;accent-color:var(--accent);cursor:pointer}
+.custom-sound-upload{margin-top:14px;padding-top:14px;border-top:1px solid var(--border-col)}
+.custom-sound-upload label{font-family:var(--font-alt);font-size:12px;font-weight:700;color:var(--text-secondary);display:block;margin-bottom:8px}
+.custom-sound-file-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.custom-sound-file-row input[type="file"]{flex:1;min-width:160px;font-size:11px;color:var(--text-secondary);font-family:var(--font-alt)}
+.custom-sound-name{font-size:11px;color:var(--accent);font-family:var(--font-alt);font-weight:700;margin-top:6px}
 </style>
 </head>
 <body>
@@ -783,6 +915,7 @@ body.theme-godmode .session-resumed-banner .resume-dot{background:#c0000a}
       <button id="menu-workPage" onclick="switchMemberTab('workPage')">Workouts</button>
       <button id="menu-learnPage" onclick="switchMemberTab('learnPage')">📚 Learn</button>
       <button id="menu-socialPage" onclick="switchMemberTab('socialPage')">Profile</button>
+      <button id="menu-settingsPage" onclick="switchMemberTab('settingsPage')">⚙️ Settings</button>
     </div>
 
     <!-- DASHBOARD TAB -->
@@ -820,6 +953,15 @@ body.theme-godmode .session-resumed-banner .resume-dot{background:#c0000a}
             </select>
           </div>
           <button class="btn" id="submitCheckinBtn" onclick="processCheckIn()">⚡ SUBMIT CHECK-IN (+50 XP)</button>
+          <!-- Today's scheduled workout banner -->
+          <div id="todayWorkoutBanner" style="display:none" class="today-workout-banner">
+            <span class="today-workout-icon">💪</span>
+            <div class="today-workout-text">
+              <div class="today-workout-label">Today's Schedule</div>
+              <div class="today-workout-value" id="todayWorkoutValue">—</div>
+              <div class="today-workout-sub" id="todayWorkoutSub"></div>
+            </div>
+          </div>
         </div>
         <div class="stopwatch-container" id="clockBox">
           <h3 id="stopwatch">00:00:00</h3>
@@ -1113,11 +1255,11 @@ body.theme-godmode .session-resumed-banner .resume-dot{background:#c0000a}
               <div id="liveAutoSuggestions" class="suggestions-list"></div>
             </div>
             <label style="font-size:12px;font-weight:700;color:var(--text-muted);font-family:var(--font-alt);margin-top:6px;display:block">SETS STRUCTURE:</label>
-            <select id="liveSetsCountSelect" style="margin-top:5px">
+            <select id="liveSetsCountSelect" style="margin-top:5px" onchange="handleLiveSetsCountSelectChange()">
               <option value="1">1 Set</option><option value="2">2 Sets</option><option value="3">3 Sets</option>
               <option value="4">4 Sets</option><option value="5">5 Sets</option><option value="6">6 Sets</option>
             </select>
-            <button class="btn" style="background:linear-gradient(135deg,#16a34a,#15803d);margin-top:12px" onclick="startLiveSession()">▶ START LIVE SESSION</button>
+            <button class="btn" id="liveStartSessionBtn" style="background:linear-gradient(135deg,#16a34a,#15803d);margin-top:12px" onclick="startLiveSession()">▶ START LIVE SESSION</button>
           </div>
           <button class="btn" style="background:linear-gradient(135deg,#64748b,#475569);margin-top:7px" onclick="cancelLiveWorkout()">CANCEL</button>
           <div id="liveSessionTitle" style="display:none;margin-top:10px;font-weight:800;font-size:15px;color:var(--accent);font-family:var(--font-alt);letter-spacing:0.5px"></div>
@@ -1259,6 +1401,99 @@ body.theme-godmode .session-resumed-banner .resume-dot{background:#c0000a}
       </div>
     </div>
 
+    <!-- SETTINGS TAB -->
+    <div id="settingsPage" class="memberTab" style="display:none">
+      <div class="section glass" style="margin-top:0">
+        <div class="section-title">⚙️ Settings</div>
+        <p style="font-size:12px;color:var(--text-muted);font-family:var(--font-alt);margin-bottom:6px;letter-spacing:0.3px">Tap any option below to configure it.</p>
+
+        <!-- Workout Schedule Accordion -->
+        <div class="settings-accordion" id="accordion-schedule">
+          <div class="settings-accordion-header" onclick="toggleSettingsAccordion('schedule')">
+            <div class="settings-accordion-title-wrap">
+              <span class="settings-accordion-icon">📅</span>
+              <div>
+                <div class="settings-accordion-title">Personalized Workout Schedule</div>
+                <div class="settings-accordion-sub">Set your Day 1 – Day 7 rotation</div>
+              </div>
+            </div>
+            <span class="settings-accordion-chevron">▼</span>
+          </div>
+          <div class="settings-accordion-body">
+            <p style="font-size:12px;color:var(--text-muted);font-family:var(--font-alt);margin:14px 0;letter-spacing:0.3px">Define your rolling workout order — Day 1 through Day 7 — up to 3 classes per day, or mark a day as Rest. Your order repeats continuously. If you miss a check-in, GymBro tracks where you left off and reminds you which day you missed.</p>
+            <div class="sched-start-row">
+              <label>🔁 Cycle Start Date (Day 1 anchor):</label>
+              <input type="date" id="schedStartDateInput">
+            </div>
+            <div id="schedDaysContainer"></div>
+            <button class="settings-save-btn" onclick="saveWorkoutSchedule()">💾 SAVE SCHEDULE</button>
+          </div>
+        </div>
+
+        <!-- Default Break Timer Accordion -->
+        <div class="settings-accordion" id="accordion-breaktimer">
+          <div class="settings-accordion-header" onclick="toggleSettingsAccordion('breaktimer')">
+            <div class="settings-accordion-title-wrap">
+              <span class="settings-accordion-icon">⏱</span>
+              <div>
+                <div class="settings-accordion-title">Default Break Timer</div>
+                <div class="settings-accordion-sub">Auto-start break duration in Live Mode</div>
+              </div>
+            </div>
+            <span class="settings-accordion-chevron">▼</span>
+          </div>
+          <div class="settings-accordion-body">
+            <div class="settings-row">
+              <div>
+                <div class="settings-row-label">Auto-start Break Timer</div>
+                <div class="settings-row-sub">When Live Mode is active, automatically start the break timer after each saved set.</div>
+              </div>
+            </div>
+            <div class="settings-row" style="flex-direction:column;align-items:stretch">
+              <div>
+                <div class="settings-row-label">Default Break Duration</div>
+                <div class="settings-row-sub">Set an exact default break time (minutes &amp; seconds). Leave at 0:00 to keep it manual.</div>
+              </div>
+              <div class="settings-row-ctrl" style="margin-top:10px" id="defaultBreakPickerMount"></div>
+            </div>
+            <button class="settings-save-btn" onclick="saveBreakDefault()">💾 SAVE BREAK SETTING</button>
+          </div>
+        </div>
+
+        <!-- Notification Sound Accordion -->
+        <div class="settings-accordion" id="accordion-notifsound">
+          <div class="settings-accordion-header" onclick="toggleSettingsAccordion('notifsound')">
+            <div class="settings-accordion-title-wrap">
+              <span class="settings-accordion-icon">🔔</span>
+              <div>
+                <div class="settings-accordion-title">Notification Sound</div>
+                <div class="settings-accordion-sub">Choose break-timer alert sound &amp; volume</div>
+              </div>
+            </div>
+            <span class="settings-accordion-chevron">▼</span>
+          </div>
+          <div class="settings-accordion-body">
+            <p style="font-size:12px;color:var(--text-muted);font-family:var(--font-alt);margin:14px 0 4px;letter-spacing:0.3px">Pick the sound that plays when your break timer ends.</p>
+            <div id="soundOptionsList"></div>
+            <div class="volume-slider-row">
+              <label><span>🔊 Volume</span><span id="notifVolumeValue">80%</span></label>
+              <input type="range" id="notifVolumeSlider" min="0" max="100" value="80" oninput="handleVolumeSliderChange()">
+            </div>
+            <div class="custom-sound-upload">
+              <label>📁 Or upload your own sound from your media files</label>
+              <div class="custom-sound-file-row">
+                <input type="file" id="customSoundFileInput" accept="audio/*" onchange="handleCustomSoundUpload(event)">
+                <button class="sound-preview-btn" onclick="previewSelectedSound()">▶ PREVIEW</button>
+              </div>
+              <div class="custom-sound-name" id="customSoundFileName"></div>
+            </div>
+            <button class="settings-save-btn" onclick="saveNotificationSoundSettings()">💾 SAVE SOUND SETTING</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
   </div><!-- /memberDashboard -->
 
   <!-- ADMIN -->
@@ -1301,6 +1536,24 @@ body.theme-godmode .session-resumed-banner .resume-dot{background:#c0000a}
 
   <div class="footer">GYMBRO © 2026 — BUILT FOR CHAMPIONS</div>
 </div>
+
+<!-- ===================== BOTTOM NAVIGATION BAR ===================== -->
+<nav id="bottomNavBar">
+  <div class="bnav-inner">
+    <button class="bnav-btn" id="bnav-history" onclick="bnavGo('attPage')" aria-label="History">
+      <span class="bnav-icon">📋</span>
+      <span>History</span>
+    </button>
+    <button class="bnav-btn bnav-center" id="bnav-home" onclick="bnavGo('dashPage')" aria-label="Home">
+      <span class="bnav-icon">🏠</span>
+      <span>Home</span>
+    </button>
+    <button class="bnav-btn" id="bnav-profile" onclick="bnavGo('socialPage')" aria-label="Profile">
+      <span class="bnav-icon">👤</span>
+      <span>Profile</span>
+    </button>
+  </div>
+</nav>
 
 <!-- RANK-UP OVERLAY -->
 <div class="rankup-overlay" id="rankupOverlay">
@@ -1630,8 +1883,10 @@ async function mountMemberDashboard(data){
   document.getElementById("loginPage").style.display="none";
   document.getElementById("registerPage").style.display="none";
   document.getElementById("memberDashboard").style.display="block";
+  showBottomNav();
   await switchMemberTab('dashPage');
   await resumeActiveSession(data.id);
+  await renderTodayWorkoutBanner();
 }
 
 /* ===================== AUTO-RESTORE SESSION ON PAGE LOAD ===================== */
@@ -1645,8 +1900,11 @@ window.addEventListener('load', async function(){
     if(!error&&data){
       await mountMemberDashboard(data);
     } else {
-      // User no longer valid — clear and show login
-      localStorage.clear();
+      // User no longer valid — clear only the session/auth keys, keep personalized settings intact
+      localStorage.removeItem("user_id");
+      localStorage.removeItem("user_uuid");
+      localStorage.removeItem("user_name");
+      localStorage.removeItem("gymbro_session_active");
     }
   }
 });
@@ -1673,14 +1931,386 @@ async function resumeActiveSession(uid){
   startStopwatch();
 }
 
+/* ===================== BOTTOM NAV BAR ===================== */
+function showBottomNav(){document.getElementById('bottomNavBar').style.display='block';document.getElementById('memberDashboard').classList.add('member-visible')}
+function hideBottomNav(){document.getElementById('bottomNavBar').style.display='none';document.getElementById('memberDashboard').classList.remove('member-visible')}
+function bnavGo(tabId){switchMemberTab(tabId)}
+function syncBottomNav(activeTabId){
+  const map={'attPage':'bnav-history','dashPage':'bnav-home','socialPage':'bnav-profile'};
+  document.querySelectorAll('.bnav-btn').forEach(b=>b.classList.remove('active'));
+  const bid=map[activeTabId];if(bid){const el=document.getElementById(bid);if(el)el.classList.add('active')}
+}
+
+/* ===================== SETTINGS PAGE ===================== */
+const WORKOUT_CLASSES=['Chest','Biceps','Triceps','Shoulders','Lats','Legs','Abs','Cardio','Full Body','Back','Forearms','Calves','Glutes'];
+const SCHEDULE_DAY_KEYS=['Day 1','Day 2','Day 3','Day 4','Day 5','Day 6','Day 7'];
+const REST_VALUE='Rest';
+
+/* Built-in notification sounds — short data-uri beeps generated via WebAudio at play time (no external files needed) */
+const NOTIF_SOUNDS=[
+  {id:'classic_beep',label:'🔔 Classic Beep',tones:[880,880,880]},
+  {id:'triple_chime',label:'🎵 Triple Chime',tones:[660,880,1100]},
+  {id:'alarm_buzz',label:'🚨 Alarm Buzz',tones:[440,440,440,440]},
+  {id:'soft_ding',label:'✨ Soft Ding',tones:[1320]},
+  {id:'gym_horn',label:'📣 Gym Horn',tones:[220,220]},
+  {id:'digital_alert',label:'📟 Digital Alert',tones:[1046,1318,1568]}
+];
+
+/* ── Accordion toggle ── */
+function toggleSettingsAccordion(key){
+  const el=document.getElementById('accordion-'+key);
+  if(!el)return;
+  const wasOpen=el.classList.contains('open');
+  document.querySelectorAll('.settings-accordion').forEach(a=>a.classList.remove('open'));
+  if(!wasOpen)el.classList.add('open');
+}
+
+/* Settings (workout schedule, default break, notification sound) are namespaced per user so they
+   survive refresh/logout/login for that user, while still not leaking between different users
+   on a shared browser. Falls back to 'default' if nobody is logged in yet. */
+function settingsUid(){return localStorage.getItem('user_id')||'default'}
+
+function initSettingsPage(){
+  renderScheduleEditor();
+  // Load saved break default (in seconds) and mount min:sec picker
+  const savedSecs=getDefaultBreakSeconds();
+  mountMinSecPicker('defaultBreakPickerMount','defaultBreak',Math.floor(savedSecs/60),savedSecs%60);
+  // Load cycle start date (default to today if not set)
+  const startDate=localStorage.getItem('gymbro_schedule_start_'+settingsUid())||getLocalDateString();
+  document.getElementById('schedStartDateInput').value=startDate;
+  renderSoundOptions();
+}
+
+function renderScheduleEditor(){
+  const saved=JSON.parse(localStorage.getItem('gymbro_workout_schedule_'+settingsUid())||'{}');
+  const container=document.getElementById('schedDaysContainer');
+  container.innerHTML='';
+  SCHEDULE_DAY_KEYS.forEach((day,i)=>{
+    const dayData=saved[day]||[null,null,null];
+    const isRestDay=dayData[0]===REST_VALUE;
+    const slotOptions=(val)=>`<option value="">— None —</option><option value="${REST_VALUE}"${val===REST_VALUE?' selected':''}>😴 Rest Day</option>`+WORKOUT_CLASSES.map(c=>`<option value="${c}"${c===val?' selected':''}>${c}</option>`).join('');
+    container.innerHTML+=`<div class="sched-day-block">
+      <div class="sched-day-label">📆 Day ${i+1}<span class="sched-day-badge">${isRestDay?'REST':'TRAINING'}</span></div>
+      <div class="sched-class-row"><label>Class 1</label><select id="sched_${day}_1" onchange="handleSchedSlotChange('${day}',1)" style="margin-top:0;padding:7px 10px;font-size:12px">${slotOptions(dayData[0]||'')}</select></div>
+      <div class="sched-class-row"><label>Class 2</label><select id="sched_${day}_2" onchange="handleSchedSlotChange('${day}',2)" style="margin-top:0;padding:7px 10px;font-size:12px"${isRestDay?' disabled':''}>${slotOptions(dayData[1]||'')}</select></div>
+      <div class="sched-class-row"><label>Class 3</label><select id="sched_${day}_3" onchange="handleSchedSlotChange('${day}',3)" style="margin-top:0;padding:7px 10px;font-size:12px"${isRestDay?' disabled':''}>${slotOptions(dayData[2]||'')}</select></div>
+    </div>`;
+  });
+}
+
+/* If slot 1 is set to Rest, force the whole day to Rest (disable other slots) */
+function handleSchedSlotChange(day,slotNum){
+  if(slotNum===1){
+    const isRest=document.getElementById(`sched_${day}_1`).value===REST_VALUE;
+    const s2=document.getElementById(`sched_${day}_2`),s3=document.getElementById(`sched_${day}_3`);
+    s2.disabled=isRest;s3.disabled=isRest;
+    if(isRest){s2.value='';s3.value=''}
+    const badge=document.querySelector(`#sched_${day}_1`).closest('.sched-day-block').querySelector('.sched-day-badge');
+    if(badge)badge.textContent=isRest?'REST':'TRAINING';
+  }
+}
+
+function saveWorkoutSchedule(){
+  const schedule={};
+  SCHEDULE_DAY_KEYS.forEach(day=>{
+    const classes=[];
+    for(let i=1;i<=3;i++){const v=document.getElementById(`sched_${day}_${i}`).value;classes.push(v||null)}
+    schedule[day]=classes;
+  });
+  const startDate=document.getElementById('schedStartDateInput').value||getLocalDateString();
+  localStorage.setItem('gymbro_workout_schedule_'+settingsUid(),JSON.stringify(schedule));
+  localStorage.setItem('gymbro_schedule_start_'+settingsUid(),startDate);
+  showToast('✅ Schedule saved!');
+  renderTodayWorkoutBanner();
+}
+
+function saveBreakDefault(){
+  const totalSecs=getPickerSeconds('defaultBreak');
+  if(totalSecs>1800){alert('Break time must be 30 minutes or less.');return}
+  localStorage.setItem('gymbro_default_break_secs_'+settingsUid(),totalSecs?String(totalSecs):'');
+  showToast(totalSecs?`✅ Default break set to ${formatMinSec(totalSecs)}!`:'✅ Break timer set to manual.');
+}
+
+function getDefaultBreakSeconds(){
+  const v=localStorage.getItem('gymbro_default_break_secs_'+settingsUid());
+  return v?parseInt(v)||0:0;
+}
+/* Kept for any legacy callers expecting minutes */
+function getDefaultBreakMins(){return Math.floor(getDefaultBreakSeconds()/60)}
+
+function formatMinSec(totalSecs){
+  const m=Math.floor(totalSecs/60),s=totalSecs%60;
+  return `${m}:${String(s).padStart(2,'0')} min`;
+}
+
+/* ===================== REUSABLE MIN:SEC SCROLL PICKER ===================== */
+/* Mounts a scrollable-only min/sec picker into the given container id.
+   pickerKey is used to namespace the DOM ids so multiple pickers can co-exist on the page. */
+function mountMinSecPicker(containerId,pickerKey,initMin,initSec){
+  const mount=document.getElementById(containerId);
+  if(!mount)return;
+  initMin=initMin||0;initSec=initSec||0;
+  mount.dataset.pickedMin=initMin;mount.dataset.pickedSec=initSec;
+  const minItems=Array.from({length:61},(_,i)=>i); // 0-60
+  const secItems=Array.from({length:60},(_,i)=>i); // 0-59
+  mount.innerHTML=`
+    <div class="minsec-picker">
+      <div class="minsec-scroll-group">
+        <div class="minsec-scroll-col">
+          <div class="minsec-scroll-list" id="minsecMinList_${pickerKey}">${minItems.map(m=>`<div class="minsec-scroll-item" data-val="${m}">${m}</div>`).join('')}</div>
+          <div class="minsec-unit-label">MIN</div>
+        </div>
+        <div class="minsec-sep">:</div>
+        <div class="minsec-scroll-col">
+          <div class="minsec-scroll-list" id="minsecSecList_${pickerKey}">${secItems.map(s=>`<div class="minsec-scroll-item" data-val="${s}">${String(s).padStart(2,'0')}</div>`).join('')}</div>
+          <div class="minsec-unit-label">SEC</div>
+        </div>
+      </div>
+    </div>`;
+  setupMinSecScrollList(`minsecMinList_${pickerKey}`,initMin,(val)=>{mount.dataset.pickedMin=val});
+  setupMinSecScrollList(`minsecSecList_${pickerKey}`,initSec,(val)=>{mount.dataset.pickedSec=val});
+  // store mount container id alongside pickerKey so getPickerSeconds can find it
+  mount.dataset.pickerKey=pickerKey;
+  if(!window._minsecMounts)window._minsecMounts={};
+  window._minsecMounts[pickerKey]=containerId;
+}
+
+function setupMinSecScrollList(listId,initVal,onPick){
+  const list=document.getElementById(listId);if(!list)return;
+  const items=list.querySelectorAll('.minsec-scroll-item');
+  const itemHeight=34;
+  // scroll to initial value
+  list.scrollTop=initVal*itemHeight;
+  const markPicked=()=>{
+    const idx=Math.round(list.scrollTop/itemHeight);
+    items.forEach(it=>it.classList.remove('picked'));
+    if(items[idx]){items[idx].classList.add('picked');onPick(parseInt(items[idx].dataset.val))}
+  };
+  let scrollDebounce=null;
+  list.addEventListener('scroll',()=>{
+    clearTimeout(scrollDebounce);
+    scrollDebounce=setTimeout(markPicked,120);
+  });
+  items.forEach((it,idx)=>{
+    it.addEventListener('click',()=>{list.scrollTo({top:idx*itemHeight,behavior:'smooth'});setTimeout(markPicked,150)});
+  });
+  markPicked();
+}
+
+/* Reads the current min+sec value (in total seconds) from a mounted picker by key */
+function getPickerSeconds(pickerKey){
+  const containerId=window._minsecMounts&&window._minsecMounts[pickerKey];
+  const mount=containerId?document.getElementById(containerId):null;
+  if(!mount)return 0;
+  const m=parseInt(mount.dataset.pickedMin)||0,s=parseInt(mount.dataset.pickedSec)||0;
+  return m*60+s;
+}
+
+/* ===================== NOTIFICATION SOUND SETTINGS ===================== */
+function renderSoundOptions(){
+  const saved=JSON.parse(localStorage.getItem('gymbro_notif_sound_'+settingsUid())||'{"type":"builtin","id":"classic_beep","volume":80}');
+  const list=document.getElementById('soundOptionsList');
+  list.innerHTML=NOTIF_SOUNDS.map(s=>`
+    <div class="sound-option-row">
+      <input type="radio" name="notifSoundChoice" id="sound_${s.id}" value="${s.id}" ${saved.type==='builtin'&&saved.id===s.id?'checked':''} onchange="handleSoundChoiceChange()">
+      <label for="sound_${s.id}">${s.label}</label>
+      <button class="sound-preview-btn" onclick="playBuiltinSound('${s.id}')">▶ Play</button>
+    </div>`).join('');
+  document.getElementById('notifVolumeSlider').value=saved.volume!==undefined?saved.volume:80;
+  document.getElementById('notifVolumeValue').textContent=(saved.volume!==undefined?saved.volume:80)+'%';
+  if(saved.type==='custom'&&saved.customName){
+    document.getElementById('customSoundFileName').textContent=`📁 Custom: ${saved.customName}`;
+  }
+}
+
+function handleVolumeSliderChange(){
+  const v=document.getElementById('notifVolumeSlider').value;
+  document.getElementById('notifVolumeValue').textContent=v+'%';
+}
+
+function handleSoundChoiceChange(){
+  // when picking a builtin radio, clear any selected custom upload visual (kept in storage until saved)
+}
+
+let _customSoundDataUrl=null,_customSoundName=null;
+function handleCustomSoundUpload(evt){
+  const file=evt.target.files[0];if(!file)return;
+  if(!file.type.startsWith('audio/')){alert('Please select a valid audio file.');return}
+  const reader=new FileReader();
+  reader.onload=function(e){
+    _customSoundDataUrl=e.target.result;_customSoundName=file.name;
+    document.getElementById('customSoundFileName').textContent=`📁 Custom: ${file.name}`;
+    document.querySelectorAll('input[name="notifSoundChoice"]').forEach(r=>r.checked=false);
+  };
+  reader.readAsDataURL(file);
+}
+
+function previewSelectedSound(){
+  if(_customSoundDataUrl){
+    const audio=new Audio(_customSoundDataUrl);
+    audio.volume=(parseInt(document.getElementById('notifVolumeSlider').value)||80)/100;
+    audio.play().catch(()=>{});
+    return;
+  }
+  const checked=document.querySelector('input[name="notifSoundChoice"]:checked');
+  if(checked)playBuiltinSound(checked.value);
+  else alert('Select or upload a sound first.');
+}
+
+function playBuiltinSound(id){
+  const sound=NOTIF_SOUNDS.find(s=>s.id===id);if(!sound)return;
+  const vol=(parseInt(document.getElementById('notifVolumeSlider')?.value)||80)/100;
+  try{
+    const ctx=new(window.AudioContext||window.webkitAudioContext)();
+    sound.tones.forEach((freq,i)=>{
+      const delay=i*0.22;
+      const osc=ctx.createOscillator(),gain=ctx.createGain();
+      osc.connect(gain);gain.connect(ctx.destination);
+      osc.type='triangle';osc.frequency.setValueAtTime(freq,ctx.currentTime+delay);
+      gain.gain.setValueAtTime(0.5*vol,ctx.currentTime+delay);
+      gain.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+delay+0.35);
+      osc.start(ctx.currentTime+delay);osc.stop(ctx.currentTime+delay+0.35);
+    });
+  }catch(e){}
+}
+
+function saveNotificationSoundSettings(){
+  const volume=parseInt(document.getElementById('notifVolumeSlider').value)||80;
+  let payload;
+  if(_customSoundDataUrl){
+    payload={type:'custom',customData:_customSoundDataUrl,customName:_customSoundName,volume};
+  } else {
+    const checked=document.querySelector('input[name="notifSoundChoice"]:checked');
+    if(!checked){alert('Please select a notification sound.');return}
+    payload={type:'builtin',id:checked.value,volume};
+  }
+  try{
+    localStorage.setItem('gymbro_notif_sound_'+settingsUid(),JSON.stringify(payload));
+  }catch(e){
+    alert('Could not save custom sound (file may be too large). Try a smaller audio file.');return;
+  }
+  showToast('✅ Notification sound saved!');
+}
+
+/* Plays whichever sound the user configured in Settings — used by the live break timer */
+function playConfiguredBreakSound(){
+  let saved;
+  try{saved=JSON.parse(localStorage.getItem('gymbro_notif_sound_'+settingsUid())||'null')}catch(e){saved=null}
+  if(!saved){playBreakAlertSound();return} // fallback to original default tone
+  const vol=(saved.volume!==undefined?saved.volume:80)/100;
+  if(saved.type==='custom'&&saved.customData){
+    try{const audio=new Audio(saved.customData);audio.volume=vol;audio.play().catch(()=>{});return}catch(e){}
+  }
+  const sound=NOTIF_SOUNDS.find(s=>s.id===saved.id)||NOTIF_SOUNDS[0];
+  try{
+    const ctx=new(window.AudioContext||window.webkitAudioContext)();
+    sound.tones.forEach((freq,i)=>{
+      const delay=i*0.22;
+      const osc=ctx.createOscillator(),gain=ctx.createGain();
+      osc.connect(gain);gain.connect(ctx.destination);
+      osc.type='triangle';osc.frequency.setValueAtTime(freq,ctx.currentTime+delay);
+      gain.gain.setValueAtTime(0.5*vol,ctx.currentTime+delay);
+      gain.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+delay+0.35);
+      osc.start(ctx.currentTime+delay);osc.stop(ctx.currentTime+delay+0.35);
+    });
+  }catch(e){}
+}
+
+/* ===================== TODAY'S WORKOUT BANNER (Day 1–7 cyclical + miss detection) ===================== */
+/* Returns the schedule day-key ('Day N') for a given date, based on the cycle start date */
+function getScheduleDayForDate(dateObj,startDateStr){
+  const start=new Date(startDateStr+'T00:00:00');
+  const target=new Date(getLocalDateStringFor(dateObj)+'T00:00:00');
+  const diffDays=Math.floor((target-start)/86400000);
+  const idx=((diffDays%7)+7)%7; // always 0–6, handles dates before start too
+  return SCHEDULE_DAY_KEYS[idx];
+}
+
+async function renderTodayWorkoutBanner(){
+  const banner=document.getElementById('todayWorkoutBanner');
+  const valueEl=document.getElementById('todayWorkoutValue');
+  const subEl=document.getElementById('todayWorkoutSub');
+  if(!banner)return;
+  const schedule=JSON.parse(localStorage.getItem('gymbro_workout_schedule_'+settingsUid())||'null');
+  const startDate=localStorage.getItem('gymbro_schedule_start_'+settingsUid());
+  if(!schedule||!startDate){banner.style.display='none';return}
+
+  const uid=localStorage.getItem('user_id');
+  const todayDate=new Date();
+  const todayDay=getScheduleDayForDate(todayDate,startDate);
+  const todayClasses=(schedule[todayDay]||[]).filter(Boolean);
+  const todayIsRest=todayClasses[0]===REST_VALUE;
+
+  // Find the most recent date the user actually checked in (Present)
+  let lastCheckin=null;
+  if(uid){
+    const{data}=await db.from('attendance').select('attendance_date,workout').eq('user_id',uid).eq('status','Present').order('attendance_date',{ascending:false}).limit(1);
+    if(data&&data.length>0)lastCheckin=data[0];
+  }
+
+  // Walk backwards from yesterday to find any MISSED scheduled training days (gap detection)
+  let missedDay=null,missedClasses=[];
+  if(lastCheckin){
+    const lastDate=new Date(lastCheckin.attendance_date+'T00:00:00');
+    const todayDateOnly=new Date(getLocalDateString()+'T00:00:00');
+    const gapDays=Math.floor((todayDateOnly-lastDate)/86400000);
+    if(gapDays>=2){
+      // Check each day strictly between last check-in and today for a scheduled (non-rest) day
+      for(let off=1;off<gapDays;off++){
+        const checkDate=new Date(lastDate);checkDate.setDate(checkDate.getDate()+off);
+        const dKey=getScheduleDayForDate(checkDate,startDate);
+        const dClasses=(schedule[dKey]||[]).filter(Boolean);
+        if(dClasses.length&&dClasses[0]!==REST_VALUE){
+          missedDay=checkDate;missedClasses=dClasses;break; // report the FIRST missed scheduled day
+        }
+      }
+    }
+  } else {
+    // No check-in history at all — nothing missed yet
+  }
+
+  if(missedDay){
+    const missedLabel=missedClasses.join(' + ');
+    const missedDateStr=missedDay.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+    valueEl.textContent=todayIsRest?'Rest Day':todayClasses.join(' + ')+' Day';
+    subEl.innerHTML=`⚠️ You missed <strong>${missedLabel}</strong> on ${missedDateStr}. Today's schedule is <strong>${todayIsRest?'Rest':todayClasses.join(' + ')}</strong> — keep going!`;
+    banner.style.display='flex';
+    return;
+  }
+
+  if(!todayClasses.length){banner.style.display='none';return}
+  if(todayIsRest){
+    valueEl.textContent='😴 Rest Day';
+    subEl.textContent='No training scheduled today — recover well!';
+    banner.style.display='flex';
+    return;
+  }
+  valueEl.textContent=todayClasses.join(' + ')+' Day';
+  subEl.textContent=`${todayDay} of your schedule`;
+  banner.style.display='flex';
+}
+
+function showToast(msg){
+  let t=document.createElement('div');
+  t.textContent=msg;
+  Object.assign(t.style,{position:'fixed',bottom:'80px',left:'50%',transform:'translateX(-50%)',background:'var(--toast-bg)',color:'#fff',padding:'12px 22px',borderRadius:'14px',fontFamily:'var(--font-alt)',fontSize:'13px',fontWeight:'700',letterSpacing:'0.5px',zIndex:'9999999',boxShadow:'0 8px 28px rgba(0,0,0,0.3)',animation:'fadeIn 0.3s ease',whiteSpace:'nowrap'});
+  document.body.appendChild(t);setTimeout(()=>{t.style.opacity='0';t.style.transition='opacity 0.3s ease';setTimeout(()=>t.remove(),300)},2200);
+}
+
 function logoutUser(){
   if(activeWorkoutTimer){clearInterval(activeWorkoutTimer);activeWorkoutTimer=null}
   activeSessionCheckInTimestamp=null;
-  // Clear all session and cached data to prevent data leakage between users
-  localStorage.clear();
+  // Clear only the session/auth keys — NOT the whole of localStorage. Personalized settings
+  // (workout schedule, default break timer, notification sound) are namespaced per user
+  // (see settingsUid()) and must survive logout so they're there again on next login.
+  localStorage.removeItem("user_id");
+  localStorage.removeItem("user_uuid");
+  localStorage.removeItem("user_name");
+  localStorage.removeItem("gymbro_session_active");
   sessionStorage.clear();
   window.cachedAttendance=null;
   chronometerSeconds=0;
+  hideBottomNav();
   document.getElementById("memberDashboard").style.display="none";
   document.getElementById("adminDashboard").style.display="none";
   document.getElementById("loginPage").style.display="block";
@@ -1727,16 +2357,17 @@ function closeHamburgerMenu(){}
 async function switchMemberTab(id){
   document.querySelectorAll('.memberTab').forEach(t=>t.style.display='none');
   document.querySelectorAll('.memberMenu button').forEach(b=>b.classList.remove('activeMenu'));
-  document.getElementById(id).style.display='block';document.getElementById('menu-'+id).classList.add('activeMenu');
+  document.getElementById(id).style.display='block';
+  const menuBtn=document.getElementById('menu-'+id);if(menuBtn)menuBtn.classList.add('activeMenu');
+  // sync bottom nav active state
+  syncBottomNav(id);
   if(id==='dashPage')await syncCoreDashboardMetrics();
   else if(id==='statsPage'){
     initStatsMonthDropdowns();
-    // default timeframe to current week
     const cwk=getCurrentWeekOption();
     const tfSel=document.getElementById('statsTimeframe');if(tfSel)tfSel.value=cwk;
     const vfSel=document.getElementById('volTimeframe');if(vfSel)vfSel.value=cwk;
     await updateStatsChart();
-    // volume chart only if already in volume sub-nav
     if(document.getElementById('subnavVolume')&&document.getElementById('subnavVolume').classList.contains('active'))
       await updateVolumeChart('main');
   }
@@ -1744,6 +2375,7 @@ async function switchMemberTab(id){
   else if(id==='workPage')await loadWorkoutsForDate();
   else if(id==='learnPage')initLearnPage();
   else if(id==='socialPage')loadSocialPage();
+  else if(id==='settingsPage')initSettingsPage();
 }
 
 /* ===================== STREAK ALGORITHM ===================== */
@@ -1791,6 +2423,7 @@ async function syncCoreDashboardMetrics(){
   const prevXP=parseInt(localStorage.getItem('gymbro_xp')||'0');localStorage.setItem('gymbro_xp',xp);
   updateXPDisplay(xp);
   document.getElementById("postCount").textContent=mw;
+  renderTodayWorkoutBanner();
 }
 
 /* ===================== MUSCLE HIGHLIGHT ===================== */
@@ -2430,6 +3063,9 @@ document.addEventListener("click",e=>{
   if(e.target.id!=="workoutChart")hideStatsTooltip();
   const ls=document.getElementById("learnSuggestions");if(ls&&e.target.id!=="learnSearchInput"&&!ls.contains(e.target))ls.style.display="none";
 });
+/* Tracks original (locked) duration labels per set-index while editing an entry, e.g. {1:"30 sec",2:"1 min 5 sec"} */
+let editOriginalDurations={};
+
 function buildSetsInputFields(){
   let cnt=parseInt(document.getElementById("setsCountSelect").value);
   let c=document.getElementById("dynamicSetsContainer");
@@ -2437,12 +3073,23 @@ function buildSetsInputFields(){
   let existingWeights={},existingReps={};
   c.querySelectorAll('[id^="weight_set_"]').forEach(el=>{const i=el.id.replace('weight_set_','');existingWeights[i]=el.value});
   c.querySelectorAll('[id^="reps_set_"]').forEach(el=>{const i=el.id.replace('reps_set_','');existingReps[i]=el.value});
+  // How many sets existed originally (with locked durations) — only relevant in edit mode
+  const originalCount=Object.keys(editOriginalDurations).length;
   c.innerHTML="";
   for(let i=1;i<=cnt;i++){
     const w=existingWeights[i]||'',r=existingReps[i]||'';
-    c.innerHTML+=`<div class="set-row"><span>Set ${i}</span><input type="number" placeholder="Kgs" id="weight_set_${i}" min="0.5" step="0.5" value="${w}" style="margin-top:0;padding:9px;flex:1"><input type="number" placeholder="Reps" id="reps_set_${i}" min="1" value="${r}" style="margin-top:0;padding:9px;flex:1"></div>`;
+    const isLockedSet=currentEditingIndex!==null&&i<=originalCount&&editOriginalDurations[i];
+    // NOTE: this form is only ever used for NON-live entries. Any extra sets added here
+    // (beyond the originally-locked ones) must behave exactly like a brand-new manual set —
+    // plain Kgs/Reps with NO timer and NO duration tracking. Timers are a live-mode-only concept.
+    let extraHtml='';
+    if(isLockedSet){
+      extraHtml=`<span class="set-time-locked" title="Original duration is preserved and cannot be changed">⏱ ${editOriginalDurations[i]}</span>`;
+    }
+    c.innerHTML+=`<div class="set-row"><span>Set ${i}</span><input type="number" placeholder="Kgs" id="weight_set_${i}" min="0.5" step="0.5" value="${w}" style="margin-top:0;padding:9px;flex:1"><input type="number" placeholder="Reps" id="reps_set_${i}" min="1" value="${r}" style="margin-top:0;padding:9px;flex:1">${extraHtml}</div>`;
   }
 }
+
 async function saveWorkoutLogEntry(){
   let uid=localStorage.getItem("user_uuid")||localStorage.getItem("user_id");
   let name=document.getElementById("workoutNameInput").value.trim();
@@ -2453,7 +3100,15 @@ async function saveWorkoutLogEntry(){
   for(let i=1;i<=sc;i++){
     let w=parseFloat(document.getElementById(`weight_set_${i}`).value)||0,r=parseInt(document.getElementById(`reps_set_${i}`).value)||0;
     if(w<0.5||r<1){alert(`Set ${i}: Must have at least 0.5kg and 1 rep.`);return}
-    sd.push(`${w}kg x ${r}`);tv+=w*r;
+    tv+=w*r;
+    // Preserve the ORIGINAL locked duration for pre-existing sets. Any other set (brand-new entry,
+    // OR a new set added while editing a NON-live entry) gets no duration/time data at all — this
+    // form is exclusively for non-live entries, so timers/time tracking never apply here.
+    if(editOriginalDurations[i]){
+      sd.push(`${w}Kg x ${r} [${editOriginalDurations[i]}]`);
+    } else {
+      sd.push(`${w}kg x ${r}`);
+    }
   }
   let ser=`${name}: ${sd.join(", ")}`,xpe=Math.floor(tv/100)*10;
   const{data:er}=await db.from("workouts").select("*").eq("user_id",uid).eq("date",td).maybeSingle();
@@ -2463,23 +3118,27 @@ async function saveWorkoutLogEntry(){
     if(er){let slot=null;for(let idx=1;idx<=15;idx++){if(!er[`workout_${idx}`]){slot=`workout_${idx}`;break}}if(!slot){alert("Daily capacity of 15 entries reached.");return}p[slot]=ser;await db.from("workouts").update(p).eq("user_id",uid).eq("date",td)}
     else{p={user_id:uid,date:td,workout_1:ser};await db.from("workouts").insert([p])}
   }
+  editOriginalDurations={};
   alert(`✅ Workout saved! +${xpe} XP earned!`);cancelWorkoutLogging();await loadWorkoutsForDate();await syncCoreDashboardMetrics();
 }
 
 /* ===================== LIVE MODE ===================== */
-let liveMode=false,liveSetTimers={},liveSetSeconds={},liveBreakTimers={},liveBreakSeconds={},liveTotalSets=0,liveCurrentSet=1,liveSetResults=[],liveSessionSlot=null;
+let liveMode=false,liveSetTimers={},liveSetSeconds={},liveBreakTimers={},liveBreakSeconds={},liveBreakTotalSecs={},liveTotalSets=0,liveCurrentSet=1,liveSetResults=[],liveSessionSlot=null;
+window._liveEditMode=false;
 function toggleLiveMode(){
   liveMode=!liveMode;
   const tog=document.getElementById("liveModeToggle"),lbl=document.getElementById("liveModeLabel");
   tog.classList.toggle("on",liveMode);lbl.textContent=liveMode?"ON":"OFF";lbl.style.color=liveMode?"var(--accent)":"var(--text-muted)";
 }
 function showAddWorkoutForm(){
-  currentEditingIndex=null;
+  currentEditingIndex=null;window._liveEditMode=false;
+  // Reset name input in case it was locked by live-edit mode
+  const ni=document.getElementById("liveWorkoutNameInput");if(ni){ni.readOnly=false;ni.style.opacity="1";}
   if(liveMode){
     document.getElementById("initialWorkoutBox").style.display="none";document.getElementById("liveWorkoutForm").style.display="block";document.getElementById("workoutFormStructure").style.display="none";
     document.getElementById("liveWorkoutNameInput").value="";document.getElementById("liveSetsCountSelect").value="1";document.getElementById("liveSetsContainer").innerHTML="";
     document.getElementById("liveSetupPanel").style.display="block";document.getElementById("liveSessionTitle").style.display="none";
-    liveCurrentSet=1;liveTotalSets=0;liveSetTimers={};liveSetSeconds={};liveBreakTimers={};liveBreakSeconds={};liveSetResults=[];liveSessionSlot=null;
+    liveCurrentSet=1;liveTotalSets=0;liveSetTimers={};liveSetSeconds={};liveBreakTimers={};liveBreakSeconds={};liveBreakTotalSecs={};liveSetResults=[];liveSessionSlot=null;
   } else {
     document.getElementById("formActionTitle").innerText="LOG NEW ENTRY";
     document.getElementById("initialWorkoutBox").style.display="none";document.getElementById("workoutFormStructure").style.display="block";document.getElementById("liveWorkoutForm").style.display="none";
@@ -2488,10 +3147,14 @@ function showAddWorkoutForm(){
 }
 function cancelWorkoutLogging(){
   currentEditingIndex=null;document.getElementById("workoutNameInput").value="";
+  editOriginalDurations={};
   document.getElementById("workoutFormStructure").style.display="none";document.getElementById("liveWorkoutForm").style.display="none";document.getElementById("initialWorkoutBox").style.display="block";stopAllLiveTimers();
 }
-function cancelLiveWorkout(){stopAllLiveTimers();document.getElementById("liveWorkoutForm").style.display="none";document.getElementById("initialWorkoutBox").style.display="block";liveSetResults=[];liveSessionSlot=null}
-function stopAllLiveTimers(){Object.values(liveSetTimers).forEach(t=>clearInterval(t));Object.values(liveBreakTimers).forEach(t=>clearInterval(t));liveSetTimers={};liveSetSeconds={};liveBreakTimers={};liveBreakSeconds={}}
+function cancelLiveWorkout(){
+  if(window._liveEditMode){cancelLiveEditWorkout();return;}
+  stopAllLiveTimers();document.getElementById("liveWorkoutForm").style.display="none";document.getElementById("initialWorkoutBox").style.display="block";liveSetResults=[];liveSessionSlot=null;
+}
+function stopAllLiveTimers(){Object.values(liveSetTimers).forEach(t=>clearInterval(t));Object.values(liveBreakTimers).forEach(t=>clearInterval(t));liveSetTimers={};liveSetSeconds={};liveBreakTimers={};liveBreakSeconds={};liveBreakTotalSecs={}}
 function handleLiveSearchAuto(){
   let val=document.getElementById("liveWorkoutNameInput").value.toLowerCase();
   let box=document.getElementById("liveAutoSuggestions");box.innerHTML="";box.style.display="none";if(!val)return;
@@ -2499,12 +3162,21 @@ function handleLiveSearchAuto(){
   box.style.display="block";matches.forEach(item=>{let div=document.createElement("div");div.textContent=item.name;div.onclick=()=>{document.getElementById("liveWorkoutNameInput").value=item.name;box.style.display="none"};box.appendChild(div)});
 }
 function startLiveSession(){
+  if(window._liveEditMode){startLiveEditNewSets();return;}
   let name=document.getElementById("liveWorkoutNameInput").value.trim();if(!name){alert("Please enter exercise name.");return}
   liveTotalSets=parseInt(document.getElementById("liveSetsCountSelect").value);liveCurrentSet=1;liveSetResults=[];liveSessionSlot=null;
   document.getElementById("liveSetupPanel").style.display="none";
   let titleEl=document.getElementById("liveSessionTitle");titleEl.textContent="🏋 "+name+" — "+liveTotalSets+" Set"+(liveTotalSets>1?"s":"");titleEl.style.display="block";
   const container=document.getElementById("liveSetsContainer");container.innerHTML="";
   for(let i=1;i<=liveTotalSets;i++){container.innerHTML+=buildLiveSetHTML(i,i===1)}
+  // Only mount the manual scrollable picker when the user has NOT configured a default break time.
+  // If a default is set, the break auto-runs silently after each set — no manual UI needed.
+  const hasDefault=getDefaultBreakSeconds()>0;
+  if(!hasDefault){
+    for(let i=1;i<=liveTotalSets;i++){
+      mountMinSecPicker(`liveBreakPickerMount_${i}`,`liveBreak_${i}`,0,0);
+    }
+  }
 }
 function buildLiveSetHTML(idx,active){
   return `<div class="live-set-block${active?' set-active':''}" id="liveSetBlock_${idx}">
@@ -2520,14 +3192,26 @@ function buildLiveSetHTML(idx,active){
     <div class="live-set-result" id="liveSetResult_${idx}"></div>
     <button class="live-set-save-btn" id="liveSetSaveBtn_${idx}" onclick="saveLiveSet(${idx})">💾 SAVE SET ${idx}</button>
     <div class="live-break-row" id="liveBreakRow_${idx}">
-      <div class="live-break-title">⏸ BREAK TIME (optional)</div>
-      <div class="live-break-inputs">
-        <input type="number" id="liveBreakMin_${idx}" placeholder="Break min" min="1" max="30">
+      <div class="live-break-title" id="liveBreakTitle_${idx}">⏸ BREAK TIME (optional)</div>
+      <div class="live-break-inputs" id="liveBreakInputsRow_${idx}">
+        <div id="liveBreakPickerMount_${idx}"></div>
         <button class="live-break-btn start" onclick="startLiveBreak(${idx})">START BREAK</button>
         <button class="live-break-btn" style="background:var(--accent-soft);color:var(--text-secondary)" onclick="skipLiveBreak(${idx})">SKIP</button>
       </div>
-      <div class="live-break-timer" id="liveBreakTimer_${idx}">00:00</div>
+      <div class="live-break-timer-row">
+        <div class="live-break-timer" id="liveBreakTimer_${idx}">00:00</div>
+        <button class="live-break-edit-btn" id="liveBreakEditBtn_${idx}" onclick="toggleEditBreakPanel(${idx})">✏️ Edit Break</button>
+      </div>
+      <div class="live-break-edit-panel" id="liveBreakEditPanel_${idx}">
+        <div class="live-break-edit-label">⏸ Auto Break paused — pick a new time for THIS set only. Your default Auto Break in Settings won't change.</div>
+        <div id="liveBreakEditPickerMount_${idx}"></div>
+        <div class="live-break-edit-actions">
+          <button class="live-break-btn start" onclick="applyBreakTimeEdit(${idx})">SET BREAK TIME</button>
+          <button class="live-break-btn" style="background:var(--accent-soft);color:var(--text-secondary)" onclick="toggleEditBreakPanel(${idx})">CANCEL</button>
+        </div>
+      </div>
       <div class="live-break-msg" id="liveBreakMsg_${idx}"></div>
+      <button class="live-break-btn" id="liveBreakAutoSkip_${idx}" style="display:none;background:var(--accent-soft);color:var(--text-secondary);margin-top:8px" onclick="skipLiveBreak(${idx})">SKIP BREAK</button>
     </div>
   </div>`;
 }
@@ -2556,22 +3240,96 @@ async function saveLiveSet(idx){
   let resultEl=document.getElementById(`liveSetResult_${idx}`);resultEl.textContent=`✓ ${setStr}`;resultEl.style.display="block";
   document.getElementById(`liveSetDoneBadge_${idx}`).style.display="inline-block";
   document.getElementById(`liveSetBlock_${idx}`).classList.remove("set-active");document.getElementById(`liveSetBlock_${idx}`).classList.add("set-done");
-  if(idx<liveTotalSets){document.getElementById(`liveBreakRow_${idx}`).style.display="block"}else{finishLiveSession(name)}
+  if(idx<liveTotalSets){
+    document.getElementById(`liveBreakRow_${idx}`).style.display="block";
+    const defaultBreakSecs=getDefaultBreakSeconds();
+    if(defaultBreakSecs>0){
+      // Default break configured — auto-run immediately, no manual UI shown at all
+      document.getElementById(`liveBreakTitle_${idx}`).textContent="⏸ BREAK TIME (auto)";
+      document.getElementById(`liveBreakInputsRow_${idx}`).style.display="none";
+      document.getElementById(`liveBreakAutoSkip_${idx}`).style.display="inline-block";
+      startLiveBreak(idx,defaultBreakSecs);
+    } else {
+      // No default — show the scrollable picker + Start/Skip buttons for manual entry
+      document.getElementById(`liveBreakTitle_${idx}`).textContent="⏸ BREAK TIME (optional)";
+      document.getElementById(`liveBreakInputsRow_${idx}`).style.display="flex";
+      document.getElementById(`liveBreakAutoSkip_${idx}`).style.display="none";
+    }
+  }else{finishLiveSession(name)}
   await loadWorkoutsForDate();await syncCoreDashboardMetrics();
 }
-function skipLiveBreak(idx){document.getElementById(`liveBreakRow_${idx}`).style.display="none";activateNextLiveSet(idx+1)}
-function startLiveBreak(idx){
-  let mins=parseInt(document.getElementById(`liveBreakMin_${idx}`).value)||0;if(mins<1){alert("Enter break time in minutes (minimum 1).");return}
-  let totalSecs=mins*60,timerEl=document.getElementById(`liveBreakTimer_${idx}`),msgEl=document.getElementById(`liveBreakMsg_${idx}`);
+function skipLiveBreak(idx){
+  if(liveBreakTimers[idx]){clearInterval(liveBreakTimers[idx]);delete liveBreakTimers[idx]}
+  delete liveBreakTotalSecs[idx];
+  const autoSkipBtn=document.getElementById(`liveBreakAutoSkip_${idx}`);if(autoSkipBtn)autoSkipBtn.style.display="none";
+  const editBtn=document.getElementById(`liveBreakEditBtn_${idx}`);if(editBtn)editBtn.style.display="none";
+  const editPanel=document.getElementById(`liveBreakEditPanel_${idx}`);if(editPanel)editPanel.style.display="none";
+  document.getElementById(`liveBreakRow_${idx}`).style.display="none";activateNextLiveSet(idx+1);
+}
+function startLiveBreak(idx,forcedSecs){
+  let totalSecs=forcedSecs!==undefined?forcedSecs:getPickerSeconds(`liveBreak_${idx}`);
+  if(totalSecs<1){if(forcedSecs===undefined){alert("Set a break time (at least 1 second).");return}else{activateNextLiveSet(idx+1);return}}
+  let timerEl=document.getElementById(`liveBreakTimer_${idx}`),msgEl=document.getElementById(`liveBreakMsg_${idx}`);
   timerEl.style.display="block";msgEl.style.display="none";
   let startBtn=document.querySelector(`#liveBreakRow_${idx} .live-break-btn.start`),skipBtn=document.querySelectorAll(`#liveBreakRow_${idx} .live-break-btn`)[1];
-  if(startBtn){startBtn.disabled=true;startBtn.style.opacity="0.5"}if(skipBtn){skipBtn.disabled=true;skipBtn.style.opacity="0.5"}
-  liveBreakSeconds[idx]=0;
+  if(startBtn){startBtn.disabled=true;startBtn.style.opacity="0.5"}if(skipBtn){skipBtn.disabled=false;skipBtn.style.opacity="1"}
+  liveBreakSeconds[idx]=0;liveBreakTotalSecs[idx]=totalSecs;
+  // The "Edit Break" override is only offered for genuine Auto Break sessions (forcedSecs set from the saved default).
+  // Manual breaks are already entered by hand each time, so no per-set override is needed there.
+  const editBtn=document.getElementById(`liveBreakEditBtn_${idx}`);
+  if(editBtn)editBtn.style.display=forcedSecs!==undefined?"inline-flex":"none";
+  const editPanel=document.getElementById(`liveBreakEditPanel_${idx}`);if(editPanel)editPanel.style.display="none";
+  runLiveBreakInterval(idx);
+}
+/* Starts/resumes the actual 1-second countdown loop for a break, based on whatever is
+   currently in liveBreakSeconds[idx] (elapsed) and liveBreakTotalSecs[idx] (total for THIS set).
+   Shared by startLiveBreak, the "Cancel" resume path, and the "Edit Break" override apply path
+   so there's a single source of truth for how a break actually counts down and finishes. */
+function runLiveBreakInterval(idx){
+  const timerEl=document.getElementById(`liveBreakTimer_${idx}`),msgEl=document.getElementById(`liveBreakMsg_${idx}`);
+  const editBtn=document.getElementById(`liveBreakEditBtn_${idx}`),editPanel=document.getElementById(`liveBreakEditPanel_${idx}`);
+  if(liveBreakTimers[idx]){clearInterval(liveBreakTimers[idx])}
   liveBreakTimers[idx]=setInterval(()=>{
-    liveBreakSeconds[idx]++;let rem=totalSecs-liveBreakSeconds[idx];
-    if(rem<=0){clearInterval(liveBreakTimers[idx]);delete liveBreakTimers[idx];timerEl.textContent="00:00";msgEl.textContent="🔔 Break over! Time to crush the next set!";msgEl.style.display="block";timerEl.style.display="none";playBreakAlertSound();setTimeout(()=>{document.getElementById(`liveBreakRow_${idx}`).style.display="none";activateNextLiveSet(idx+1)},1500);return}
+    liveBreakSeconds[idx]++;let rem=liveBreakTotalSecs[idx]-liveBreakSeconds[idx];
+    if(rem<=0){clearInterval(liveBreakTimers[idx]);delete liveBreakTimers[idx];delete liveBreakTotalSecs[idx];timerEl.textContent="00:00";msgEl.textContent="🔔 Break over! Time to crush the next set!";msgEl.style.display="block";timerEl.style.display="none";if(editBtn)editBtn.style.display="none";if(editPanel)editPanel.style.display="none";playConfiguredBreakSound();setTimeout(()=>{document.getElementById(`liveBreakRow_${idx}`).style.display="none";activateNextLiveSet(idx+1)},1500);return}
     let m=Math.floor(rem/60),s=rem%60;timerEl.textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
   },1000);
+}
+/* ===== Per-set "Edit Break" override (Auto Break only) =====
+   Clicking "Edit Break" instantly PAUSES the running Auto Break countdown (the displayed time freezes)
+   and opens a picker pre-loaded with the current Settings default, so the user can dial it up or down
+   to whatever this particular set needs — lower or higher than the default. Hitting "Set Break Time"
+   replaces the remaining countdown for THIS set only and resumes; "Cancel" just resumes the original
+   countdown exactly where it was paused. Either way, gymbro_default_break_secs in Settings/localStorage
+   is never written to, so the very next set's Auto Break reverts to the saved default automatically. */
+function toggleEditBreakPanel(idx){
+  const panel=document.getElementById(`liveBreakEditPanel_${idx}`);if(!panel)return;
+  const msgEl=document.getElementById(`liveBreakMsg_${idx}`);
+  const opening=panel.style.display==="none"||!panel.style.display;
+  if(opening){
+    // Instantly stop the countdown while the user picks a new time — nothing ticks away unseen
+    if(liveBreakTimers[idx]){clearInterval(liveBreakTimers[idx]);delete liveBreakTimers[idx]}
+    const baseSecs=getDefaultBreakSeconds();
+    mountMinSecPicker(`liveBreakEditPickerMount_${idx}`,`liveBreakEdit_${idx}`,Math.floor(baseSecs/60),baseSecs%60);
+    if(msgEl){msgEl.textContent="⏸ Break paused";msgEl.style.display="block"}
+    panel.style.display="block";
+  } else {
+    if(msgEl){msgEl.style.display="none";msgEl.textContent=""}
+    panel.style.display="none";
+    if(liveBreakTotalSecs[idx]!==undefined)runLiveBreakInterval(idx); // Cancel — resume right where it paused
+  }
+}
+function applyBreakTimeEdit(idx){
+  if(liveBreakTotalSecs[idx]===undefined){toggleEditBreakPanel(idx);return} // break already ended/skipped
+  const newSecs=getPickerSeconds(`liveBreakEdit_${idx}`);
+  if(newSecs<1){alert("Pick a break time greater than 0 seconds — or use Skip Break to move on without one.");return}
+  liveBreakTotalSecs[idx]=newSecs;liveBreakSeconds[idx]=0; // fresh countdown for THIS set only
+  const timerEl=document.getElementById(`liveBreakTimer_${idx}`);
+  if(timerEl){timerEl.style.display="block";let m=Math.floor(newSecs/60),s=newSecs%60;timerEl.textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0')}
+  const msgEl=document.getElementById(`liveBreakMsg_${idx}`);if(msgEl){msgEl.style.display="none";msgEl.textContent=""}
+  document.getElementById(`liveBreakEditPanel_${idx}`).style.display="none";
+  showToast(`⏱ Break set to ${formatMinSec(newSecs)} for this set only`);
+  runLiveBreakInterval(idx);
 }
 function playBreakAlertSound(){
   try{const ctx=new(window.AudioContext||window.webkitAudioContext)();[0,0.25,0.5].forEach(delay=>{const osc=ctx.createOscillator(),gain=ctx.createGain();osc.connect(gain);gain.connect(ctx.destination);osc.type='triangle';osc.frequency.setValueAtTime(880,ctx.currentTime+delay);gain.gain.setValueAtTime(0.4,ctx.currentTime+delay);gain.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+delay+0.35);osc.start(ctx.currentTime+delay);osc.stop(ctx.currentTime+delay+0.35)})}catch(e){}
@@ -2608,20 +3366,31 @@ async function loadWorkoutsForDate(){
 function toggleCardSelectionState(el,ci,rv){let a=el.classList.contains("selected-active");document.querySelectorAll(".workout-log-card").forEach(c=>c.classList.remove("selected-active"));if(!a)el.classList.add("selected-active")}
 function initiateWorkoutEdit(e,ci,rv){
   e.stopPropagation();currentEditingIndex=ci;
+  editOriginalDurations={};
+
+  let en=rv,ss="";
+  if(rv.includes(":")){let p=rv.indexOf(":");en=rv.substring(0,p).trim();ss=rv.substring(p+1).trim()}
+
+  // Detect if this is a live workout: any set segment has a [time] bracket
+  let segs=ss.split(",").map(s=>s.trim()).filter(Boolean);
+  const isLiveEntry=segs.some(seg=>/\[.+\]/.test(seg));
+
+  if(isLiveEntry){
+    // Route to live edit mode so new sets get live timers + break support
+    startLiveEditSession(ci,en,ss,segs);
+    return;
+  }
+
+  // Non-live path — static form as before
   document.getElementById("formActionTitle").innerText=`EDIT ENTRY (Slot ${ci})`;
   document.getElementById("initialWorkoutBox").style.display="none";
   document.getElementById("workoutFormStructure").style.display="block";
   document.getElementById("liveWorkoutForm").style.display="none";
 
-  let en=rv,ss="";
-  if(rv.includes(":")){let p=rv.indexOf(":");en=rv.substring(0,p).trim();ss=rv.substring(p+1).trim()}
-
-  // Parse each set segment — handles both "7.5kg x 10" and "7.5Kg x 10 [30sec]"
-  let segs=ss.split(",").map(s=>s.trim()).filter(Boolean);
-  let parsedSets=segs.map(seg=>{
-    // Strip the optional [duration] part at the end
+  let parsedSets=segs.map((seg,i)=>{
+    let durMatch=seg.match(/\[(.*?)\]/);
+    if(durMatch)editOriginalDurations[i+1]=durMatch[1].trim();
     let clean=seg.replace(/\[.*?\]/g,'').trim();
-    // Match decimal or integer kg and reps: 7.5Kg x 10 or 7.5kg x 10
     let m=clean.match(/^([\d.]+)\s*[Kk][Gg]?\s*x\s*(\d+)/i);
     if(m)return{w:m[1],r:m[2]};
     return{w:'',r:''};
@@ -2630,12 +3399,354 @@ function initiateWorkoutEdit(e,ci,rv){
   document.getElementById("workoutNameInput").value=en;
   document.getElementById("setsCountSelect").value=segs.length;
 
-  // Build fields WITHOUT clearing values (we'll set them right after)
   let c=document.getElementById("dynamicSetsContainer");c.innerHTML="";
   for(let i=1;i<=segs.length;i++){
     const ps=parsedSets[i-1]||{w:'',r:''};
-    c.innerHTML+=`<div class="set-row"><span>Set ${i}</span><input type="number" placeholder="Kgs" id="weight_set_${i}" min="0.5" step="0.5" value="${ps.w}" style="margin-top:0;padding:9px;flex:1"><input type="number" placeholder="Reps" id="reps_set_${i}" min="1" value="${ps.r}" style="margin-top:0;padding:9px;flex:1"></div>`;
+    const lockedTag=editOriginalDurations[i]?`<span class="set-time-locked" title="Original duration is preserved and cannot be changed">⏱ ${editOriginalDurations[i]}</span>`:'';
+    c.innerHTML+=`<div class="set-row"><span>Set ${i}</span><input type="number" placeholder="Kgs" id="weight_set_${i}" min="0.5" step="0.5" value="${ps.w}" style="margin-top:0;padding:9px;flex:1"><input type="number" placeholder="Reps" id="reps_set_${i}" min="1" value="${ps.r}" style="margin-top:0;padding:9px;flex:1">${lockedTag}</div>`;
   }
+}
+
+/* ===================== LIVE EDIT SESSION (edit existing sets + add new sets to a live entry) ===================== */
+/* State for live-edit mode — separate from the fresh live session state so they don't collide */
+let liveEditSlot=null,liveEditExistingResults=[],liveEditNewResults=[],liveEditTotalNewSets=0,liveEditCurrentNewSet=1;
+let liveEditSetTimers={},liveEditSetSeconds={},liveEditBreakTimers={},liveEditBreakSeconds={},liveEditBreakTotalSecs={};
+/* Caches user-edited Kg/Reps for already-saved sets (both originally-saved and saved-this-session), keyed by absolute set number */
+let liveEditValueOverrides={};
+
+/* Relabels the shared sets-count dropdown: "Set N" while editing a live entry, "N Set(s)" for a fresh live session */
+function setLiveSetsDropdownLabels(mode){
+  const sel=document.getElementById("liveSetsCountSelect");if(!sel)return;
+  for(let i=1;i<=6;i++){
+    const opt=sel.options[i-1];if(!opt)continue;
+    opt.textContent=mode==='edit'?`Set ${i}`:(i===1?'1 Set':`${i} Sets`);
+  }
+}
+
+/* Parses one saved set segment like "20Kg x 10 [30 sec]" into {w,r,duration} */
+function parseSetSegment(seg){
+  let durMatch=seg.match(/\[(.*?)\]/);
+  let duration=durMatch?durMatch[1].trim():null;
+  let clean=seg.replace(/\[.*?\]/g,'').trim();
+  let m=clean.match(/^([\d.]+)\s*[Kk][Gg]?\s*x\s*(\d+)/i);
+  return{w:m?m[1]:'',r:m?m[2]:'',duration};
+}
+
+function getLiveEditCommittedSegments(){
+  return[...liveEditExistingResults,...liveEditNewResults];
+}
+
+function startLiveEditSession(ci,exerciseName,setsStr,segs){
+  // Parse existing saved sets so we can re-build the combined entry on every save
+  liveEditSlot=`workout_${ci}`;
+  liveEditExistingResults=segs.map(s=>s.trim()).filter(Boolean);
+  liveEditNewResults=[];
+  liveEditTotalNewSets=0;liveEditCurrentNewSet=1;
+  liveEditSetTimers={};liveEditSetSeconds={};
+  liveEditBreakTimers={};liveEditBreakSeconds={};liveEditBreakTotalSecs={};
+  liveEditValueOverrides={};
+
+  // Show the live form, hide everything else
+  document.getElementById("initialWorkoutBox").style.display="none";
+  document.getElementById("workoutFormStructure").style.display="none";
+  document.getElementById("liveWorkoutForm").style.display="block";
+
+  // Pre-fill the exercise name and lock it
+  const nameInput=document.getElementById("liveWorkoutNameInput");
+  nameInput.value=exerciseName;
+  nameInput.readOnly=true;
+  nameInput.style.opacity="0.7";
+
+  // Update the live setup panel title
+  let titleEl=document.getElementById("liveSessionTitle");
+  titleEl.textContent="✏️ "+exerciseName+" — Edit Sets";
+  titleEl.style.display="block";
+
+  // Show the setup panel (name + sets dropdown) but hide the "Start" button —
+  // in edit mode the dropdown itself drives everything, no extra click needed.
+  document.getElementById("liveSetupPanel").style.display="block";
+  const startBtn=document.getElementById("liveStartSessionBtn");
+  if(startBtn)startBtn.style.display="none";
+
+  // Relabel the dropdown as "Set N" and default it to the current total set count
+  setLiveSetsDropdownLabels('edit');
+  const countSel=document.getElementById("liveSetsCountSelect");
+  countSel.value=String(Math.min(Math.max(liveEditExistingResults.length,1),6));
+
+  // Mark global flag so the rest of the live-mode code knows we're in edit mode
+  window._liveEditMode=true;
+
+  renderLiveEditSetsUI();
+}
+
+/* Renders the full live-edit UI: editable rows (with locked durations) for every already-saved
+   set, an "Update Sets" button to persist Kg/Reps edits, and — only if the dropdown asks for
+   more sets than are currently saved — the live timer/break flow for the next new set(s), exactly
+   like adding a brand-new set in live mode. */
+function renderLiveEditSetsUI(){
+  const container=document.getElementById("liveSetsContainer");if(!container)return;
+
+  // Capture any in-progress edits to existing rows before we rebuild the DOM
+  container.querySelectorAll('[id^="liveEditExistKg_"]').forEach(el=>{
+    const i=el.id.replace('liveEditExistKg_','');liveEditValueOverrides[i]=liveEditValueOverrides[i]||{};liveEditValueOverrides[i].w=el.value;
+  });
+  container.querySelectorAll('[id^="liveEditExistReps_"]').forEach(el=>{
+    const i=el.id.replace('liveEditExistReps_','');liveEditValueOverrides[i]=liveEditValueOverrides[i]||{};liveEditValueOverrides[i].r=el.value;
+  });
+
+  const committedSegs=getLiveEditCommittedSegments();
+  const committedCount=committedSegs.length;
+  const desiredTotal=Math.max(parseInt(document.getElementById("liveSetsCountSelect").value)||1,1);
+  const visibleCommitted=Math.min(desiredTotal,committedCount);
+
+  let html=`<div class="live-edit-existing-summary" style="background:var(--accent-soft);border:1px solid var(--border-col);border-radius:14px;padding:14px 16px;margin-bottom:14px">
+    <div style="font-family:var(--font-alt);font-size:13px;font-weight:700;color:var(--section-title-col);margin-bottom:10px;letter-spacing:0.4px">✅ SAVED SETS (${committedCount}) — edit Kgs/Reps below</div>`;
+  for(let i=1;i<=visibleCommitted;i++){
+    const parsed=parseSetSegment(committedSegs[i-1]);
+    const ov=liveEditValueOverrides[i]||{};
+    const w=ov.w!==undefined?ov.w:parsed.w,r=ov.r!==undefined?ov.r:parsed.r;
+    const durTag=parsed.duration?`<span class="set-time-locked" title="Original duration is preserved and cannot be changed">⏱ ${parsed.duration}</span>`:'';
+    html+=`<div class="set-row" style="margin-top:8px"><span>Set ${i}</span><input type="number" placeholder="Kgs" id="liveEditExistKg_${i}" min="0.5" step="0.5" value="${w}" style="margin-top:0;padding:9px;flex:1"><input type="number" placeholder="Reps" id="liveEditExistReps_${i}" min="1" value="${r}" style="margin-top:0;padding:9px;flex:1">${durTag}</div>`;
+  }
+  html+=`<button class="btn" style="background:linear-gradient(135deg,#16a34a,#15803d);margin-top:12px;padding:10px" onclick="updateLiveEditExistingSets()">💾 UPDATE SETS</button>
+  </div>`;
+  container.innerHTML=html;
+
+  // Any remaining desired sets beyond what's already saved get the full live timer/break treatment —
+  // exactly like adding a new set in a fresh live session.
+  liveEditTotalNewSets=Math.max(desiredTotal-committedCount,0);
+  liveEditCurrentNewSet=1;
+  if(liveEditTotalNewSets>0){
+    for(let i=1;i<=liveEditTotalNewSets;i++){container.innerHTML+=buildLiveEditSetHTML(i,i===1)}
+    const hasDefault=getDefaultBreakSeconds()>0;
+    if(!hasDefault){
+      for(let i=1;i<=liveEditTotalNewSets;i++){mountMinSecPicker(`liveEditBreakPickerMount_${i}`,`liveEditBreak_${i}`,0,0)}
+    }
+  }
+}
+
+function handleLiveSetsCountSelectChange(){
+  if(window._liveEditMode)renderLiveEditSetsUI();
+}
+
+/* Persists edited Kg/Reps for already-saved sets — never touches their locked duration */
+async function updateLiveEditExistingSets(){
+  const committedSegs=getLiveEditCommittedSegments();
+  const committedCount=committedSegs.length;
+  const desiredTotal=Math.max(parseInt(document.getElementById("liveSetsCountSelect").value)||1,1);
+  const visibleCommitted=Math.min(desiredTotal,committedCount);
+
+  for(let i=1;i<=visibleCommitted;i++){
+    const kgEl=document.getElementById(`liveEditExistKg_${i}`),repEl=document.getElementById(`liveEditExistReps_${i}`);
+    const w=parseFloat(kgEl.value)||0,r=parseInt(repEl.value)||0;
+    if(w<0.5||r<1){alert(`Set ${i}: Must have at least 0.5kg and 1 rep.`);return}
+    liveEditValueOverrides[i]={w:String(w),r:String(r)};
+  }
+
+  // Rebuild every committed set's string (visible ones use the freshly-edited values, hidden ones keep their cached values)
+  const rebuilt=committedSegs.map((seg,idx0)=>{
+    const i=idx0+1,parsed=parseSetSegment(seg),ov=liveEditValueOverrides[i];
+    const w=ov?ov.w:parsed.w,r=ov?ov.r:parsed.r;
+    return parsed.duration?`${w}Kg x ${r} [${parsed.duration}]`:`${w}Kg x ${r}`;
+  });
+  for(let i=0;i<liveEditExistingResults.length;i++)liveEditExistingResults[i]=rebuilt[i];
+  for(let i=0;i<liveEditNewResults.length;i++)liveEditNewResults[i]=rebuilt[liveEditExistingResults.length+i];
+
+  let exName=document.getElementById("liveWorkoutNameInput").value.trim();
+  let uid=localStorage.getItem("user_uuid")||localStorage.getItem("user_id");
+  let td=document.getElementById("workoutCalendarFilter").value;
+  let combinedEntry=`${exName}: ${rebuilt.join(", ")}`;
+  let p={};p[liveEditSlot]=combinedEntry;
+  await db.from("workouts").update(p).eq("user_id",uid).eq("date",td);
+  showToast("💾 Sets updated");
+  await loadWorkoutsForDate();await syncCoreDashboardMetrics();
+}
+
+function startLiveEditNewSets(){
+  // Kept as a safety fallback — the live-edit UI now renders directly off the dropdown's onchange.
+  renderLiveEditSetsUI();
+}
+
+function buildLiveEditSetHTML(idx,active){
+  const committedCount=liveEditExistingResults.length+liveEditNewResults.length;
+  const displayIdx=committedCount+idx;
+  return `<div class="live-set-block${active?' set-active':''}" id="liveEditSetBlock_${idx}">
+    <div class="live-set-header"><span class="live-set-title">NEW SET ${displayIdx}</span><span class="live-set-done-badge" id="liveEditSetDoneBadge_${idx}" style="display:none">✓ DONE</span></div>
+    <div class="live-set-inputs" id="liveEditSetInputs_${idx}" ${!active?'style="opacity:0.4;pointer-events:none"':''}>
+      <input type="number" id="liveEditKg_${idx}" placeholder="Kgs" min="0.5" step="0.5" style="margin-top:0;padding:9px">
+      <input type="number" id="liveEditReps_${idx}" placeholder="Reps" min="1" style="margin-top:0;padding:9px">
+    </div>
+    <div class="live-timer-row" id="liveEditTimerRow_${idx}" ${!active?'style="display:none"':''}>
+      <div class="live-timer-display" id="liveEditTimerDisplay_${idx}">00:00</div>
+      <button class="live-timer-btn start" id="liveEditTimerBtn_${idx}" onclick="toggleLiveEditSetTimer(${idx})" title="Start timer">▶</button>
+    </div>
+    <div class="live-set-result" id="liveEditSetResult_${idx}"></div>
+    <button class="live-set-save-btn" id="liveEditSetSaveBtn_${idx}" onclick="saveLiveEditSet(${idx})">💾 SAVE SET ${displayIdx}</button>
+    <div class="live-break-row" id="liveEditBreakRow_${idx}" style="display:none">
+      <div class="live-break-title" id="liveEditBreakTitle_${idx}">⏸ BREAK TIME (optional)</div>
+      <div class="live-break-inputs" id="liveEditBreakInputsRow_${idx}">
+        <div id="liveEditBreakPickerMount_${idx}"></div>
+        <button class="live-break-btn start" onclick="startLiveEditBreak(${idx})">START BREAK</button>
+        <button class="live-break-btn" style="background:var(--accent-soft);color:var(--text-secondary)" onclick="skipLiveEditBreak(${idx})">SKIP</button>
+      </div>
+      <div class="live-break-timer-row">
+        <div class="live-break-timer" id="liveEditBreakTimer_${idx}">00:00</div>
+        <button class="live-break-edit-btn" id="liveEditBreakEditBtn_${idx}" onclick="toggleEditBreakPanelForEdit(${idx})">✏️ Edit Break</button>
+      </div>
+      <div class="live-break-edit-panel" id="liveEditBreakEditPanel_${idx}">
+        <div class="live-break-edit-label">⏸ Auto Break paused — pick a new time for THIS set only.</div>
+        <div id="liveEditBreakEditPickerMount_${idx}"></div>
+        <div class="live-break-edit-actions">
+          <button class="live-break-btn start" onclick="applyBreakTimeEditForEdit(${idx})">SET BREAK TIME</button>
+          <button class="live-break-btn" style="background:var(--accent-soft);color:var(--text-secondary)" onclick="toggleEditBreakPanelForEdit(${idx})">CANCEL</button>
+        </div>
+      </div>
+      <div class="live-break-msg" id="liveEditBreakMsg_${idx}"></div>
+      <button class="live-break-btn" id="liveEditBreakAutoSkip_${idx}" style="display:none;background:var(--accent-soft);color:var(--text-secondary);margin-top:8px" onclick="skipLiveEditBreak(${idx})">SKIP BREAK</button>
+    </div>
+  </div>`;
+}
+
+function toggleLiveEditSetTimer(idx){
+  const btn=document.getElementById(`liveEditTimerBtn_${idx}`);
+  if(liveEditSetTimers[idx]){clearInterval(liveEditSetTimers[idx]);delete liveEditSetTimers[idx];btn.textContent="▶";btn.className="live-timer-btn start";document.getElementById(`liveEditSetSaveBtn_${idx}`).style.display="block"}
+  else{
+    if(!liveEditSetSeconds[idx])liveEditSetSeconds[idx]=0;btn.textContent="⏹";btn.className="live-timer-btn stop";document.getElementById(`liveEditSetSaveBtn_${idx}`).style.display="none";
+    liveEditSetTimers[idx]=setInterval(()=>{liveEditSetSeconds[idx]++;let m=Math.floor(liveEditSetSeconds[idx]/60),s=liveEditSetSeconds[idx]%60;document.getElementById(`liveEditTimerDisplay_${idx}`).textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0')},1000);
+  }
+}
+
+async function saveLiveEditSet(idx){
+  let kg=parseFloat(document.getElementById(`liveEditKg_${idx}`).value)||0,reps=parseInt(document.getElementById(`liveEditReps_${idx}`).value)||0;
+  const displayIdx=liveEditExistingResults.length+liveEditNewResults.length+1;
+  if(kg<0.5||reps<1){alert(`Set ${displayIdx}: Please enter Kgs and Reps before saving.`);return}
+  if(liveEditSetTimers[idx]){clearInterval(liveEditSetTimers[idx]);delete liveEditSetTimers[idx]}
+  let secs=liveEditSetSeconds[idx]||0;let timeLabel=secs===0?"0 sec":secs<60?`${secs} sec`:secs%60>0?`${Math.floor(secs/60)} min ${secs%60} sec`:`${Math.floor(secs/60)} min`;
+  let setStr=`${kg}Kg x ${reps} [${timeLabel}]`;liveEditNewResults.push(setStr);
+
+  let exName=document.getElementById("liveWorkoutNameInput").value.trim();
+  let uid=localStorage.getItem("user_uuid")||localStorage.getItem("user_id");
+  let td=document.getElementById("workoutCalendarFilter").value;
+  let allResults=[...liveEditExistingResults,...liveEditNewResults];
+  let combinedEntry=`${exName}: ${allResults.join(", ")}`;
+  let p={};p[liveEditSlot]=combinedEntry;
+  await db.from("workouts").update(p).eq("user_id",uid).eq("date",td);
+
+  document.getElementById(`liveEditSetSaveBtn_${idx}`).style.display="none";
+  document.getElementById(`liveEditTimerRow_${idx}`).style.display="none";
+  document.getElementById(`liveEditSetInputs_${idx}`).style.pointerEvents="none";
+  document.getElementById(`liveEditSetInputs_${idx}`).style.opacity="0.6";
+  let resultEl=document.getElementById(`liveEditSetResult_${idx}`);resultEl.textContent=`✓ ${setStr}`;resultEl.style.display="block";
+  document.getElementById(`liveEditSetDoneBadge_${idx}`).style.display="inline-block";
+  document.getElementById(`liveEditSetBlock_${idx}`).classList.remove("set-active");document.getElementById(`liveEditSetBlock_${idx}`).classList.add("set-done");
+
+  if(idx<liveEditTotalNewSets){
+    document.getElementById(`liveEditBreakRow_${idx}`).style.display="block";
+    const defaultBreakSecs=getDefaultBreakSeconds();
+    if(defaultBreakSecs>0){
+      document.getElementById(`liveEditBreakTitle_${idx}`).textContent="⏸ BREAK TIME (auto)";
+      document.getElementById(`liveEditBreakInputsRow_${idx}`).style.display="none";
+      document.getElementById(`liveEditBreakAutoSkip_${idx}`).style.display="inline-block";
+      startLiveEditBreak(idx,defaultBreakSecs);
+    } else {
+      document.getElementById(`liveEditBreakTitle_${idx}`).textContent="⏸ BREAK TIME (optional)";
+      document.getElementById(`liveEditBreakInputsRow_${idx}`).style.display="flex";
+      document.getElementById(`liveEditBreakAutoSkip_${idx}`).style.display="none";
+    }
+  } else {
+    renderLiveEditSetsUI();
+  }
+  await loadWorkoutsForDate();await syncCoreDashboardMetrics();
+}
+
+function skipLiveEditBreak(idx){
+  if(liveEditBreakTimers[idx]){clearInterval(liveEditBreakTimers[idx]);delete liveEditBreakTimers[idx]}
+  delete liveEditBreakTotalSecs[idx];
+  const autoSkipBtn=document.getElementById(`liveEditBreakAutoSkip_${idx}`);if(autoSkipBtn)autoSkipBtn.style.display="none";
+  const editBtn=document.getElementById(`liveEditBreakEditBtn_${idx}`);if(editBtn)editBtn.style.display="none";
+  const editPanel=document.getElementById(`liveEditBreakEditPanel_${idx}`);if(editPanel)editPanel.style.display="none";
+  document.getElementById(`liveEditBreakRow_${idx}`).style.display="none";
+  activateNextLiveEditSet(idx+1);
+}
+
+function startLiveEditBreak(idx,forcedSecs){
+  let totalSecs=forcedSecs!==undefined?forcedSecs:getPickerSeconds(`liveEditBreak_${idx}`);
+  if(totalSecs<1){if(forcedSecs===undefined){alert("Set a break time (at least 1 second).");return}else{activateNextLiveEditSet(idx+1);return}}
+  let timerEl=document.getElementById(`liveEditBreakTimer_${idx}`),msgEl=document.getElementById(`liveEditBreakMsg_${idx}`);
+  timerEl.style.display="block";msgEl.style.display="none";
+  liveEditBreakSeconds[idx]=0;liveEditBreakTotalSecs[idx]=totalSecs;
+  const editBtn=document.getElementById(`liveEditBreakEditBtn_${idx}`);
+  if(editBtn)editBtn.style.display=forcedSecs!==undefined?"inline-flex":"none";
+  const editPanel=document.getElementById(`liveEditBreakEditPanel_${idx}`);if(editPanel)editPanel.style.display="none";
+  runLiveEditBreakInterval(idx);
+}
+
+function runLiveEditBreakInterval(idx){
+  const timerEl=document.getElementById(`liveEditBreakTimer_${idx}`),msgEl=document.getElementById(`liveEditBreakMsg_${idx}`);
+  const editBtn=document.getElementById(`liveEditBreakEditBtn_${idx}`),editPanel=document.getElementById(`liveEditBreakEditPanel_${idx}`);
+  if(liveEditBreakTimers[idx]){clearInterval(liveEditBreakTimers[idx])}
+  liveEditBreakTimers[idx]=setInterval(()=>{
+    liveEditBreakSeconds[idx]++;let rem=liveEditBreakTotalSecs[idx]-liveEditBreakSeconds[idx];
+    if(rem<=0){clearInterval(liveEditBreakTimers[idx]);delete liveEditBreakTimers[idx];delete liveEditBreakTotalSecs[idx];timerEl.textContent="00:00";msgEl.textContent="🔔 Break over! Time to crush the next set!";msgEl.style.display="block";timerEl.style.display="none";if(editBtn)editBtn.style.display="none";if(editPanel)editPanel.style.display="none";playConfiguredBreakSound();setTimeout(()=>{document.getElementById(`liveEditBreakRow_${idx}`).style.display="none";activateNextLiveEditSet(idx+1)},1500);return}
+    let m=Math.floor(rem/60),s=rem%60;timerEl.textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+  },1000);
+}
+
+function toggleEditBreakPanelForEdit(idx){
+  const panel=document.getElementById(`liveEditBreakEditPanel_${idx}`);if(!panel)return;
+  const msgEl=document.getElementById(`liveEditBreakMsg_${idx}`);
+  const opening=panel.style.display==="none"||!panel.style.display;
+  if(opening){
+    if(liveEditBreakTimers[idx]){clearInterval(liveEditBreakTimers[idx]);delete liveEditBreakTimers[idx]}
+    const baseSecs=getDefaultBreakSeconds();
+    mountMinSecPicker(`liveEditBreakEditPickerMount_${idx}`,`liveEditBreakEdit_${idx}`,Math.floor(baseSecs/60),baseSecs%60);
+    if(msgEl){msgEl.textContent="⏸ Break paused";msgEl.style.display="block"}
+    panel.style.display="block";
+  } else {
+    if(msgEl){msgEl.style.display="none";msgEl.textContent=""}
+    panel.style.display="none";
+    if(liveEditBreakTotalSecs[idx]!==undefined)runLiveEditBreakInterval(idx);
+  }
+}
+
+function applyBreakTimeEditForEdit(idx){
+  if(liveEditBreakTotalSecs[idx]===undefined){toggleEditBreakPanelForEdit(idx);return}
+  const newSecs=getPickerSeconds(`liveEditBreakEdit_${idx}`);
+  if(newSecs<1){alert("Pick a break time greater than 0 seconds — or use Skip Break to move on.");return}
+  liveEditBreakTotalSecs[idx]=newSecs;liveEditBreakSeconds[idx]=0;
+  const timerEl=document.getElementById(`liveEditBreakTimer_${idx}`);
+  if(timerEl){timerEl.style.display="block";let m=Math.floor(newSecs/60),s=newSecs%60;timerEl.textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0')}
+  const msgEl=document.getElementById(`liveEditBreakMsg_${idx}`);if(msgEl){msgEl.style.display="none";msgEl.textContent=""}
+  document.getElementById(`liveEditBreakEditPanel_${idx}`).style.display="none";
+  showToast(`⏱ Break set to ${formatMinSec(newSecs)} for this set only`);
+  runLiveEditBreakInterval(idx);
+}
+
+function activateNextLiveEditSet(idx){
+  if(idx>liveEditTotalNewSets)return;
+  const block=document.getElementById(`liveEditSetBlock_${idx}`);if(!block)return;
+  block.classList.add("set-active");
+  document.getElementById(`liveEditSetInputs_${idx}`).style.opacity="1";
+  document.getElementById(`liveEditSetInputs_${idx}`).style.pointerEvents="auto";
+  document.getElementById(`liveEditTimerRow_${idx}`).style.display="flex";
+  block.scrollIntoView({behavior:"smooth",block:"center"});
+}
+
+function cancelLiveEditWorkout(){
+  // Stop all live-edit timers
+  Object.values(liveEditSetTimers).forEach(t=>clearInterval(t));
+  Object.values(liveEditBreakTimers).forEach(t=>clearInterval(t));
+  liveEditSetTimers={};liveEditSetSeconds={};liveEditBreakTimers={};liveEditBreakSeconds={};liveEditBreakTotalSecs={};
+  liveEditSlot=null;liveEditExistingResults=[];liveEditNewResults=[];liveEditTotalNewSets=0;liveEditValueOverrides={};
+  window._liveEditMode=false;
+  // Reset name input readonly
+  const nameInput=document.getElementById("liveWorkoutNameInput");
+  if(nameInput){nameInput.readOnly=false;nameInput.style.opacity="1";}
+  // Restore the dropdown's normal labels and the Start button for the next fresh live session
+  setLiveSetsDropdownLabels('fresh');
+  const startBtn=document.getElementById("liveStartSessionBtn");if(startBtn)startBtn.style.display="block";
+  document.getElementById("liveWorkoutForm").style.display="none";
+  document.getElementById("initialWorkoutBox").style.display="block";
 }
 async function triggerWorkoutDelete(e,ci){
   e.stopPropagation();if(!confirm("Delete this workout entry?"))return;
