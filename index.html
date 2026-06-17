@@ -168,9 +168,25 @@ body.theme-batman .themeBtn.active{background:rgba(245,200,0,0.22);color:#f5c800
 body.theme-godmode .themeBtn.active{background:rgba(192,0,10,0.3);color:#d43030}
 .logoutBtn{background:rgba(220,38,38,0.85);color:white;border:none;padding:9px 16px;border-radius:12px;cursor:pointer;font-weight:700;font-size:13px;font-family:var(--font-alt);letter-spacing:0.5px;transition:all 0.3s ease}
 .logoutBtn:hover{background:#dc2626;transform:scale(1.04)}
-/* Member banner with no theme/logout controls — center the brand block for a clean, balanced look */
-.gymbroTopSolo{justify-content:center}
-.gymbroTopSolo .gymbroBrandWrap{display:flex;align-items:center;gap:14px}
+/* Member banner with no theme/logout controls — hamburger pinned to the left corner,
+   brand block perfectly centered, modern glassy finish that adapts per theme. */
+.gymbroTopSolo{
+  display:grid;grid-template-columns:34px 1fr 34px;align-items:center;gap:12px;
+  padding:20px 22px;border:1px solid rgba(255,255,255,0.10);
+  box-shadow:0 10px 30px rgba(0,0,0,0.15),inset 0 1px 0 rgba(255,255,255,0.08);
+  transition:border-color 0.4s ease,box-shadow 0.4s ease;
+}
+.gymbroTopSolo .hamburger-btn{grid-column:1;justify-self:start}
+.gymbroTopSolo .gymbroBrandWrap{grid-column:2;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px}
+.gymbroTopSolo .gymbroBrandWrap h2{display:flex;align-items:center;gap:8px}
+.gymbroAccentBar{display:block;width:38px;height:3px;border-radius:3px;margin-top:4px;background:linear-gradient(90deg,var(--accent),var(--accent2));box-shadow:0 0 8px var(--accent-glow)}
+/* Batman & God Mode — banner border glows in the active mode's accent color */
+body.theme-batman .gymbroTopSolo{border-color:var(--accent);box-shadow:0 10px 30px rgba(0,0,0,0.55),0 0 20px var(--accent-glow),inset 0 1px 0 rgba(245,200,0,0.12)}
+body.theme-godmode .gymbroTopSolo{border-color:var(--accent);animation:gymbroBannerPulse 3s ease-in-out infinite}
+@keyframes gymbroBannerPulse{
+  0%,100%{box-shadow:0 10px 30px rgba(0,0,0,0.55),0 0 18px var(--accent-glow),inset 0 1px 0 rgba(192,0,10,0.14)}
+  50%{box-shadow:0 10px 34px rgba(0,0,0,0.65),0 0 32px var(--accent-glow),inset 0 1px 0 rgba(192,0,10,0.2)}
+}
 /* Theme toggle + logout reused inside the Settings page Appearance row */
 .settings-row-ctrl .themeToggle{background:rgba(0,0,0,0.2)}
 body.theme-batman .settings-row-ctrl .themeToggle,body.theme-godmode .settings-row-ctrl .themeToggle{background:rgba(0,0,0,0.35)}
@@ -285,6 +301,9 @@ body.theme-batman .set-new-timer-btn{color:#05050a}
 .set-new-timer-btn.running{background:#dc2626;color:#fff}
 .set-new-timer-label{font-size:10px;font-weight:700;color:var(--text-muted);font-family:var(--font-alt);letter-spacing:0.4px;text-transform:uppercase}
 .set-row span{font-weight:700;min-width:46px;font-size:13px;color:var(--accent);font-family:var(--font-alt)}
+.set-delete-btn{background:rgba(220,38,38,0.12);border:none;width:32px;height:32px;border-radius:9px;cursor:pointer;font-size:13px;display:none;align-items:center;justify-content:center;flex-shrink:0;transition:background 0.2s ease}
+.set-delete-btn:hover{background:rgba(220,38,38,0.25)}
+.set-row.set-selected .set-delete-btn{display:flex}
 .suggestion-box{position:relative;margin-bottom:8px}
 .suggestions-list{position:absolute;left:0;right:0;background:var(--bg-card);border:1px solid var(--border-col);border-radius:11px;max-height:180px;overflow-y:auto;z-index:100;box-shadow:0 10px 30px rgba(0,0,0,0.12);display:none}
 .suggestions-list div{padding:10px 14px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--border-col);color:var(--text-primary)}
@@ -504,6 +523,31 @@ body.theme-batman .live-break-btn.start{color:#05050a}
 .live-break-edit-label{font-size:11px;color:var(--text-muted);font-family:var(--font-alt);margin-bottom:8px;letter-spacing:0.3px}
 .live-break-edit-actions{display:flex;gap:8px;margin-top:10px}
 .live-break-msg{font-size:12px;color:var(--text-muted);font-family:var(--font-alt);margin-top:4px;display:none}
+
+/* ===================== PREVIOUS PERFORMANCE BADGE ===================== */
+.prev-perf-badge{
+  display:none;align-items:flex-start;gap:8px;
+  background:var(--accent-soft);border:1px solid var(--accent);border-radius:10px;
+  padding:10px 12px;margin-top:8px;font-family:var(--font-alt);
+  animation:fadeIn 0.3s ease;position:relative;
+}
+.prev-perf-badge.visible{display:flex}
+.prev-perf-icon{font-size:16px;flex-shrink:0;margin-top:2px}
+.prev-perf-label{font-size:10px;font-weight:700;color:var(--text-muted);letter-spacing:0.6px;text-transform:uppercase;display:block;margin-bottom:1px}
+.prev-perf-value{font-size:13px;font-weight:700;color:var(--accent);letter-spacing:0.3px;flex:1;min-width:0}
+.prev-perf-loading{font-size:12px;color:var(--text-muted);font-family:var(--font-alt);font-style:italic}
+
+/* ===================== QUICK FILL BUTTON ===================== */
+.quick-fill-btn{
+  display:none;width:100%;padding:9px 14px;
+  background:linear-gradient(135deg,rgba(37,99,235,0.12),rgba(37,99,235,0.06));
+  border:1px dashed var(--accent);border-radius:10px;
+  color:var(--accent);font-size:12px;font-weight:700;font-family:var(--font-alt);
+  letter-spacing:0.5px;cursor:pointer;margin-top:8px;
+  transition:all 0.2s ease;text-align:center;
+}
+.quick-fill-btn:hover{background:var(--accent-soft);border-style:solid}
+.quick-fill-btn.visible{display:block}
 
 /* ===================== MIN:SEC PICKER WIDGET ===================== */
 .minsec-picker{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
@@ -785,6 +829,43 @@ body.theme-batman .settings-save-btn{color:#05050a}
 .custom-sound-file-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .custom-sound-file-row input[type="file"]{flex:1;min-width:160px;font-size:11px;color:var(--text-secondary);font-family:var(--font-alt)}
 .custom-sound-name{font-size:11px;color:var(--accent);font-family:var(--font-alt);font-weight:700;margin-top:6px}
+
+/* ===================== LIVE SET COPY-FROM-PREVIOUS BUTTON ===================== */
+.live-copy-prev-btn{
+  display:inline-flex;align-items:center;gap:6px;
+  background:var(--accent-soft);color:var(--accent);
+  border:1px solid var(--accent);border-radius:9px;
+  padding:6px 12px;font-size:11px;font-weight:700;font-family:var(--font-alt);
+  cursor:pointer;letter-spacing:0.4px;transition:all 0.2s ease;
+  margin-top:6px;
+}
+.live-copy-prev-btn:hover{background:var(--accent);color:#fff}
+body.theme-batman .live-copy-prev-btn:hover{color:#05050a}
+
+/* ===================== LEVEL UP NOTIFICATION ===================== */
+.levelup-toast{
+  position:fixed;bottom:88px;left:50%;transform:translateX(-50%);
+  background:linear-gradient(135deg,#15803d,#16a34a);
+  color:#fff;border-radius:16px;
+  padding:14px 20px;z-index:9999999;
+  box-shadow:0 8px 28px rgba(22,163,74,0.45),0 0 0 2px rgba(255,255,255,0.15);
+  font-family:var(--font-alt);font-size:13px;font-weight:700;letter-spacing:0.4px;
+  display:flex;align-items:flex-start;gap:12px;max-width:340px;width:90%;
+  animation:levelUpIn 0.45s cubic-bezier(0.22,0.8,0.4,1) forwards;
+}
+@keyframes levelUpIn{
+  0%{opacity:0;transform:translateX(-50%) translateY(24px) scale(0.92)}
+  100%{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}
+}
+.levelup-toast .levelup-icon{font-size:28px;flex-shrink:0;line-height:1;filter:drop-shadow(0 0 6px rgba(255,255,0,0.5))}
+.levelup-toast .levelup-body{}
+.levelup-toast .levelup-title{font-size:15px;font-weight:900;letter-spacing:1px;color:#fff;margin-bottom:4px;display:flex;align-items:center;gap:6px}
+.levelup-toast .levelup-title .levelup-badge{background:rgba(255,255,255,0.25);border-radius:6px;padding:1px 7px;font-size:11px}
+.levelup-toast .levelup-msg{font-size:12px;color:rgba(255,255,255,0.9);font-weight:600;line-height:1.5}
+body.theme-batman .levelup-toast{background:linear-gradient(135deg,#c8a000,#f5c800);color:#05050a;box-shadow:0 8px 28px rgba(245,200,0,0.45)}
+body.theme-batman .levelup-toast .levelup-msg{color:rgba(5,5,10,0.85)}
+body.theme-batman .levelup-toast .levelup-badge{background:rgba(5,5,10,0.15);color:#05050a}
+body.theme-godmode .levelup-toast{background:linear-gradient(135deg,#7a0006,#c0000a)}
 </style>
 </head>
 <body>
@@ -896,14 +977,13 @@ body.theme-batman .settings-save-btn{color:#05050a}
   <!-- ===================== MEMBER DASHBOARD ===================== -->
   <div id="memberDashboard" class="dashboard">
     <div class="gymbroTop gymbroTopSolo">
+      <button class="hamburger-btn" id="hamburgerBtn" onclick="toggleHamburgerMenu()" aria-label="Open menu">
+        <span></span><span></span><span></span>
+      </button>
       <div class="gymbroBrandWrap">
-        <button class="hamburger-btn" id="hamburgerBtn" onclick="toggleHamburgerMenu()" aria-label="Open menu">
-          <span></span><span></span><span></span>
-        </button>
-        <div>
-          <h2>🏋 GYMBRO</h2>
-          <p>TRACK · TRAIN · DOMINATE</p>
-        </div>
+        <h2>🏋 GYMBRO</h2>
+        <p>TRACK · TRAIN · DOMINATE</p>
+        <span class="gymbroAccentBar"></span>
       </div>
     </div>
 
@@ -1232,12 +1312,22 @@ body.theme-batman .settings-save-btn{color:#05050a}
             <input type="text" id="workoutNameInput" placeholder="Type or Select (e.g. Bench Press)" oninput="handleWorkoutSearchAuto()" autocomplete="off">
             <div id="autoSuggestions" class="suggestions-list"></div>
           </div>
+          <!-- Previous Performance Badge (Non-Live) -->
+          <div class="prev-perf-badge" id="prevPerfBadgeNonLive">
+            <span class="prev-perf-icon">📊</span>
+            <div>
+              <span class="prev-perf-label">Previous Performance</span>
+              <span class="prev-perf-value" id="prevPerfValueNonLive">—</span>
+            </div>
+          </div>
           <label style="font-size:12px;font-weight:700;color:var(--text-muted);font-family:var(--font-alt)">SETS STRUCTURE:</label>
-          <select id="setsCountSelect" style="margin-top:5px" onchange="buildSetsInputFields()">
+          <select id="setsCountSelect" style="margin-top:5px" onchange="handleSetsCountSelectChange()">
             <option value="1">1 Set</option><option value="2">2 Sets</option><option value="3">3 Sets</option>
             <option value="4">4 Sets</option><option value="5">5 Sets</option><option value="6">6 Sets</option>
           </select>
           <div id="dynamicSetsContainer" style="margin-top:10px"></div>
+          <!-- Quick Fill: Copy to All (Non-Live) -->
+          <button class="quick-fill-btn" id="quickFillCopyAllBtn" onclick="quickFillCopyAll()">⚡ COPY SET 1 TO ALL SETS</button>
           <button class="btn" style="background:linear-gradient(135deg,#16a34a,#15803d);margin-top:12px" onclick="saveWorkoutLogEntry()">💾 SAVE ENTRY</button>
           <button class="btn" style="background:linear-gradient(135deg,#64748b,#475569);margin-top:7px" onclick="cancelWorkoutLogging()">CANCEL</button>
         </div>
@@ -1250,6 +1340,14 @@ body.theme-batman .settings-save-btn{color:#05050a}
             <div class="suggestion-box">
               <input type="text" id="liveWorkoutNameInput" placeholder="Type or Select (e.g. Bench Press)" oninput="handleLiveSearchAuto()" autocomplete="off">
               <div id="liveAutoSuggestions" class="suggestions-list"></div>
+            </div>
+            <!-- Previous Performance Badge (Live) -->
+            <div class="prev-perf-badge" id="prevPerfBadgeLive">
+              <span class="prev-perf-icon">📊</span>
+              <div>
+                <span class="prev-perf-label">Previous Performance</span>
+                <span class="prev-perf-value" id="prevPerfValueLive">—</span>
+              </div>
             </div>
             <label style="font-size:12px;font-weight:700;color:var(--text-muted);font-family:var(--font-alt);margin-top:6px;display:block">SETS STRUCTURE:</label>
             <select id="liveSetsCountSelect" style="margin-top:5px" onchange="handleLiveSetsCountSelectChange()">
@@ -3087,11 +3185,24 @@ function toggleVolSets(rowId,setsId){
 
 
 /* ===================== WORKOUT FORM ===================== */
+let _prevPerfNonLiveTimer=null;
 function handleWorkoutSearchAuto(){
   let val=document.getElementById("workoutNameInput").value.toLowerCase();
-  let box=document.getElementById("autoSuggestions");box.innerHTML="";box.style.display="none";if(!val)return;
-  let matches=EXERCISE_CATALOG.filter(e=>e.name.toLowerCase().includes(val));if(!matches.length)return;
-  box.style.display="block";matches.forEach(item=>{let div=document.createElement("div");div.textContent=item.name;div.onclick=()=>{document.getElementById("workoutNameInput").value=item.name;box.style.display="none"};box.appendChild(div)});
+  let box=document.getElementById("autoSuggestions");box.innerHTML="";box.style.display="none";
+  // Hide prev perf badge when input changes
+  document.getElementById("prevPerfBadgeNonLive").classList.remove("visible");
+  document.getElementById("quickFillCopyAllBtn").classList.remove("visible");
+  if(_prevPerfNonLiveTimer)clearTimeout(_prevPerfNonLiveTimer);
+  if(!val)return;
+  let matches=EXERCISE_CATALOG.filter(e=>e.name.toLowerCase().includes(val));
+  if(matches.length){
+    box.style.display="block";matches.forEach(item=>{let div=document.createElement("div");div.textContent=item.name;div.onclick=()=>{document.getElementById("workoutNameInput").value=item.name;box.style.display="none";if(_prevPerfNonLiveTimer)clearTimeout(_prevPerfNonLiveTimer);fetchPrevPerformance(item.name,'nonlive')};box.appendChild(div)});
+  }
+  // Debounced lookup for manually typed names (fires 800ms after user stops typing)
+  _prevPerfNonLiveTimer=setTimeout(()=>{
+    const typed=document.getElementById("workoutNameInput").value.trim();
+    if(typed)fetchPrevPerformance(typed,'nonlive');
+  },800);
 }
 document.addEventListener("click",e=>{
   if(e.target.id!=="workoutNameInput")document.getElementById("autoSuggestions").style.display="none";
@@ -3102,6 +3213,19 @@ document.addEventListener("click",e=>{
 });
 /* Tracks original (locked) duration labels per set-index while editing an entry, e.g. {1:"30 sec",2:"1 min 5 sec"} */
 let editOriginalDurations={};
+/* Number of sets that are already persisted to the DB for the entry currently being edited (non-live form).
+   The sets-count dropdown is never allowed to drop below this — only the per-set delete icon can remove a saved set. */
+let editOriginalSetCount=0;
+
+/* Tapping a saved set's "Set N" label reveals (or hides) just that set's delete icon — only one
+   set's delete icon is shown at a time. Shared by both the non-live and live-edit saved-set rows. */
+function toggleSetRowSelection(el){
+  const row=el.closest('.set-row');if(!row)return;
+  const container=row.parentElement;if(!container)return;
+  const wasSelected=row.classList.contains('set-selected');
+  container.querySelectorAll('.set-row').forEach(r=>r.classList.remove('set-selected'));
+  if(!wasSelected)row.classList.add('set-selected');
+}
 
 function buildSetsInputFields(){
   let cnt=parseInt(document.getElementById("setsCountSelect").value);
@@ -3110,21 +3234,53 @@ function buildSetsInputFields(){
   let existingWeights={},existingReps={};
   c.querySelectorAll('[id^="weight_set_"]').forEach(el=>{const i=el.id.replace('weight_set_','');existingWeights[i]=el.value});
   c.querySelectorAll('[id^="reps_set_"]').forEach(el=>{const i=el.id.replace('reps_set_','');existingReps[i]=el.value});
-  // How many sets existed originally (with locked durations) — only relevant in edit mode
-  const originalCount=Object.keys(editOriginalDurations).length;
+  let weights=[],reps=[];
+  for(let i=1;i<=cnt;i++){weights.push(existingWeights[i]||'');reps.push(existingReps[i]||'')}
+  renderNonLiveSetsRows(weights,reps);
+}
+
+/* Renders the non-live "dynamicSetsContainer" rows from explicit weight/reps arrays (1 entry per set, in order).
+   Adds a delete icon on every set that is already saved to the DB (index <= editOriginalSetCount) so the
+   person can remove a specific saved set instead of having to shrink the sets-count dropdown. */
+function renderNonLiveSetsRows(weights,reps){
+  const c=document.getElementById("dynamicSetsContainer");
+  const n=weights.length;
   c.innerHTML="";
-  for(let i=1;i<=cnt;i++){
-    const w=existingWeights[i]||'',r=existingReps[i]||'';
-    const isLockedSet=currentEditingIndex!==null&&i<=originalCount&&editOriginalDurations[i];
-    // NOTE: this form is only ever used for NON-live entries. Any extra sets added here
-    // (beyond the originally-locked ones) must behave exactly like a brand-new manual set —
-    // plain Kgs/Reps with NO timer and NO duration tracking. Timers are a live-mode-only concept.
+  for(let i=1;i<=n;i++){
+    const w=weights[i-1]||'',r=reps[i-1]||'';
+    const isLockedSet=currentEditingIndex!==null&&editOriginalDurations[i];
     let extraHtml='';
     if(isLockedSet){
       extraHtml=`<span class="set-time-locked" title="Original duration is preserved and cannot be changed">⏱ ${editOriginalDurations[i]}</span>`;
     }
-    c.innerHTML+=`<div class="set-row"><span>Set ${i}</span><input type="number" placeholder="Kgs" id="weight_set_${i}" min="0.5" step="0.5" value="${w}" style="margin-top:0;padding:9px;flex:1"><input type="number" placeholder="Reps" id="reps_set_${i}" min="1" value="${r}" style="margin-top:0;padding:9px;flex:1">${extraHtml}</div>`;
+    const showDelete=currentEditingIndex!==null&&i<=editOriginalSetCount;
+    const delBtn=showDelete?`<button type="button" class="set-delete-btn" title="Delete this set" onclick="deleteNonLiveSavedSet(${i})">🗑</button>`:'';
+    const labelHtml=showDelete?`<span onclick="toggleSetRowSelection(this)" style="cursor:pointer" title="Tap to show delete option">Set ${i}</span>`:`<span>Set ${i}</span>`;
+    c.innerHTML+=`<div class="set-row">${labelHtml}<input type="number" placeholder="Kgs" id="weight_set_${i}" min="0.5" step="0.5" value="${w}" style="margin-top:0;padding:9px;flex:1" oninput="checkQuickFillVisibility()"><input type="number" placeholder="Reps" id="reps_set_${i}" min="1" value="${r}" style="margin-top:0;padding:9px;flex:1" oninput="checkQuickFillVisibility()">${extraHtml}${delBtn}</div>`;
   }
+  // Re-check Quick Fill visibility after rebuild
+  checkQuickFillVisibility();
+}
+
+/* Guards the non-live sets-count dropdown: while editing a saved entry, it may only be increased
+   (set2 -> set3 etc.) never decreased below the number of sets already saved to the DB. Removing a
+   saved set is only possible via the per-set delete icon. */
+function handleSetsCountSelectChange(){
+  const sel=document.getElementById("setsCountSelect");
+  const val=parseInt(sel.value)||1;
+  if(currentEditingIndex!==null&&val<editOriginalSetCount){
+    sel.value=String(editOriginalSetCount);
+    showToast(`⚠️ Can't remove saved sets here — use the 🗑 icon on a set instead.`);
+    return;
+  }
+  buildSetsInputFields();
+}
+
+/* Disables any dropdown option below the originally-saved set count while editing, so the only way down is the delete icon. */
+function applySetsCountMinConstraint(){
+  const sel=document.getElementById("setsCountSelect");if(!sel)return;
+  const min=currentEditingIndex!==null?editOriginalSetCount:0;
+  Array.from(sel.options).forEach(opt=>{opt.disabled=currentEditingIndex!==null&&parseInt(opt.value)<min;});
 }
 
 async function saveWorkoutLogEntry(){
@@ -3156,7 +3312,161 @@ async function saveWorkoutLogEntry(){
     else{p={user_id:uid,date:td,workout_1:ser};await db.from("workouts").insert([p])}
   }
   editOriginalDurations={};
+  // Level Up check: find the highest Kg across all sets being saved, compare vs history
+  {let _maxKg=0,_maxKgReps=0;
+   for(let _i=1;_i<=sc;_i++){const _k=parseFloat(document.getElementById('weight_set_'+_i)?.value)||0,_r=parseInt(document.getElementById('reps_set_'+_i)?.value)||0;if(_k>_maxKg){_maxKg=_k;_maxKgReps=_r}}
+   checkAndShowLevelUp(name,_maxKg,_maxKgReps);}
   alert(`✅ Workout saved! +${xpe} XP earned!`);cancelWorkoutLogging();await loadWorkoutsForDate();await syncCoreDashboardMetrics();
+}
+
+/* ===================== PREVIOUS PERFORMANCE LOOKUP ===================== */
+async function fetchPrevPerformance(exerciseName, mode){
+  const uid=localStorage.getItem("user_uuid")||localStorage.getItem("user_id");
+  if(!uid||!exerciseName)return;
+  const badgeEl=document.getElementById(mode==='live'?'prevPerfBadgeLive':'prevPerfBadgeNonLive');
+  const valueEl=document.getElementById(mode==='live'?'prevPerfValueLive':'prevPerfValueNonLive');
+  if(!badgeEl||!valueEl)return;
+  badgeEl.classList.add("visible");
+  valueEl.innerHTML=`<span class="prev-perf-loading">Looking up history...</span>`;
+  try{
+    const{data,error}=await db.from("workouts").select("*").eq("user_id",uid).order("date",{ascending:false}).limit(60);
+    if(error||!data||!data.length){badgeEl.classList.remove("visible");return}
+    const nameLower=exerciseName.toLowerCase().trim();
+    let found=null,foundDate=null;
+    outer:for(const row of data){
+      for(let i=1;i<=15;i++){
+        const cell=row[`workout_${i}`];if(!cell)continue;
+        const colonIdx=cell.indexOf(":");if(colonIdx===-1)continue;
+        const cellName=cell.substring(0,colonIdx).trim().toLowerCase();
+        if(cellName===nameLower){found=cell;foundDate=row.date;break outer}
+      }
+    }
+    if(!found){badgeEl.classList.remove("visible");return}
+    const setsStr=found.substring(found.indexOf(":")+1).trim();
+    const segs=setsStr.split(",").map(s=>s.trim()).filter(Boolean);
+    const dateObj=new Date(foundDate+"T00:00:00");
+    const dateLabel=dateObj.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+    // Build a row for every set
+    let setsHtml=segs.map((seg,si)=>{
+      const m=seg.match(/([\d.]+)\s*[Kk][Gg]?\s*x\s*(\d+)/i);
+      const kg=m?m[1]:'?',reps=m?m[2]:'?';
+      return `<div style="display:flex;align-items:center;gap:6px;margin-top:3px"><span style="min-width:42px;font-size:10px;color:var(--text-muted);font-family:var(--font-alt);font-weight:700">Set ${si+1}</span><span style="font-size:13px;font-weight:700;color:var(--accent)">${kg}kg × ${reps} reps</span></div>`;
+    }).join('');
+    valueEl.innerHTML=`<div style="margin-bottom:2px"><span style="font-size:10px;font-weight:700;color:var(--text-muted);font-family:var(--font-alt);letter-spacing:0.4px">${segs.length} SET${segs.length>1?'S':''} — ${dateLabel}</span></div>${setsHtml}`;
+    badgeEl.classList.add("visible");
+  }catch(err){badgeEl.classList.remove("visible")}
+}
+
+/* ===================== QUICK FILL: COPY TO ALL (NON-LIVE) ===================== */
+function checkQuickFillVisibility(){
+  const cnt=parseInt(document.getElementById("setsCountSelect")?.value)||1;
+  const btn=document.getElementById("quickFillCopyAllBtn");if(!btn)return;
+  if(cnt<2){btn.classList.remove("visible");return}
+  const kg1=parseFloat(document.getElementById("weight_set_1")?.value)||0;
+  const reps1=parseInt(document.getElementById("reps_set_1")?.value)||0;
+  if(kg1>=0.5&&reps1>=1)btn.classList.add("visible");
+  else btn.classList.remove("visible");
+}
+function quickFillCopyAll(){
+  const cnt=parseInt(document.getElementById("setsCountSelect").value)||1;
+  const kg1=parseFloat(document.getElementById("weight_set_1").value)||0;
+  const reps1=parseInt(document.getElementById("reps_set_1").value)||0;
+  if(kg1<0.5||reps1<1){alert("Please fill in Set 1 Kgs and Reps first.");return}
+  for(let i=2;i<=cnt;i++){
+    const wEl=document.getElementById(`weight_set_${i}`);
+    const rEl=document.getElementById(`reps_set_${i}`);
+    if(wEl&&!wEl.readOnly)wEl.value=kg1;
+    if(rEl&&!rEl.readOnly)rEl.value=reps1;
+  }
+  showToast(`⚡ Set 1 values copied to all ${cnt} sets!`);
+}
+
+/* ===================== LIVE SET: COPY FROM PREVIOUS ===================== */
+/* Copies Kg and Reps from Set 1 into the target set (idx >= 2). Only fires if Set 1 has valid data. */
+function liveCopyFromPrevSet(idx){
+  const kg1=parseFloat(document.getElementById('liveKg_1')?.value)||0;
+  const reps1=parseInt(document.getElementById('liveReps_1')?.value)||0;
+  if(kg1<0.5||reps1<1){showToast('⚠️ Set 1 must have Kgs and Reps filled in first.');return}
+  const kgEl=document.getElementById(`liveKg_${idx}`);
+  const repsEl=document.getElementById(`liveReps_${idx}`);
+  if(kgEl)kgEl.value=kg1;
+  if(repsEl)repsEl.value=reps1;
+  showToast(`⚡ Set 1 values copied to Set ${idx}!`);
+}
+
+/* Same "Copy from Set 1" convenience for NEW sets being added while live-editing a saved entry.
+   In edit mode, Set 1 is always one of the already-saved sets, so it lives in the "liveEditExistKg/Reps_1"
+   inputs rather than a fresh "liveKg_1" — pull from there instead. */
+function liveEditCopyFromPrevSet(idx){
+  const kg1=parseFloat(document.getElementById('liveEditExistKg_1')?.value)||0;
+  const reps1=parseInt(document.getElementById('liveEditExistReps_1')?.value)||0;
+  if(kg1<0.5||reps1<1){showToast('⚠️ Set 1 must have Kgs and Reps filled in first.');return}
+  const kgEl=document.getElementById(`liveEditKg_${idx}`);
+  const repsEl=document.getElementById(`liveEditReps_${idx}`);
+  if(kgEl)kgEl.value=kg1;
+  if(repsEl)repsEl.value=reps1;
+  const committedCount=liveEditExistingResults.length+liveEditNewResults.length;
+  showToast(`⚡ Set 1 values copied to Set ${committedCount+idx}!`);
+}
+
+/* ===================== LEVEL UP NOTIFICATION ===================== */
+/* Fetches the most recent historical Kg for this exercise and shows a "Level Up"
+   toast if the current saved Kg exceeds the previous entry. */
+async function checkAndShowLevelUp(exerciseName,currentKg,currentReps){
+  if(!exerciseName||currentKg<=0)return;
+  const uid=localStorage.getItem('user_uuid')||localStorage.getItem('user_id');
+  if(!uid)return;
+  // Exclude today — only compare against strictly prior-day historical data so that
+  // sets saved within the same day's session don't compare against themselves.
+  const todayStr=getLocalDateString();
+  try{
+    const{data,error}=await db.from('workouts').select('*').eq('user_id',uid).lt('date',todayStr).order('date',{ascending:false}).limit(60);
+    if(error){console.warn('[LevelUp] DB error:',error);return}
+    if(!data||!data.length){console.log('[LevelUp] No prior-day data found for uid',uid);return}
+    const nameLower=exerciseName.toLowerCase().trim();
+    let prevHighKg=null,prevHighKgReps=null;
+    // Find the most recent date this exercise appears, then pick the HIGHEST Kg across all its sets.
+    outer:for(const row of data){
+      for(let i=1;i<=15;i++){
+        const cell=row[`workout_${i}`];if(!cell)continue;
+        const ci=cell.indexOf(':');if(ci===-1)continue;
+        if(cell.substring(0,ci).trim().toLowerCase()!==nameLower)continue;
+        const setsStr=cell.substring(ci+1).trim();
+        const segs=setsStr.split(',').map(s=>s.trim()).filter(Boolean);
+        for(const seg of segs){
+          const m=seg.match(/([\d.]+)\s*[Kk][Gg]?\s*x\s*(\d+)/i);
+          if(m){
+            const segKg=parseFloat(m[1]),segReps=parseInt(m[2]);
+            if(prevHighKg===null||segKg>prevHighKg){prevHighKg=segKg;prevHighKgReps=segReps}
+          }
+        }
+        break outer; // stop after the first (most-recent) matching date
+      }
+    }
+    console.log('[LevelUp]',exerciseName,'prevHighKg='+prevHighKg,'currentKg='+currentKg);
+    if(prevHighKg!==null&&currentKg>prevHighKg){
+      showLevelUpNotification(prevHighKg,prevHighKgReps,currentKg,currentReps);
+    }
+  }catch(e){console.error('[LevelUp] Exception:',e)}
+}
+
+function showLevelUpNotification(prevKg,prevReps,curKg,curReps){
+  document.querySelectorAll('.levelup-toast').forEach(el=>el.remove());
+  const toast=document.createElement('div');
+  toast.className='levelup-toast';
+  toast.innerHTML=`
+    <div class="levelup-icon">⬆️</div>
+    <div class="levelup-body">
+      <div class="levelup-title">LEVEL UP! <span class="levelup-badge">NEW PR</span></div>
+      <div class="levelup-msg">Your Previous: ${prevKg}kg × ${prevReps} reps<br>→ Now updated: ${curKg}kg × ${curReps} reps</div>
+    </div>`;
+  document.body.appendChild(toast);
+  setTimeout(()=>{
+    toast.style.transition='opacity 0.4s ease, transform 0.4s ease';
+    toast.style.opacity='0';
+    toast.style.transform='translateX(-50%) translateY(10px)';
+    setTimeout(()=>toast.remove(),400);
+  },4500);
 }
 
 /* ===================== LIVE MODE ===================== */
@@ -3168,23 +3478,28 @@ function toggleLiveMode(){
   tog.classList.toggle("on",liveMode);lbl.textContent=liveMode?"ON":"OFF";lbl.style.color=liveMode?"var(--accent)":"var(--text-muted)";
 }
 function showAddWorkoutForm(){
-  currentEditingIndex=null;window._liveEditMode=false;
+  currentEditingIndex=null;window._liveEditMode=false;editOriginalSetCount=0;
   // Reset name input in case it was locked by live-edit mode
   const ni=document.getElementById("liveWorkoutNameInput");if(ni){ni.readOnly=false;ni.style.opacity="1";}
   if(liveMode){
     document.getElementById("initialWorkoutBox").style.display="none";document.getElementById("liveWorkoutForm").style.display="block";document.getElementById("workoutFormStructure").style.display="none";
     document.getElementById("liveWorkoutNameInput").value="";document.getElementById("liveSetsCountSelect").value="1";document.getElementById("liveSetsContainer").innerHTML="";
     document.getElementById("liveSetupPanel").style.display="block";document.getElementById("liveSessionTitle").style.display="none";
+    document.getElementById("prevPerfBadgeLive").classList.remove("visible");
     liveCurrentSet=1;liveTotalSets=0;liveSetTimers={};liveSetSeconds={};liveBreakTimers={};liveBreakSeconds={};liveBreakTotalSecs={};liveSetResults=[];liveSessionSlot=null;
+    applyLiveSetsCountMinConstraint();
   } else {
     document.getElementById("formActionTitle").innerText="LOG NEW ENTRY";
     document.getElementById("initialWorkoutBox").style.display="none";document.getElementById("workoutFormStructure").style.display="block";document.getElementById("liveWorkoutForm").style.display="none";
+    applySetsCountMinConstraint();
     document.getElementById("setsCountSelect").value="1";buildSetsInputFields();
+    document.getElementById("prevPerfBadgeNonLive").classList.remove("visible");
+    document.getElementById("quickFillCopyAllBtn").classList.remove("visible");
   }
 }
 function cancelWorkoutLogging(){
   currentEditingIndex=null;document.getElementById("workoutNameInput").value="";
-  editOriginalDurations={};
+  editOriginalDurations={};editOriginalSetCount=0;applySetsCountMinConstraint();
   document.getElementById("workoutFormStructure").style.display="none";document.getElementById("liveWorkoutForm").style.display="none";document.getElementById("initialWorkoutBox").style.display="block";stopAllLiveTimers();
 }
 function cancelLiveWorkout(){
@@ -3192,11 +3507,26 @@ function cancelLiveWorkout(){
   stopAllLiveTimers();document.getElementById("liveWorkoutForm").style.display="none";document.getElementById("initialWorkoutBox").style.display="block";liveSetResults=[];liveSessionSlot=null;
 }
 function stopAllLiveTimers(){Object.values(liveSetTimers).forEach(t=>clearInterval(t));Object.values(liveBreakTimers).forEach(t=>clearInterval(t));liveSetTimers={};liveSetSeconds={};liveBreakTimers={};liveBreakSeconds={};liveBreakTotalSecs={}}
+let _prevPerfLiveTimer=null;
 function handleLiveSearchAuto(){
   let val=document.getElementById("liveWorkoutNameInput").value.toLowerCase();
-  let box=document.getElementById("liveAutoSuggestions");box.innerHTML="";box.style.display="none";if(!val)return;
-  let matches=EXERCISE_CATALOG.filter(e=>e.name.toLowerCase().includes(val));if(!matches.length)return;
-  box.style.display="block";matches.forEach(item=>{let div=document.createElement("div");div.textContent=item.name;div.onclick=()=>{document.getElementById("liveWorkoutNameInput").value=item.name;box.style.display="none"};box.appendChild(div)});
+  let box=document.getElementById("liveAutoSuggestions");box.innerHTML="";box.style.display="none";
+  // Hide prev perf badge when input changes
+  document.getElementById("prevPerfBadgeLive").classList.remove("visible");
+  if(_prevPerfLiveTimer)clearTimeout(_prevPerfLiveTimer);
+  if(!val)return;
+  let matches=EXERCISE_CATALOG.filter(e=>e.name.toLowerCase().includes(val));
+  if(matches.length){
+    box.style.display="block";matches.forEach(item=>{let div=document.createElement("div");div.textContent=item.name;div.onclick=()=>{document.getElementById("liveWorkoutNameInput").value=item.name;box.style.display="none";if(_prevPerfLiveTimer)clearTimeout(_prevPerfLiveTimer);fetchPrevPerformance(item.name,'live')};box.appendChild(div)});
+  }
+  // Debounced lookup for manually typed names — skip when input is locked (edit mode)
+  const _liveInput=document.getElementById("liveWorkoutNameInput");
+  if(!_liveInput.readOnly){
+    _prevPerfLiveTimer=setTimeout(()=>{
+      const typed=_liveInput.value.trim();
+      if(typed)fetchPrevPerformance(typed,'live');
+    },800);
+  }
 }
 function startLiveSession(){
   if(window._liveEditMode){startLiveEditNewSets();return;}
@@ -3216,11 +3546,13 @@ function startLiveSession(){
   }
 }
 function buildLiveSetHTML(idx,active){
+  const copyBtn=idx>=2?`<button class="live-copy-prev-btn" id="liveCopyPrevBtn_${idx}" onclick="liveCopyFromPrevSet(${idx})" title="Auto-fill from Set 1 values">⚡ Copy from previous set</button>`:'';
   return `<div class="live-set-block${active?' set-active':''}" id="liveSetBlock_${idx}">
     <div class="live-set-header"><span class="live-set-title">SET ${idx}</span><span class="live-set-done-badge" id="liveSetDoneBadge_${idx}" style="display:none">✓ DONE</span></div>
     <div class="live-set-inputs" id="liveSetInputs_${idx}" ${!active?'style="opacity:0.4;pointer-events:none"':''}>
       <input type="number" id="liveKg_${idx}" placeholder="Kgs" min="0.5" step="0.5" style="margin-top:0;padding:9px">
       <input type="number" id="liveReps_${idx}" placeholder="Reps" min="1" style="margin-top:0;padding:9px">
+      ${copyBtn}
     </div>
     <div class="live-timer-row" id="liveTimerRow_${idx}" ${!active?'style="display:none"':''}>
       <div class="live-timer-display" id="liveTimerDisplay_${idx}">00:00</div>
@@ -3376,6 +3708,10 @@ function activateNextLiveSet(idx){
   block.classList.add("set-active");document.getElementById(`liveSetInputs_${idx}`).style.opacity="1";document.getElementById(`liveSetInputs_${idx}`).style.pointerEvents="auto";document.getElementById(`liveTimerRow_${idx}`).style.display="flex";block.scrollIntoView({behavior:"smooth",block:"center"});
 }
 function finishLiveSession(name){
+  // Level Up: compare highest Kg across all sets this session vs prior-day history
+  {let _mxKg=0,_mxReps=0;
+   liveSetResults.forEach(seg=>{const _m=seg.match(/([\d.]+)\s*[Kk][Gg]?\s*x\s*(\d+)/i);if(_m){const _k=parseFloat(_m[1]),_r=parseInt(_m[2]);if(_k>_mxKg){_mxKg=_k;_mxReps=_r}}});
+   if(_mxKg>0)checkAndShowLevelUp(name,_mxKg,_mxReps);}
   const container=document.getElementById("liveSetsContainer");
   let doneMsg=document.createElement("div");doneMsg.style.cssText="text-align:center;padding:18px;background:linear-gradient(135deg,rgba(22,163,74,0.15),rgba(22,163,74,0.05));border:1px solid #16a34a;border-radius:14px;margin-top:14px;";
   let summary=liveSetResults.map((s,i)=>`<div style="font-size:12px;color:var(--text-secondary);margin-top:3px;font-family:var(--font-alt)">Set ${i+1}: ${s}</div>`).join("");
@@ -3435,13 +3771,56 @@ function initiateWorkoutEdit(e,ci,rv){
 
   document.getElementById("workoutNameInput").value=en;
   document.getElementById("setsCountSelect").value=segs.length;
+  editOriginalSetCount=segs.length;
+  applySetsCountMinConstraint();
+  // Editing — hide prev perf badge and kill any pending debounce lookup
+  document.getElementById("prevPerfBadgeNonLive").classList.remove("visible");
+  if(_prevPerfNonLiveTimer){clearTimeout(_prevPerfNonLiveTimer);_prevPerfNonLiveTimer=null;}
 
-  let c=document.getElementById("dynamicSetsContainer");c.innerHTML="";
-  for(let i=1;i<=segs.length;i++){
-    const ps=parsedSets[i-1]||{w:'',r:''};
-    const lockedTag=editOriginalDurations[i]?`<span class="set-time-locked" title="Original duration is preserved and cannot be changed">⏱ ${editOriginalDurations[i]}</span>`:'';
-    c.innerHTML+=`<div class="set-row"><span>Set ${i}</span><input type="number" placeholder="Kgs" id="weight_set_${i}" min="0.5" step="0.5" value="${ps.w}" style="margin-top:0;padding:9px;flex:1"><input type="number" placeholder="Reps" id="reps_set_${i}" min="1" value="${ps.r}" style="margin-top:0;padding:9px;flex:1">${lockedTag}</div>`;
+  renderNonLiveSetsRows(parsedSets.map(ps=>ps.w),parsedSets.map(ps=>ps.r));
+}
+
+/* Deletes one specific already-saved set from a non-live entry being edited, persists the change
+   immediately to the DB, and re-renders the remaining sets (renumbered). Any not-yet-saved new set
+   rows the person may have started adding (beyond editOriginalSetCount) are left untouched locally. */
+async function deleteNonLiveSavedSet(i){
+  if(!confirm(`Delete Set ${i}? This will permanently remove it from this saved entry.`))return;
+  if(editOriginalSetCount<=1){alert("This entry has only one saved set. Use the 🗑 icon on the workout card to delete the whole entry instead.");return}
+  const cnt=parseInt(document.getElementById("setsCountSelect").value)||editOriginalSetCount;
+  let weights=[],reps=[];
+  for(let k=1;k<=cnt;k++){
+    if(k===i)continue;
+    weights.push(document.getElementById(`weight_set_${k}`)?.value||'');
+    reps.push(document.getElementById(`reps_set_${k}`)?.value||'');
   }
+  // Re-index any locked durations, shifting everything after the deleted set down by one
+  let newDur={};
+  Object.keys(editOriginalDurations).forEach(k=>{
+    const ki=parseInt(k);
+    if(ki<i)newDur[ki]=editOriginalDurations[ki];
+    else if(ki>i)newDur[ki-1]=editOriginalDurations[ki];
+  });
+  editOriginalDurations=newDur;
+  editOriginalSetCount-=1;
+  const newCnt=cnt-1;
+
+  // Persist only the (now-shifted) originally-saved sets to the database
+  let sd=[];
+  for(let k=0;k<editOriginalSetCount;k++){
+    const w=parseFloat(weights[k])||0,r=parseInt(reps[k])||0;
+    sd.push(editOriginalDurations[k+1]?`${w}Kg x ${r} [${editOriginalDurations[k+1]}]`:`${w}kg x ${r}`);
+  }
+  const name=document.getElementById("workoutNameInput").value.trim();
+  const uid=localStorage.getItem("user_uuid")||localStorage.getItem("user_id");
+  const td=document.getElementById("workoutCalendarFilter").value;
+  let p={};p[`workout_${currentEditingIndex}`]=`${name}: ${sd.join(", ")}`;
+  await db.from("workouts").update(p).eq("user_id",uid).eq("date",td);
+
+  document.getElementById("setsCountSelect").value=String(newCnt);
+  applySetsCountMinConstraint();
+  renderNonLiveSetsRows(weights,reps);
+  showToast(`🗑 Set ${i} deleted`);
+  await loadWorkoutsForDate();
 }
 
 /* ===================== LIVE EDIT SESSION (edit existing sets + add new sets to a live entry) ===================== */
@@ -3493,6 +3872,9 @@ function startLiveEditSession(ci,exerciseName,setsStr,segs){
   nameInput.value=exerciseName;
   nameInput.readOnly=true;
   nameInput.style.opacity="0.7";
+  // Editing — hide prev perf badge and kill any pending debounce lookup
+  document.getElementById("prevPerfBadgeLive").classList.remove("visible");
+  if(_prevPerfLiveTimer){clearTimeout(_prevPerfLiveTimer);_prevPerfLiveTimer=null;}
 
   // Update the live setup panel title
   let titleEl=document.getElementById("liveSessionTitle");
@@ -3512,6 +3894,7 @@ function startLiveEditSession(ci,exerciseName,setsStr,segs){
 
   // Mark global flag so the rest of the live-mode code knows we're in edit mode
   window._liveEditMode=true;
+  applyLiveSetsCountMinConstraint();
 
   renderLiveEditSetsUI();
 }
@@ -3535,6 +3918,7 @@ function renderLiveEditSetsUI(){
   const committedCount=committedSegs.length;
   const desiredTotal=Math.max(parseInt(document.getElementById("liveSetsCountSelect").value)||1,1);
   const visibleCommitted=Math.min(desiredTotal,committedCount);
+  applyLiveSetsCountMinConstraint();
 
   let html=`<div class="live-edit-existing-summary" style="background:var(--accent-soft);border:1px solid var(--border-col);border-radius:14px;padding:14px 16px;margin-bottom:14px">
     <div style="font-family:var(--font-alt);font-size:13px;font-weight:700;color:var(--section-title-col);margin-bottom:10px;letter-spacing:0.4px">✅ SAVED SETS (${committedCount}) — edit Kgs/Reps below</div>`;
@@ -3543,7 +3927,7 @@ function renderLiveEditSetsUI(){
     const ov=liveEditValueOverrides[i]||{};
     const w=ov.w!==undefined?ov.w:parsed.w,r=ov.r!==undefined?ov.r:parsed.r;
     const durTag=parsed.duration?`<span class="set-time-locked" title="Original duration is preserved and cannot be changed">⏱ ${parsed.duration}</span>`:'';
-    html+=`<div class="set-row" style="margin-top:8px"><span>Set ${i}</span><input type="number" placeholder="Kgs" id="liveEditExistKg_${i}" min="0.5" step="0.5" value="${w}" style="margin-top:0;padding:9px;flex:1"><input type="number" placeholder="Reps" id="liveEditExistReps_${i}" min="1" value="${r}" style="margin-top:0;padding:9px;flex:1">${durTag}</div>`;
+    html+=`<div class="set-row" style="margin-top:8px"><span onclick="toggleSetRowSelection(this)" style="cursor:pointer" title="Tap to show delete option">Set ${i}</span><input type="number" placeholder="Kgs" id="liveEditExistKg_${i}" min="0.5" step="0.5" value="${w}" style="margin-top:0;padding:9px;flex:1"><input type="number" placeholder="Reps" id="liveEditExistReps_${i}" min="1" value="${r}" style="margin-top:0;padding:9px;flex:1">${durTag}<button type="button" class="set-delete-btn" title="Delete this set" onclick="deleteLiveEditSavedSet(${i})">🗑</button></div>`;
   }
   html+=`<button class="btn" style="background:linear-gradient(135deg,#16a34a,#15803d);margin-top:12px;padding:10px" onclick="updateLiveEditExistingSets()">💾 UPDATE SETS</button>
   </div>`;
@@ -3563,7 +3947,24 @@ function renderLiveEditSetsUI(){
 }
 
 function handleLiveSetsCountSelectChange(){
-  if(window._liveEditMode)renderLiveEditSetsUI();
+  if(!window._liveEditMode)return;
+  const sel=document.getElementById("liveSetsCountSelect");
+  const committedCount=getLiveEditCommittedSegments().length;
+  const val=parseInt(sel.value)||1;
+  if(val<committedCount){
+    sel.value=String(committedCount);
+    showToast(`⚠️ Can't remove saved sets here — use the 🗑 icon on a set instead.`);
+    return;
+  }
+  renderLiveEditSetsUI();
+}
+
+/* Disables any "Set N" dropdown option below the currently-committed (saved) set count while
+   live-editing, so the only way to remove a saved set is the per-set delete icon. */
+function applyLiveSetsCountMinConstraint(){
+  const sel=document.getElementById("liveSetsCountSelect");if(!sel)return;
+  const min=window._liveEditMode?getLiveEditCommittedSegments().length:0;
+  Array.from(sel.options).forEach(opt=>{opt.disabled=window._liveEditMode&&parseInt(opt.value)<min;});
 }
 
 /* Persists edited Kg/Reps for already-saved sets — never touches their locked duration */
@@ -3596,7 +3997,53 @@ async function updateLiveEditExistingSets(){
   let p={};p[liveEditSlot]=combinedEntry;
   await db.from("workouts").update(p).eq("user_id",uid).eq("date",td);
   showToast("💾 Sets updated");
+  // Level Up: compare highest Kg from updated sets vs prior-day history
+  {let _exNU=document.getElementById("liveWorkoutNameInput").value.trim();
+   let _updSegs=rebuilt;
+   let _mxKU=0,_mxRU=0;
+   _updSegs.forEach(seg=>{const _m=seg.match(/([\d.]+)\s*[Kk][Gg]?\s*x\s*(\d+)/i);if(_m){const _k=parseFloat(_m[1]),_r=parseInt(_m[2]);if(_k>_mxKU){_mxKU=_k;_mxRU=_r}}});
+   if(_mxKU>0)checkAndShowLevelUp(_exNU,_mxKU,_mxRU);}
   await loadWorkoutsForDate();await syncCoreDashboardMetrics();
+}
+
+/* Removes the segment at 1-based combined index i from whichever underlying array (existing vs
+   saved-this-session-new) actually holds it. */
+function removeCommittedSegmentAt(i){
+  const exLen=liveEditExistingResults.length;
+  if(i<=exLen){liveEditExistingResults.splice(i-1,1)}
+  else{liveEditNewResults.splice(i-1-exLen,1)}
+}
+
+/* Deletes one specific already-saved set from a live entry being edited, persists the change
+   immediately to the DB, and re-renders the remaining sets (renumbered). */
+async function deleteLiveEditSavedSet(i){
+  if(!confirm(`Delete Set ${i}? This will permanently remove it from this saved entry.`))return;
+  const committedSegs=getLiveEditCommittedSegments();
+  if(committedSegs.length<=1){alert("This entry has only one saved set. Use the 🗑 icon on the workout card to delete the whole entry instead.");return}
+
+  removeCommittedSegmentAt(i);
+  // Re-index cached Kg/Reps overrides, shifting everything after the deleted set down by one
+  let newOv={};
+  Object.keys(liveEditValueOverrides).forEach(k=>{
+    const ki=parseInt(k);
+    if(ki<i)newOv[ki]=liveEditValueOverrides[ki];
+    else if(ki>i)newOv[ki-1]=liveEditValueOverrides[ki];
+  });
+  liveEditValueOverrides=newOv;
+
+  const newCommitted=getLiveEditCommittedSegments();
+  const exName=document.getElementById("liveWorkoutNameInput").value.trim();
+  const uid=localStorage.getItem("user_uuid")||localStorage.getItem("user_id");
+  const td=document.getElementById("workoutCalendarFilter").value;
+  let p={};p[liveEditSlot]=`${exName}: ${newCommitted.join(", ")}`;
+  await db.from("workouts").update(p).eq("user_id",uid).eq("date",td);
+
+  // Snap the dropdown down to the new total so no surprise "new set" slot opens up
+  const sel=document.getElementById("liveSetsCountSelect");
+  if(sel)sel.value=String(newCommitted.length);
+  showToast(`🗑 Set ${i} deleted`);
+  renderLiveEditSetsUI();
+  await loadWorkoutsForDate();
 }
 
 function startLiveEditNewSets(){
@@ -3607,11 +4054,15 @@ function startLiveEditNewSets(){
 function buildLiveEditSetHTML(idx,active){
   const committedCount=liveEditExistingResults.length+liveEditNewResults.length;
   const displayIdx=committedCount+idx;
+  // Set 1 is always one of the already-saved sets in edit mode, so (unlike a fresh session) every
+  // new set being added here — including the very first one — has a real Set 1 to copy from.
+  const copyBtn=`<button class="live-copy-prev-btn" id="liveEditCopyPrevBtn_${idx}" onclick="liveEditCopyFromPrevSet(${idx})" title="Auto-fill from Set 1 values">⚡ Copy from previous set</button>`;
   return `<div class="live-set-block${active?' set-active':''}" id="liveEditSetBlock_${idx}">
     <div class="live-set-header"><span class="live-set-title">NEW SET ${displayIdx}</span><span class="live-set-done-badge" id="liveEditSetDoneBadge_${idx}" style="display:none">✓ DONE</span></div>
     <div class="live-set-inputs" id="liveEditSetInputs_${idx}" ${!active?'style="opacity:0.4;pointer-events:none"':''}>
       <input type="number" id="liveEditKg_${idx}" placeholder="Kgs" min="0.5" step="0.5" style="margin-top:0;padding:9px">
       <input type="number" id="liveEditReps_${idx}" placeholder="Reps" min="1" style="margin-top:0;padding:9px">
+      ${copyBtn}
     </div>
     <div class="live-timer-row" id="liveEditTimerRow_${idx}" ${!active?'style="display:none"':''}>
       <div class="live-timer-display" id="liveEditTimerDisplay_${idx}">00:00</div>
@@ -3676,7 +4127,6 @@ async function saveLiveEditSet(idx){
   let resultEl=document.getElementById(`liveEditSetResult_${idx}`);resultEl.textContent=`✓ ${setStr}`;resultEl.style.display="block";
   document.getElementById(`liveEditSetDoneBadge_${idx}`).style.display="inline-block";
   document.getElementById(`liveEditSetBlock_${idx}`).classList.remove("set-active");document.getElementById(`liveEditSetBlock_${idx}`).classList.add("set-done");
-
   if(idx<liveEditTotalNewSets){
     document.getElementById(`liveEditBreakRow_${idx}`).style.display="block";
     const defaultBreakSecs=getDefaultBreakSeconds();
@@ -3691,6 +4141,12 @@ async function saveLiveEditSet(idx){
       document.getElementById(`liveEditBreakAutoSkip_${idx}`).style.display="none";
     }
   } else {
+    // Last new set saved — compare highest Kg across entire session (existing + new) vs prior-day history
+    {let _exN2=document.getElementById("liveWorkoutNameInput").value.trim();
+     let _allS=[...liveEditExistingResults,...liveEditNewResults];
+     let _mxK=0,_mxR=0;
+     _allS.forEach(seg=>{const _m=seg.match(/([\d.]+)\s*[Kk][Gg]?\s*x\s*(\d+)/i);if(_m){const _k=parseFloat(_m[1]),_r=parseInt(_m[2]);if(_k>_mxK){_mxK=_k;_mxR=_r}}});
+     if(_mxK>0)checkAndShowLevelUp(_exN2,_mxK,_mxR);}
     renderLiveEditSetsUI();
   }
   await loadWorkoutsForDate();await syncCoreDashboardMetrics();
@@ -3776,6 +4232,7 @@ function cancelLiveEditWorkout(){
   liveEditSetTimers={};liveEditSetSeconds={};liveEditBreakTimers={};liveEditBreakSeconds={};liveEditBreakTotalSecs={};
   liveEditSlot=null;liveEditExistingResults=[];liveEditNewResults=[];liveEditTotalNewSets=0;liveEditValueOverrides={};
   window._liveEditMode=false;
+  applyLiveSetsCountMinConstraint();
   // Reset name input readonly
   const nameInput=document.getElementById("liveWorkoutNameInput");
   if(nameInput){nameInput.readOnly=false;nameInput.style.opacity="1";}
