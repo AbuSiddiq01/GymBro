@@ -320,16 +320,6 @@ body.theme-batman .set-new-timer-btn{color:#05050a}
 .analytics-box{background:var(--accent-soft);padding:14px;border-radius:18px;border:1px solid var(--border-col);margin-top:8px}
 .graph-container{position:relative;height:320px;width:100%}
 
-/* ===================== STATS TOOLTIP ===================== */
-.stats-tooltip{position:fixed;background:rgba(15,23,42,0.95);color:#fff;border-radius:12px;padding:12px 16px;font-family:var(--font-alt);font-size:13px;pointer-events:none;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.1);min-width:160px;display:none;line-height:1.6}
-body.theme-batman .stats-tooltip{background:rgba(7,8,10,0.97);border-color:rgba(245,200,0,0.3)}
-body.theme-godmode .stats-tooltip{background:rgba(8,0,0,0.97);border-color:rgba(180,0,0,0.3)}
-.stats-tooltip-title{font-weight:800;font-size:14px;color:var(--accent);margin-bottom:6px;letter-spacing:0.5px}
-.stats-tooltip-muscle{display:flex;align-items:center;gap:7px;margin-top:4px}
-.stats-tooltip-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
-.stats-tooltip-duration{margin-top:8px;padding-top:7px;border-top:1px solid rgba(255,255,255,0.12);font-size:12px;color:#94a3b8}
-.stats-tooltip-duration strong{color:#fff}
-
 /* ===================== STATS SUB-NAV ===================== */
 .stats-subnav{display:flex;gap:8px;margin-bottom:14px}
 .stats-subnav-btn{flex:1;padding:10px 18px;border:1px solid var(--border-col);border-radius:12px;background:var(--bg-card);color:var(--text-secondary);font-family:var(--font-alt);font-size:13px;font-weight:700;letter-spacing:0.5px;cursor:pointer;transition:all 0.25s ease}
@@ -359,19 +349,37 @@ body.theme-batman .vol-range-btn.active{color:#05050a}
 .vol-range-label{display:none;text-align:center;font-family:var(--font-alt);font-size:13px;font-weight:800;color:var(--accent);letter-spacing:0.6px;margin-top:10px;padding:8px;background:var(--accent-soft);border-radius:10px;border:1px solid var(--border-col)}
 .vol-range-label.visible{display:block}
 
-/* Fixed top-right detail box on the volume line graph (Monthly / 3-Month) */
+/* Fixed top-right detail box — Duration & Volume graphs share this dark "digital" style,
+   matching the look of the original floating tooltip (dark glass background, white text,
+   Bebas Neue display font for the big value), now rehoused as a fixed, non-cursor-following box. */
 .vol-graph-box{position:relative}
-.vol-graph-detail-box{position:absolute;top:8px;right:8px;z-index:5;max-width:46%;min-width:108px;background:var(--bg-card);border:1px solid var(--border-col);border-radius:12px;box-shadow:0 4px 14px rgba(0,0,0,0.15);padding:8px 10px;font-family:var(--font-alt);pointer-events:none;transition:all 0.15s ease;text-align:right}
-.vol-graph-detail-hint{font-size:10px;color:var(--text-muted);letter-spacing:0.3px;white-space:nowrap}
-.vol-graph-detail-date{font-weight:800;color:var(--accent);font-size:11px;letter-spacing:0.3px;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.vol-graph-detail-vol{font-family:var(--font-display);font-size:16px;color:var(--text-primary);letter-spacing:0.5px;white-space:nowrap}
-.vol-graph-detail-vol small{font-size:10px;color:var(--text-muted);font-family:var(--font-alt);font-weight:600;letter-spacing:0}
+.vol-graph-detail-box{position:absolute;top:8px;right:8px;z-index:5;max-width:46%;min-width:112px;background:rgba(15,23,42,0.95);border:1px solid rgba(255,255,255,0.1);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,0.3);padding:9px 12px;font-family:var(--font-alt);pointer-events:none;transition:all 0.15s ease;text-align:right}
+body.theme-batman .vol-graph-detail-box{background:rgba(7,8,10,0.97);border-color:rgba(245,200,0,0.3)}
+body.theme-godmode .vol-graph-detail-box{background:rgba(8,0,0,0.97);border-color:rgba(180,0,0,0.3)}
+.vol-graph-detail-hint{font-size:10px;color:#94a3b8;letter-spacing:0.3px;white-space:nowrap}
+.vol-graph-detail-date{font-weight:800;color:var(--accent);font-size:12px;letter-spacing:0.4px;margin-bottom:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vol-graph-detail-vol{font-family:var(--font-display);font-size:19px;color:#fff;letter-spacing:0.5px;white-space:nowrap}
+.vol-graph-detail-vol small{font-size:10px;color:#94a3b8;font-family:var(--font-alt);font-weight:600;letter-spacing:0}
+
+/* Duration detail box content — same dark card, with colored muscle dots + a divider above the duration line */
+.dur-graph-detail-title{font-weight:800;font-size:12px;color:var(--accent);margin-bottom:6px;letter-spacing:0.4px;white-space:nowrap}
+.dur-graph-detail-muscle{display:flex;align-items:center;justify-content:flex-end;gap:6px;margin-top:4px;font-size:11px;font-weight:600;color:#cbd5e1;white-space:nowrap}
+.dur-graph-detail-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.dur-graph-detail-rest{font-size:11px;color:#94a3b8;font-weight:600}
+.dur-graph-detail-divider{margin-top:8px;padding-top:7px;border-top:1px solid rgba(255,255,255,0.12);font-size:12px;color:#94a3b8;font-weight:600;white-space:nowrap}
+.dur-graph-detail-divider strong{color:#fff;font-family:var(--font-display);font-size:17px;letter-spacing:0.5px}
 @media (max-width:480px){
-  .vol-graph-detail-box{max-width:54%;padding:6px 8px;border-radius:10px}
-  .vol-graph-detail-date{font-size:10px}
-  .vol-graph-detail-vol{font-size:14px}
+  .vol-graph-detail-box{max-width:56%;padding:7px 9px;border-radius:10px}
+  .vol-graph-detail-date{font-size:10.5px}
+  .vol-graph-detail-vol{font-size:16px}
   .vol-graph-detail-hint{font-size:9px}
+  .dur-graph-detail-divider strong{font-size:15px}
 }
+
+/* Extra container height (Duration & Volume graphs): the plottable chart area keeps its
+   original 320px, but the box itself is taller so the fixed detail box has dedicated headroom
+   that a tall bar/line point can never reach into or get hidden behind. */
+#durGraphBox,#volGraphBox{height:380px}
 
 /* Drill-down report */
 .vol-drilldown{margin-top:14px;padding:16px;background:var(--bg-card);border-radius:16px;border:1px solid var(--border-col);animation:fadeIn 0.3s ease;min-height:80px}
@@ -976,9 +984,6 @@ body.theme-godmode .levelup-toast{background:linear-gradient(135deg,#7a0006,#c00
   </svg>
 </div>
 
-<!-- Stats tooltip (global) -->
-<div class="stats-tooltip" id="statsTooltip"></div>
-
 <!-- ===================== MAIN CONTAINER ===================== -->
 <div class="container">
 
@@ -1170,8 +1175,16 @@ body.theme-godmode .levelup-toast{background:linear-gradient(135deg,#7a0006,#c00
             <select id="statsMonth" style="margin-top:0;padding:10px;flex:1;min-width:130px" onchange="updateStatsChart()"></select>
           </div>
           <div class="analytics-box">
-            <div class="graph-container">
+            <div class="graph-container" id="durGraphBox">
               <canvas id="workoutChart"></canvas>
+              <div class="vol-graph-detail-box" id="durGraphDetailBox">
+                <div class="vol-graph-detail-hint" id="durGraphDetailHint">👆 Tap a bar</div>
+                <div id="durGraphDetailBody" style="display:none">
+                  <div class="dur-graph-detail-title" id="durGraphDetailDate"></div>
+                  <div id="durGraphDetailClasses"></div>
+                  <div class="dur-graph-detail-divider" id="durGraphDetailDuration"></div>
+                </div>
+              </div>
             </div>
           </div>
           <div id="statsChartLegend" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px"></div>
@@ -2826,7 +2839,6 @@ function getCurrentWeekOption(){
 }
 
 /* ===================== STATS CHART ===================== */
-const statsTooltip=document.getElementById('statsTooltip');
 let statsChartDayData=[];
 function buildStatsLegend(classes){
   const el=document.getElementById('statsChartLegend');if(!el)return;
@@ -2835,20 +2847,39 @@ function buildStatsLegend(classes){
   if(!html)html=`<span style="font-size:11px;color:var(--text-muted);font-family:var(--font-alt)">No workouts in this range</span>`;
   el.innerHTML=html;
 }
-function showStatsTooltip(evt,dayData){
+
+/* Fills the Duration graph's single fixed top-right detail box with Date, Class(es) trained (colored dots,
+   same presentation the old floating tooltip used), and Total Duration (Hr/min format) — rehoused inside
+   the same fixed, theme-aware card style as the Volume detail box. This is now the ONLY detail box for
+   the Duration graph; the old cursor-following dark tooltip has been removed. */
+function _updateDurGraphDetailBox(dayData,filterYear,filterMonth,dayNames){
   if(!dayData)return;
-  const totalMins=dayData.duration,durationFmt=formatMinutesToDuration(totalMins),classes=dayData.classes;
-  let muscleHtml='';
-  if(classes.length>0){classes.forEach(c=>{const color=CLASS_COLORS[c]||CLASS_COLORS['Unknown'];muscleHtml+=`<div class="stats-tooltip-muscle"><span class="stats-tooltip-dot" style="background:${color}"></span><span>${c}</span></div>`})}
-  else{muscleHtml='<div style="color:#94a3b8;font-size:12px">Rest Day</div>'}
-  statsTooltip.innerHTML=`<div class="stats-tooltip-title">Day ${dayData.label}</div>${muscleHtml}<div class="stats-tooltip-duration">⏱ Total Duration: <strong>${durationFmt}</strong></div>`;
-  statsTooltip.style.display='block';
-  const x=evt.clientX,y=evt.clientY,tw=180,th=statsTooltip.offsetHeight||120;
-  let left=x+14,top=y-th/2;
-  if(left+tw>window.innerWidth-20)left=x-tw-14;if(top<8)top=8;if(top+th>window.innerHeight-8)top=window.innerHeight-th-8;
-  statsTooltip.style.left=left+'px';statsTooltip.style.top=top+'px';
+  const hintEl=document.getElementById('durGraphDetailHint');
+  const bodyEl=document.getElementById('durGraphDetailBody');
+  const dateEl=document.getElementById('durGraphDetailDate');
+  const clsEl=document.getElementById('durGraphDetailClasses');
+  const durEl=document.getElementById('durGraphDetailDuration');
+  if(!hintEl||!bodyEl||!dateEl||!clsEl||!durEl)return;
+  hintEl.style.display='none';
+  bodyEl.style.display='block';
+
+  const dayNum=parseInt(dayData.label);
+  const dt=new Date(filterYear,filterMonth,dayNum);
+  const monNames=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  dateEl.textContent=`${dayNames[dt.getDay()]}, ${monNames[filterMonth]} ${dayNum}`;
+
+  const classes=dayData.classes||[];
+  if(classes.length>0){
+    clsEl.innerHTML=classes.map(c=>{
+      const color=CLASS_COLORS[c]||CLASS_COLORS['Unknown'];
+      return `<div class="dur-graph-detail-muscle"><span>${c}</span><span class="dur-graph-detail-dot" style="background:${color}"></span></div>`;
+    }).join('');
+  } else {
+    clsEl.innerHTML='<div class="dur-graph-detail-rest">Rest Day</div>';
+  }
+
+  durEl.innerHTML=`⏱ <strong>${formatMinutesToDuration(dayData.duration||0)}</strong>`;
 }
-function hideStatsTooltip(){statsTooltip.style.display='none'}
 async function updateStatsChart(){
   let uid=localStorage.getItem("user_id");if(!uid)return;
   const{data,error}=await db.from("attendance").select("*").eq("user_id",uid).order("attendance_date",{ascending:true});
@@ -2877,12 +2908,64 @@ async function updateStatsChart(){
   userStatsInstanceChart=new Chart(ctx,{
     type:'bar',
     data:{labels,datasets:[{label:'Duration (min)',data:chartData,rawWorkouts,backgroundColor:'rgba(37,99,235,0)',borderColor:'transparent',borderWidth:0,borderRadius:6,barPercentage:0.65,categoryPercentage:0.8}]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{enabled:false}},scales:{y:{beginAtZero:true,grid:{color:'rgba(128,128,128,0.08)'},ticks:{color:'#6b7280',font:{family:'Rajdhani',size:12},callback(v){return v+'m'}}},x:{grid:{display:false},ticks:{color:'#6b7280',font:{family:'Rajdhani',size:12}}}},onHover(evt,elements){canvas.style.cursor=elements.length?'pointer':'default'}},
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      // Layout safety: the graph container is now taller (#durGraphBox = 380px) specifically so this
+      // reserved headroom is genuine EXTRA space, not squeezed plot area — a tall bar can never run
+      // underneath or touch the fixed top-right detail box, even on small/low-end mobile screens.
+      layout:{padding:{top:78,right:6,left:2,bottom:2}},
+      plugins:{legend:{display:false},tooltip:{enabled:false}},
+      scales:{y:{beginAtZero:true,grid:{color:'rgba(128,128,128,0.08)'},ticks:{color:'#6b7280',font:{family:'Rajdhani',size:12},callback(v){return v+'m'}}},x:{grid:{display:false},ticks:{color:'#6b7280',font:{family:'Rajdhani',size:12}}}},
+      onHover(evt,elements){canvas.style.cursor=elements.length?'pointer':'default'}
+    },
     plugins:[stackedMusclePlugin]
   });
-  canvas.onmousemove=function(evt){const pts=userStatsInstanceChart.getElementsAtEventForMode(evt,'index',{intersect:false},false);if(pts.length){showStatsTooltip(evt,statsChartDayData[pts[0].index])}else{hideStatsTooltip()}};
-  canvas.onmouseleave=function(){hideStatsTooltip()};
-  canvas.onclick=function(evt){const pts=userStatsInstanceChart.getElementsAtEventForMode(evt,'index',{intersect:true},false);if(pts.length){showStatsTooltip(evt,statsChartDayData[pts[0].index])}};
+
+  // Fills the single fixed top-right detail box with Date, Class(es) trained, and Duration (Hr/min format)
+  function selectDurationBar(idx){
+    const day=statsChartDayData[idx];if(!day)return;
+    _updateDurGraphDetailBox(day,filterYear,filterMonth,dayNames);
+  }
+
+  canvas.onmousemove=function(evt){
+    const pts=userStatsInstanceChart.getElementsAtEventForMode(evt,'index',{intersect:false},false);
+    if(pts.length)selectDurationBar(pts[0].index);
+  };
+  canvas.onclick=function(evt){
+    const pts=userStatsInstanceChart.getElementsAtEventForMode(evt,'index',{intersect:true},false);
+    if(pts.length)selectDurationBar(pts[0].index);
+  };
+  // Touch-drag: keep the fixed detail box live-updating as a finger moves across the bars
+  canvas.ontouchstart=function(evt){
+    const touch=evt.touches[0];if(!touch)return;
+    const rect=canvas.getBoundingClientRect();
+    const fakeEvt={x:touch.clientX-rect.left,y:touch.clientY-rect.top,native:evt};
+    const pts=userStatsInstanceChart.getElementsAtEventForMode(fakeEvt,'index',{intersect:false},false);
+    if(pts.length)selectDurationBar(pts[0].index);
+  };
+  canvas.ontouchmove=function(evt){
+    const touch=evt.touches[0];if(!touch)return;
+    const rect=canvas.getBoundingClientRect();
+    const fakeEvt={x:touch.clientX-rect.left,y:touch.clientY-rect.top,native:evt};
+    const pts=userStatsInstanceChart.getElementsAtEventForMode(fakeEvt,'index',{intersect:false},false);
+    if(pts.length){evt.preventDefault();selectDurationBar(pts[0].index)}
+  };
+
+  // Reset the fixed detail box to its hint state, then auto-select today (or the most recent
+  // trained day) so it isn't empty on first render — mirrors the Volume graph's default-select behavior.
+  const durHintEl=document.getElementById('durGraphDetailHint');
+  const durBodyEl=document.getElementById('durGraphDetailBody');
+  if(durHintEl)durHintEl.style.display='block';
+  if(durBodyEl)durBodyEl.style.display='none';
+
+  const todayD=new Date();
+  let defaultIdx=-1;
+  if(filterYear===todayD.getFullYear()&&filterMonth===todayD.getMonth()){
+    defaultIdx=days.findIndex(d=>parseInt(d.label)===todayD.getDate());
+  }
+  if(defaultIdx<0){for(let i=days.length-1;i>=0;i--){if(days[i].duration>0){defaultIdx=i;break}}}
+  if(defaultIdx>=0)_updateDurGraphDetailBox(days[defaultIdx],filterYear,filterMonth,dayNames);
+
   let allClasses=[];days.forEach(d=>allClasses.push(...d.classes));buildStatsLegend(allClasses);
   let nz=days.filter(d=>d.duration>0),avg=nz.length?Math.round(nz.reduce((s,d)=>s+d.duration,0)/nz.length):0;
   document.getElementById("avgTimeLabel").textContent=formatMinutesToDuration(avg);
@@ -3143,6 +3226,10 @@ async function updateVolumeChart(side='main'){
     },
     options:{
       responsive:true,maintainAspectRatio:false,
+      // Layout safety (main panel only — it's the only one with a fixed detail box): the graph
+      // container is taller (#volGraphBox = 380px) so this reserved headroom is genuine EXTRA
+      // space, not squeezed plot area — a tall bar can never run underneath or touch the box.
+      layout:{padding:{top:isMain?78:0,right:6,left:2,bottom:2}},
       plugins:{legend:{display:false},tooltip:{enabled:false}},
       scales:{
         y:{beginAtZero:true,grid:{color:'rgba(128,128,128,0.08)'},ticks:{color:'#6b7280',font:{family:'Rajdhani',size:11},callback(v){return v>=1000?(v/1000).toFixed(1)+'k':v}}},
@@ -3159,26 +3246,67 @@ async function updateVolumeChart(side='main'){
 
   const cache=side==='left'?volDayDataCacheL:side==='right'?volDayDataCacheR:volDayDataCache;
 
+  // Fixed top-right detail box only exists on the MAIN panel (Compare Mode left/right panels don't have one)
+  function selectWeeklyBar(idx){
+    const day=cache[idx];if(!day)return;
+    _lastDrillDay[side]=day;
+    renderVolDrilldown(day,drillTitleId,drillBodyId,side);
+    if(isMain)_updateVolGraphDetailBox({dateLabel:day.label,volume:day.volume});
+  }
+
   // Hover: show report box for this panel only
   canvas.onmousemove=function(evt){
     const pts=instance.getElementsAtEventForMode(evt,'index',{intersect:false},false);
-    if(pts.length)renderVolDrilldown(cache[pts[0].index],drillTitleId,drillBodyId,side);
+    if(pts.length)selectWeeklyBar(pts[0].index);
   };
 
   // Click: each panel is FULLY INDEPENDENT — never updates the other panel
   canvas.onclick=function(evt){
     const pts=instance.getElementsAtEventForMode(evt,'index',{intersect:true},false);
     if(!pts.length)return;
-    const clickedDay=cache[pts[0].index];
-    _lastDrillDay[side]=clickedDay;
-    renderVolDrilldown(clickedDay,drillTitleId,drillBodyId,side);
+    selectWeeklyBar(pts[0].index);
   };
+
+  // Touch-drag: keep the fixed detail box (main panel) live-updating as a finger moves across the bars
+  if(isMain){
+    canvas.ontouchstart=function(evt){
+      const touch=evt.touches[0];if(!touch)return;
+      const rect=canvas.getBoundingClientRect();
+      const fakeEvt={x:touch.clientX-rect.left,y:touch.clientY-rect.top,native:evt};
+      const pts=instance.getElementsAtEventForMode(fakeEvt,'index',{intersect:false},false);
+      if(pts.length)selectWeeklyBar(pts[0].index);
+    };
+    canvas.ontouchmove=function(evt){
+      const touch=evt.touches[0];if(!touch)return;
+      const rect=canvas.getBoundingClientRect();
+      const fakeEvt={x:touch.clientX-rect.left,y:touch.clientY-rect.top,native:evt};
+      const pts=instance.getElementsAtEventForMode(fakeEvt,'index',{intersect:false},false);
+      if(pts.length){evt.preventDefault();selectWeeklyBar(pts[0].index)}
+    };
+  } else {
+    canvas.ontouchstart=null;canvas.ontouchmove=null;
+  }
+
+  // Reset the fixed detail box to its hint state on every fresh render of the main panel
+  if(isMain){
+    const hintEl=document.getElementById('volGraphDetailHint');
+    const dateEl=document.getElementById('volGraphDetailDate');
+    const volEl=document.getElementById('volGraphDetailVol');
+    if(hintEl)hintEl.style.display='block';
+    if(dateEl)dateEl.style.display='none';
+    if(volEl)volEl.style.display='none';
+  }
 
   // Default drilldown for today
   const today=new Date();
   if(filterYear===today.getFullYear()&&filterMonth===today.getMonth()){
     const td=days.find(d=>d.day===today.getDate())||days[0];
-    if(td){_lastDrillDay[side]=td;renderVolDrilldown(td,drillTitleId,drillBodyId,side);}
+    if(td){
+      const tdIdx=days.indexOf(td);
+      _lastDrillDay[side]=td;
+      renderVolDrilldown(td,drillTitleId,drillBodyId,side);
+      if(isMain)_updateVolGraphDetailBox({dateLabel:td.label,volume:td.volume});
+    }
   }
 }
 
@@ -3327,9 +3455,10 @@ async function updateVolumeLineChart(){
     },
     options:{
       responsive:true,maintainAspectRatio:false,
-      // Layout safety: reserve headroom at the top of the plot area so the line can never run
-      // underneath the fixed top-right detail box, even on small/low-end mobile screens.
-      layout:{padding:{top:46,right:6,left:2,bottom:2}},
+      // Layout safety: the graph container is now taller (#volGraphBox = 380px) specifically so this
+      // reserved headroom is genuine EXTRA space, not squeezed plot area — the line can never run
+      // underneath or touch the fixed top-right detail box, even on small/low-end mobile screens.
+      layout:{padding:{top:78,right:6,left:2,bottom:2}},
       interaction:{mode:'index',intersect:false},
       plugins:{legend:{display:false},tooltip:{enabled:false}},
       scales:{
@@ -3544,7 +3673,6 @@ document.addEventListener("click",e=>{
   if(e.target.id!=="workoutNameInput")document.getElementById("autoSuggestions").style.display="none";
   if(e.target.id!=="liveWorkoutNameInput")document.getElementById("liveAutoSuggestions").style.display="none";
   let sr=document.getElementById("gymBroSearchResults");if(sr&&e.target.id!=="gymBroSearchInput"&&!sr.contains(e.target))sr.style.display="none";
-  if(e.target.id!=="workoutChart")hideStatsTooltip();
   const ls=document.getElementById("learnSuggestions");if(ls&&e.target.id!=="learnSearchInput"&&!ls.contains(e.target))ls.style.display="none";
 });
 /* Tracks original (locked) duration labels per set-index while editing an entry, e.g. {1:"30 sec",2:"1 min 5 sec"} */
