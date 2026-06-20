@@ -350,6 +350,29 @@ body.theme-batman .stats-subnav-btn.active{color:#05050a}
 /* Volume bar glossy hover */
 .volume-chart-wrap{position:relative;height:320px;background:var(--accent-soft);border-radius:18px;padding:14px;border:1px solid var(--border-col)}
 
+/* ===================== VOLUME RANGE TOGGLE (Weekly / Monthly / 3-Month) ===================== */
+.vol-range-toggle{display:flex;gap:8px;margin-top:12px}
+.vol-range-btn{flex:1;padding:9px 10px;border:1px solid var(--border-col);border-radius:12px;background:var(--bg-card);color:var(--text-secondary);font-family:var(--font-alt);font-size:12px;font-weight:700;letter-spacing:0.4px;cursor:pointer;transition:all 0.25s ease}
+.vol-range-btn:hover{background:var(--accent-soft);color:var(--accent);border-color:var(--accent)}
+.vol-range-btn.active{background:var(--tab-active-bg);color:var(--follow-btn-text);border-color:transparent;box-shadow:var(--btn-shadow)}
+body.theme-batman .vol-range-btn.active{color:#05050a}
+.vol-range-label{display:none;text-align:center;font-family:var(--font-alt);font-size:13px;font-weight:800;color:var(--accent);letter-spacing:0.6px;margin-top:10px;padding:8px;background:var(--accent-soft);border-radius:10px;border:1px solid var(--border-col)}
+.vol-range-label.visible{display:block}
+
+/* Fixed top-right detail box on the volume line graph (Monthly / 3-Month) */
+.vol-graph-box{position:relative}
+.vol-graph-detail-box{position:absolute;top:8px;right:8px;z-index:5;max-width:46%;min-width:108px;background:var(--bg-card);border:1px solid var(--border-col);border-radius:12px;box-shadow:0 4px 14px rgba(0,0,0,0.15);padding:8px 10px;font-family:var(--font-alt);pointer-events:none;transition:all 0.15s ease;text-align:right}
+.vol-graph-detail-hint{font-size:10px;color:var(--text-muted);letter-spacing:0.3px;white-space:nowrap}
+.vol-graph-detail-date{font-weight:800;color:var(--accent);font-size:11px;letter-spacing:0.3px;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vol-graph-detail-vol{font-family:var(--font-display);font-size:16px;color:var(--text-primary);letter-spacing:0.5px;white-space:nowrap}
+.vol-graph-detail-vol small{font-size:10px;color:var(--text-muted);font-family:var(--font-alt);font-weight:600;letter-spacing:0}
+@media (max-width:480px){
+  .vol-graph-detail-box{max-width:54%;padding:6px 8px;border-radius:10px}
+  .vol-graph-detail-date{font-size:10px}
+  .vol-graph-detail-vol{font-size:14px}
+  .vol-graph-detail-hint{font-size:9px}
+}
+
 /* Drill-down report */
 .vol-drilldown{margin-top:14px;padding:16px;background:var(--bg-card);border-radius:16px;border:1px solid var(--border-col);animation:fadeIn 0.3s ease;min-height:80px}
 .vol-drilldown-title{font-family:var(--font-alt);font-size:14px;font-weight:800;color:var(--section-title-col);margin-bottom:12px;letter-spacing:0.5px}
@@ -601,8 +624,31 @@ body.theme-batman .tracker-page-btn.active{color:#05050a}
 .tracker-analytics-title{font-family:var(--font-alt);font-size:16px;font-weight:700;color:var(--section-title-col);letter-spacing:0.5px}
 .tracker-analytics-close{background:var(--accent-soft);color:var(--accent);border:1px solid var(--accent);border-radius:9px;padding:6px 14px;font-size:12px;font-weight:700;font-family:var(--font-alt);cursor:pointer;transition:all 0.2s}
 .tracker-analytics-close:hover{background:var(--accent);color:#fff}
-.tracker-graph-box{position:relative;height:300px;width:100%}
+.tracker-graph-box{position:relative;height:300px;width:100%;min-height:240px}
+.tracker-graph-detail-box{position:absolute;top:8px;right:8px;z-index:5;max-width:46%;min-width:108px;background:var(--bg-card);border:1px solid var(--border-col);border-radius:12px;box-shadow:0 4px 14px rgba(0,0,0,0.15);padding:8px 10px;font-family:var(--font-alt);pointer-events:none;transition:all 0.15s ease}
+.tracker-graph-detail-hint{font-size:10px;color:var(--text-muted);letter-spacing:0.3px;white-space:nowrap}
+.tracker-graph-detail-date{font-weight:800;color:var(--accent);font-size:11px;letter-spacing:0.3px;margin-bottom:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tracker-graph-detail-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:3px}
+.tracker-graph-detail-list li{font-size:9.5px;line-height:1.45;color:var(--text-primary);white-space:nowrap}
+.tracker-graph-detail-list li .tracker-set-num{color:var(--text-muted);font-weight:700;margin-right:3px}
+@media (max-width:480px){
+  .tracker-graph-detail-box{max-width:54%;padding:6px 8px;border-radius:10px}
+  .tracker-graph-detail-date{font-size:10px}
+  .tracker-graph-detail-list li{font-size:8.5px}
+  .tracker-graph-detail-hint{font-size:9px}
+}
 .tracker-subtitle{font-size:11px;color:var(--text-muted);font-family:var(--font-alt);margin-bottom:16px;letter-spacing:0.3px}
+.tracker-name-cell{display:flex;align-items:center;gap:8px}
+.tracker-eye-btn{flex-shrink:0;width:26px;height:26px;border-radius:8px;border:1px solid var(--border-col);background:var(--accent-soft);color:var(--accent);font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s ease}
+.tracker-eye-btn:hover{background:var(--accent);color:#fff;transform:scale(1.08)}
+.tracker-eye-btn.active{background:var(--accent);color:#fff}
+/* Recent/Highest/Lowest cell: collapsed (default) shows one line, no duration; expanded swaps in a compact per-set list with duration. Toggled purely by the .row-expanded class on the parent <tr> — no extra DOM, no layout jump beyond the cell itself. */
+.tracker-vol-expanded{display:none}
+.tracker-row.row-expanded .tracker-vol-collapsed{display:none}
+.tracker-row.row-expanded .tracker-vol-expanded{display:block;animation:fadeIn 0.2s ease}
+.tracker-set-list-compact{list-style:none;margin:4px 0 0;padding:0;display:flex;flex-direction:column;gap:3px}
+.tracker-set-list-compact li{font-size:10.5px;color:var(--text-primary);font-family:var(--font-alt);line-height:1.5;white-space:nowrap}
+.tracker-set-list-compact .tracker-set-num{color:var(--text-muted);font-weight:700;margin-right:4px}
 
 .learn-page-header{background:var(--header-bg);border-radius:20px;padding:28px 24px;margin-bottom:20px;box-shadow:0 10px 30px rgba(0,0,0,0.15);position:relative;overflow:hidden}
 .learn-page-header::before{content:'';position:absolute;top:-40%;right:-5%;width:220px;height:220px;border-radius:50%;background:rgba(255,255,255,0.04);pointer-events:none}
@@ -1155,8 +1201,8 @@ body.theme-godmode .levelup-toast{background:linear-gradient(135deg,#7a0006,#c00
 
           <!-- SINGLE VIEW (default) -->
           <div class="vol-single-view" id="volSingleView">
-            <div class="stats-period-row" style="margin-top:14px">
-              <select id="volTimeframe" style="margin-top:0;padding:10px" onchange="updateVolumeChart('main')">
+            <div class="stats-period-row" style="margin-top:14px" id="volWeekRow">
+              <select id="volTimeframe" class="vol-week-select" style="margin-top:0;padding:10px" onchange="updateVolumeChart('main')">
                 <option value="w1">Week 1 (1st – 7th)</option>
                 <option value="w2">Week 2 (8th – 14th)</option>
                 <option value="w3">Week 3 (15th – 21st)</option>
@@ -1165,10 +1211,27 @@ body.theme-godmode .levelup-toast{background:linear-gradient(135deg,#7a0006,#c00
               </select>
               <select id="volMonth" style="margin-top:0;padding:10px;flex:1;min-width:130px" onchange="updateVolumeChart('main')"></select>
             </div>
-            <div class="volume-chart-wrap">
-              <canvas id="volumeChart"></canvas>
+            <div class="vol-range-label" id="volRangeLabel"></div>
+
+            <div class="analytics-box">
+              <div class="graph-container vol-graph-box" id="volGraphBox">
+                <canvas id="volumeChart"></canvas>
+                <div class="vol-graph-detail-box" id="volGraphDetailBox">
+                  <div class="vol-graph-detail-hint" id="volGraphDetailHint">👆 Tap a point</div>
+                  <div class="vol-graph-detail-date" id="volGraphDetailDate" style="display:none"></div>
+                  <div class="vol-graph-detail-vol" id="volGraphDetailVol" style="display:none"></div>
+                </div>
+              </div>
             </div>
-            <div style="font-size:11px;color:var(--text-muted);font-family:var(--font-alt);margin-top:8px">
+
+            <!-- Weekly / Monthly / 3-Month toggle -->
+            <div class="vol-range-toggle">
+              <button class="vol-range-btn active" id="volRangeBtnWeekly" onclick="setVolRangeMode('weekly')">Weekly</button>
+              <button class="vol-range-btn" id="volRangeBtnMonthly" onclick="setVolRangeMode('monthly')">Monthly</button>
+              <button class="vol-range-btn" id="volRangeBtn3m" onclick="setVolRangeMode('3month')">3-Month</button>
+            </div>
+
+            <div style="font-size:11px;color:var(--text-muted);font-family:var(--font-alt);margin-top:8px" id="volHintText">
               💡 Click or hover a bar to drill down into that day's workout breakdown
             </div>
             <div class="vol-drilldown" id="volDrilldown">
@@ -1400,7 +1463,12 @@ body.theme-godmode .levelup-toast{background:linear-gradient(135deg,#7a0006,#c00
             </div>
             <button class="tracker-analytics-close" onclick="closeTrackerAnalytics()">✕ Close</button>
           </div>
-          <div class="tracker-graph-box">
+          <div class="tracker-graph-box" id="trackerGraphBox">
+            <div class="tracker-graph-detail-box" id="trackerGraphDetailBox">
+              <div class="tracker-graph-detail-hint" id="trackerGraphDetailHint">👆 Tap a point</div>
+              <div class="tracker-graph-detail-date" id="trackerGraphDetailDate" style="display:none"></div>
+              <ul class="tracker-graph-detail-list" id="trackerGraphDetailList"></ul>
+            </div>
             <canvas id="trackerAnalyticsChart"></canvas>
           </div>
         </div>
@@ -1771,6 +1839,12 @@ function setTheme(t){
     if(t==='batman')document.body.classList.add('theme-batman');
     if(t==='godmode')document.body.classList.add('theme-godmode');
     localStorage.setItem('gymbro_theme',t);
+    // Volume graph uses a single solid color tied to --accent (Task 1) — refresh it live on theme switch,
+    // but only if the Volume tab is actually visible right now (avoids needless work elsewhere).
+    const volTab=document.getElementById('subnavVolume');
+    if(volTab&&volTab.classList.contains('active')&&typeof updateVolumeChart==='function'){
+      updateVolumeChart('main');
+    }
   };
   syncThemeButtonsActive(t);
   // Batman: bat fly-up animation then apply
@@ -2834,6 +2908,10 @@ let volChartInstance=null,volDayDataCache=[];
 let volChartInstanceL=null,volDayDataCacheL=[];
 let volChartInstanceR=null,volDayDataCacheR=[];
 
+/* ── Volume Range Mode (Weekly / Monthly / 3-Month) — main single view only ── */
+let volRangeMode='weekly'; // 'weekly' | 'monthly' | '3month'
+let volLineDataCache=[]; // cache of {label,dateLabel,volume,workouts,attendanceWorkouts} for the active line view
+
 /* ── Detailed View state per panel ── */
 let _detailView={main:false,left:false,right:false};
 let _lastDrillDay={main:null,left:null,right:null};
@@ -2964,8 +3042,28 @@ async function fetchAttendanceWorkouts(uid,monthStr){
   return result;
 }
 
+/* ── Single solid color by theme (Task 1: Volume graph uses ONE solid color tied to theme) ── */
+function getVolSolidColor(){
+  // Pull the live --accent custom property so this always tracks the active theme automatically
+  return getComputedStyle(document.body).getPropertyValue('--accent').trim()||'#2563eb';
+}
+function getVolSolidColorSoft(alpha){
+  const theme=getCurrentTheme();
+  if(theme==='batman')return`rgba(245,200,0,${alpha})`;
+  if(theme==='godmode')return`rgba(192,0,10,${alpha})`;
+  return`rgba(37,99,235,${alpha})`;
+}
+
 /* side: 'main' | 'left' | 'right' */
 async function updateVolumeChart(side='main'){
+  // Main panel respects the Weekly / Monthly / 3-Month range toggle.
+  // Monthly & 3-Month render as an interactive line graph via updateVolumeLineChart().
+  // Compare-mode left/right panels are unaffected and always remain on the Weekly bar view.
+  if(side==='main'&&volRangeMode!=='weekly'){
+    if(volChartInstance){volChartInstance.destroy();volChartInstance=null}
+    await updateVolumeLineChart();
+    return;
+  }
   const uid=localStorage.getItem('user_id');if(!uid)return;
   const sfx=side==='left'?'L':side==='right'?'R':'';
   const tfId='volTimeframe'+sfx;
@@ -3024,8 +3122,11 @@ async function updateVolumeChart(side='main'){
   const canvas=document.getElementById(canvasId);if(!canvas)return;
   const ctx=canvas.getContext('2d');
 
-  // Theme-aware gradients — NO text drawn inside bars
-  const{grad,hoverGrad}=makeVolGradients(ctx,side);
+  // Main panel (Task 1): single solid theme color, no gradient.
+  // Compare-mode left/right panels keep their original two-tone gradient styling, untouched.
+  const isMain=side==='main';
+  const solidColor=isMain?getVolSolidColor():null;
+  const{grad,hoverGrad}=isMain?{grad:solidColor,hoverGrad:solidColor}:makeVolGradients(ctx,side);
 
   const instance=new Chart(ctx,{
     type:'bar',
@@ -3034,9 +3135,9 @@ async function updateVolumeChart(side='main'){
       datasets:[{
         label:'Training Volume (kg·reps)',
         data:volumes,
-        backgroundColor:volumes.map(()=>grad),
-        hoverBackgroundColor:volumes.map(()=>hoverGrad),
-        borderColor:getVolBorderColor(side),
+        backgroundColor:isMain?solidColor:volumes.map(()=>grad),
+        hoverBackgroundColor:isMain?solidColor:volumes.map(()=>hoverGrad),
+        borderColor:isMain?solidColor:getVolBorderColor(side),
         borderWidth:1.5,borderRadius:10,barPercentage:0.65,categoryPercentage:0.8
       }]
     },
@@ -3079,6 +3180,241 @@ async function updateVolumeChart(side='main'){
     const td=days.find(d=>d.day===today.getDate())||days[0];
     if(td){_lastDrillDay[side]=td;renderVolDrilldown(td,drillTitleId,drillBodyId,side);}
   }
+}
+
+/* ===================== VOLUME RANGE TOGGLE (Weekly / Monthly / 3-Month) ===================== */
+/* Switches the MAIN single-view volume graph between:
+   - weekly:  original bar chart, Week + Month dropdowns both shown (untouched behavior)
+   - monthly: line graph for the selected month, Month dropdown stays active, Week dropdown hidden
+   - 3month:  line graph for current month + preceding 2 months (sliding window), both dropdowns hidden,
+              a range label ("Apr - Jun") is shown instead */
+function setVolRangeMode(mode){
+  volRangeMode=mode;
+  const weekRow=document.getElementById('volWeekRow');
+  const weekSelect=document.getElementById('volTimeframe');
+  const monthSelect=document.getElementById('volMonth');
+  const rangeLabel=document.getElementById('volRangeLabel');
+  const hintText=document.getElementById('volHintText');
+
+  document.getElementById('volRangeBtnWeekly').classList.toggle('active',mode==='weekly');
+  document.getElementById('volRangeBtnMonthly').classList.toggle('active',mode==='monthly');
+  document.getElementById('volRangeBtn3m').classList.toggle('active',mode==='3month');
+
+  if(mode==='weekly'){
+    // Restore both dropdowns exactly as before
+    weekRow.style.display='flex';
+    if(weekSelect)weekSelect.style.display='';
+    if(monthSelect)monthSelect.style.display='';
+    rangeLabel.classList.remove('visible');
+    hintText.textContent='💡 Click or hover a bar to drill down into that day\'s workout breakdown';
+  } else if(mode==='monthly'){
+    // Hide Week dropdown only — Month dropdown stays active for navigation
+    weekRow.style.display='flex';
+    if(weekSelect)weekSelect.style.display='none';
+    if(monthSelect)monthSelect.style.display='';
+    rangeLabel.classList.remove('visible');
+    hintText.textContent='💡 Tap or drag across the line to see each day\'s breakdown below';
+  } else {
+    // 3-Month: hide both dropdowns, show sliding range label instead
+    weekRow.style.display='none';
+    rangeLabel.classList.add('visible');
+    hintText.textContent='💡 Tap or drag across the line to see each day\'s breakdown below';
+  }
+  updateVolumeChart('main');
+}
+
+/* Builds the {year,month} list for the active range mode, most-recent-last */
+function _volResolveMonths(){
+  const monthSel=document.getElementById('volMonth');
+  let selMonth=monthSel&&monthSel.value?monthSel.value:null;
+  let baseYear,baseMonth;
+  if(selMonth){[baseYear,baseMonth]=[parseInt(selMonth.split('-')[0]),parseInt(selMonth.split('-')[1])-1]}
+  else{const n=new Date();baseYear=n.getFullYear();baseMonth=n.getMonth()}
+
+  if(volRangeMode==='monthly')return[{year:baseYear,month:baseMonth}];
+
+  // 3-Month sliding window: always anchored to the CURRENT real-world month (auto-advances over time),
+  // showing it plus the two preceding months — independent of the (hidden) month dropdown.
+  const now=new Date();
+  const months=[];
+  for(let i=2;i>=0;i--){
+    const d=new Date(now.getFullYear(),now.getMonth()-i,1);
+    months.push({year:d.getFullYear(),month:d.getMonth()});
+  }
+  return months;
+}
+
+/* Fetches + renders the Monthly / 3-Month interactive line graph for the main volume panel */
+async function updateVolumeLineChart(){
+  const uid=localStorage.getItem('user_id');if(!uid)return;
+  const months=_volResolveMonths();
+
+  // Update the sliding range label for 3-Month mode (e.g. "Apr - Jun 2026")
+  if(volRangeMode==='3month'){
+    const monNames=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const first=months[0],last=months[months.length-1];
+    const label=first.year===last.year
+      ?`${monNames[first.month]} – ${monNames[last.month]} ${last.year}`
+      :`${monNames[first.month]} ${first.year} – ${monNames[last.month]} ${last.year}`;
+    const rangeLabel=document.getElementById('volRangeLabel');
+    if(rangeLabel)rangeLabel.textContent=`📅 ${label}`;
+  }
+
+  // Fetch + flatten day-by-day volume data across all months in the window
+  const dayNames=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const monNamesShort=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  let allDays=[];
+
+  for(const{year,month}of months){
+    const monthStr=`${year}-${String(month+1).padStart(2,'0')}`;
+    const lastDay=new Date(year,month+1,0).getDate();
+    const{data,error}=await db.from('workouts').select('*').eq('user_id',uid).gte('date',`${monthStr}-01`).lte('date',`${monthStr}-${String(lastDay).padStart(2,'0')}`);
+    if(error){console.error(error);continue}
+    const attWorkouts=await fetchAttendanceWorkouts(uid,monthStr);
+
+    let dm={};
+    for(let i=1;i<=lastDay;i++){
+      const dt=new Date(year,month,i);
+      dm[i]={day:i,year,month,label:`${i} ${dayNames[dt.getDay()]}`,dateLabel:`${monNamesShort[month]} ${i}, ${year}`,volume:0,workouts:[],attendanceWorkouts:attWorkouts[i]||[]};
+    }
+    if(data){
+      data.forEach(row=>{
+        const d=new Date(row.date);const day=d.getDate();if(!dm[day])return;
+        for(let i=1;i<=15;i++){
+          const w=row[`workout_${i}`];if(!w)continue;
+          const vol=parseWorkoutVolume(w);
+          dm[day].volume+=vol;
+          if(w.trim())dm[day].workouts.push({name:w,vol});
+        }
+      });
+    }
+    allDays=allDays.concat(Object.values(dm));
+  }
+
+  volLineDataCache=allDays;
+  volDayDataCache=allDays; // keep main cache in sync so renderVolDrilldown's "panel" plumbing keeps working
+
+  const volumes=allDays.map(d=>Math.round(d.volume));
+
+  if(volChartInstance){volChartInstance.destroy();volChartInstance=null}
+  const canvas=document.getElementById('volumeChart');if(!canvas)return;
+  const ctx=canvas.getContext('2d');
+
+  const lineColor=getVolSolidColor();
+  const fillColor=getVolSolidColorSoft(0.12);
+  const pointColor=lineColor;
+  const selectedColor=getVolSolidColor(); // selected marker uses the same live theme accent, per spec
+
+  const instance=new Chart(ctx,{
+    type:'line',
+    data:{
+      labels:allDays.map(d=>d.label),
+      datasets:[{
+        label:'Volume (kg·reps)',
+        data:volumes,
+        borderColor:lineColor,
+        backgroundColor:fillColor,
+        pointBackgroundColor:allDays.map(()=>pointColor),
+        pointBorderColor:'#fff',
+        pointBorderWidth:1.5,
+        pointRadius:allDays.length>20?2.5:4,
+        pointHoverRadius:7,
+        borderWidth:2.5,
+        fill:true,
+        tension:0.25, // gentle smoothing only — avoids the overshoot/loop artifacts steeper tension can cause
+        cubicInterpolationMode:'monotone' // keeps the line monotonic between points so it never renders an "awkward" loop
+      }]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      // Layout safety: reserve headroom at the top of the plot area so the line can never run
+      // underneath the fixed top-right detail box, even on small/low-end mobile screens.
+      layout:{padding:{top:46,right:6,left:2,bottom:2}},
+      interaction:{mode:'index',intersect:false},
+      plugins:{legend:{display:false},tooltip:{enabled:false}},
+      scales:{
+        y:{beginAtZero:true,grid:{color:'rgba(128,128,128,0.08)'},ticks:{color:'#6b7280',font:{family:'Rajdhani',size:11},callback(v){return v>=1000?(v/1000).toFixed(1)+'k':v}}},
+        // X-axis labels removed for Monthly/3-Month per spec — the detail box carries date info instead
+        x:{display:false,grid:{display:false},ticks:{display:false}}
+      },
+      onHover(evt,els){canvas.style.cursor=els.length?'pointer':'default'}
+    }
+  });
+
+  volChartInstance=instance;
+
+  // ---- Marker selection: updates the fixed top-right detail box AND the existing Breakdown box instantly ----
+  function selectPoint(idx){
+    const day=allDays[idx];if(!day)return;
+    _highlightVolPoint(instance,idx,selectedColor,pointColor);
+    _updateVolGraphDetailBox(day);
+    _lastDrillDay.main=day;
+    renderVolDrilldown(day,'volDrillTitle','volDrillBody','main');
+  }
+
+  canvas.onclick=function(evt){
+    const pts=instance.getElementsAtEventForMode(evt,'index',{intersect:false},true);
+    if(pts.length)selectPoint(pts[0].index);
+  };
+  canvas.onmousemove=function(evt){
+    const pts=instance.getElementsAtEventForMode(evt,'index',{intersect:false},true);
+    if(pts.length)selectPoint(pts[0].index);
+  };
+  // Touch-drag: as a finger moves across the line without lifting, keep both boxes live-updating in real time
+  canvas.ontouchstart=function(evt){
+    const touch=evt.touches[0];if(!touch)return;
+    const rect=canvas.getBoundingClientRect();
+    const fakeEvt={x:touch.clientX-rect.left,y:touch.clientY-rect.top,native:evt};
+    const pts=instance.getElementsAtEventForMode(fakeEvt,'index',{intersect:false},true);
+    if(pts.length)selectPoint(pts[0].index);
+  };
+  canvas.ontouchmove=function(evt){
+    const touch=evt.touches[0];if(!touch)return;
+    const rect=canvas.getBoundingClientRect();
+    const fakeEvt={x:touch.clientX-rect.left,y:touch.clientY-rect.top,native:evt};
+    const pts=instance.getElementsAtEventForMode(fakeEvt,'index',{intersect:false},true);
+    if(pts.length){evt.preventDefault();selectPoint(pts[0].index)}
+  };
+
+  // Reset detail box hint, then auto-select today (or the most recent day with data) so it isn't empty on load
+  const hintEl=document.getElementById('volGraphDetailHint');
+  const dateEl=document.getElementById('volGraphDetailDate');
+  const volEl=document.getElementById('volGraphDetailVol');
+  if(hintEl)hintEl.style.display='block';
+  if(dateEl)dateEl.style.display='none';
+  if(volEl)volEl.style.display='none';
+
+  const today=new Date();
+  let defaultIdx=allDays.findIndex(d=>d.year===today.getFullYear()&&d.month===today.getMonth()&&d.day===today.getDate());
+  if(defaultIdx<0){
+    // fall back to the last day that actually has logged volume, else the final point
+    for(let i=allDays.length-1;i>=0;i--){if(allDays[i].volume>0){defaultIdx=i;break}}
+    if(defaultIdx<0)defaultIdx=allDays.length-1;
+  }
+  if(defaultIdx>=0)selectPoint(defaultIdx);
+}
+
+/* Recolors the selected marker using the live theme accent; all other points stay the base point color */
+function _highlightVolPoint(chartInstance,selectedIdx,selectedColor,baseColor){
+  const ds=chartInstance.data.datasets[0];
+  const n=ds.data.length;
+  ds.pointBackgroundColor=Array.from({length:n},(_,i)=>i===selectedIdx?selectedColor:baseColor);
+  ds.pointRadius=Array.from({length:n},(_,i)=>i===selectedIdx?7:(n>20?2.5:4));
+  ds.pointBorderWidth=Array.from({length:n},(_,i)=>i===selectedIdx?2.5:1.5);
+  chartInstance.update('none'); // 'none' = no animation, so the marker recolors instantly on drag
+}
+
+/* Fills the fixed top-right detail box with the selected day's Date + Total Volume */
+function _updateVolGraphDetailBox(day){
+  const hintEl=document.getElementById('volGraphDetailHint');
+  const dateEl=document.getElementById('volGraphDetailDate');
+  const volEl=document.getElementById('volGraphDetailVol');
+  if(!hintEl||!dateEl||!volEl)return;
+  hintEl.style.display='none';
+  dateEl.style.display='block';
+  volEl.style.display='block';
+  dateEl.textContent=day.dateLabel;
+  volEl.innerHTML=`${Math.round(day.volume).toLocaleString()} <small>kg·reps</small>`;
 }
 
 /* Parse individual sets from a workout string.
@@ -4289,7 +4625,39 @@ const TRACKER_PAGE_SIZE=5;
 let trackerAnalyticsChartInstance=null;
 function formatTrackerDate(dateStr){const d=new Date(dateStr+'T00:00:00'),months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];return `${months[d.getMonth()]} ${String(d.getDate()).padStart(2,'0')}/${d.getFullYear()}`}
 function parseSetVolume(setStr){const m=setStr.trim().match(/^([\d.]+)\s*[Kk][Gg]?\s*x\s*(\d+)/);if(!m)return 0;return parseFloat(m[1])*(parseInt(m[2])||0)}
-function formatSetDisplay(setStr){const s=setStr.trim();const full=s.match(/^([\d.]+)\s*[Kk][Gg]?\s*x\s*(\d+)\s*x\s*(.+)$/);if(full)return `${full[1]}kgs x ${full[2]} [${full[3].trim()}]`;const basic=s.match(/^([\d.]+)\s*[Kk][Gg]?\s*x\s*(\d+)/);if(basic)return `${basic[1]}kgs x ${basic[2]}`;return s}
+function parseSetWeightReps(setStr){const m=setStr.trim().match(/^([\d.]+)\s*[Kk][Gg]?\s*x\s*(\d+)/);if(!m)return{weight:0,reps:0};return{weight:parseFloat(m[1])||0,reps:parseInt(m[2])||0}}
+// Parses "8.5Kg x 15 [20 sec]" (the real saved format) into weight/reps/duration.
+// showDuration=false (default): "8.5kgs x 15" — used in the collapsed/default cell view.
+// showDuration=true: "8.5kgs x 15 [20 sec]" — used only inside the expanded per-set breakdown.
+function formatSetDisplay(setStr,showDuration){
+  const s=setStr.trim();
+  const durMatch=s.match(/\[(.*?)\]/);
+  const duration=durMatch?durMatch[1].trim():null;
+  const clean=s.replace(/\[.*?\]/g,'').trim();
+  const m=clean.match(/^([\d.]+)\s*[Kk][Gg]?\s*x\s*(\d+)/);
+  if(!m)return s;
+  const base=`${m[1]}kgs x ${m[2]}`;
+  return(showDuration&&duration)?`${base} [${duration}]`:base;
+}
+// Compares two sets purely by weight (kg) first, then by reps at equal weight. Returns >0 if a is "more" than b.
+function compareSetByWeight(a,b){if(a.weight!==b.weight)return a.weight-b.weight;return a.reps-b.reps}
+// Compares two SESSIONS (each an array of sets) as a whole: sort each session's sets best-to-worst (by weight, then reps),
+// then compare position-by-position so a session with a stronger overall spread of sets wins, not just a single matching top set.
+// e.g. session [8.5x15, 8x15, 8x15] beats [8.5x15, 7x15, 7x15] because after the tied top set, 8x15 > 7x15.
+function compareSessionByWeight(sessionA,sessionB){
+  const a=[...sessionA.sets].sort((x,y)=>compareSetByWeight(y,x));
+  const b=[...sessionB.sets].sort((x,y)=>compareSetByWeight(y,x));
+  const len=Math.max(a.length,b.length);
+  for(let i=0;i<len;i++){
+    const sa=a[i],sb=b[i];
+    if(!sa&&!sb)continue;
+    if(!sa)return -1; // fewer sets than b at this position -> treat as lesser
+    if(!sb)return 1;
+    const c=compareSetByWeight(sa,sb);
+    if(c!==0)return c;
+  }
+  return 0;
+}
 async function runWorkoutTracker(){
   const uid=localStorage.getItem("user_id");if(!uid){alert("Please log in first.");return}
   const fromDate=document.getElementById("trackerFromDate").value,toDate=document.getElementById("trackerToDate").value;
@@ -4299,8 +4667,29 @@ async function runWorkoutTracker(){
   if(error){area.innerHTML=`<div class="tracker-empty">❌ Error fetching data: ${error.message}</div>`;return}
   if(!data||data.length===0){area.innerHTML=`<div class="tracker-empty">😴 No workouts found in this date range. Start logging!</div>`;return}
   const exerciseMap={};
-  data.forEach(row=>{const rowDate=row.date;for(let ci=1;ci<=15;ci++){const cell=row[`workout_${ci}`];if(!cell||!cell.trim())continue;let exName='Unknown',setsRaw=[];if(cell.includes(':')){const ci2=cell.indexOf(':');exName=cell.substring(0,ci2).trim();setsRaw=cell.substring(ci2+1).split(',').map(s=>s.trim()).filter(Boolean)}else{exName=cell.trim()}if(!exerciseMap[exName])exerciseMap[exName]={frequency:0,sets:[]};exerciseMap[exName].frequency++;setsRaw.forEach(setStr=>{const vol=parseSetVolume(setStr);exerciseMap[exName].sets.push({date:rowDate,raw:setStr,vol})})}});
-  trackerSortedList=Object.entries(exerciseMap).sort((a,b)=>b[1].frequency-a[1].frequency).map(([name,data],idx)=>({sno:idx+1,name,frequency:data.frequency,sets:data.sets,lowestSet:data.sets.length?data.sets.reduce((mn,s)=>s.vol<mn.vol?s:mn,data.sets[0]):null,highestSet:data.sets.length?data.sets.reduce((mx,s)=>s.vol>mx.vol?s:mx,data.sets[0]):null}));
+  data.forEach(row=>{const rowDate=row.date;for(let ci=1;ci<=15;ci++){const cell=row[`workout_${ci}`];if(!cell||!cell.trim())continue;let exName='Unknown',setsRaw=[];if(cell.includes(':')){const ci2=cell.indexOf(':');exName=cell.substring(0,ci2).trim();setsRaw=cell.substring(ci2+1).split(',').map(s=>s.trim()).filter(Boolean)}else{exName=cell.trim()}if(!exerciseMap[exName])exerciseMap[exName]={frequency:0,sets:[],sessions:{}};exerciseMap[exName].frequency++;
+    // Track per-session (per-date) groups of sets so we can show a full session breakdown (Recent / Highest / Lowest)
+    if(!exerciseMap[exName].sessions[rowDate])exerciseMap[exName].sessions[rowDate]={date:rowDate,sets:[]};
+    setsRaw.forEach(setStr=>{const vol=parseSetVolume(setStr);const{weight,reps}=parseSetWeightReps(setStr);const setObj={date:rowDate,raw:setStr,vol,weight,reps};exerciseMap[exName].sets.push(setObj);exerciseMap[exName].sessions[rowDate].sets.push(setObj)})}});
+  trackerSortedList=Object.entries(exerciseMap).sort((a,b)=>b[1].frequency-a[1].frequency).map(([name,data],idx)=>{
+    const sessionList=Object.values(data.sessions).sort((a,b)=>a.date.localeCompare(b.date));
+    // Recent session = the session with the latest date (most recent workout session for this exercise)
+    const recentSession=sessionList.length?sessionList[sessionList.length-1]:null;
+    // Highest/Lowest session found across ALL history — compares each session as a whole (weight-first, then reps,
+    // looking at every set in the session, not just the top one) so a session with stronger secondary sets wins ties.
+    let highestSession=null,lowestSession=null;
+    sessionList.forEach(sess=>{
+      if(!sess.sets.length)return;
+      if(!highestSession||compareSessionByWeight(sess,highestSession)>0)highestSession=sess;
+      if(!lowestSession||compareSessionByWeight(sess,lowestSession)<0)lowestSession=sess;
+    });
+    // The displayed "set" for each column is the best/worst individual set within that winning session
+    const bestSetIn=(sess)=>sess&&sess.sets.length?[...sess.sets].sort((x,y)=>compareSetByWeight(y,x))[0]:null;
+    const worstSetIn=(sess)=>sess&&sess.sets.length?[...sess.sets].sort((x,y)=>compareSetByWeight(x,y))[0]:null;
+    return{sno:idx+1,name,frequency:data.frequency,sets:data.sets,sessions:data.sessions,
+      recentSet:recentSession?recentSession.sets[recentSession.sets.length-1]:null,
+      recentSession,highestSet:bestSetIn(highestSession),highestSession,lowestSet:worstSetIn(lowestSession),lowestSession};
+  });
   trackerAllData=exerciseMap;trackerCurrentPage=1;renderTrackerTable();
 }
 function renderTrackerTable(filterName){
@@ -4318,26 +4707,39 @@ function renderTrackerTable(filterName){
   if(!list.length){area.innerHTML=`<div class="tracker-empty">No exercises match your search.</div>`;return}
 
   const totalPages=Math.ceil(list.length/TRACKER_PAGE_SIZE),start=(trackerCurrentPage-1)*TRACKER_PAGE_SIZE,pageItems=list.slice(start,start+TRACKER_PAGE_SIZE);
-  let rowsHtml=pageItems.map(item=>{
-    const lowestHtml=item.lowestSet?`<span class="tracker-vol-date">${formatTrackerDate(item.lowestSet.date)}</span><span class="tracker-vol-raw">{${formatSetDisplay(item.lowestSet.raw)}}</span>`:`<span style="color:var(--text-muted);font-size:11px;font-family:var(--font-alt)">—</span>`;
-    const highestHtml=item.highestSet?`<span class="tracker-vol-date">${formatTrackerDate(item.highestSet.date)}</span><span class="tracker-vol-raw">{${formatSetDisplay(item.highestSet.raw)}}</span>`:`<span style="color:var(--text-muted);font-size:11px;font-family:var(--font-alt)">—</span>`;
-    // Analytics button hidden by default; shown when row is clicked
-    return `<tr class="tracker-row" onclick="selectTrackerRow(this,'${escapeHtml(item.name)}')" style="cursor:pointer">
+  // Builds the markup for one Recent/Highest/Lowest cell: a collapsed single-line view (default, no duration)
+  // and an expanded per-set list (date once, then "Set N: Wkgs x R [duration]" for every set), toggled via CSS class.
+  const buildVolCell=(set,session)=>{
+    if(!set||!session){return `<div class="tracker-vol-cell"><span style="color:var(--text-muted);font-size:11px;font-family:var(--font-alt)">—</span></div>`}
+    const collapsed=`<div class="tracker-vol-collapsed"><span class="tracker-vol-date">${formatTrackerDate(set.date)}</span><span class="tracker-vol-raw">{${formatSetDisplay(set.raw,false)}}</span></div>`;
+    const setsListHtml=session.sets.map((s,i)=>`<li><span class="tracker-set-num">Set ${i+1}:</span><span>${formatSetDisplay(s.raw,true)}</span></li>`).join('');
+    const expanded=`<div class="tracker-vol-expanded"><span class="tracker-vol-date">${formatTrackerDate(session.date)}</span><ul class="tracker-set-list-compact">${setsListHtml}</ul></div>`;
+    return `<div class="tracker-vol-cell">${collapsed}${expanded}</div>`;
+  };
+  let rowsHtml=pageItems.map((item,i)=>{
+    const recentHtml=buildVolCell(item.recentSet,item.recentSession);
+    const highestHtml=buildVolCell(item.highestSet,item.highestSession);
+    const lowestHtml=buildVolCell(item.lowestSet,item.lowestSession);
+    const rowId=`trackerRow_${start+i}`;
+    // Single eye icon lives next to the workout name; hidden by default, revealed only when the row is selected (clicked).
+    // Clicking the eye expands the Recent/Highest/Lowest cells in place (same row, no modal, no extra row).
+    return `<tr class="tracker-row" id="${rowId}" onclick="selectTrackerRow(this,'${escapeHtml(item.name)}')" style="cursor:pointer">
       <td>${item.sno}</td>
-      <td><span class="tracker-exercise-name">${item.name}</span></td>
+      <td><div class="tracker-name-cell"><span class="tracker-exercise-name">${item.name}</span><button class="tracker-eye-btn" style="display:none" title="View set details" onclick="event.stopPropagation();toggleTrackerRowExpand('${rowId}',this)">👁</button></div></td>
       <td><span class="tracker-freq-badge">×${item.frequency}</span></td>
-      <td><div class="tracker-vol-cell">${lowestHtml}</div></td>
-      <td><div class="tracker-vol-cell">${highestHtml}</div></td>
+      <td>${recentHtml}</td>
+      <td>${highestHtml}</td>
+      <td>${lowestHtml}</td>
       <td><button class="tracker-analytics-btn" style="display:none" onclick="event.stopPropagation();showTrackerAnalytics('${escapeHtml(item.name)}')">📊 Show Analytics</button></td>
     </tr>`;
   }).join('');
   let paginationHtml='';
   if(totalPages>1){paginationHtml='<div class="tracker-pagination">';if(trackerCurrentPage>1)paginationHtml+=`<button class="tracker-page-btn" onclick="goTrackerPage(${trackerCurrentPage-1})">‹</button>`;for(let p=1;p<=totalPages;p++){paginationHtml+=`<button class="tracker-page-btn${p===trackerCurrentPage?' active':''}" onclick="goTrackerPage(${p})">${p}</button>`}if(trackerCurrentPage<totalPages)paginationHtml+=`<button class="tracker-page-btn" onclick="goTrackerPage(${trackerCurrentPage+1})">›</button>`;paginationHtml+='</div>'}
   const totalItems=list.length;
-  area.innerHTML=`<div style="margin:8px 0 10px;font-size:12px;color:var(--text-muted);font-family:var(--font-alt);letter-spacing:0.3px">Showing ${start+1}–${Math.min(start+TRACKER_PAGE_SIZE,totalItems)} of ${totalItems} exercises · <span style="color:var(--accent)">Click a row to reveal analytics</span></div><div class="tracker-table-wrapper"><table class="tracker-table"><thead><tr><th>S.No</th><th>Workout Name</th><th>Frequency</th><th>Lowest Volume Set</th><th>Highest Volume Set</th><th>Analytics</th></tr></thead><tbody>${rowsHtml}</tbody></table></div>${paginationHtml}`;
+  area.innerHTML=`<div style="margin:8px 0 10px;font-size:12px;color:var(--text-muted);font-family:var(--font-alt);letter-spacing:0.3px">Showing ${start+1}–${Math.min(start+TRACKER_PAGE_SIZE,totalItems)} of ${totalItems} exercises · <span style="color:var(--accent)">Click a row to reveal analytics</span></div><div class="tracker-table-wrapper"><table class="tracker-table"><thead><tr><th>S.No</th><th>Workout Name</th><th>Frequency</th><th>Recent Set</th><th>Highest Set</th><th>Lowest Set</th><th>Analytics</th></tr></thead><tbody>${rowsHtml}</tbody></table></div>${paginationHtml}`;
 }
 
-// Called when a tracker row is clicked — highlights row and reveals its analytics button
+// Called when a tracker row is clicked — highlights row and reveals its eye icon + analytics button
 let _selectedTrackerRow=null;
 function selectTrackerRow(tr, exName){
   // Deselect previously selected row
@@ -4345,18 +4747,42 @@ function selectTrackerRow(tr, exName){
     _selectedTrackerRow.style.background='';
     const prevBtn=_selectedTrackerRow.querySelector('.tracker-analytics-btn');
     if(prevBtn)prevBtn.style.display='none';
+    const prevEye=_selectedTrackerRow.querySelector('.tracker-eye-btn');
+    if(prevEye)prevEye.style.display='none';
+    _selectedTrackerRow.classList.remove('row-expanded');
+    if(prevEye)prevEye.classList.remove('active');
   }
   const btn=tr.querySelector('.tracker-analytics-btn');
+  const eye=tr.querySelector('.tracker-eye-btn');
   const isAlreadySelected=_selectedTrackerRow===tr;
   if(isAlreadySelected){
     // Toggle off
     tr.style.background='';
     if(btn)btn.style.display='none';
+    if(eye)eye.style.display='none';
+    tr.classList.remove('row-expanded');
+    if(eye)eye.classList.remove('active');
     _selectedTrackerRow=null;
   } else {
     tr.style.background='var(--accent-soft)';
     if(btn)btn.style.display='inline-flex';
+    if(eye)eye.style.display='inline-flex';
     _selectedTrackerRow=tr;
+  }
+}
+
+// Toggles in-place expansion of the Recent/Highest/Lowest cells for this row: swaps the single-line
+// collapsed view for a per-set breakdown (with duration) directly inside the same cells. No modal, no extra row.
+function toggleTrackerRowExpand(rowId,eyeBtn){
+  const tr=document.getElementById(rowId);
+  if(!tr)return;
+  const isExpanded=tr.classList.contains('row-expanded');
+  if(isExpanded){
+    tr.classList.remove('row-expanded');
+    if(eyeBtn)eyeBtn.classList.remove('active');
+  } else {
+    tr.classList.add('row-expanded');
+    if(eyeBtn)eyeBtn.classList.add('active');
   }
 }
 
@@ -4397,22 +4823,78 @@ function goTrackerPage(page){trackerCurrentPage=page;renderTrackerTable();docume
 function showTrackerAnalytics(exName){
   const decoded=exName.replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&#039;/g,"'");
   const exData=trackerAllData[decoded];if(!exData||!exData.sets.length){alert("No set data available for this exercise.");return}
-  const dateMap={};exData.sets.forEach(s=>{if(!dateMap[s.date])dateMap[s.date]={totalVol:0,bestVol:0,bestRaw:''};dateMap[s.date].totalVol+=s.vol;if(s.vol>dateMap[s.date].bestVol){dateMap[s.date].bestVol=s.vol;dateMap[s.date].bestRaw=s.raw}});
-  const sortedDates=Object.keys(dateMap).sort(),labels=sortedDates.map(d=>formatTrackerDate(d)),volumes=sortedDates.map(d=>dateMap[d].totalVol),tooltipLabels=sortedDates.map(d=>formatSetDisplay(dateMap[d].bestRaw)||'—');
+  // Build one entry per training day, keeping every individual set (with raw string, so duration survives) for that session
+  const dateMap={};exData.sets.forEach(s=>{if(!dateMap[s.date])dateMap[s.date]={totalVol:0,sets:[]};dateMap[s.date].totalVol+=s.vol;dateMap[s.date].sets.push(s)});
+  const sortedDates=Object.keys(dateMap).sort(),labels=sortedDates.map(d=>formatTrackerDate(d)),volumes=sortedDates.map(d=>dateMap[d].totalVol);
   const panel=document.getElementById("trackerAnalyticsPanel");panel.classList.add("visible");
   document.getElementById("trackerAnalyticsTitle").textContent=`📊 ${decoded} — Volume Journey`;
   document.getElementById("trackerAnalyticsSubtitle").textContent=`Total volume (kg × reps) per session across ${sortedDates.length} training day${sortedDates.length!==1?'s':''}`;
   if(trackerAnalyticsChartInstance){trackerAnalyticsChartInstance.destroy();trackerAnalyticsChartInstance=null}
+
+  // Graph box grows with the data so markers never feel cramped, especially on small/low-end mobile screens
+  const graphBox=document.getElementById("trackerGraphBox");
+  const pointCount=sortedDates.length;
+  const dynamicHeight=Math.max(260,Math.min(560,140+pointCount*26));
+  graphBox.style.height=dynamicHeight+'px';
+
+  // Reset the fixed detail box to its hint state every time a new exercise's graph is drawn
+  const hintEl=document.getElementById("trackerGraphDetailHint");
+  const dateEl=document.getElementById("trackerGraphDetailDate");
+  const listEl=document.getElementById("trackerGraphDetailList");
+  hintEl.style.display='block';dateEl.style.display='none';listEl.innerHTML='';
+
+  // Renders the selected day's full set breakdown (with [sec] duration) into the fixed top-right detail box
+  function updateGraphDetailBox(dataIndex){
+    const date=sortedDates[dataIndex];if(!date)return;
+    const sets=dateMap[date].sets;
+    hintEl.style.display='none';
+    dateEl.style.display='block';
+    dateEl.textContent=formatTrackerDate(date);
+    listEl.innerHTML=sets.map((s,i)=>`<li><span class="tracker-set-num">Set${i+1}:</span>${formatSetDisplay(s.raw,true)}</li>`).join('');
+  }
+
   const ctx=document.getElementById("trackerAnalyticsChart").getContext("2d");
   const isGod=document.body.classList.contains("theme-godmode"),isBat=document.body.classList.contains("theme-batman");
   const lineColor=isGod?"#c0000a":isBat?"#f5c800":"#2563eb",pointColor=isGod?"#8b0000":isBat?"#c8a000":"#1d4ed8",fillColor=isGod?"rgba(192,0,10,0.1)":isBat?"rgba(245,200,0,0.08)":"rgba(37,99,235,0.1)";
   trackerAnalyticsChartInstance=new Chart(ctx,{
-    type:'line',data:{labels,datasets:[{label:'Volume (kg × reps)',data:volumes,borderColor:lineColor,backgroundColor:fillColor,pointBackgroundColor:pointColor,pointBorderColor:'#fff',pointBorderWidth:2,pointRadius:6,pointHoverRadius:9,borderWidth:2.5,fill:true,tension:0.35,_tooltipLabels:tooltipLabels}]},
-    options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{display:false},tooltip:{backgroundColor:'rgba(15,23,42,0.92)',titleFont:{family:'Rajdhani',size:13,weight:'bold'},bodyFont:{family:'Rajdhani',size:12},padding:12,cornerRadius:10,callbacks:{title(items){return labels[items[0].dataIndex]},label(item){const vol=item.raw,raw=item.dataset._tooltipLabels[item.dataIndex];return[`Total Volume: ${vol} kg`,`Best Set: ${raw}`]}}}},scales:{y:{beginAtZero:true,grid:{color:'rgba(128,128,128,0.08)'},ticks:{color:'#6b7280',font:{family:'Rajdhani',size:12},callback(v){return v+'kg'}},title:{display:true,text:'Volume (kg × reps)',color:'#6b7280',font:{family:'Rajdhani',size:11}}},x:{grid:{display:false},ticks:{color:'#6b7280',font:{family:'Rajdhani',size:11},maxRotation:35}}}}
+    type:'line',data:{labels,datasets:[{label:'Volume (kg × reps)',data:volumes,borderColor:lineColor,backgroundColor:fillColor,pointBackgroundColor:pointColor,pointBorderColor:'#fff',pointBorderWidth:2,pointRadius:6,pointHoverRadius:9,borderWidth:2.5,fill:true,tension:0.35}]},
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      interaction:{mode:'index',intersect:false},
+      // Default Chart.js tooltip is disabled — the fixed top-right detail box replaces it with the full per-set breakdown
+      plugins:{legend:{display:false},tooltip:{enabled:false}},
+      scales:{
+        y:{beginAtZero:true,grid:{color:'rgba(128,128,128,0.08)'},ticks:{color:'#6b7280',font:{family:'Rajdhani',size:12},callback(v){return v+'kg'}},title:{display:true,text:'Volume (kg × reps)',color:'#6b7280',font:{family:'Rajdhani',size:11}}},
+        // X axis: no date labels and no gridlines, per spec — dates only ever appear inside the detail box
+        x:{display:false,grid:{display:false},ticks:{display:false}}
+      },
+      // Fires on tap (mobile) and click (desktop) — selects the nearest point and updates the fixed detail box
+      onClick(evt,elements,chart){
+        const points=chart.getElementsAtEventForMode(evt,'index',{intersect:false},true);
+        if(points.length)updateGraphDetailBox(points[0].index);
+      }
+    }
   });
+
+  // Touch-drag support: as a finger moves along the line (without lifting), keep the detail box live-updating.
+  // preventDefault stops the page from scrolling while the user is actively dragging across the chart.
+  const canvasEl=document.getElementById("trackerAnalyticsChart");
+  canvasEl.ontouchmove=function(evt){
+    if(!trackerAnalyticsChartInstance)return;
+    const touch=evt.touches[0];if(!touch)return;
+    const rect=canvasEl.getBoundingClientRect();
+    const fakeEvt={x:touch.clientX-rect.left,y:touch.clientY-rect.top,native:evt};
+    const points=trackerAnalyticsChartInstance.getElementsAtEventForMode(fakeEvt,'index',{intersect:false},true);
+    if(points.length){evt.preventDefault();updateGraphDetailBox(points[0].index)}
+  };
+
+  // Auto-select the most recent day so the detail box isn't empty on first render
+  if(sortedDates.length)updateGraphDetailBox(sortedDates.length-1);
+
   panel.scrollIntoView({behavior:"smooth",block:"start"});
 }
-function closeTrackerAnalytics(){const panel=document.getElementById("trackerAnalyticsPanel");panel.classList.remove("visible");if(trackerAnalyticsChartInstance){trackerAnalyticsChartInstance.destroy();trackerAnalyticsChartInstance=null}}
+function closeTrackerAnalytics(){const panel=document.getElementById("trackerAnalyticsPanel");panel.classList.remove("visible");if(trackerAnalyticsChartInstance){trackerAnalyticsChartInstance.destroy();trackerAnalyticsChartInstance=null}const cv=document.getElementById("trackerAnalyticsChart");if(cv)cv.ontouchmove=null}
+
 document.addEventListener('click',function(e){
   const sug=document.getElementById('trackerSearchSuggestions');
   if(sug&&!sug.contains(e.target)&&e.target.id!=='trackerSearchInput')sug.style.display='none';
