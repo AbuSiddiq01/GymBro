@@ -349,25 +349,33 @@ body.theme-batman .vol-range-btn.active{color:#05050a}
 .vol-range-label{display:none;text-align:center;font-family:var(--font-alt);font-size:13px;font-weight:800;color:var(--accent);letter-spacing:0.6px;margin-top:10px;padding:8px;background:var(--accent-soft);border-radius:10px;border:1px solid var(--border-col)}
 .vol-range-label.visible{display:block}
 
-/* Fixed top-right detail box — Duration & Volume graphs share this dark "digital" style,
-   matching the look of the original floating tooltip (dark glass background, white text,
-   Bebas Neue display font for the big value), now rehoused as a fixed, non-cursor-following box. */
+/* Fixed top-right detail box — Duration & Volume graphs share this "digital" style. Dark glass
+   background with white text in Batman/God modes (matching the original floating tooltip look);
+   Light mode swaps to a clean white/blue card so it reads correctly against the light page. */
 .vol-graph-box{position:relative}
 .vol-graph-detail-box{position:absolute;top:8px;right:8px;z-index:5;max-width:46%;min-width:112px;background:rgba(15,23,42,0.95);border:1px solid rgba(255,255,255,0.1);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,0.3);padding:9px 12px;font-family:var(--font-alt);pointer-events:none;transition:all 0.15s ease;text-align:right}
 body.theme-batman .vol-graph-detail-box{background:rgba(7,8,10,0.97);border-color:rgba(245,200,0,0.3)}
 body.theme-godmode .vol-graph-detail-box{background:rgba(8,0,0,0.97);border-color:rgba(180,0,0,0.3)}
+body:not(.theme-batman):not(.theme-godmode) .vol-graph-detail-box{background:rgba(255,255,255,0.97);border-color:rgba(37,99,235,0.18);box-shadow:0 8px 24px rgba(37,99,235,0.12)}
 .vol-graph-detail-hint{font-size:10px;color:#94a3b8;letter-spacing:0.3px;white-space:nowrap}
+body:not(.theme-batman):not(.theme-godmode) .vol-graph-detail-hint{color:#64748b}
 .vol-graph-detail-date{font-weight:800;color:var(--accent);font-size:12px;letter-spacing:0.4px;margin-bottom:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .vol-graph-detail-vol{font-family:var(--font-display);font-size:19px;color:#fff;letter-spacing:0.5px;white-space:nowrap}
+body:not(.theme-batman):not(.theme-godmode) .vol-graph-detail-vol{color:#1e3a8a}
 .vol-graph-detail-vol small{font-size:10px;color:#94a3b8;font-family:var(--font-alt);font-weight:600;letter-spacing:0}
+body:not(.theme-batman):not(.theme-godmode) .vol-graph-detail-vol small{color:#64748b}
 
-/* Duration detail box content — same dark card, with colored muscle dots + a divider above the duration line */
+/* Duration detail box content — same card, with colored muscle dots + a divider above the duration line */
 .dur-graph-detail-title{font-weight:800;font-size:12px;color:var(--accent);margin-bottom:6px;letter-spacing:0.4px;white-space:nowrap}
 .dur-graph-detail-muscle{display:flex;align-items:center;justify-content:flex-end;gap:6px;margin-top:4px;font-size:11px;font-weight:600;color:#cbd5e1;white-space:nowrap}
+body:not(.theme-batman):not(.theme-godmode) .dur-graph-detail-muscle{color:#334155}
 .dur-graph-detail-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
 .dur-graph-detail-rest{font-size:11px;color:#94a3b8;font-weight:600}
+body:not(.theme-batman):not(.theme-godmode) .dur-graph-detail-rest{color:#64748b}
 .dur-graph-detail-divider{margin-top:8px;padding-top:7px;border-top:1px solid rgba(255,255,255,0.12);font-size:12px;color:#94a3b8;font-weight:600;white-space:nowrap}
+body:not(.theme-batman):not(.theme-godmode) .dur-graph-detail-divider{border-top-color:rgba(37,99,235,0.15);color:#64748b}
 .dur-graph-detail-divider strong{color:#fff;font-family:var(--font-display);font-size:17px;letter-spacing:0.5px}
+body:not(.theme-batman):not(.theme-godmode) .dur-graph-detail-divider strong{color:#1e3a8a}
 @media (max-width:480px){
   .vol-graph-detail-box{max-width:56%;padding:7px 9px;border-radius:10px}
   .vol-graph-detail-date{font-size:10.5px}
@@ -633,17 +641,21 @@ body.theme-batman .tracker-page-btn.active{color:#05050a}
 .tracker-analytics-close{background:var(--accent-soft);color:var(--accent);border:1px solid var(--accent);border-radius:9px;padding:6px 14px;font-size:12px;font-weight:700;font-family:var(--font-alt);cursor:pointer;transition:all 0.2s}
 .tracker-analytics-close:hover{background:var(--accent);color:#fff}
 .tracker-graph-box{position:relative;height:300px;width:100%;min-height:240px}
-.tracker-graph-detail-box{position:absolute;top:8px;right:8px;z-index:5;max-width:46%;min-width:108px;background:var(--bg-card);border:1px solid var(--border-col);border-radius:12px;box-shadow:0 4px 14px rgba(0,0,0,0.15);padding:8px 10px;font-family:var(--font-alt);pointer-events:none;transition:all 0.15s ease}
+.tracker-graph-detail-box{position:absolute;top:8px;right:8px;z-index:5;max-width:46%;min-width:108px;height:130px;display:flex;flex-direction:column;background:var(--bg-card);border:1px solid var(--border-col);border-radius:12px;box-shadow:0 4px 14px rgba(0,0,0,0.15);padding:8px 10px;font-family:var(--font-alt);pointer-events:auto;transition:all 0.15s ease}
 .tracker-graph-detail-hint{font-size:10px;color:var(--text-muted);letter-spacing:0.3px;white-space:nowrap}
-.tracker-graph-detail-date{font-weight:800;color:var(--accent);font-size:11px;letter-spacing:0.3px;margin-bottom:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.tracker-graph-detail-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:3px}
+.tracker-graph-detail-date{font-weight:800;color:var(--accent);font-size:11px;letter-spacing:0.3px;margin-bottom:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0}
+.tracker-graph-detail-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:3px;overflow-y:auto;flex:1 1 auto;min-height:0}
 .tracker-graph-detail-list li{font-size:9.5px;line-height:1.45;color:var(--text-primary);white-space:nowrap}
 .tracker-graph-detail-list li .tracker-set-num{color:var(--text-muted);font-weight:700;margin-right:3px}
+.tracker-graph-detail-total{margin-top:6px;padding-top:6px;border-top:1px solid var(--border-col);font-size:11px;color:var(--text-muted);font-weight:600;white-space:nowrap;text-align:right;flex-shrink:0}
+.tracker-graph-detail-total strong{color:var(--accent);font-family:var(--font-display);font-size:15px;letter-spacing:0.4px;margin-left:4px}
 @media (max-width:480px){
-  .tracker-graph-detail-box{max-width:54%;padding:6px 8px;border-radius:10px}
+  .tracker-graph-detail-box{max-width:54%;height:112px;padding:6px 8px;border-radius:10px}
   .tracker-graph-detail-date{font-size:10px}
   .tracker-graph-detail-list li{font-size:8.5px}
   .tracker-graph-detail-hint{font-size:9px}
+  .tracker-graph-detail-total{font-size:10px}
+  .tracker-graph-detail-total strong{font-size:13px}
 }
 .tracker-subtitle{font-size:11px;color:var(--text-muted);font-family:var(--font-alt);margin-bottom:16px;letter-spacing:0.3px}
 .tracker-name-cell{display:flex;align-items:center;gap:8px}
@@ -1481,6 +1493,7 @@ body.theme-godmode .levelup-toast{background:linear-gradient(135deg,#7a0006,#c00
               <div class="tracker-graph-detail-hint" id="trackerGraphDetailHint">👆 Tap a point</div>
               <div class="tracker-graph-detail-date" id="trackerGraphDetailDate" style="display:none"></div>
               <ul class="tracker-graph-detail-list" id="trackerGraphDetailList"></ul>
+              <div class="tracker-graph-detail-total" id="trackerGraphDetailTotal" style="display:none"></div>
             </div>
             <canvas id="trackerAnalyticsChart"></canvas>
           </div>
@@ -2905,6 +2918,11 @@ async function updateStatsChart(){
   let rawWorkouts=days.map(d=>d.classes.join(', '));
   if(userStatsInstanceChart){userStatsInstanceChart.destroy();userStatsInstanceChart=null}
   const canvas=document.getElementById("workoutChart"),ctx=canvas.getContext("2d");
+  // Fixed height-ratio safety: the Y-axis max is computed (not just beginAtZero) so the tallest bar
+  // is scaled to occupy a constrained ratio of the plot area, always leaving headroom above it for
+  // the fixed top-right detail box — the bar can never grow tall enough to reach that corner.
+  const durMaxVal=Math.max(0,...chartData);
+  const durSuggestedMax=durMaxVal>0?Math.ceil((durMaxVal*1.45)/10)*10:60;
   userStatsInstanceChart=new Chart(ctx,{
     type:'bar',
     data:{labels,datasets:[{label:'Duration (min)',data:chartData,rawWorkouts,backgroundColor:'rgba(37,99,235,0)',borderColor:'transparent',borderWidth:0,borderRadius:6,barPercentage:0.65,categoryPercentage:0.8}]},
@@ -2915,7 +2933,7 @@ async function updateStatsChart(){
       // underneath or touch the fixed top-right detail box, even on small/low-end mobile screens.
       layout:{padding:{top:78,right:6,left:2,bottom:2}},
       plugins:{legend:{display:false},tooltip:{enabled:false}},
-      scales:{y:{beginAtZero:true,grid:{color:'rgba(128,128,128,0.08)'},ticks:{color:'#6b7280',font:{family:'Rajdhani',size:12},callback(v){return v+'m'}}},x:{grid:{display:false},ticks:{color:'#6b7280',font:{family:'Rajdhani',size:12}}}},
+      scales:{y:{beginAtZero:true,suggestedMax:durSuggestedMax,grid:{color:'rgba(128,128,128,0.08)'},ticks:{color:'#6b7280',font:{family:'Rajdhani',size:12},callback(v){return v+'m'}}},x:{grid:{display:false},ticks:{color:'#6b7280',font:{family:'Rajdhani',size:12}}}},
       onHover(evt,elements){canvas.style.cursor=elements.length?'pointer':'default'}
     },
     plugins:[stackedMusclePlugin]
@@ -3211,6 +3229,12 @@ async function updateVolumeChart(side='main'){
   const solidColor=isMain?getVolSolidColor():null;
   const{grad,hoverGrad}=isMain?{grad:solidColor,hoverGrad:solidColor}:makeVolGradients(ctx,side);
 
+  // Fixed height-ratio safety (main panel only — it's the only one with a fixed detail box): the
+  // Y-axis max is computed so the tallest bar is scaled to a constrained ratio of the plot area,
+  // always leaving headroom above it — it can never grow tall enough to reach the detail box.
+  const volMaxVal=Math.max(0,...volumes);
+  const volSuggestedMax=isMain?(volMaxVal>0?Math.ceil((volMaxVal*1.45)/10)*10:100):undefined;
+
   const instance=new Chart(ctx,{
     type:'bar',
     data:{
@@ -3232,7 +3256,7 @@ async function updateVolumeChart(side='main'){
       layout:{padding:{top:isMain?78:0,right:6,left:2,bottom:2}},
       plugins:{legend:{display:false},tooltip:{enabled:false}},
       scales:{
-        y:{beginAtZero:true,grid:{color:'rgba(128,128,128,0.08)'},ticks:{color:'#6b7280',font:{family:'Rajdhani',size:11},callback(v){return v>=1000?(v/1000).toFixed(1)+'k':v}}},
+        y:{beginAtZero:true,suggestedMax:volSuggestedMax,grid:{color:'rgba(128,128,128,0.08)'},ticks:{color:'#6b7280',font:{family:'Rajdhani',size:11},callback(v){return v>=1000?(v/1000).toFixed(1)+'k':v}}},
         x:{grid:{display:false},ticks:{color:'#6b7280',font:{family:'Rajdhani',size:10},maxRotation:0}}
       },
       onHover(evt,els){canvas.style.cursor=els.length?'pointer':'default'}
@@ -4959,19 +4983,23 @@ function showTrackerAnalytics(exName){
   document.getElementById("trackerAnalyticsSubtitle").textContent=`Total volume (kg × reps) per session across ${sortedDates.length} training day${sortedDates.length!==1?'s':''}`;
   if(trackerAnalyticsChartInstance){trackerAnalyticsChartInstance.destroy();trackerAnalyticsChartInstance=null}
 
-  // Graph box grows with the data so markers never feel cramped, especially on small/low-end mobile screens
+  // Graph box grows with the data so markers never feel cramped, especially on small/low-end mobile screens.
+  // The extra +155px is dedicated, non-plottable headroom reserved specifically for the fixed
+  // top-right detail box (box: 8px top offset + 130px fixed height = 138px, plus a clear 17px gap)
+  // so the box's own height never has to borrow space from the plot area.
   const graphBox=document.getElementById("trackerGraphBox");
   const pointCount=sortedDates.length;
-  const dynamicHeight=Math.max(260,Math.min(560,140+pointCount*26));
+  const dynamicHeight=Math.max(260,Math.min(560,140+pointCount*26))+155;
   graphBox.style.height=dynamicHeight+'px';
 
   // Reset the fixed detail box to its hint state every time a new exercise's graph is drawn
   const hintEl=document.getElementById("trackerGraphDetailHint");
   const dateEl=document.getElementById("trackerGraphDetailDate");
   const listEl=document.getElementById("trackerGraphDetailList");
-  hintEl.style.display='block';dateEl.style.display='none';listEl.innerHTML='';
+  const totalEl=document.getElementById("trackerGraphDetailTotal");
+  hintEl.style.display='block';dateEl.style.display='none';listEl.innerHTML='';totalEl.style.display='none';
 
-  // Renders the selected day's full set breakdown (with [sec] duration) into the fixed top-right detail box
+  // Renders the selected day's full set breakdown (with [sec] duration) plus Total Volume into the fixed top-right detail box
   function updateGraphDetailBox(dataIndex){
     const date=sortedDates[dataIndex];if(!date)return;
     const sets=dateMap[date].sets;
@@ -4979,20 +5007,34 @@ function showTrackerAnalytics(exName){
     dateEl.style.display='block';
     dateEl.textContent=formatTrackerDate(date);
     listEl.innerHTML=sets.map((s,i)=>`<li><span class="tracker-set-num">Set${i+1}:</span>${formatSetDisplay(s.raw,true)}</li>`).join('');
+    totalEl.style.display='block';
+    const totalVol=Math.round(dateMap[date].totalVol);
+    totalEl.innerHTML=`Total Volume: <strong>${totalVol>=1000?(totalVol/1000).toFixed(1)+'k':totalVol}</strong>`;
   }
 
   const ctx=document.getElementById("trackerAnalyticsChart").getContext("2d");
   const isGod=document.body.classList.contains("theme-godmode"),isBat=document.body.classList.contains("theme-batman");
   const lineColor=isGod?"#c0000a":isBat?"#f5c800":"#2563eb",pointColor=isGod?"#8b0000":isBat?"#c8a000":"#1d4ed8",fillColor=isGod?"rgba(192,0,10,0.1)":isBat?"rgba(245,200,0,0.08)":"rgba(37,99,235,0.1)";
+  // Fixed height-ratio safety: the Y-axis max is computed so the tallest point on the line is
+  // scaled to a constrained ratio of the plot area, always leaving headroom above it — the line
+  // and its markers can never reach the top-right corner where the detail box sits.
+  const trkMaxVal=Math.max(0,...volumes);
+  const trkSuggestedMax=trkMaxVal>0?Math.ceil((trkMaxVal*1.45)/10)*10:100;
   trackerAnalyticsChartInstance=new Chart(ctx,{
     type:'line',data:{labels,datasets:[{label:'Volume (kg × reps)',data:volumes,borderColor:lineColor,backgroundColor:fillColor,pointBackgroundColor:pointColor,pointBorderColor:'#fff',pointBorderWidth:2,pointRadius:6,pointHoverRadius:9,borderWidth:2.5,fill:true,tension:0.35}]},
     options:{
       responsive:true,maintainAspectRatio:false,
       interaction:{mode:'index',intersect:false},
+      // Layout safety: the graph box now reserves +155px of genuine extra height (see dynamicHeight
+      // above) specifically for the fixed top-right detail box (138px fixed box + clear gap). This top
+      // padding carves that same amount out of the chart's own plot area, so the line and its point
+      // markers are drawn entirely below the reserved zone — they can never run underneath or touch
+      // the detail box, even when pointHoverRadius temporarily enlarges a marker on tap/hover.
+      layout:{padding:{top:155,right:6,left:2,bottom:2}},
       // Default Chart.js tooltip is disabled — the fixed top-right detail box replaces it with the full per-set breakdown
       plugins:{legend:{display:false},tooltip:{enabled:false}},
       scales:{
-        y:{beginAtZero:true,grid:{color:'rgba(128,128,128,0.08)'},ticks:{color:'#6b7280',font:{family:'Rajdhani',size:12},callback(v){return v+'kg'}},title:{display:true,text:'Volume (kg × reps)',color:'#6b7280',font:{family:'Rajdhani',size:11}}},
+        y:{beginAtZero:true,suggestedMax:trkSuggestedMax,grid:{color:'rgba(128,128,128,0.08)'},ticks:{color:'#6b7280',font:{family:'Rajdhani',size:12},callback(v){return v+'kg'}},title:{display:true,text:'Volume (kg × reps)',color:'#6b7280',font:{family:'Rajdhani',size:11}}},
         // X axis: no date labels and no gridlines, per spec — dates only ever appear inside the detail box
         x:{display:false,grid:{display:false},ticks:{display:false}}
       },
