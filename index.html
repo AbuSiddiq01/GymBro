@@ -316,7 +316,8 @@ body.theme-batman .set-new-timer-btn{color:#05050a}
 .workout-log-card.selected-active .workout-actions-overlay{opacity:1;transform:translateX(0);pointer-events:auto}
 .action-icon-btn{background:var(--accent-soft);border:none;padding:7px 9px;border-radius:9px;cursor:pointer;font-size:13px;transition:all 0.2s ease}
 .action-icon-btn.edit:hover{background:#dbeafe}.action-icon-btn.delete:hover{background:#fee2e2}
-.stats-summary-row{display:flex;justify-content:space-between;background:var(--accent-soft);padding:13px;border-radius:14px;font-size:13px;color:var(--text-secondary);margin-top:12px;border:1px solid var(--border-col);font-family:var(--font-alt)}
+.stats-summary-row{display:flex;justify-content:space-between;align-items:center;background:var(--accent-soft);padding:10px 13px;border-radius:14px;font-size:12px;color:var(--text-secondary);margin-top:12px;border:1px solid var(--border-col);font-family:var(--font-alt);gap:8px;flex-wrap:nowrap;overflow:hidden}
+.stats-summary-row>div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 .analytics-box{background:var(--accent-soft);padding:14px;border-radius:18px;border:1px solid var(--border-col);margin-top:8px}
 .graph-container{position:relative;height:320px;width:100%}
 
@@ -353,17 +354,17 @@ body.theme-batman .vol-range-btn.active{color:#05050a}
    background with white text in Batman/God modes (matching the original floating tooltip look);
    Light mode swaps to a clean white/blue card so it reads correctly against the light page. */
 .vol-graph-box{position:relative}
-.vol-graph-detail-box{position:absolute;top:8px;right:8px;z-index:5;max-width:46%;min-width:112px;background:rgba(15,23,42,0.95);border:1px solid rgba(255,255,255,0.1);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,0.3);padding:9px 12px;font-family:var(--font-alt);pointer-events:none;transition:all 0.15s ease;text-align:right}
+.vol-graph-detail-box{position:absolute;top:8px;right:8px;z-index:5;max-width:46%;min-width:112px;max-height:calc(100% - 16px);overflow:hidden;background:rgba(15,23,42,0.95);border:1px solid rgba(255,255,255,0.1);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,0.3);padding:8px 10px;font-family:var(--font-alt);pointer-events:none;transition:all 0.15s ease;text-align:left;box-sizing:border-box}
 body.theme-batman .vol-graph-detail-box{background:rgba(7,8,10,0.97);border-color:rgba(245,200,0,0.3)}
 body.theme-godmode .vol-graph-detail-box{background:rgba(8,0,0,0.97);border-color:rgba(180,0,0,0.3)}
 body:not(.theme-batman):not(.theme-godmode) .vol-graph-detail-box{background:rgba(255,255,255,0.97);border-color:rgba(37,99,235,0.18);box-shadow:0 8px 24px rgba(37,99,235,0.12)}
 .vol-graph-detail-hint{font-size:10px;color:#94a3b8;letter-spacing:0.3px;white-space:nowrap}
 body:not(.theme-batman):not(.theme-godmode) .vol-graph-detail-hint{color:#64748b}
-.vol-graph-detail-date{font-weight:800;color:var(--accent);font-size:12px;letter-spacing:0.4px;margin-bottom:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.vol-graph-detail-vol{font-family:var(--font-display);font-size:19px;color:#fff;letter-spacing:0.5px;white-space:nowrap}
-body:not(.theme-batman):not(.theme-godmode) .vol-graph-detail-vol{color:#1e3a8a}
-.vol-graph-detail-vol small{font-size:10px;color:#94a3b8;font-family:var(--font-alt);font-weight:600;letter-spacing:0}
-body:not(.theme-batman):not(.theme-godmode) .vol-graph-detail-vol small{color:#64748b}
+.vol-graph-detail-date{font-weight:800;color:var(--accent);font-size:11px;letter-spacing:0.4px;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vol-graph-detail-vol{font-family:var(--font-alt);font-size:10px;font-weight:600;color:#94a3b8;letter-spacing:0.2px;white-space:normal;line-height:1.4;overflow:hidden;word-break:break-word}
+body:not(.theme-batman):not(.theme-godmode) .vol-graph-detail-vol{color:#64748b}
+.vol-graph-detail-vol strong{font-family:var(--font-display);font-size:13px;color:#fff;letter-spacing:0.4px;white-space:nowrap}
+body:not(.theme-batman):not(.theme-godmode) .vol-graph-detail-vol strong{color:#1e3a8a}
 
 /* Duration detail box content — same card, with colored muscle dots + a divider above the duration line */
 .dur-graph-detail-title{font-weight:800;font-size:12px;color:var(--accent);margin-bottom:6px;letter-spacing:0.4px;white-space:nowrap}
@@ -376,10 +377,57 @@ body:not(.theme-batman):not(.theme-godmode) .dur-graph-detail-rest{color:#64748b
 body:not(.theme-batman):not(.theme-godmode) .dur-graph-detail-divider{border-top-color:rgba(37,99,235,0.15);color:#64748b}
 .dur-graph-detail-divider strong{color:#fff;font-family:var(--font-display);font-size:17px;letter-spacing:0.5px}
 body:not(.theme-batman):not(.theme-godmode) .dur-graph-detail-divider strong{color:#1e3a8a}
+/* Frequency row — shown only when a class icon is actively selected */
+.dur-graph-detail-freq{margin-top:6px;font-size:11px;font-weight:700;color:var(--accent);font-family:var(--font-alt);letter-spacing:0.2px;white-space:nowrap;text-align:right}
+.dur-graph-detail-freq span{display:block;font-family:var(--font-display);font-size:16px;letter-spacing:0.5px}
+/* Legend item active state — highlighted border + tinted background when class is selected */
+.dur-legend-item{user-select:none;-webkit-tap-highlight-color:transparent}
+.dur-legend-item.active{transform:scale(1.04)}
+
+/* ── Class Icon Carousel ── */
+.class-carousel-wrap{position:relative;width:100%;margin-top:8px;overflow:hidden}
+.class-carousel-wrap.hidden{display:none!important}
+.class-carousel-track{display:flex;gap:8px;transition:transform 0.42s cubic-bezier(0.34,1.26,0.64,1);will-change:transform;padding:4px 2px}
+.class-carousel-item{flex-shrink:0;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform 0.22s ease,box-shadow 0.22s ease}
+.class-carousel-item.center-item{transform:scale(1.08);z-index:2}
+.class-carousel-fade-l,.class-carousel-fade-r{position:absolute;top:0;bottom:0;width:32px;pointer-events:none;z-index:3}
+.class-carousel-fade-l{left:0;background:linear-gradient(to right,var(--bg-card) 0%,transparent 100%)}
+.class-carousel-fade-r{right:0;background:linear-gradient(to left,var(--bg-card) 0%,transparent 100%)}
+
+/* ── Swipe Panel (Statistics ↔ Breakdown) ── */
+.vol-swipe-host{position:relative;overflow:hidden;border-radius:16px;touch-action:pan-y}
+.vol-swipe-track{display:flex;transition:transform 0.38s cubic-bezier(0.4,0,0.2,1);will-change:transform}
+.vol-swipe-panel{flex:0 0 100%;min-width:0;box-sizing:border-box}
+.vol-swipe-tabs{display:flex;gap:0;margin-bottom:6px;border-radius:12px;overflow:hidden;border:1px solid var(--border-col)}
+.vol-swipe-tab{flex:1;padding:9px 6px;text-align:center;font-family:var(--font-alt);font-size:12px;font-weight:700;letter-spacing:0.4px;cursor:pointer;background:var(--bg-card);color:var(--text-secondary);border:none;transition:background 0.2s,color 0.2s;-webkit-tap-highlight-color:transparent}
+.vol-swipe-tab.active{background:var(--tab-active-bg);color:var(--follow-btn-text)}
+body.theme-batman .vol-swipe-tab.active{color:#05050a}
+
+/* Paired nav arrows — centred together at the bottom of the graph box so one thumb can reach both */
+.dur-nav-pair{display:flex;gap:6px;align-items:center;justify-content:center;margin-top:8px;z-index:6}
+.dur-nav-arrow{background:var(--bg-card);border:1px solid var(--border-col);border-radius:50%;width:38px;height:38px;display:flex;align-items:center;justify-content:center;font-size:24px;line-height:1;color:var(--accent);cursor:pointer;transition:background 0.15s,transform 0.1s,box-shadow 0.15s;box-shadow:0 2px 8px rgba(0,0,0,0.18);padding:0;font-family:sans-serif;-webkit-tap-highlight-color:transparent}
+.dur-nav-arrow:active{transform:scale(0.88)}
+/* Arrows glow when a class filter is active in Detailed View mode */
+.dur-nav-arrow.class-filtered{background:var(--accent);color:#fff;border-color:var(--accent);box-shadow:0 0 12px rgba(37,99,235,0.55)}
+body.theme-batman .dur-nav-arrow.class-filtered{box-shadow:0 0 12px rgba(245,200,0,0.55)}
+body.theme-godmode .dur-nav-arrow.class-filtered{box-shadow:0 0 12px rgba(192,0,10,0.55)}
+/* In normal mode (no class filter), the selected bar/point arrow still glows softly */
+.dur-nav-arrow.nav-active{box-shadow:0 0 10px rgba(37,99,235,0.3);border-color:var(--accent)}
+/* Detailed View toggle pill */
+.dur-detail-toggle{padding:7px 13px;border:1.5px solid var(--border-col);border-radius:20px;background:transparent;color:var(--text-muted);font-family:var(--font-alt);font-size:11px;font-weight:700;letter-spacing:0.4px;cursor:pointer;transition:all 0.15s;white-space:nowrap;flex-shrink:0}
+.dur-detail-toggle.on{background:var(--accent);color:#fff;border-color:var(--accent);box-shadow:0 0 8px rgba(37,99,235,0.3)}
+body.theme-batman .dur-detail-toggle.on{box-shadow:0 0 8px rgba(245,200,0,0.3)}
+body.theme-godmode .dur-detail-toggle.on{box-shadow:0 0 8px rgba(192,0,10,0.3)}
+/* Class legend grid — only shown when Detailed View is ON; neat pill-row layout */
+#statsChartLegend{gap:6px;margin-top:8px}
+#statsChartLegend.hidden{display:none!important}
+#volChartLegend{display:flex}
+#volChartLegend.hidden{display:none!important}
 @media (max-width:480px){
   .vol-graph-detail-box{max-width:56%;padding:7px 9px;border-radius:10px}
   .vol-graph-detail-date{font-size:10.5px}
-  .vol-graph-detail-vol{font-size:16px}
+  .vol-graph-detail-vol{font-size:9.5px}
+  .vol-graph-detail-vol strong{font-size:15px}
   .vol-graph-detail-hint{font-size:9px}
   .dur-graph-detail-divider strong{font-size:15px}
 }
@@ -1176,7 +1224,7 @@ body.theme-godmode .levelup-toast{background:linear-gradient(135deg,#7a0006,#c00
 
         <!-- ── DURATION VIEW ── -->
         <div class="duration-view" id="durationView">
-          <div class="stats-period-row">
+          <div class="stats-period-row" id="durWeekRow">
             <select id="statsTimeframe" style="margin-top:0;padding:10px" onchange="updateStatsChart()">
               <option value="w1">Week 1 (1st – 7th)</option>
               <option value="w2">Week 2 (8th – 14th)</option>
@@ -1186,6 +1234,7 @@ body.theme-godmode .levelup-toast{background:linear-gradient(135deg,#7a0006,#c00
             </select>
             <select id="statsMonth" style="margin-top:0;padding:10px;flex:1;min-width:130px" onchange="updateStatsChart()"></select>
           </div>
+          <div class="vol-range-label" id="durRangeLabel"></div>
           <div class="analytics-box">
             <div class="graph-container" id="durGraphBox">
               <canvas id="workoutChart"></canvas>
@@ -1194,20 +1243,48 @@ body.theme-godmode .levelup-toast{background:linear-gradient(135deg,#7a0006,#c00
                 <div id="durGraphDetailBody" style="display:none">
                   <div class="dur-graph-detail-title" id="durGraphDetailDate"></div>
                   <div id="durGraphDetailClasses"></div>
+                  <div class="dur-graph-detail-freq" id="durGraphDetailFreq" style="display:none"></div>
                   <div class="dur-graph-detail-divider" id="durGraphDetailDuration"></div>
                 </div>
               </div>
             </div>
           </div>
-          <div id="statsChartLegend" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px"></div>
-          <div style="font-size:11px;color:var(--text-muted);font-family:var(--font-alt);margin-top:6px">
+          <!-- Nav arrows below graph box, not overlapping bars or dates -->
+          <div class="dur-nav-pair" style="position:relative;transform:none;left:auto;bottom:auto;justify-content:center;margin-top:8px">
+            <button class="dur-nav-arrow" id="durNavLeft" onclick="durNavigate(-1)" title="Previous">&#8249;</button>
+            <button class="dur-nav-arrow" id="durNavRight" onclick="durNavigate(1)" title="Next">&#8250;</button>
+          </div>
+
+          <div id="statsChartLegendWrap" class="class-carousel-wrap hidden">
+            <div class="class-carousel-fade-l"></div>
+            <div class="class-carousel-track" id="statsChartLegend"></div>
+            <div class="class-carousel-fade-r"></div>
+          </div>
+
+          <!-- Weekly/Monthly/3-Month toggle -->
+          <div class="vol-range-toggle" style="margin-top:10px">
+            <button class="vol-range-btn active" id="durRangeBtnWeekly" onclick="setDurRangeMode('weekly')">Weekly</button>
+            <button class="vol-range-btn" id="durRangeBtnMonthly" onclick="setDurRangeMode('monthly')">Monthly</button>
+            <button class="vol-range-btn" id="durRangeBtn3m" onclick="setDurRangeMode('3month')">3-Month</button>
+          </div>
+
+          <!-- Detailed View on/off toggle below time period buttons -->
+          <div style="display:flex;align-items:center;gap:8px;margin-top:10px">
+            <span style="font-family:var(--font-alt);font-size:12px;font-weight:700;color:var(--text-muted);letter-spacing:0.5px">DETAILED VIEW</span>
+            <div class="live-toggle" id="durDetailToggle" onclick="toggleDurDetailView()" style="width:36px;height:20px">
+              <div class="live-toggle-knob"></div>
+            </div>
+            <span id="durDetailToggleLabel" style="font-family:var(--font-alt);font-size:12px;font-weight:700;color:var(--text-muted)">OFF</span>
+          </div>
+
+          <div style="font-size:11px;color:var(--text-muted);font-family:var(--font-alt);margin-top:6px" id="durHintText">
             💡 Hover or click a bar to see workout details &amp; duration
           </div>
           <div class="stats-summary-row">
             <div>Avg Time: <strong id="avgTimeLabel" style="color:var(--accent)">0 Mins</strong></div>
-            <div>Most Trained: <strong id="mostTrainedLabel" style="color:var(--accent)">None</strong></div>
+            <div id="mostTrainedRow">Most Trained: <strong id="mostTrainedLabel" style="color:var(--accent)">None</strong></div>
           </div>
-          <div class="stats-summary-row" style="margin-top:6px;background:rgba(225,29,72,0.07);border-color:rgba(225,29,72,0.18)">
+          <div class="stats-summary-row" id="lessTrainedRow" style="margin-top:6px;background:rgba(225,29,72,0.07);border-color:rgba(225,29,72,0.18)">
             <div style="color:#e11d48">Weak Point: <strong id="lessTrainedLabel">None</strong></div>
           </div>
         </div>
@@ -1249,28 +1326,76 @@ body.theme-godmode .levelup-toast{background:linear-gradient(135deg,#7a0006,#c00
               </div>
             </div>
 
+            <!-- Nav arrows below graph (won't overlap bars or dates) -->
+            <div class="dur-nav-pair" style="margin-top:8px">
+              <button class="dur-nav-arrow" id="volNavLeft" onclick="volNavigate(-1)" title="Previous">&#8249;</button>
+              <button class="dur-nav-arrow" id="volNavRight" onclick="volNavigate(1)" title="Next">&#8250;</button>
+            </div>
+
             <!-- Weekly / Monthly / 3-Month toggle -->
-            <div class="vol-range-toggle">
+            <div class="vol-range-toggle" style="margin-top:8px">
               <button class="vol-range-btn active" id="volRangeBtnWeekly" onclick="setVolRangeMode('weekly')">Weekly</button>
               <button class="vol-range-btn" id="volRangeBtnMonthly" onclick="setVolRangeMode('monthly')">Monthly</button>
               <button class="vol-range-btn" id="volRangeBtn3m" onclick="setVolRangeMode('3month')">3-Month</button>
             </div>
 
-            <div style="font-size:11px;color:var(--text-muted);font-family:var(--font-alt);margin-top:8px" id="volHintText">
-              💡 Click or hover a bar to drill down into that day's workout breakdown
+            <!-- Class legend carousel (shown in detailed view mode) -->
+            <div id="volChartLegendWrap" class="class-carousel-wrap hidden">
+              <div class="class-carousel-fade-l"></div>
+              <div class="class-carousel-track" id="volChartLegend"></div>
+              <div class="class-carousel-fade-r"></div>
             </div>
-            <div class="vol-drilldown" id="volDrilldown">
-              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:8px">
-                <div class="vol-drilldown-title" id="volDrillTitle" style="margin-bottom:0">📋 Select a day to see details</div>
-                <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:12px;font-weight:700;color:var(--text-muted);font-family:var(--font-alt);letter-spacing:0.5px;flex-shrink:0">
-                  <span>DETAILED VIEW</span>
-                  <div class="live-toggle" id="detailToggleMain" onclick="toggleDetailedView('main')" style="width:36px;height:20px">
-                    <div class="live-toggle-knob"></div>
-                  </div>
-                  <span id="detailLabelMain" style="color:var(--text-muted)">OFF</span>
-                </label>
+
+            <!-- Detailed View on/off toggle -->
+            <div style="display:flex;align-items:center;gap:8px;margin-top:10px">
+              <span style="font-family:var(--font-alt);font-size:12px;font-weight:700;color:var(--text-muted);letter-spacing:0.5px">DETAILED VIEW</span>
+              <div class="live-toggle" id="volDetailToggle" onclick="toggleVolDetailView()" style="width:36px;height:20px">
+                <div class="live-toggle-knob"></div>
               </div>
-              <div id="volDrillBody" style="color:var(--text-muted);font-family:var(--font-alt);font-size:13px">Hover or click on any bar above.</div>
+              <span id="volDetailToggleLabel" style="font-family:var(--font-alt);font-size:12px;font-weight:700;color:var(--text-muted)">OFF</span>
+            </div>
+
+            <!-- Swipeable Statistics / Breakdown panels -->
+            <div class="vol-swipe-tabs" style="margin-top:10px">
+              <button class="vol-swipe-tab active" id="volSwipeTabStats" onclick="volSwipeTo(0)">📊 Statistics</button>
+              <button class="vol-swipe-tab" id="volSwipeTabBreak" onclick="volSwipeTo(1)">📋 Breakdown</button>
+            </div>
+            <div class="vol-swipe-host" id="volSwipeHost">
+              <div class="vol-swipe-track" id="volSwipeTrack">
+                <!-- Panel 0: Statistics -->
+                <div class="vol-swipe-panel">
+                  <div class="stats-summary-row" style="margin-top:6px">
+                    <div id="highVolumeRow">High Volume: <strong id="highVolumeLabel" style="color:var(--accent)">None</strong></div>
+                  </div>
+                  <div class="stats-summary-row" id="lowVolumeRow" style="margin-top:6px;background:rgba(225,29,72,0.07);border-color:rgba(225,29,72,0.18)">
+                    <div style="color:#e11d48">Low Volume: <strong id="lowVolumeLabel">None</strong></div>
+                  </div>
+                  <div class="stats-summary-row" id="totalVolumeRow" style="margin-top:6px;background:rgba(37,99,235,0.07);border-color:rgba(37,99,235,0.18);display:none">
+                    <div style="color:var(--accent)"><span id="totalVolumeLabel">Weekly Volume</span>: <strong id="totalVolumeValue">—</strong></div>
+                  </div>
+                  <div class="stats-summary-row" id="avgVolumeRow" style="margin-top:6px;background:rgba(99,102,241,0.07);border-color:rgba(99,102,241,0.18);display:none">
+                    <div style="color:#6366f1">Avg Volume: <strong id="avgVolumeLabel">—</strong></div>
+                  </div>
+                  <div style="font-size:11px;color:var(--text-muted);font-family:var(--font-alt);margin-top:10px;text-align:center;opacity:0.6">← Swipe left for Breakdown →</div>
+                </div>
+                <!-- Panel 1: Breakdown -->
+                <div class="vol-swipe-panel">
+                  <div class="vol-drilldown" id="volDrilldown" style="margin-top:6px">
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:8px">
+                      <div class="vol-drilldown-title" id="volDrillTitle" style="margin-bottom:0">📋 Select a day to see details</div>
+                      <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:12px;font-weight:700;color:var(--text-muted);font-family:var(--font-alt);letter-spacing:0.5px;flex-shrink:0">
+                        <span>BREAKDOWN</span>
+                        <div class="live-toggle" id="detailToggleMain" onclick="toggleDetailedView('main')" style="width:36px;height:20px">
+                          <div class="live-toggle-knob"></div>
+                        </div>
+                        <span id="detailLabelMain" style="color:var(--text-muted)">OFF</span>
+                      </label>
+                    </div>
+                    <div id="volDrillBody" style="color:var(--text-muted);font-family:var(--font-alt);font-size:13px">Hover or click on any bar above.</div>
+                  </div>
+                  <div style="font-size:11px;color:var(--text-muted);font-family:var(--font-alt);margin-top:10px;text-align:center;opacity:0.6">← Swipe right for Statistics →</div>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -1400,6 +1525,7 @@ body.theme-godmode .levelup-toast{background:linear-gradient(135deg,#7a0006,#c00
             <input type="text" id="workoutNameInput" placeholder="Type or Select (e.g. Bench Press)" oninput="handleWorkoutSearchAuto()" autocomplete="off">
             <div id="autoSuggestions" class="suggestions-list"></div>
           </div>
+          <button id="_inlineClassBtnNonLive" type="button" style="display:none;margin-top:6px;padding:7px 14px;border-radius:11px;border:1.5px solid var(--accent);background:var(--accent-soft);color:var(--accent);font-family:var(--font-alt);font-size:12px;font-weight:800;cursor:pointer;letter-spacing:0.4px" onclick="_triggerInlineClassPicker('workoutNameInput','nonlive')">🏷 Choose Class (optional)</button>
           <!-- Previous Performance Badge (Non-Live) -->
           <div class="prev-perf-badge" id="prevPerfBadgeNonLive">
             <span class="prev-perf-icon">📊</span>
@@ -1429,6 +1555,7 @@ body.theme-godmode .levelup-toast{background:linear-gradient(135deg,#7a0006,#c00
               <input type="text" id="liveWorkoutNameInput" placeholder="Type or Select (e.g. Bench Press)" oninput="handleLiveSearchAuto()" autocomplete="off">
               <div id="liveAutoSuggestions" class="suggestions-list"></div>
             </div>
+            <button id="_inlineClassBtnLive" type="button" style="display:none;margin-top:6px;padding:7px 14px;border-radius:11px;border:1.5px solid var(--accent);background:var(--accent-soft);color:var(--accent);font-family:var(--font-alt);font-size:12px;font-weight:800;cursor:pointer;letter-spacing:0.4px" onclick="_triggerInlineClassPicker('liveWorkoutNameInput','live')">🏷 Choose Class (optional)</button>
             <!-- Previous Performance Badge (Live) -->
             <div class="prev-perf-badge" id="prevPerfBadgeLive">
               <span class="prev-perf-icon">📊</span>
@@ -1898,7 +2025,7 @@ const CLASS_COLORS={
   'Chest':'#3b82f6','Biceps':'#f97316','Triceps':'#8b5cf6','Shoulders':'#a855f7',
   'Lats':'#06b6d4','Legs':'#10b981','Abs':'#ec4899','Cardio':'#eab308',
   'Rest':'#94a3b8','Unknown':'#6b7280','Back':'#0ea5e9','Forearms':'#d97706',
-  'Calves':'#84cc16','Glutes':'#f43f5e','Full Body':'#6366f1'
+  'Calves':'#84cc16','Glutes':'#f43f5e','Full Body':'#6366f1','Warmup':'#22d3ee'
 };
 
 /* ===================== DURATION PARSER ===================== */
@@ -1923,20 +2050,47 @@ function formatMinutesToHoursText(m){
 const stackedMusclePlugin={
   id:'stackedMusclePlugin',
   afterDatasetsDraw(chart){
+    // Only draw multicolor stacked classes in detailed view
+    if(!durDetailViewOn){
+      // In normal mode just draw glow on selected bar
+      const{ctx,data}=chart;ctx.save();
+      const meta=chart.getDatasetMeta(0);
+      const selectedIdx=data.datasets[0]._selectedIdx??-1;
+      meta.data.forEach((bar,i)=>{
+        const bx=bar.x,by=bar.y,bw=bar.width,bBase=bar.base;const bh=bBase-by;if(bh<=2)return;
+        if(i===selectedIdx&&selectedIdx>=0){
+          ctx.save();ctx.shadowColor='rgba(37,99,235,0.7)';ctx.shadowBlur=16;
+          ctx.strokeStyle='rgba(255,255,255,0.85)';ctx.lineWidth=2.5;ctx.globalAlpha=0.9;
+          ctx.beginPath();ctx.roundRect(bx-bw/2,by,bw,bh,4);ctx.stroke();ctx.restore();
+        }
+      });
+      ctx.restore();
+      return;
+    }
     const{ctx,data}=chart;ctx.save();
     const meta=chart.getDatasetMeta(0);
+    const selectedClass=data.datasets[0]._selectedClass||null;
+    const selectedIdx=data.datasets[0]._selectedIdx??-1;
     meta.data.forEach((bar,i)=>{
       const workoutStr=data.datasets[0].rawWorkouts?data.datasets[0].rawWorkouts[i]:'Rest';
       const bx=bar.x,by=bar.y,bw=bar.width,bBase=bar.base;const bh=bBase-by;if(bh<=2)return;
       let classes=[];
       if(workoutStr&&workoutStr!=='Rest'&&workoutStr!==''){classes=workoutStr.split(',').map(s=>s.trim()).filter(Boolean).slice(0,3)}
+
+      // Dim bars that don't contain the selected class
+      const barHasClass=selectedClass?classes.includes(selectedClass):true;
+      const globalAlpha=selectedClass&&!barHasClass?0.22:1;
+      ctx.globalAlpha=globalAlpha;
+
       if(classes.length===0){
         ctx.fillStyle='rgba(148,163,184,0.35)';ctx.beginPath();ctx.roundRect(bx-bw/2,by,bw,bh,4);ctx.fill();
-        ctx.fillStyle='#94a3b8';ctx.font='bold 10px Rajdhani,sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('Rest',bx,by+bh/2);return;
+        ctx.fillStyle='#94a3b8';ctx.font='bold 10px Rajdhani,sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('Rest',bx,by+bh/2);ctx.globalAlpha=1;return;
       }
       const segH=bh/classes.length;
       classes.forEach((muscle,idx)=>{
         const color=CLASS_COLORS[muscle]||CLASS_COLORS['Unknown'];const sy=bBase-(idx+1)*segH;
+        const segAlpha=(selectedClass&&selectedClass!==muscle)?0.18:1;
+        ctx.save();ctx.globalAlpha=globalAlpha*segAlpha;
         ctx.fillStyle=color;ctx.beginPath();
         if(idx===0&&idx===classes.length-1){ctx.roundRect(bx-bw/2,sy,bw,segH,4)}
         else if(idx===0){ctx.roundRect(bx-bw/2,sy,bw,segH,[0,0,4,4])}
@@ -1946,15 +2100,38 @@ const stackedMusclePlugin={
         ctx.strokeStyle='rgba(255,255,255,0.25)';ctx.lineWidth=1;
         if(idx<classes.length-1){ctx.beginPath();ctx.moveTo(bx-bw/2,sy);ctx.lineTo(bx+bw/2,sy);ctx.stroke()}
         if(segH>=20){
-          ctx.save();ctx.translate(bx,sy+segH/2);ctx.rotate(-Math.PI/2);
+          ctx.translate(bx,sy+segH/2);ctx.rotate(-Math.PI/2);
           ctx.fillStyle=(color==='#eab308'||color==='#ffcc00')?'#111':'#fff';
           const fontSize=Math.min(10,Math.max(7,bw*0.35));ctx.font=`bold ${fontSize}px Rajdhani,sans-serif`;
           ctx.textAlign='center';ctx.textBaseline='middle';
           let txt=muscle;const maxW=segH-6;
           while(ctx.measureText(txt).width>maxW&&txt.length>2){txt=txt.slice(0,-1)}
-          if(txt!==muscle)txt=txt+'..';ctx.fillText(txt,0,0);ctx.restore();
+          if(txt!==muscle)txt=txt+'..';ctx.fillText(txt,0,0);
         }
+        ctx.restore();
       });
+
+      ctx.globalAlpha=1;
+
+      // Glow ring on selected bar — class filter mode OR normal navigation mode
+      if(selectedClass&&barHasClass){
+        const glowColor=CLASS_COLORS[selectedClass]||'#fff';
+        ctx.save();
+        ctx.shadowColor=glowColor;ctx.shadowBlur=i===selectedIdx?18:10;
+        ctx.strokeStyle=glowColor;ctx.lineWidth=i===selectedIdx?3:1.5;
+        ctx.globalAlpha=i===selectedIdx?0.95:0.55;
+        ctx.beginPath();ctx.roundRect(bx-bw/2,by,bw,bh,4);ctx.stroke();
+        ctx.restore();
+      } else if(!selectedClass&&i===selectedIdx&&selectedIdx>=0){
+        // Normal mode: glow the selected bar with accent color
+        const glowColor='var(--accent)'||'#2563eb';
+        ctx.save();
+        ctx.shadowColor='rgba(37,99,235,0.7)';ctx.shadowBlur=16;
+        ctx.strokeStyle='rgba(255,255,255,0.85)';ctx.lineWidth=2.5;
+        ctx.globalAlpha=0.9;
+        ctx.beginPath();ctx.roundRect(bx-bw/2,by,bw,bh,4);ctx.stroke();
+        ctx.restore();
+      }
     });ctx.restore();
   }
 };
@@ -2034,17 +2211,104 @@ function calculateVolumeXP(s){
   return Math.floor(t/100)*10;
 }
 
+/* ===================== EXERCISE CATALOG — expanded with class labels ===================== */
+/* Multi-class exercises: allow user to pick which class to assign when selecting */
+const MULTI_CLASS_EXERCISES={
+  "Dumbbell Press":["Chest","Biceps"],
+  "Close Grip Bench Press":["Chest","Triceps"],
+  "Pull Up":["Lats","Biceps"],
+  "Chin Up":["Lats","Biceps"],
+  "Seated Row":["Lats","Back"],
+  "Bent Over Row":["Lats","Back"],
+  "Deadlift":["Lats","Back","Legs","Glutes"],
+  "Romanian Deadlift":["Legs","Glutes","Back"],
+  "Arnold Press":["Shoulders","Triceps"],
+  "Push Up":["Chest","Triceps","Shoulders"],
+  "Diamond Push Up":["Chest","Triceps"],
+  "Dips":["Chest","Triceps"],
+  "Cable Row":["Back","Lats","Biceps"],
+  "Face Pull":["Shoulders","Back"],
+  "Shrugs":["Shoulders","Back"],
+  "Good Morning":["Back","Glutes","Legs"],
+  "Plank":["Abs","Full Body"],
+  "Burpees":["Full Body","Cardio"],
+  "Mountain Climbers":["Cardio","Abs"],
+  "Jump Squat":["Legs","Cardio"],
+};
 const EXERCISE_CATALOG=[
-  {name:"Bench Press",class:"Chest"},{name:"Incline Dumbbell Press",class:"Chest"},
-  {name:"Bicep Curl",class:"Biceps"},{name:"Hammer Curl",class:"Biceps"},
-  {name:"Lat Pulldown",class:"Lats"},{name:"Squats",class:"Legs"},
-  {name:"Overhead Press",class:"Shoulders"},{name:"Lateral Raises",class:"Shoulders"},
-  {name:"Tricep Pushdown",class:"Triceps"},{name:"Skull Crushers",class:"Triceps"},
-  {name:"Preacher Curl",class:"Biceps"},{name:"Cable Flyes",class:"Chest"},
-  {name:"Barbell Row",class:"Lats"},{name:"Deadlift",class:"Lats"},
-  {name:"Leg Press",class:"Legs"},{name:"Hanging Leg Raises",class:"Abs"},
-  {name:"Crunches",class:"Abs"},{name:"Treadmill Sprint",class:"Cardio"}
+  // Chest
+  {name:"Bench Press (Chest)",class:"Chest"},{name:"Incline Bench Press (Chest)",class:"Chest"},
+  {name:"Decline Bench Press (Chest)",class:"Chest"},{name:"Incline Dumbbell Press (Chest)",class:"Chest"},
+  {name:"Flat Dumbbell Press (Chest)",class:"Chest"},{name:"Cable Flyes (Chest)",class:"Chest"},
+  {name:"Pec Deck Flyes (Chest)",class:"Chest"},{name:"Chest Press Machine (Chest)",class:"Chest"},
+  {name:"Low to High Cable Fly (Chest)",class:"Chest"},{name:"High to Low Cable Fly (Chest)",class:"Chest"},
+  // Biceps
+  {name:"Bicep Curl (Biceps)",class:"Biceps"},{name:"Hammer Curl (Biceps)",class:"Biceps"},
+  {name:"Preacher Curl (Biceps)",class:"Biceps"},{name:"Concentration Curl (Biceps)",class:"Biceps"},
+  {name:"Cable Curl (Biceps)",class:"Biceps"},{name:"EZ Bar Curl (Biceps)",class:"Biceps"},
+  {name:"Incline Dumbbell Curl (Biceps)",class:"Biceps"},{name:"Reverse Curl (Biceps)",class:"Biceps"},
+  // Triceps
+  {name:"Tricep Pushdown (Triceps)",class:"Triceps"},{name:"Skull Crushers (Triceps)",class:"Triceps"},
+  {name:"Overhead Tricep Extension (Triceps)",class:"Triceps"},{name:"Tricep Kickback (Triceps)",class:"Triceps"},
+  {name:"Close Grip Press (Triceps)",class:"Triceps"},{name:"Rope Pushdown (Triceps)",class:"Triceps"},
+  {name:"Single Arm Pushdown (Triceps)",class:"Triceps"},
+  // Shoulders
+  {name:"Overhead Press (Shoulders)",class:"Shoulders"},{name:"Lateral Raise (Shoulders)",class:"Shoulders"},
+  {name:"Front Raise (Shoulders)",class:"Shoulders"},{name:"Rear Delt Fly (Shoulders)",class:"Shoulders"},
+  {name:"Seated Dumbbell Press (Shoulders)",class:"Shoulders"},{name:"Barbell Overhead Press (Shoulders)",class:"Shoulders"},
+  {name:"Cable Lateral Raise (Shoulders)",class:"Shoulders"},{name:"Upright Row (Shoulders)",class:"Shoulders"},
+  // Lats / Back
+  {name:"Lat Pulldown (Lats)",class:"Lats"},{name:"Barbell Row (Lats)",class:"Lats"},
+  {name:"T-Bar Row (Back)",class:"Back"},{name:"Single Arm Dumbbell Row (Back)",class:"Back"},
+  {name:"Rack Pull (Back)",class:"Back"},{name:"Hyperextension (Back)",class:"Back"},
+  {name:"Wide Grip Pulldown (Lats)",class:"Lats"},{name:"Straight Arm Pulldown (Lats)",class:"Lats"},
+  // Legs
+  {name:"Squats (Legs)",class:"Legs"},{name:"Leg Press (Legs)",class:"Legs"},
+  {name:"Leg Extension (Legs)",class:"Legs"},{name:"Leg Curl (Legs)",class:"Legs"},
+  {name:"Hack Squat (Legs)",class:"Legs"},{name:"Lunges (Legs)",class:"Legs"},
+  {name:"Bulgarian Split Squat (Legs)",class:"Legs"},{name:"Sumo Squat (Legs)",class:"Legs"},
+  {name:"Wall Sit (Legs)",class:"Legs"},{name:"Step Up (Legs)",class:"Legs"},
+  // Glutes
+  {name:"Hip Thrust (Glutes)",class:"Glutes"},{name:"Glute Bridge (Glutes)",class:"Glutes"},
+  {name:"Cable Kickback (Glutes)",class:"Glutes"},{name:"Donkey Kick (Glutes)",class:"Glutes"},
+  // Calves
+  {name:"Standing Calf Raise (Calves)",class:"Calves"},{name:"Seated Calf Raise (Calves)",class:"Calves"},
+  {name:"Donkey Calf Raise (Calves)",class:"Calves"},
+  // Abs
+  {name:"Crunches (Abs)",class:"Abs"},{name:"Hanging Leg Raises (Abs)",class:"Abs"},
+  {name:"Cable Crunch (Abs)",class:"Abs"},{name:"Russian Twist (Abs)",class:"Abs"},
+  {name:"Ab Wheel Rollout (Abs)",class:"Abs"},{name:"V-Ups (Abs)",class:"Abs"},
+  {name:"Decline Sit Up (Abs)",class:"Abs"},{name:"Side Plank (Abs)",class:"Abs"},
+  // Forearms
+  {name:"Wrist Curl (Forearms)",class:"Forearms"},{name:"Reverse Wrist Curl (Forearms)",class:"Forearms"},
+  {name:"Farmer's Walk (Forearms)",class:"Forearms"},
+  // Cardio / Warmup
+  {name:"Treadmill Sprint (Cardio)",class:"Cardio"},{name:"Cycling (Cardio)",class:"Cardio"},
+  {name:"Jump Rope (Cardio)",class:"Cardio"},{name:"Rowing Machine (Cardio)",class:"Cardio"},
+  {name:"Elliptical (Cardio)",class:"Cardio"},{name:"Box Jump (Cardio)",class:"Cardio"},
+  {name:"Push Up (Warmup)",class:"Warmup"},{name:"Jumping Jacks (Warmup)",class:"Warmup"},
+  {name:"High Knees (Warmup)",class:"Warmup"},{name:"Arm Circles (Warmup)",class:"Warmup"},
+  {name:"Leg Swings (Warmup)",class:"Warmup"},
+  // Full Body
+  {name:"Deadlift (Full Body)",class:"Full Body"},{name:"Burpees (Full Body)",class:"Full Body"},
+  {name:"Kettlebell Swing (Full Body)",class:"Full Body"},{name:"Clean and Press (Full Body)",class:"Full Body"},
+  // Multi-class (user picks class)
+  {name:"Dumbbell Press",class:"multi"},{name:"Pull Up",class:"multi"},
+  {name:"Chin Up",class:"multi"},{name:"Dips",class:"multi"},
+  {name:"Push Up",class:"multi"},{name:"Arnold Press",class:"multi"},
+  {name:"Romanian Deadlift",class:"multi"},{name:"Face Pull",class:"multi"},
+  {name:"Close Grip Bench Press",class:"multi"},{name:"Bent Over Row",class:"multi"},
+  {name:"Seated Row",class:"multi"},{name:"Cable Row",class:"multi"},
 ];
+/* Build lookup: exercise base name → class (strips the "(Class)" suffix) */
+function getExerciseClass(nameRaw){
+  const m=nameRaw.match(/\(([^)]+)\)\s*$/);
+  if(m)return m[1];
+  const found=EXERCISE_CATALOG.find(e=>e.name===nameRaw||e.name.replace(/\s*\([^)]+\)/,'').trim()===nameRaw);
+  return found&&found.class!=='multi'?found.class:'Unknown';
+}
+/* Strip "(Class)" suffix from exercise name for display/storage */
+function stripExerciseClass(name){return name.replace(/\s*\([^)]+\)\s*$/, '').trim();}
 document.getElementById('workoutCalendarFilter').value=getLocalDateString();
 
 /* ===================== TASK 1: REGISTRATION ===================== */
@@ -2451,14 +2715,25 @@ function playConfiguredBreakSound(){
   }catch(e){}
 }
 
-/* ===================== TODAY'S WORKOUT BANNER (Day 1–7 cyclical + miss detection) ===================== */
-/* Returns the schedule day-key ('Day N') for a given date, based on the cycle start date */
+/* ===================== TODAY'S WORKOUT BANNER (order-following, check-in based) ===================== */
+/* Returns the schedule day-key ('Day N') for a given date, based on the cycle start date.
+   Still used as a pure fallback when the user has no attendance history to anchor against yet. */
 function getScheduleDayForDate(dateObj,startDateStr){
   const start=new Date(startDateStr+'T00:00:00');
   const target=new Date(getLocalDateStringFor(dateObj)+'T00:00:00');
   const diffDays=Math.floor((target-start)/86400000);
   const idx=((diffDays%7)+7)%7; // always 0–6, handles dates before start too
   return SCHEDULE_DAY_KEYS[idx];
+}
+
+/* Flattens the saved schedule into one ordered list of TRAINING classes only (Rest/None slots skipped),
+   in Day 1 → Day 7, Slot 1 → Slot 3 order — this is "the order" the user defined, used as a repeating cycle. */
+function _buildScheduleOrderList(schedule){
+  const order=[];
+  SCHEDULE_DAY_KEYS.forEach(day=>{
+    (schedule[day]||[]).forEach(cls=>{if(cls&&cls!==REST_VALUE)order.push(cls)});
+  });
+  return order;
 }
 
 async function renderTodayWorkoutBanner(){
@@ -2471,57 +2746,63 @@ async function renderTodayWorkoutBanner(){
   if(!schedule||!startDate){banner.style.display='none';return}
 
   const uid=localStorage.getItem('user_id');
-  const todayDate=new Date();
-  const todayDay=getScheduleDayForDate(todayDate,startDate);
-  const todayClasses=(schedule[todayDay]||[]).filter(Boolean);
-  const todayIsRest=todayClasses[0]===REST_VALUE;
+  const orderList=_buildScheduleOrderList(schedule);
+  if(!orderList.length){banner.style.display='none';return}
 
-  // Find the most recent date the user actually checked in (Present)
-  let lastCheckin=null;
+  // Step 1: check the database for the most recent day the user actually checked in with a logged
+  // class. Start at YESTERDAY and walk backward day by day (not just yesterday) until a checked-in
+  // class is found — covers the "missed 2-3 days" case the same way as a single missed day.
+  let lastClass=null,lastClassDate=null;
   if(uid){
-    const{data}=await db.from('attendance').select('attendance_date,workout').eq('user_id',uid).eq('status','Present').order('attendance_date',{ascending:false}).limit(1);
-    if(data&&data.length>0)lastCheckin=data[0];
-  }
-
-  // Walk backwards from yesterday to find any MISSED scheduled training days (gap detection)
-  let missedDay=null,missedClasses=[];
-  if(lastCheckin){
-    const lastDate=new Date(lastCheckin.attendance_date+'T00:00:00');
-    const todayDateOnly=new Date(getLocalDateString()+'T00:00:00');
-    const gapDays=Math.floor((todayDateOnly-lastDate)/86400000);
-    if(gapDays>=2){
-      // Check each day strictly between last check-in and today for a scheduled (non-rest) day
-      for(let off=1;off<gapDays;off++){
-        const checkDate=new Date(lastDate);checkDate.setDate(checkDate.getDate()+off);
-        const dKey=getScheduleDayForDate(checkDate,startDate);
-        const dClasses=(schedule[dKey]||[]).filter(Boolean);
-        if(dClasses.length&&dClasses[0]!==REST_VALUE){
-          missedDay=checkDate;missedClasses=dClasses;break; // report the FIRST missed scheduled day
-        }
+    const{data}=await db.from('attendance').select('attendance_date,workout').eq('user_id',uid).eq('status','Present').order('attendance_date',{ascending:false}).limit(60);
+    if(data&&data.length){
+      const todayStr=getLocalDateString();
+      // Most recent Present row that (a) isn't today and (b) actually logged at least one class
+      // from the order — this becomes "yesterday's class" per spec, even if it was several days ago.
+      for(const row of data){
+        if(row.attendance_date>=todayStr)continue; // skip today itself — we only look at PAST check-ins
+        if(!row.workout||!row.workout.trim())continue;
+        const loggedClasses=row.workout.split(',').map(s=>s.trim()).filter(Boolean);
+        const matched=loggedClasses.find(c=>orderList.includes(c));
+        if(matched){lastClass=matched;lastClassDate=row.attendance_date;break}
       }
     }
+  }
+
+  let todayClasses,todayIsRest=false,subText;
+
+  if(lastClass){
+    // Step 2: find that class's position in the saved order, advance to the NEXT entry (wrapping
+    // around to the start of the order if the last class was the final one in the list).
+    const idx=orderList.indexOf(lastClass);
+    const nextClass=orderList[(idx+1)%orderList.length];
+    todayClasses=[nextClass];
+    const lastDateObj=new Date(lastClassDate+'T00:00:00');
+    const todayDateOnly=new Date(getLocalDateString()+'T00:00:00');
+    const gapDays=Math.floor((todayDateOnly-lastDateObj)/86400000);
+    const lastDateLabel=lastDateObj.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+    subText=gapDays<=1
+      ?`Your previous class was <strong>${lastClass}</strong>, so today's class is <strong>${nextClass}</strong>`
+      :`⚠️ Your last check-in was <strong>${lastClass}</strong> on ${lastDateLabel} (${gapDays} days ago) — pick up where you left off: today's class is <strong>${nextClass}</strong>`;
   } else {
-    // No check-in history at all — nothing missed yet
+    // No usable check-in history yet — fall back to the pure calendar-cycle day so new users still see something.
+    const todayDay=getScheduleDayForDate(new Date(),startDate);
+    const dayClasses=(schedule[todayDay]||[]).filter(Boolean);
+    todayIsRest=dayClasses[0]===REST_VALUE;
+    todayClasses=todayIsRest?[]:dayClasses;
+    subText=todayIsRest?'No training scheduled today — recover well!':`${todayDay} of your schedule`;
   }
 
-  if(missedDay){
-    const missedLabel=missedClasses.join(' + ');
-    const missedDateStr=missedDay.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
-    valueEl.textContent=todayIsRest?'Rest Day':todayClasses.join(' + ')+' Day';
-    subEl.innerHTML=`⚠️ You missed <strong>${missedLabel}</strong> on ${missedDateStr}. Today's schedule is <strong>${todayIsRest?'Rest':todayClasses.join(' + ')}</strong> — keep going!`;
-    banner.style.display='flex';
-    return;
-  }
-
-  if(!todayClasses.length){banner.style.display='none';return}
   if(todayIsRest){
     valueEl.textContent='😴 Rest Day';
-    subEl.textContent='No training scheduled today — recover well!';
+    subEl.textContent=subText;
     banner.style.display='flex';
     return;
   }
+  if(!todayClasses.length){banner.style.display='none';return}
+
   valueEl.textContent=todayClasses.join(' + ')+' Day';
-  subEl.textContent=`${todayDay} of your schedule`;
+  subEl.innerHTML=subText;
   banner.style.display='flex';
 }
 
@@ -2853,18 +3134,242 @@ function getCurrentWeekOption(){
 
 /* ===================== STATS CHART ===================== */
 let statsChartDayData=[];
-function buildStatsLegend(classes){
-  const el=document.getElementById('statsChartLegend');if(!el)return;
-  const seen=new Set();let html='';
-  classes.forEach(c=>{if(!seen.has(c)&&c!=='Rest'){seen.add(c);const color=CLASS_COLORS[c]||CLASS_COLORS['Unknown'];html+=`<div style="display:flex;align-items:center;gap:5px;font-family:var(--font-alt);font-size:12px;font-weight:600;color:var(--text-secondary)"><span style="width:12px;height:12px;border-radius:3px;background:${color};display:inline-block;flex-shrink:0"></span>${c}</div>`}});
-  if(!html)html=`<span style="font-size:11px;color:var(--text-muted);font-family:var(--font-alt)">No workouts in this range</span>`;
-  el.innerHTML=html;
+/* ===================== DURATION CHART INTERACTION STATE ===================== */
+let durSelectedClass=null;   // currently active class filter (null = no filter, arrows move freely)
+let durCurrentIdx=0;         // index of the currently visible/highlighted bar or line point
+let durDataCache=[];         // reference to the current allDays / days array, kept live by both chart paths
+let durClassFreqMap={};      // {className: count} for the current range — built by each chart path
+let durDetailViewOn=false;   // when false: normal glow-on-select mode; when true: class icon filter mode
+
+/* Toggles between normal navigation mode and Detailed View (class-filter) mode */
+function toggleDurDetailView(){
+  durDetailViewOn=!durDetailViewOn;
+  const tog=document.getElementById('durDetailToggle');
+  const lbl=document.getElementById('durDetailToggleLabel');
+  const legend=document.getElementById('statsChartLegendWrap');
+  if(tog)tog.classList.toggle('on',durDetailViewOn);
+  if(lbl){lbl.textContent=durDetailViewOn?'ON':'OFF';lbl.style.color=durDetailViewOn?'var(--accent)':'var(--text-muted)';}
+  if(legend)legend.classList.toggle('hidden',!durDetailViewOn);
+  // Clear class filter always on toggle
+  durSelectedClass=null;
+  document.getElementById('durNavLeft')?.classList.remove('class-filtered');
+  document.getElementById('durNavRight')?.classList.remove('class-filtered');
+  document.querySelectorAll('#statsChartLegend .dur-legend-item').forEach(el=>el.classList.remove('active'));
+  // Redraw chart to switch between solid color (off) and multicolor plugin (on)
+  if(durRangeMode==='weekly'){
+    updateStatsChart();
+  } else {
+    if(userStatsInstanceChart){
+      if(userStatsInstanceChart.config.type==='line'){
+        _durHighlightLinePoint(durCurrentIdx);
+      }
+    }
+  }
+  _durShowFreqInDetailBox();
+  if(!durDetailViewOn)_durApplyNormalGlow(durCurrentIdx);
 }
+
+/* Builds the correct per-day frequency map from the already-deduplicated dm day objects.
+   Each class is counted once per UNIQUE DAY it appears in — not once per attendance row.
+   This is the correct, accurate count matching what the user sees in the graph bars/points. */
+function _buildFreqMapFromDays(days){
+  const freq={};
+  days.forEach(d=>{
+    // d.classes is already Set-deduplicated per day in both chart paths
+    (d.classes||[]).forEach(c=>{freq[c]=(freq[c]||0)+1});
+  });
+  return freq;
+}
+
+
+/* Returns ordered list of indices in durDataCache that contain the given class */
+function _durIndicesForClass(cls){
+  return durDataCache.map((_,i)=>i).filter(i=>durDataCache[i].classes&&durDataCache[i].classes.includes(cls));
+}
+
+/* Moves the selected bar/point left (-1) or right (+1).
+   If a class filter is active: jumps only between indices that contain that class (wraps around).
+   If no filter: steps freely through every index (wraps around). */
+function durNavigate(dir){
+  if(!durDataCache.length)return;
+  let indices;
+  if(durSelectedClass){
+    indices=_durIndicesForClass(durSelectedClass);
+    if(!indices.length)return;
+    const pos=indices.indexOf(durCurrentIdx);
+    const nextPos=(pos===-1)?(dir===1?0:indices.length-1):((pos+dir+indices.length)%indices.length);
+    durCurrentIdx=indices[nextPos];
+  } else {
+    durCurrentIdx=((durCurrentIdx+dir)+durDataCache.length)%durDataCache.length;
+  }
+  _durSelectIndex(durCurrentIdx);
+}
+
+/* Applies a simple glow-ring highlight on the selected bar or point in NORMAL mode (no class filter).
+   This runs whenever arrows are used without Detailed View, so the user always knows which item is selected. */
+function _durApplyNormalGlow(idx){
+  if(durDetailViewOn)return; // normal glow only applies in normal mode
+  const chart=userStatsInstanceChart;if(!chart)return;
+  if(chart.config.type==='bar'){
+    chart.data.datasets[0]._selectedClass=null;
+    chart.data.datasets[0]._selectedIdx=idx;
+    chart.update('none');
+  } else {
+    _durHighlightLinePoint(idx); // line chart uses point size + brightness to indicate selection
+  }
+}
+
+/* Selects a bar or point by index — calls the correct highlight function depending on chart mode */
+function _durSelectIndex(idx){
+  durCurrentIdx=idx;
+  const chart=userStatsInstanceChart;if(!chart)return;
+  const filterYear=parseInt(document.getElementById('statsMonth')?.value?.split('-')[0])||new Date().getFullYear();
+  const filterMonthRaw=document.getElementById('statsMonth')?.value?.split('-')[1];
+  const filterMonth=filterMonthRaw?parseInt(filterMonthRaw)-1:new Date().getMonth();
+  const dayNames=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  if(durRangeMode==='weekly'){
+    _durHighlightBar(idx);
+    const day=durDataCache[idx];if(day)_updateDurGraphDetailBox(day,filterYear,filterMonth,dayNames);
+    if(!durDetailViewOn)_durApplyNormalGlow(idx);
+  } else {
+    _durHighlightLinePoint(idx);
+    const day=durDataCache[idx];if(day)_updateDurGraphDetailBox(day);
+  }
+  _durShowFreqInDetailBox();
+}
+
+/* Updates the Frequency row in the detail box based on the current selected class filter.
+   Shows "Class: X  Frequency: N" when a class is selected; hides the row when no class is selected. */
+function _durShowFreqInDetailBox(){
+  const freqEl=document.getElementById('durGraphDetailFreq');if(!freqEl)return;
+  if(durSelectedClass){
+    const freq=durClassFreqMap[durSelectedClass]||0;
+    freqEl.style.display='block';
+    freqEl.innerHTML=`${durSelectedClass}<span>Frequency: ${freq}</span>`;
+    freqEl.style.color=CLASS_COLORS[durSelectedClass]||'var(--accent)';
+  } else {
+    freqEl.style.display='none';
+  }
+}
+
+/* For the weekly bar chart: redraws the stackedMusclePlugin with a highlight/dim/glow pass.
+   - No class selected: all bars draw at full opacity (normal state).
+   - Class selected: bars containing that class draw with a bright glow overlay ring; bars that
+     do NOT contain that class are dimmed with a semi-transparent gray wash. */
+function _durHighlightBar(selectedIdx){
+  const chart=userStatsInstanceChart;if(!chart||chart.config.type!=='bar')return;
+  // Store highlight state on the chart's dataset so stackedMusclePlugin can read it on its next draw
+  chart.data.datasets[0]._selectedClass=durSelectedClass;
+  chart.data.datasets[0]._selectedIdx=selectedIdx;
+  chart.update('none'); // redraw without animation so it feels instant on mobile
+}
+
+/* For the monthly/3-month line chart: updates point colors to highlight the selected index and
+   dim unmatched points. When a class filter is active, only points containing that class are bright;
+   when no filter, all points draw at their normal base color. */
+function _durHighlightLinePoint(selectedIdx){
+  const chart=userStatsInstanceChart;if(!chart||chart.config.type!=='line')return;
+  const base=getVolSolidColor();
+  const ds=chart.data.datasets[0];
+  const n=durDataCache.length;
+  const radii=new Array(n).fill(durDataCache.length>20?2.5:4);
+  const colors=new Array(n).fill(base);
+  const borders=new Array(n).fill('#fff');
+
+  if(durSelectedClass){
+    // Dim everything, then brighten matched-class points, then make the currently selected point biggest
+    for(let i=0;i<n;i++){
+      if(durDataCache[i].classes&&durDataCache[i].classes.includes(durSelectedClass)){
+        colors[i]=CLASS_COLORS[durSelectedClass]||base;
+        radii[i]=5;
+        borders[i]='rgba(255,255,255,0.9)';
+      } else {
+        colors[i]='rgba(148,163,184,0.2)';
+        radii[i]=2;
+        borders[i]='transparent';
+      }
+    }
+  }
+  // Always make the specifically selected index the largest and brightest
+  colors[selectedIdx]=durSelectedClass?(CLASS_COLORS[durSelectedClass]||base):base;
+  radii[selectedIdx]=9;
+  borders[selectedIdx]='#fff';
+
+  ds.pointBackgroundColor=colors;
+  ds.pointBorderColor=borders;
+  ds.pointRadius=radii;
+  ds.pointHoverRadius=radii.map((r,i)=>i===selectedIdx?11:r+2);
+  chart.update('none');
+}
+
+/* Toggles the class filter on/off when a legend icon is clicked.
+   - Clicking an unselected class: sets it as the filter, jumps to its first occurrence in the range.
+   - Clicking the same class again: clears the filter, arrows go back to free navigation.
+   - Arrows glow when filter is active; legend item gets a highlighted border. */
+function durSelectClass(cls){
+  if(!durDetailViewOn)return; // class-filter mode only active in Detailed View
+  if(durSelectedClass===cls){
+    // Deselect — back to normal free navigation
+    durSelectedClass=null;
+    document.querySelectorAll('#statsChartLegend .dur-legend-item').forEach(el=>el.classList.remove('active'));
+    document.getElementById('durNavLeft')?.classList.remove('class-filtered');
+    document.getElementById('durNavRight')?.classList.remove('class-filtered');
+    // Restore all bars/points to normal
+    if(userStatsInstanceChart){
+      if(userStatsInstanceChart.config.type==='bar'){
+        userStatsInstanceChart.data.datasets[0]._selectedClass=null;
+        userStatsInstanceChart.update('none');
+      } else {
+        _durHighlightLinePoint(durCurrentIdx);
+      }
+    }
+    _durShowFreqInDetailBox();
+  } else {
+    durSelectedClass=cls;
+    document.querySelectorAll('#statsChartLegend .dur-legend-item').forEach(el=>el.classList.toggle('active',el.dataset.cls===cls));
+    document.getElementById('durNavLeft')?.classList.add('class-filtered');
+    document.getElementById('durNavRight')?.classList.add('class-filtered');
+    // Jump to the first occurrence of this class (if any)
+    const indices=_durIndicesForClass(cls);
+    if(indices.length){
+      durCurrentIdx=indices[0];
+      _durSelectIndex(durCurrentIdx);
+    } else {
+      _durShowFreqInDetailBox(); // class exists in legend but 0 occurrences this period — still show freq=0
+    }
+  }
+}
+
+function buildStatsLegend(classes){
+  const wrap=document.getElementById('statsChartLegendWrap');
+  const el=document.getElementById('statsChartLegend');if(!el)return;
+  // Legend is only visible when Detailed View mode is ON
+  if(wrap)wrap.classList.toggle('hidden',!durDetailViewOn);
+  // Collect unique classes (excluding Rest), then sort by frequency high→low
+  const seen=new Set();let uniqueClasses=[];
+  classes.forEach(c=>{if(!seen.has(c)&&c!=='Rest'){seen.add(c);uniqueClasses.push(c)}});
+  uniqueClasses.sort((a,b)=>(durClassFreqMap[b]||0)-(durClassFreqMap[a]||0));
+  let html='';
+  uniqueClasses.forEach(c=>{
+    const color=CLASS_COLORS[c]||CLASS_COLORS['Unknown'];
+    const freq=durClassFreqMap[c]||0;
+    const isActive=durSelectedClass===c;
+    html+=`<div class="dur-legend-item class-carousel-item${isActive?' active':''}" data-cls="${c}" onclick="durSelectClass('${c}')" style="display:inline-flex;align-items:center;gap:5px;font-family:var(--font-alt);font-size:11px;font-weight:700;color:${isActive?'#fff':'var(--text-secondary)'};padding:5px 9px;border-radius:20px;border:2px solid ${isActive?color:'var(--border-col)'};background:${isActive?color:'var(--bg-card)'};white-space:nowrap;box-shadow:${isActive?'0 2px 10px '+color+'66':'none'};-webkit-tap-highlight-color:transparent"><span style="width:9px;height:9px;border-radius:3px;background:${isActive?'rgba(255,255,255,0.8)':color};display:inline-block;flex-shrink:0"></span>${c}<span style="background:${isActive?'rgba(255,255,255,0.25)':color+'33'};color:${isActive?'#fff':color};border-radius:10px;padding:1px 6px;font-size:9px;font-weight:800;min-width:16px;text-align:center">${freq}</span></div>`;
+  });
+  if(!html)html=`<span style="font-size:11px;color:var(--text-muted);font-family:var(--font-alt);white-space:nowrap">No workouts in this range</span>`;
+  el.innerHTML=html;
+  if(durDetailViewOn)_initCarousel('statsChartLegend','statsChartLegendWrap');
+}
+
 
 /* Fills the Duration graph's single fixed top-right detail box with Date, Class(es) trained (colored dots,
    same presentation the old floating tooltip used), and Total Duration (Hr/min format) — rehoused inside
    the same fixed, theme-aware card style as the Volume detail box. This is now the ONLY detail box for
-   the Duration graph; the old cursor-following dark tooltip has been removed. */
+   the Duration graph; the old cursor-following dark tooltip has been removed.
+   Works for both call shapes:
+   - Weekly bar chart: dayData.label is a bare day-of-month number; filterYear/filterMonth/dayNames supplied.
+   - Monthly/3-Month line chart: dayData.dateLabel is already a fully-formatted string (e.g. "Wed, Apr 9");
+     filterYear/filterMonth/dayNames are omitted since each point can belong to a different month. */
 function _updateDurGraphDetailBox(dayData,filterYear,filterMonth,dayNames){
   if(!dayData)return;
   const hintEl=document.getElementById('durGraphDetailHint');
@@ -2876,10 +3381,14 @@ function _updateDurGraphDetailBox(dayData,filterYear,filterMonth,dayNames){
   hintEl.style.display='none';
   bodyEl.style.display='block';
 
-  const dayNum=parseInt(dayData.label);
-  const dt=new Date(filterYear,filterMonth,dayNum);
-  const monNames=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  dateEl.textContent=`${dayNames[dt.getDay()]}, ${monNames[filterMonth]} ${dayNum}`;
+  if(dayData.dateLabel){
+    dateEl.textContent=dayData.dateLabel;
+  } else {
+    const dayNum=parseInt(dayData.label);
+    const dt=new Date(filterYear,filterMonth,dayNum);
+    const monNames=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    dateEl.textContent=`${dayNames[dt.getDay()]}, ${monNames[filterMonth]} ${dayNum}`;
+  }
 
   const classes=dayData.classes||[];
   if(classes.length>0){
@@ -2893,7 +3402,87 @@ function _updateDurGraphDetailBox(dayData,filterYear,filterMonth,dayNames){
 
   durEl.innerHTML=`⏱ <strong>${formatMinutesToDuration(dayData.duration||0)}</strong>`;
 }
+/* ===================== DURATION RANGE TOGGLE (Weekly / Monthly / 3-Month) ===================== */
+/* Switches the Duration graph between:
+   - weekly:  original bar chart, Week + Month dropdowns both shown (untouched behavior)
+   - monthly: line graph for the selected month, Month dropdown stays active, Week dropdown hidden
+   - 3month:  line graph for current month + preceding 2 months (sliding window), both dropdowns hidden,
+              a range label ("Apr - Jun") is shown instead — same concept as the Volume graph */
+function setDurRangeMode(mode){
+  durRangeMode=mode;
+  const weekRow=document.getElementById('durWeekRow');
+  const weekSelect=document.getElementById('statsTimeframe');
+  const monthSelect=document.getElementById('statsMonth');
+  const rangeLabel=document.getElementById('durRangeLabel');
+  const hintText=document.getElementById('durHintText');
+
+  document.getElementById('durRangeBtnWeekly').classList.toggle('active',mode==='weekly');
+  document.getElementById('durRangeBtnMonthly').classList.toggle('active',mode==='monthly');
+  document.getElementById('durRangeBtn3m').classList.toggle('active',mode==='3month');
+
+  if(mode==='weekly'){
+    weekRow.style.display='flex';
+    if(weekSelect)weekSelect.style.display='';
+    if(monthSelect)monthSelect.style.display='';
+    rangeLabel.classList.remove('visible');
+    hintText.textContent='💡 Hover or click a bar to see workout details & duration';
+  } else if(mode==='monthly'){
+    weekRow.style.display='flex';
+    if(weekSelect)weekSelect.style.display='none';
+    if(monthSelect)monthSelect.style.display='';
+    rangeLabel.classList.remove('visible');
+    hintText.textContent='💡 Tap, touch or drag across the line to see each day\'s breakdown';
+  } else {
+    weekRow.style.display='none';
+    rangeLabel.classList.add('visible');
+    hintText.textContent='💡 Tap, touch or drag across the line to see each day\'s breakdown';
+  }
+  updateStatsChart();
+}
+
+/* Builds the {year,month} list for the active Duration range mode, most-recent-last */
+function _durResolveMonths(){
+  const monthSel=document.getElementById('statsMonth');
+  let selMonth=monthSel&&monthSel.value?monthSel.value:null;
+  let baseYear,baseMonth;
+  if(selMonth){[baseYear,baseMonth]=[parseInt(selMonth.split('-')[0]),parseInt(selMonth.split('-')[1])-1]}
+  else{const n=new Date();baseYear=n.getFullYear();baseMonth=n.getMonth()}
+
+  if(durRangeMode==='monthly')return[{year:baseYear,month:baseMonth}];
+
+  // 3-Month sliding window: always anchored to the CURRENT real-world month (auto-advances over time),
+  // showing it plus the two preceding months — identical concept to the Volume graph's window.
+  const now=new Date();
+  const months=[];
+  for(let i=2;i>=0;i--){
+    const d=new Date(now.getFullYear(),now.getMonth()-i,1);
+    months.push({year:d.getFullYear(),month:d.getMonth()});
+  }
+  return months;
+}
+
+/* Computes Most Trained / Less Trained from a {className: count} map, per spec:
+   - Ties are fully supported: every class sharing the top (or bottom) count is included.
+   - mode 'weekly': Most Trained only shows if at least one class has a count > 1 (otherwise hidden
+     entirely); Less Trained NEVER shows on weekly, regardless of counts.
+   - mode 'monthly'/'3month': both Most Trained and Less Trained always show (no minimum-count gate),
+     with ties fully supported on both ends. */
+function _computeTrainedExtremes(countMap,mode){
+  const entries=Object.entries(countMap);
+  if(!entries.length)return{most:[],less:[]};
+  const maxCount=Math.max(...entries.map(e=>e[1]));
+  const minCount=Math.min(...entries.map(e=>e[1]));
+  let most=entries.filter(e=>e[1]===maxCount).map(e=>e[0]);
+  let less=entries.filter(e=>e[1]===minCount).map(e=>e[0]);
+  if(mode==='weekly'){
+    if(maxCount<=1)most=[]; // Weekly: only show Most Trained if a class trained MORE than once
+    less=[]; // Weekly: Less Trained never shows
+  }
+  return{most,less};
+}
+
 async function updateStatsChart(){
+  if(durRangeMode!=='weekly'){await updateDurationLineChart();return}
   let uid=localStorage.getItem("user_id");if(!uid)return;
   const{data,error}=await db.from("attendance").select("*").eq("user_id",uid).order("attendance_date",{ascending:true});
   if(error||!data)return;
@@ -2916,6 +3505,11 @@ async function updateStatsChart(){
   let durations=days.map(d=>d.duration||0);
   let chartData=durations.map((v,i)=>{if(v===0&&days[i].classes.length>0)return 30;return v||0});
   let rawWorkouts=days.map(d=>d.classes.join(', '));
+  // Reset class filter when the chart is redrawn (mode/month/week change)
+  durSelectedClass=null;
+  document.getElementById('durNavLeft')?.classList.remove('class-filtered');
+  document.getElementById('durNavRight')?.classList.remove('class-filtered');
+
   if(userStatsInstanceChart){userStatsInstanceChart.destroy();userStatsInstanceChart=null}
   const canvas=document.getElementById("workoutChart"),ctx=canvas.getContext("2d");
   // Fixed height-ratio safety: the Y-axis max is computed (not just beginAtZero) so the tallest bar
@@ -2923,14 +3517,13 @@ async function updateStatsChart(){
   // the fixed top-right detail box — the bar can never grow tall enough to reach that corner.
   const durMaxVal=Math.max(0,...chartData);
   const durSuggestedMax=durMaxVal>0?Math.ceil((durMaxVal*1.45)/10)*10:60;
+  const durBarBg=durDetailViewOn?'rgba(37,99,235,0)':getVolSolidColor();
+  const durBarBorder=durDetailViewOn?'transparent':getVolSolidColor();
   userStatsInstanceChart=new Chart(ctx,{
     type:'bar',
-    data:{labels,datasets:[{label:'Duration (min)',data:chartData,rawWorkouts,backgroundColor:'rgba(37,99,235,0)',borderColor:'transparent',borderWidth:0,borderRadius:6,barPercentage:0.65,categoryPercentage:0.8}]},
+    data:{labels,datasets:[{label:'Duration (min)',data:chartData,rawWorkouts,backgroundColor:durBarBg,borderColor:durBarBorder,borderWidth:durDetailViewOn?0:1.5,borderRadius:6,barPercentage:0.65,categoryPercentage:0.8,_selectedIdx:-1}]},
     options:{
       responsive:true,maintainAspectRatio:false,
-      // Layout safety: the graph container is now taller (#durGraphBox = 380px) specifically so this
-      // reserved headroom is genuine EXTRA space, not squeezed plot area — a tall bar can never run
-      // underneath or touch the fixed top-right detail box, even on small/low-end mobile screens.
       layout:{padding:{top:78,right:6,left:2,bottom:2}},
       plugins:{legend:{display:false},tooltip:{enabled:false}},
       scales:{y:{beginAtZero:true,suggestedMax:durSuggestedMax,grid:{color:'rgba(128,128,128,0.08)'},ticks:{color:'#6b7280',font:{family:'Rajdhani',size:12},callback(v){return v+'m'}}},x:{grid:{display:false},ticks:{color:'#6b7280',font:{family:'Rajdhani',size:12}}}},
@@ -2942,7 +3535,14 @@ async function updateStatsChart(){
   // Fills the single fixed top-right detail box with Date, Class(es) trained, and Duration (Hr/min format)
   function selectDurationBar(idx){
     const day=statsChartDayData[idx];if(!day)return;
+    durCurrentIdx=idx;
     _updateDurGraphDetailBox(day,filterYear,filterMonth,dayNames);
+    if(durDetailViewOn){
+      _durHighlightBar(idx);
+    } else {
+      _durApplyNormalGlow(idx);
+    }
+    _durShowFreqInDetailBox();
   }
 
   canvas.onmousemove=function(evt){
@@ -2984,13 +3584,224 @@ async function updateStatsChart(){
   if(defaultIdx<0){for(let i=days.length-1;i>=0;i--){if(days[i].duration>0){defaultIdx=i;break}}}
   if(defaultIdx>=0)_updateDurGraphDetailBox(days[defaultIdx],filterYear,filterMonth,dayNames);
 
-  let allClasses=[];days.forEach(d=>allClasses.push(...d.classes));buildStatsLegend(allClasses);
+  let allClasses=[];days.forEach(d=>allClasses.push(...d.classes));
+  // Frequency = number of UNIQUE DAYS each class appears in (d.classes is already Set-deduped per day).
+  // This matches exactly what the user sees in the bars — one bar, one count.
+  const mc=_buildFreqMapFromDays(days);
+  durDataCache=days;
+  durClassFreqMap=mc;
+  // Re-apply legend (respects durDetailViewOn visibility state)
+  buildStatsLegend(allClasses);
   let nz=days.filter(d=>d.duration>0),avg=nz.length?Math.round(nz.reduce((s,d)=>s+d.duration,0)/nz.length):0;
   document.getElementById("avgTimeLabel").textContent=formatMinutesToDuration(avg);
-  let mc={};days.forEach(d=>d.classes.forEach(m=>{mc[m]=(mc[m]||0)+1}));
-  let sorted=Object.entries(mc).sort((a,b)=>b[1]-a[1]);
-  document.getElementById("mostTrainedLabel").textContent=sorted[0]?sorted[0][0]:'None';
-  document.getElementById("lessTrainedLabel").textContent=sorted[sorted.length-1]?sorted[sorted.length-1][0]:'None';
+  _renderTrainedExtremes(mc,'weekly');
+}
+
+/* Renders the Most Trained / Less Trained rows from a {className:count} map, per the active mode's
+   gating rules (see _computeTrainedExtremes), with full support for multiple tied class names. */
+function _renderTrainedExtremes(countMap,mode){
+  const{most,less}=_computeTrainedExtremes(countMap,mode);
+  const mostRow=document.getElementById('mostTrainedRow');
+  const lessRow=document.getElementById('lessTrainedRow');
+  const mostLabel=document.getElementById('mostTrainedLabel');
+  const lessLabel=document.getElementById('lessTrainedLabel');
+  if(most.length){
+    mostLabel.textContent=most.join(', ');
+    if(mostRow)mostRow.style.display='';
+  } else {
+    if(mostRow)mostRow.style.display='none';
+  }
+  if(less.length){
+    lessLabel.textContent=less.join(', ');
+    if(lessRow)lessRow.style.display='';
+  } else {
+    if(lessRow)lessRow.style.display='none';
+  }
+}
+
+/* Fetches + renders the Monthly / 3-Month interactive line graph for the Duration page — same concept
+   as updateVolumeLineChart, but plotting attendance duration (minutes) with class markers instead of
+   training volume. Each point's marker can be tapped/clicked/touch-dragged to update the fixed detail box. */
+async function updateDurationLineChart(){
+  const uid=localStorage.getItem('user_id');if(!uid)return;
+  const months=_durResolveMonths();
+
+  // Update the sliding range label for 3-Month mode (e.g. "Apr - Jun 2026") — identical concept to Volume graph
+  if(durRangeMode==='3month'){
+    const monNames=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const first=months[0],last=months[months.length-1];
+    const label=first.year===last.year
+      ?`${monNames[first.month]} – ${monNames[last.month]} ${last.year}`
+      :`${monNames[first.month]} ${first.year} – ${monNames[last.month]} ${last.year}`;
+    const rangeLabel=document.getElementById('durRangeLabel');
+    if(rangeLabel)rangeLabel.textContent=`📅 ${label}`;
+  }
+
+  // Fetch + flatten day-by-day duration/class data (from attendance, same source the Weekly view uses)
+  // across all months in the window.
+  const dayNames=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const monNamesShort=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  let allDays=[];
+
+  for(const{year,month}of months){
+    const monthStr=`${year}-${String(month+1).padStart(2,'0')}`;
+    const lastDay=new Date(year,month+1,0).getDate();
+    const{data,error}=await db.from('attendance').select('attendance_date,duration,workout').eq('user_id',uid)
+      .gte('attendance_date',`${monthStr}-01`).lte('attendance_date',`${monthStr}-${String(lastDay).padStart(2,'0')}`);
+    if(error){console.error(error);continue}
+
+    let dm={};
+    for(let i=1;i<=lastDay;i++){
+      const dt=new Date(year,month,i);
+      const weekOfMonth=Math.min(4,Math.ceil(i/7));
+      dm[i]={day:i,year,month,label:i.toString(),dateLabel:`${dayNames[dt.getDay()]}, ${monNamesShort[month]} ${i}`,duration:0,workout:'',classes:[],weekOfMonth};
+    }
+    const monthCounts={};
+    if(data){
+      data.forEach(r=>{
+        const d=new Date(r.attendance_date);const day=d.getDate();if(!dm[day])return;
+        dm[day].duration+=parseDurationToMinutes(r.duration);
+        if(r.workout&&r.workout.trim()!==''){
+          if(dm[day].workout)dm[day].workout+=', '+r.workout;else dm[day].workout=r.workout;
+        }
+      });
+    }
+    Object.values(dm).forEach(d=>{if(d.workout){d.classes=[...new Set(d.workout.split(',').map(s=>s.trim()).filter(Boolean))].slice(0,3)}});
+    allDays=allDays.concat(Object.values(dm));
+  }
+
+  statsChartDayData=allDays;
+
+  // Frequency = number of unique DAYS each class appears in across the entire window.
+  // Built from d.classes which is already Set-deduplicated per day, so this is always accurate.
+  const mergedFreqMap=_buildFreqMapFromDays(allDays);
+  durDataCache=allDays;
+  durClassFreqMap=mergedFreqMap;
+
+  // Reset class filter whenever the chart is fully redrawn
+  durSelectedClass=null;
+  document.getElementById('durNavLeft')?.classList.remove('class-filtered');
+  document.getElementById('durNavRight')?.classList.remove('class-filtered');
+
+  const durations=allDays.map(d=>{if(d.duration===0&&d.classes.length>0)return 30;return d.duration||0});
+
+  // X-axis anchor labels: Monthly mode shows "Week 1".."Week 4"; 3-Month mode shows each month's short
+  // name at its first day — identical concept/behavior to the Volume graph's X-axis.
+  const monNamesAxis=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  let seenWeek=null,seenMonth=null;
+  const xAxisLabels=allDays.map(d=>{
+    if(durRangeMode==='monthly'){
+      if(d.weekOfMonth!==seenWeek){seenWeek=d.weekOfMonth;return`Week ${d.weekOfMonth}`}
+      return'';
+    } else if(durRangeMode==='3month'){
+      if(d.month!==seenMonth){seenMonth=d.month;return monNamesAxis[d.month]}
+      return'';
+    }
+    return d.label;
+  });
+
+  if(userStatsInstanceChart){userStatsInstanceChart.destroy();userStatsInstanceChart=null}
+  const canvas=document.getElementById('workoutChart');if(!canvas)return;
+  const ctx=canvas.getContext('2d');
+
+  const lineColor=getVolSolidColor();
+  const fillColor=getVolSolidColorSoft(0.12);
+  const pointColor=lineColor;
+  const selectedColor=getVolSolidColor();
+
+  // Fixed height-ratio safety: computed Y-axis max leaves headroom above the tallest point for the
+  // fixed top-right detail box — same constrained-ratio approach as the Weekly bar chart.
+  const durMaxVal=Math.max(0,...durations);
+  const durSuggestedMax=durMaxVal>0?Math.ceil((durMaxVal*1.45)/10)*10:60;
+
+  const instance=new Chart(ctx,{
+    type:'line',
+    data:{
+      labels:xAxisLabels,
+      datasets:[{
+        label:'Duration (min)',
+        data:durations,
+        borderColor:lineColor,
+        backgroundColor:fillColor,
+        pointBackgroundColor:allDays.map(()=>pointColor),
+        pointBorderColor:'#fff',
+        pointBorderWidth:1.5,
+        pointRadius:allDays.length>20?2.5:4,
+        pointHoverRadius:7,
+        borderWidth:2.5,
+        fill:true,
+        tension:0.25,
+        cubicInterpolationMode:'monotone'
+      }]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      // Layout safety: same reserved-headroom approach as the bar chart — the line and its markers
+      // can never reach the fixed top-right detail box, even on small/low-end mobile screens.
+      layout:{padding:{top:78,right:6,left:2,bottom:durRangeMode==='weekly'?2:18}},
+      interaction:{mode:'index',intersect:false},
+      plugins:{legend:{display:false},tooltip:{enabled:false}},
+      scales:{
+        y:{beginAtZero:true,suggestedMax:durSuggestedMax,grid:{color:'rgba(128,128,128,0.08)'},ticks:{color:'#6b7280',font:{family:'Rajdhani',size:12},callback(v){return v+'m'}}},
+        x:{display:true,grid:{display:false},ticks:{color:'#6b7280',font:{family:'Rajdhani',size:10,weight:'600'},autoSkip:false,maxRotation:0,minRotation:0,callback(val,idx){const l=xAxisLabels[idx];return l?l:null}}}
+      },
+      onHover(evt,els){canvas.style.cursor=els.length?'pointer':'default'}
+    }
+  });
+
+  userStatsInstanceChart=instance;
+
+  // ---- Marker selection: tap/click/touch-drag all update the fixed top-right detail box instantly ----
+  function selectPoint(idx){
+    durCurrentIdx=idx;
+    _durHighlightLinePoint(idx);
+    const day=allDays[idx];if(day)_updateDurGraphDetailBox(day);
+    _durShowFreqInDetailBox();
+  }
+
+  canvas.onclick=function(evt){
+    const pts=instance.getElementsAtEventForMode(evt,'index',{intersect:false},true);
+    if(pts.length)selectPoint(pts[0].index);
+  };
+  canvas.onmousemove=function(evt){
+    const pts=instance.getElementsAtEventForMode(evt,'index',{intersect:false},true);
+    if(pts.length)selectPoint(pts[0].index);
+  };
+  canvas.ontouchstart=function(evt){
+    const touch=evt.touches[0];if(!touch)return;
+    const rect=canvas.getBoundingClientRect();
+    const fakeEvt={x:touch.clientX-rect.left,y:touch.clientY-rect.top,native:evt};
+    const pts=instance.getElementsAtEventForMode(fakeEvt,'index',{intersect:false},true);
+    if(pts.length)selectPoint(pts[0].index);
+  };
+  canvas.ontouchmove=function(evt){
+    const touch=evt.touches[0];if(!touch)return;
+    const rect=canvas.getBoundingClientRect();
+    const fakeEvt={x:touch.clientX-rect.left,y:touch.clientY-rect.top,native:evt};
+    const pts=instance.getElementsAtEventForMode(fakeEvt,'index',{intersect:false},true);
+    if(pts.length){evt.preventDefault();selectPoint(pts[0].index)}
+  };
+
+  // Reset detail box hint, then auto-select today (or the most recent trained day) so it isn't empty on load
+  const durHintEl=document.getElementById('durGraphDetailHint');
+  const durBodyEl=document.getElementById('durGraphDetailBody');
+  if(durHintEl)durHintEl.style.display='block';
+  if(durBodyEl)durBodyEl.style.display='none';
+
+  const today=new Date();
+  let defaultIdx=allDays.findIndex(d=>d.year===today.getFullYear()&&d.month===today.getMonth()&&d.day===today.getDate());
+  if(defaultIdx<0){
+    for(let i=allDays.length-1;i>=0;i--){if(allDays[i].duration>0){defaultIdx=i;break}}
+    if(defaultIdx<0)defaultIdx=allDays.length-1;
+  }
+  if(defaultIdx>=0)selectPoint(defaultIdx);
+
+  let allClasses=[];allDays.forEach(d=>allClasses.push(...d.classes));buildStatsLegend(allClasses);
+
+  let nz=allDays.filter(d=>d.duration>0),avg=nz.length?Math.round(nz.reduce((s,d)=>s+d.duration,0)/nz.length):0;
+  document.getElementById('avgTimeLabel').textContent=formatMinutesToDuration(avg);
+
+  _renderTrainedExtremes(mergedFreqMap,durRangeMode);
 }
 
 /* ===================== VOLUME PARSER ===================== */
@@ -3004,6 +3815,78 @@ function parseWorkoutVolume(str){
   return total;
 }
 
+/* Accumulates a single day's total training volume into a {className:volume} map, attributing it to
+   every class actually logged for that day (from attendance.workout) split evenly across them — e.g.
+   a day with 300 volume logged as "Chest, Biceps" contributes 150 to each class's running total. This
+   is the same per-day class attribution the Duration graph already uses for its stacked bars, applied
+   here to volume instead of duration so High/Low Volume stays consistent with the rest of the app. */
+function _accumulateClassVolume(volumeMap,dayVolume,attendanceClasses){
+  if(!dayVolume||!attendanceClasses||!attendanceClasses.length)return;
+  const share=dayVolume/attendanceClasses.length;
+  attendanceClasses.forEach(c=>{volumeMap[c]=(volumeMap[c]||0)+share});
+}
+
+/* Computes High Volume / Low Volume from a {className:volume} map, per spec: whichever class(es) have
+   the HIGHEST total volume for the selected range is High Volume; whichever have the LOWEST is Low
+   Volume. Ties are fully supported on both ends — every class sharing the extreme value is included.
+   Unlike Duration's weekly gating, High/Low Volume always shows (Weekly, Monthly, 3-Month alike) as
+   long as there's at least one class with logged volume. */
+function _computeVolumeExtremes(volumeMap){
+  const entries=Object.entries(volumeMap).filter(e=>e[1]>0);
+  if(!entries.length)return{high:[],low:[]};
+  const maxVol=Math.max(...entries.map(e=>e[1]));
+  const minVol=Math.min(...entries.map(e=>e[1]));
+  const high=entries.filter(e=>Math.abs(e[1]-maxVol)<0.01).map(e=>e[0]);
+  const low=entries.filter(e=>Math.abs(e[1]-minVol)<0.01).map(e=>e[0]);
+  return{high,low};
+}
+
+/* Renders the High Volume / Low Volume rows from a {className:volume} map. Shown on Weekly, Monthly,
+   and 3-Month alike — hidden only when there's no logged volume at all for the selected range. */
+function _renderVolumeExtremes(volumeMap){
+  const{high,low}=_computeVolumeExtremes(volumeMap);
+  const highRow=document.getElementById('highVolumeRow');
+  const lowRow=document.getElementById('lowVolumeRow');
+  const highLabel=document.getElementById('highVolumeLabel');
+  const lowLabel=document.getElementById('lowVolumeLabel');
+  if(!highRow||!lowRow||!highLabel||!lowLabel)return;
+  if(high.length){
+    highLabel.textContent=high.join(', ');
+    highRow.style.display='';
+  } else {
+    highRow.style.display='none';
+  }
+  if(low.length){
+    lowLabel.textContent=low.join(', ');
+    lowRow.style.display='';
+  } else {
+    lowRow.style.display='none';
+  }
+}
+
+/* Renders the Average Volume row from an array of day volumes (active training days only). */
+function _renderVolumeAverage(days){
+  const row=document.getElementById('avgVolumeRow');
+  const lbl=document.getElementById('avgVolumeLabel');
+  const totalRow=document.getElementById('totalVolumeRow');
+  const totalLbl=document.getElementById('totalVolumeLabel');
+  const totalVal=document.getElementById('totalVolumeValue');
+  if(!row||!lbl)return;
+  const activeDays=days.filter(d=>d.volume>0);
+  if(!activeDays.length){row.style.display='none';if(totalRow)totalRow.style.display='none';return;}
+  const avg=activeDays.reduce((s,d)=>s+d.volume,0)/activeDays.length;
+  lbl.textContent=`${Math.round(avg).toLocaleString()} Kg-Reps / day (${activeDays.length} active day${activeDays.length!==1?'s':''})`;
+  row.style.display='';
+  // Total volume row
+  if(totalRow&&totalLbl&&totalVal){
+    const totalVol=activeDays.reduce((s,d)=>s+d.volume,0);
+    const periodName=volRangeMode==='monthly'?'Monthly Volume':volRangeMode==='3month'?'3-Month Volume':'Weekly Volume';
+    totalLbl.textContent=periodName;
+    totalVal.textContent=`${Math.round(totalVol).toLocaleString()} Kg-Reps / ${activeDays.length} active day${activeDays.length!==1?'s':''}`;
+    totalRow.style.display='';
+  }
+}
+
 /* ===================== VOLUME CHART STATE ===================== */
 let volChartInstance=null,volDayDataCache=[];
 let volChartInstanceL=null,volDayDataCacheL=[];
@@ -3012,6 +3895,8 @@ let volChartInstanceR=null,volDayDataCacheR=[];
 /* ── Volume Range Mode (Weekly / Monthly / 3-Month) — main single view only ── */
 let volRangeMode='weekly'; // 'weekly' | 'monthly' | '3month'
 let volLineDataCache=[]; // cache of {label,dateLabel,volume,workouts,attendanceWorkouts} for the active line view
+let durRangeMode='weekly'; // 'weekly' | 'monthly' | '3month' — Duration graph's own Weekly/Monthly/3-Month toggle
+let durLineDataCache=[]; // cache of {label,dateLabel,duration,classes,year,month,day} for the active Duration line view
 
 /* ── Detailed View state per panel ── */
 let _detailView={main:false,left:false,right:false};
@@ -3027,7 +3912,10 @@ function toggleDetailedView(panel){
   // Re-render current day if one is selected
   const titleId=panel==='left'?'volDrillTitleL':panel==='right'?'volDrillTitleR':'volDrillTitle';
   const bodyId=panel==='left'?'volDrillBodyL':panel==='right'?'volDrillBodyR':'volDrillBody';
-  if(_lastDrillDay[panel])renderVolDrilldown(_lastDrillDay[panel],titleId,bodyId,panel);
+  if(_lastDrillDay[panel]){
+    if(panel==='main')renderVolDrilldownEnhanced(_lastDrillDay[panel],titleId,bodyId,panel);
+    else renderVolDrilldown(_lastDrillDay[panel],titleId,bodyId,panel);
+  }
 }
 
 /* Glossy bar overlay plugin for Chart.js */
@@ -3213,6 +4101,18 @@ async function updateVolumeChart(side='main'){
   else if(side==='right')volDayDataCacheR=days;
   else volDayDataCache=days;
 
+  // High Volume / Low Volume (main panel only)
+  // Weekly: find the single highest/lowest class volume on any single day (per-day max/min).
+  // A day with Chest:1000, Bicep:800 → Chest is high for that day. Compare across all days.
+  if(side==='main'){
+    // High/Low Volume: always sum each class's total volume across all days in the range,
+    // then compare those sums — highest sum = High Volume, lowest sum = Low Volume.
+    const classVolMap={};
+    days.forEach(d=>_accumulateClassVolume(classVolMap,d.volume,d.attendanceWorkouts));
+    _renderVolumeExtremes(classVolMap);
+    _renderVolumeAverage(days);
+  }
+
   const labels=days.map(d=>d.label);
   const volumes=days.map(d=>Math.round(d.volume));
 
@@ -3223,17 +4123,45 @@ async function updateVolumeChart(side='main'){
   const canvas=document.getElementById(canvasId);if(!canvas)return;
   const ctx=canvas.getContext('2d');
 
-  // Main panel (Task 1): single solid theme color, no gradient.
-  // Compare-mode left/right panels keep their original two-tone gradient styling, untouched.
   const isMain=side==='main';
   const solidColor=isMain?getVolSolidColor():null;
   const{grad,hoverGrad}=isMain?{grad:solidColor,hoverGrad:solidColor}:makeVolGradients(ctx,side);
 
-  // Fixed height-ratio safety (main panel only — it's the only one with a fixed detail box): the
-  // Y-axis max is computed so the tallest bar is scaled to a constrained ratio of the plot area,
-  // always leaving headroom above it — it can never grow tall enough to reach the detail box.
+  // Build per-bar class volume data for the stacked plugin (main panel only)
+  const classVolsPerBar=isMain?days.map(d=>buildDayClassVolume(d.workouts)):null;
+  // Per-bar attendance workout names (from attendance table) — used for bar color/label
+  const attWorkoutsPerBar=isMain?days.map(d=>d.attendanceWorkouts||[]):null;
+
+  // Build class frequency map (how many days each class appears, for legend)
+  // Use attendance workouts for frequency map so legend matches bar colors
+  if(isMain){
+    const freqMap={};const volMap={};
+    days.forEach(d=>{
+      const dayClassVol=buildDayClassVolume(d.workouts);
+      (d.attendanceWorkouts||[]).forEach(c=>{
+        freqMap[c]=(freqMap[c]||0)+1;
+        volMap[c]=(volMap[c]||0)+(dayClassVol[c]||0);
+      });
+    });
+    volClassFreqMap=freqMap;volClassVolumeMap=volMap;
+    // Reset class filter and nav arrows on every weekly chart load
+    volSelectedClass=null;
+    _volCurrentIdx=0;
+    const navL=document.getElementById('volNavLeft');
+    const navR=document.getElementById('volNavRight');
+    if(navL)navL.classList.remove('class-filtered');
+    if(navR)navR.classList.remove('class-filtered');
+    buildVolLegend();
+  }
+
   const volMaxVal=Math.max(0,...volumes);
   const volSuggestedMax=isMain?(volMaxVal>0?Math.ceil((volMaxVal*1.45)/10)*10:100):undefined;
+
+  // Bar colors: when detailed view OFF use solid accent color (matches Duration graph); when ON use transparent so plugin draws multicolor
+  const{grad:mainGrad,hoverGrad:mainHoverGrad}=makeVolGradients(ctx,'main');
+  const mainSolidColor=getVolSolidColor();
+  const barBg=isMain?(volDetailViewOn?'rgba(0,0,0,0)':volumes.map(()=>mainSolidColor)):volumes.map(()=>grad);
+  const barHover=isMain?(volDetailViewOn?'rgba(0,0,0,0)':volumes.map(()=>mainHoverGrad)):volumes.map(()=>hoverGrad);
 
   const instance=new Chart(ctx,{
     type:'bar',
@@ -3242,17 +4170,18 @@ async function updateVolumeChart(side='main'){
       datasets:[{
         label:'Training Volume (kg·reps)',
         data:volumes,
-        backgroundColor:isMain?solidColor:volumes.map(()=>grad),
-        hoverBackgroundColor:isMain?solidColor:volumes.map(()=>hoverGrad),
+        backgroundColor:barBg,
+        hoverBackgroundColor:barHover,
         borderColor:isMain?solidColor:getVolBorderColor(side),
-        borderWidth:1.5,borderRadius:10,barPercentage:0.65,categoryPercentage:0.8
+        borderWidth:1.5,borderRadius:10,barPercentage:0.65,categoryPercentage:0.8,
+        _selectedClass:volSelectedClass,
+        _selectedIdx:-1,
+        _classVols:classVolsPerBar||[],
+        _attWorkouts:attWorkoutsPerBar||[]
       }]
     },
     options:{
       responsive:true,maintainAspectRatio:false,
-      // Layout safety (main panel only — it's the only one with a fixed detail box): the graph
-      // container is taller (#volGraphBox = 380px) so this reserved headroom is genuine EXTRA
-      // space, not squeezed plot area — a tall bar can never run underneath or touch the box.
       layout:{padding:{top:isMain?78:0,right:6,left:2,bottom:2}},
       plugins:{legend:{display:false},tooltip:{enabled:false}},
       scales:{
@@ -3261,37 +4190,40 @@ async function updateVolumeChart(side='main'){
       },
       onHover(evt,els){canvas.style.cursor=els.length?'pointer':'default'}
     },
-    plugins:[volGlossyPlugin]
+    plugins:isMain?[volGlossyPlugin,volSelectionPlugin,volStackedPlugin]:[volGlossyPlugin]
   });
 
   if(side==='left')volChartInstanceL=instance;
   else if(side==='right')volChartInstanceR=instance;
-  else volChartInstance=instance;
+  else{volChartInstance=instance;_volWeeklyChartInstance=instance;_volTotalBars=days.length;_volCurrentIdx=0;}
 
   const cache=side==='left'?volDayDataCacheL:side==='right'?volDayDataCacheR:volDayDataCache;
 
-  // Fixed top-right detail box only exists on the MAIN panel (Compare Mode left/right panels don't have one)
   function selectWeeklyBar(idx){
     const day=cache[idx];if(!day)return;
     _lastDrillDay[side]=day;
-    renderVolDrilldown(day,drillTitleId,drillBodyId,side);
-    if(isMain)_updateVolGraphDetailBox({dateLabel:day.label,volume:day.volume});
+    if(isMain){
+      _volCurrentIdx=idx;
+      instance.data.datasets[0]._selectedIdx=idx;
+      instance.data.datasets[0]._selectedClass=volSelectedClass||null;
+      instance.update('none');
+    }
+    // Use enhanced drilldown for main, legacy for compare panels
+    if(isMain)renderVolDrilldownEnhanced(day,drillTitleId,drillBodyId,side);
+    else renderVolDrilldown(day,drillTitleId,drillBodyId,side);
+    if(isMain)_updateVolGraphDetailBox(day);
   }
 
-  // Hover: show report box for this panel only
   canvas.onmousemove=function(evt){
     const pts=instance.getElementsAtEventForMode(evt,'index',{intersect:false},false);
     if(pts.length)selectWeeklyBar(pts[0].index);
   };
-
-  // Click: each panel is FULLY INDEPENDENT — never updates the other panel
   canvas.onclick=function(evt){
     const pts=instance.getElementsAtEventForMode(evt,'index',{intersect:true},false);
     if(!pts.length)return;
     selectWeeklyBar(pts[0].index);
   };
 
-  // Touch-drag: keep the fixed detail box (main panel) live-updating as a finger moves across the bars
   if(isMain){
     canvas.ontouchstart=function(evt){
       const touch=evt.touches[0];if(!touch)return;
@@ -3311,25 +4243,23 @@ async function updateVolumeChart(side='main'){
     canvas.ontouchstart=null;canvas.ontouchmove=null;
   }
 
-  // Reset the fixed detail box to its hint state on every fresh render of the main panel
   if(isMain){
     const hintEl=document.getElementById('volGraphDetailHint');
     const dateEl=document.getElementById('volGraphDetailDate');
     const volEl=document.getElementById('volGraphDetailVol');
-    if(hintEl)hintEl.style.display='block';
+    if(hintEl){hintEl.style.display='block';hintEl.textContent='👆 Tap a point';}
     if(dateEl)dateEl.style.display='none';
     if(volEl)volEl.style.display='none';
   }
 
-  // Default drilldown for today
   const today=new Date();
   if(filterYear===today.getFullYear()&&filterMonth===today.getMonth()){
     const td=days.find(d=>d.day===today.getDate())||days[0];
     if(td){
-      const tdIdx=days.indexOf(td);
       _lastDrillDay[side]=td;
-      renderVolDrilldown(td,drillTitleId,drillBodyId,side);
-      if(isMain)_updateVolGraphDetailBox({dateLabel:td.label,volume:td.volume});
+      if(isMain)renderVolDrilldownEnhanced(td,drillTitleId,drillBodyId,side);
+      else renderVolDrilldown(td,drillTitleId,drillBodyId,side);
+      if(isMain)_updateVolGraphDetailBox(td);
     }
   }
 }
@@ -3358,19 +4288,19 @@ function setVolRangeMode(mode){
     if(weekSelect)weekSelect.style.display='';
     if(monthSelect)monthSelect.style.display='';
     rangeLabel.classList.remove('visible');
-    hintText.textContent='💡 Click or hover a bar to drill down into that day\'s workout breakdown';
+    if(hintText)hintText.textContent='💡 Click or hover a bar to drill down into that day\'s workout breakdown';
   } else if(mode==='monthly'){
     // Hide Week dropdown only — Month dropdown stays active for navigation
     weekRow.style.display='flex';
     if(weekSelect)weekSelect.style.display='none';
     if(monthSelect)monthSelect.style.display='';
     rangeLabel.classList.remove('visible');
-    hintText.textContent='💡 Tap or drag across the line to see each day\'s breakdown below';
+    if(hintText)hintText.textContent='💡 Tap or drag across the line to see each day\'s breakdown below';
   } else {
     // 3-Month: hide both dropdowns, show sliding range label instead
     weekRow.style.display='none';
     rangeLabel.classList.add('visible');
-    hintText.textContent='💡 Tap or drag across the line to see each day\'s breakdown below';
+    if(hintText)hintText.textContent='💡 Tap or drag across the line to see each day\'s breakdown below';
   }
   updateVolumeChart('main');
 }
@@ -3427,7 +4357,8 @@ async function updateVolumeLineChart(){
     let dm={};
     for(let i=1;i<=lastDay;i++){
       const dt=new Date(year,month,i);
-      dm[i]={day:i,year,month,label:`${i} ${dayNames[dt.getDay()]}`,dateLabel:`${monNamesShort[month]} ${i}, ${year}`,volume:0,workouts:[],attendanceWorkouts:attWorkouts[i]||[]};
+      const weekOfMonth=Math.min(4,Math.ceil(i/7));
+      dm[i]={day:i,year,month,label:`${i} ${dayNames[dt.getDay()]}`,dateLabel:`${monNamesShort[month]} ${i}, ${year}`,volume:0,workouts:[],attendanceWorkouts:attWorkouts[i]||[],weekOfMonth};
     }
     if(data){
       data.forEach(row=>{
@@ -3446,7 +4377,45 @@ async function updateVolumeLineChart(){
   volLineDataCache=allDays;
   volDayDataCache=allDays; // keep main cache in sync so renderVolDrilldown's "panel" plumbing keeps working
 
+  // Build volClassFreqMap from attendanceWorkouts (count unique days each class appears)
+  const freqMapLine={};const volMapLine={};
+  allDays.forEach(d=>{
+    const dayClassVol=buildDayClassVolume(d.workouts);
+    (d.attendanceWorkouts||[]).forEach(c=>{
+      freqMapLine[c]=(freqMapLine[c]||0)+1;
+      volMapLine[c]=(volMapLine[c]||0)+(dayClassVol[c]||0);
+    });
+  });
+  volClassFreqMap=freqMapLine;volClassVolumeMap=volMapLine;
+  // Reset class filter on new chart load
+  volSelectedClass=null;
+  buildVolLegend();
+
+  // High Volume / Low Volume — sum each class's attributed volume across the ENTIRE selected window
+  // (the whole month for Monthly, all 3 months for 3-Month), then find the highest/lowest summed class.
+  const classVolMap={};
+  allDays.forEach(d=>_accumulateClassVolume(classVolMap,d.volume,d.attendanceWorkouts));
+  _renderVolumeExtremes(classVolMap);
+  _renderVolumeAverage(allDays);
+
   const volumes=allDays.map(d=>Math.round(d.volume));
+
+  // X-axis anchor labels (per task spec): Monthly mode shows "Week 1".."Week 4" at the start of each
+  // calendar week within the month; 3-Month mode shows each month's short name at its first day.
+  // Every other point gets an empty label so the axis stays clean/uncluttered on small mobile screens
+  // while still placing each labeled point at the correct day position along the line.
+  const monNamesAxis=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  let seenWeek=null,seenMonth=null;
+  const xAxisLabels=allDays.map(d=>{
+    if(volRangeMode==='monthly'){
+      if(d.weekOfMonth!==seenWeek){seenWeek=d.weekOfMonth;return`Week ${d.weekOfMonth}`}
+      return'';
+    } else if(volRangeMode==='3month'){
+      if(d.month!==seenMonth){seenMonth=d.month;return monNamesAxis[d.month]}
+      return'';
+    }
+    return d.label;
+  });
 
   if(volChartInstance){volChartInstance.destroy();volChartInstance=null}
   const canvas=document.getElementById('volumeChart');if(!canvas)return;
@@ -3460,7 +4429,7 @@ async function updateVolumeLineChart(){
   const instance=new Chart(ctx,{
     type:'line',
     data:{
-      labels:allDays.map(d=>d.label),
+      labels:xAxisLabels,
       datasets:[{
         label:'Volume (kg·reps)',
         data:volumes,
@@ -3482,27 +4451,43 @@ async function updateVolumeLineChart(){
       // Layout safety: the graph container is now taller (#volGraphBox = 380px) specifically so this
       // reserved headroom is genuine EXTRA space, not squeezed plot area — the line can never run
       // underneath or touch the fixed top-right detail box, even on small/low-end mobile screens.
-      layout:{padding:{top:78,right:6,left:2,bottom:2}},
+      // Bottom padding grows slightly when Week/Month axis labels are visible (Monthly/3-Month) so
+      // that text never gets clipped against the container edge on small mobile screens.
+      layout:{padding:{top:78,right:6,left:2,bottom:volRangeMode==='weekly'?2:18}},
       interaction:{mode:'index',intersect:false},
       plugins:{legend:{display:false},tooltip:{enabled:false}},
       scales:{
         y:{beginAtZero:true,grid:{color:'rgba(128,128,128,0.08)'},ticks:{color:'#6b7280',font:{family:'Rajdhani',size:11},callback(v){return v>=1000?(v/1000).toFixed(1)+'k':v}}},
-        // X-axis labels removed for Monthly/3-Month per spec — the detail box carries date info instead
-        x:{display:false,grid:{display:false},ticks:{display:false}}
+        // X-axis: Weekly default keeps day labels hidden (detail box carries that info). Monthly/3-Month
+        // show the sparse Week-N / month-name anchors built above — empty-string ticks are skipped by
+        // Chart.js automatically so the axis never looks cluttered, even on narrow mobile screens.
+        x:volRangeMode==='weekly'
+          ?{display:false,grid:{display:false},ticks:{display:false}}
+          :{display:true,grid:{display:false},ticks:{color:'#6b7280',font:{family:'Rajdhani',size:10,weight:'600'},autoSkip:false,maxRotation:0,minRotation:0,callback(val,idx){const l=xAxisLabels[idx];return l?l:null}}}
       },
       onHover(evt,els){canvas.style.cursor=els.length?'pointer':'default'}
     }
   });
 
   volChartInstance=instance;
+  // Reset nav arrow filter state — class filter was cleared on chart load
+  const navLeft=document.getElementById('volNavLeft');
+  const navRight=document.getElementById('volNavRight');
+  if(navLeft)navLeft.classList.remove('class-filtered');
+  if(navRight)navRight.classList.remove('class-filtered');
 
-  // ---- Marker selection: updates the fixed top-right detail box AND the existing Breakdown box instantly ----
+  // ---- Marker selection: updates _volCurrentIdx, detail boxes, and drilldown ----
   function selectPoint(idx){
     const day=allDays[idx];if(!day)return;
-    _highlightVolPoint(instance,idx,selectedColor,pointColor);
+    _volCurrentIdx=idx;
+    if(volSelectedClass){
+      _volHighlightLinePoint(idx);
+    } else {
+      _highlightVolPoint(instance,idx,selectedColor,pointColor);
+    }
     _updateVolGraphDetailBox(day);
     _lastDrillDay.main=day;
-    renderVolDrilldown(day,'volDrillTitle','volDrillBody','main');
+    renderVolDrilldownEnhanced(day,'volDrillTitle','volDrillBody','main');
   }
 
   canvas.onclick=function(evt){
@@ -3558,6 +4543,31 @@ function _highlightVolPoint(chartInstance,selectedIdx,selectedColor,baseColor){
 }
 
 /* Fills the fixed top-right detail box with the selected day's Date + Total Volume */
+/* Helper: format date as "Mon, 15 Jun" from a day object */
+function _volFormatDetailDate(day){
+  const dayNames=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const monNames=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  // Monthly/3month: use dateLabel "Jun 15, 2026" or reconstruct from year/month/day
+  if(typeof day.year==='number'&&typeof day.month==='number'&&typeof day.day==='number'){
+    const dt=new Date(day.year,day.month,day.day);
+    return`${dayNames[dt.getDay()]}, ${day.day} ${monNames[day.month]}`;
+  }
+  // Weekly: day.label is "15 Mon", need year+month from context
+  // try to parse from label "15 Mon"
+  const match=(day.label||'').match(/^(\d+)\s+(\w+)/);
+  if(match){
+    const dayNum=parseInt(match[1]);
+    const dayName=match[2];
+    // Get current month context from volMonth select or current date
+    const monthSel=document.getElementById('volMonth');
+    let year,month;
+    if(monthSel&&monthSel.value){[year,month]=[parseInt(monthSel.value.split('-')[0]),parseInt(monthSel.value.split('-')[1])-1]}
+    else{const n=new Date();year=n.getFullYear();month=n.getMonth();}
+    return`${dayName}, ${dayNum} ${monNames[month]}`;
+  }
+  return day.dateLabel||day.label||'';
+}
+
 function _updateVolGraphDetailBox(day){
   const hintEl=document.getElementById('volGraphDetailHint');
   const dateEl=document.getElementById('volGraphDetailDate');
@@ -3566,8 +4576,76 @@ function _updateVolGraphDetailBox(day){
   hintEl.style.display='none';
   dateEl.style.display='block';
   volEl.style.display='block';
-  dateEl.textContent=day.dateLabel;
-  volEl.innerHTML=`${Math.round(day.volume).toLocaleString()} <small>kg·reps</small>`;
+
+  // Line 1: date only, no "Date:" prefix
+  const formattedDate=_volFormatDetailDate(day);
+  dateEl.textContent=formattedDate;
+
+  const attNames=day.attendanceWorkouts||[];
+
+  // Build per-class volume for this day (used in all cases)
+  const cv={};
+  if(attNames.length>0){
+    attNames.forEach(n=>{cv[n]=0;});
+    (day.workouts||[]).forEach(w=>{
+      const exCls=extractClassFromWorkoutName(w.name);
+      let matched=attNames.find(n=>n===exCls)||attNames.find(n=>exCls.toLowerCase().includes(n.toLowerCase())||n.toLowerCase().includes(exCls.toLowerCase()));
+      if(!matched)matched=attNames[0];
+      if(matched)cv[matched]=(cv[matched]||0)+w.vol;
+    });
+  } else {
+    (day.workouts||[]).forEach(w=>{const c=extractClassFromWorkoutName(w.name);cv[c]=(cv[c]||0)+w.vol;});
+  }
+  const classEntries=Object.entries(cv).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]);
+
+  // Shared dot builder
+  const dot=(color)=>`<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${color};flex-shrink:0;margin-right:4px;vertical-align:middle"></span>`;
+  const divider=`<div style="border-top:1px solid rgba(128,128,128,0.2);margin:3px 0 2px"></div>`;
+
+  // Case 1: Detailed View OFF
+  if(!volDetailViewOn){
+    // Line 2: class name(s) with color dot, one per line
+    let classLines='';
+    if(attNames.length>0){
+      classLines=attNames.map(cls=>{
+        const col=CLASS_COLORS[cls]||'var(--accent)';
+        return`<div style="display:flex;align-items:center;font-size:10px;font-weight:700;color:${col};margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${dot(col)}<span style="overflow:hidden;text-overflow:ellipsis">${cls}</span></div>`;
+      }).join('');
+    }
+    // Line 3: Daily Total
+    const dailyTotal=Math.round(day.volume||0);
+    const totalLine=`${divider}<div style="font-size:10px;margin-top:1px;white-space:nowrap">Daily total:<br><strong style="font-size:12px">${dailyTotal.toLocaleString()} Kg</strong></div>`;
+    volEl.innerHTML=(classLines||'')+totalLine;
+    return;
+  }
+
+  // Case 3: Detailed View ON + class selected
+  if(volSelectedClass){
+    const dayClassVol=Math.round(cv[volSelectedClass]||0);
+    const weekTotalVol=Math.round(volClassVolumeMap[volSelectedClass]||0);
+    const periodLabel=volRangeMode==='weekly'?'Weekly':volRangeMode==='monthly'?'Monthly':'3-Month';
+    const col=CLASS_COLORS[volSelectedClass]||'var(--accent)';
+    const line2=dayClassVol>0
+      ?`<div style="display:flex;align-items:center;font-size:10px;font-weight:700;color:${col};margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${dot(col)}<span style="overflow:hidden;text-overflow:ellipsis">${volSelectedClass}: ${dayClassVol.toLocaleString()} Kg-Reps</span></div>`
+      :`<div style="font-size:10px;color:var(--text-muted);margin-top:2px">${volSelectedClass}: No data</div>`;
+    const line3=`${divider}<div style="font-size:10px;white-space:nowrap">${periodLabel} Total:<br><strong style="font-size:12px">${weekTotalVol.toLocaleString()} Kg-Reps</strong></div>`;
+    volEl.innerHTML=line2+line3;
+    return;
+  }
+
+  // Case 2: Detailed View ON, no class selected — each class with dot, line by line + daily total
+  let classLines='';
+  if(classEntries.length>0){
+    classLines=classEntries.map(([cls,vol])=>{
+      const col=CLASS_COLORS[cls]||'var(--accent)';
+      return`<div style="display:flex;align-items:center;font-size:10px;font-weight:700;color:${col};margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${dot(col)}<span style="overflow:hidden;text-overflow:ellipsis">${cls}: ${Math.round(vol).toLocaleString()} Kg</span></div>`;
+    }).join('');
+  } else {
+    classLines=`<div style="font-size:10px;color:var(--text-muted);margin-top:2px">No data</div>`;
+  }
+  const dailyTotal=Math.round(day.volume||0);
+  const totalLine=`${divider}<div style="font-size:10px;white-space:nowrap">Daily Total:<br><strong style="font-size:12px">${dailyTotal.toLocaleString()} Kg-Reps</strong></div>`;
+  volEl.innerHTML=classLines+totalLine;
 }
 
 /* Parse individual sets from a workout string.
@@ -3669,29 +4747,521 @@ function toggleVolSets(rowId,setsId){
   }
 }
 
+/* ===================== VOLUME STACKED CLASS ENGINE ===================== */
+/* Mirrors the Duration stacked-bar system but for Volume data */
+
+let volDetailViewOn=false;       // Detailed View toggle state (main panel)
+let volSelectedClass=null;       // Currently filtered class
+let volClassFreqMap={};          // {className: count} of workouts in current range
+let volClassVolumeMap={};        // {className: totalVol} of workouts in current range
+let _volSelectedIdx=-1;          // Currently highlighted bar index
+let _volCurrentIdx=0;            // For arrow nav
+let _volTotalBars=0;
+let _volWeeklyChartInstance=null;// Ref to current weekly bar chart (stacked mode)
+
+/* Extract class from exercise name stored as "ExName (Class): ..." */
+function extractClassFromWorkoutName(rawName){
+  if(!rawName)return'Unknown';
+  const nameOnly=rawName.split(':')[0].trim();
+  const m=nameOnly.match(/\(([^)]+)\)\s*$/);
+  if(m){
+    const cls=m[1];
+    if(CLASS_COLORS[cls])return cls;
+  }
+  // fallback: check EXERCISE_CATALOG by base name
+  const baseName=nameOnly.replace(/\s*\([^)]+\)\s*$/,'').trim();
+  const found=EXERCISE_CATALOG.find(e=>{
+    const en=e.name.replace(/\s*\([^)]+\)\s*$/,'').trim();
+    return en.toLowerCase()===baseName.toLowerCase();
+  });
+  return(found&&found.class!=='multi')?found.class:'Unknown';
+}
+
+/* Build per-class volume breakdown for a day's workouts */
+function buildDayClassVolume(workouts){
+  const map={};
+  (workouts||[]).forEach(w=>{
+    const cls=extractClassFromWorkoutName(w.name);
+    if(!map[cls])map[cls]=0;
+    map[cls]+=w.vol;
+  });
+  return map;
+}
+
+/* Toggle Detailed View */
+function toggleVolDetailView(){
+  volDetailViewOn=!volDetailViewOn;
+  const tog=document.getElementById('volDetailToggle');
+  const lbl=document.getElementById('volDetailToggleLabel');
+  const legend=document.getElementById('volChartLegendWrap');
+  if(tog)tog.classList.toggle('on',volDetailViewOn);
+  if(lbl){lbl.textContent=volDetailViewOn?'ON':'OFF';lbl.style.color=volDetailViewOn?'var(--accent)':'var(--text-muted)';}
+  if(legend)legend.classList.toggle('hidden',!volDetailViewOn);
+  // Clear class filter when turning off
+  if(!volDetailViewOn){
+    volSelectedClass=null;
+    if(_volWeeklyChartInstance){
+      _volWeeklyChartInstance.data.datasets[0]._selectedClass=null;
+    }
+  }
+  // Re-render chart to show/hide stacked colors
+  updateVolumeChart('main');
+}
+
+/* Highlights line chart points for the active volSelectedClass — mirrors _durHighlightLinePoint */
+function _volHighlightLinePoint(selectedIdx){
+  const chart=volChartInstance;if(!chart||chart.config.type!=='line')return;
+  const base=getVolSolidColor();
+  const ds=chart.data.datasets[0];
+  const n=volLineDataCache.length;
+  const radii=new Array(n).fill(volLineDataCache.length>20?2.5:4);
+  const colors=new Array(n).fill(base);
+  const borders=new Array(n).fill('#fff');
+  if(volSelectedClass){
+    for(let i=0;i<n;i++){
+      if((volLineDataCache[i].attendanceWorkouts||[]).includes(volSelectedClass)){
+        colors[i]=CLASS_COLORS[volSelectedClass]||base;
+        radii[i]=5;
+        borders[i]='rgba(255,255,255,0.9)';
+      } else {
+        colors[i]='rgba(148,163,184,0.2)';
+        radii[i]=2;
+        borders[i]='transparent';
+      }
+    }
+  }
+  if(selectedIdx>=0&&selectedIdx<n){
+    colors[selectedIdx]=volSelectedClass?(CLASS_COLORS[volSelectedClass]||base):base;
+    radii[selectedIdx]=9;
+    borders[selectedIdx]='#fff';
+  }
+  ds.pointBackgroundColor=colors;
+  ds.pointBorderColor=borders;
+  ds.pointRadius=radii;
+  ds.pointHoverRadius=radii.map((r,i)=>i===selectedIdx?11:r+2);
+  chart.update('none');
+}
+
+/* Select class filter — mirrors durSelectClass logic exactly */
+function volSelectClass(cls){
+  if(!volDetailViewOn)return;
+  const navLeft=document.getElementById('volNavLeft');
+  const navRight=document.getElementById('volNavRight');
+  if(volSelectedClass===cls){
+    // Deselect — back to free navigation
+    volSelectedClass=null;
+    buildVolLegend();
+    if(navLeft)navLeft.classList.remove('class-filtered');
+    if(navRight)navRight.classList.remove('class-filtered');
+    if(volRangeMode==='weekly'){
+      if(_volWeeklyChartInstance){
+        _volWeeklyChartInstance.data.datasets[0]._selectedClass=null;
+        _volWeeklyChartInstance.update('none');
+      }
+    } else {
+      _volHighlightLinePoint(_volCurrentIdx);
+    }
+    const h=document.getElementById('volGraphDetailHint');
+    if(h){h.style.display='block';h.textContent='👆 Tap a point';}
+    // Refresh detail box if a day is already selected
+    if(_lastDrillDay['main'])_updateVolGraphDetailBox(_lastDrillDay['main']);
+  } else {
+    volSelectedClass=cls;
+    buildVolLegend();
+    if(navLeft)navLeft.classList.add('class-filtered');
+    if(navRight)navRight.classList.add('class-filtered');
+    // Jump to first occurrence of this class
+    const indices=_volIndicesForClass(cls);
+    if(indices.length){
+      _volCurrentIdx=indices[0];
+      _volSelectIndex(_volCurrentIdx);
+    } else {
+      // Class in legend but no occurrences — still update bar/point highlighting
+      if(volRangeMode==='weekly'){
+        if(_volWeeklyChartInstance){
+          _volWeeklyChartInstance.data.datasets[0]._selectedClass=cls;
+          _volWeeklyChartInstance.update('none');
+        }
+      } else {
+        _volHighlightLinePoint(-1);
+      }
+    }
+    // Show class freq in detail box
+    const freq=volClassFreqMap[cls]||0;
+    const freqEl=document.getElementById('volGraphDetailHint');
+    if(freqEl){
+      const clr=CLASS_COLORS[cls]||'var(--accent)';
+      freqEl.style.display='block';
+      freqEl.innerHTML=`<span style="color:${clr};font-weight:800">${cls}</span>: ${freq} session${freq!==1?'s':''}`;
+    }
+    // Refresh detail box if a day is already selected
+    if(_lastDrillDay['main'])_updateVolGraphDetailBox(_lastDrillDay['main']);
+  }
+}
+
+/* Build class legend sorted by volume high→low */
+function buildVolLegend(){
+  const wrap=document.getElementById('volChartLegendWrap');
+  const el=document.getElementById('volChartLegend');if(!el)return;
+  if(wrap)wrap.classList.toggle('hidden',!volDetailViewOn);
+  const classes=Object.keys(volClassFreqMap).filter(c=>c!=='Rest'&&c!=='Unknown'&&volClassFreqMap[c]>0);
+  // Sort by total volume high→low
+  classes.sort((a,b)=>(volClassVolumeMap[b]||0)-(volClassVolumeMap[a]||0));
+  let html='';
+  classes.forEach(c=>{
+    const color=CLASS_COLORS[c]||CLASS_COLORS['Unknown'];
+    const freq=volClassFreqMap[c]||0;
+    const totalVol=Math.round(volClassVolumeMap[c]||0);
+    const volStr=totalVol.toLocaleString()+' Kg';
+    const isActive=volSelectedClass===c;
+    html+=`<div class="class-carousel-item" onclick="volSelectClass('${c}')" style="display:inline-flex;flex-direction:column;align-items:center;gap:2px;font-family:var(--font-alt);font-size:11px;font-weight:700;color:${isActive?'#fff':'var(--text-secondary)'};padding:5px 9px;border-radius:20px;border:2px solid ${isActive?color:'var(--border-col)'};background:${isActive?color:'var(--bg-card)'};white-space:nowrap;box-shadow:${isActive?'0 2px 10px '+color+'66':'none'}">
+      <div style="display:flex;align-items:center;gap:5px"><span style="width:9px;height:9px;border-radius:3px;background:${isActive?'rgba(255,255,255,0.8)':color};display:inline-block;flex-shrink:0"></span>${c}<span style="background:${isActive?'rgba(255,255,255,0.25)':color+'33'};color:${isActive?'#fff':color};border-radius:10px;padding:1px 6px;font-size:9px;font-weight:800;min-width:16px;text-align:center">${freq}</span></div>
+      <div style="font-size:9px;font-weight:700;color:${isActive?'rgba(255,255,255,0.85)':color};letter-spacing:0.2px;margin-top:1px">${volStr}</div>
+    </div>`;
+  });
+  if(!html)html=`<span style="font-size:11px;color:var(--text-muted);font-family:var(--font-alt);white-space:nowrap">No workouts in this range</span>`;
+  el.innerHTML=html;
+  if(volDetailViewOn)_initCarousel('volChartLegend','volChartLegendWrap');
+}
+
+/* Volume bar selection highlight plugin — activates when volDetailViewOn is FALSE.
+   Draws a bold white overlay border on the selected bar so the user always sees which bar is selected. */
+const volSelectionPlugin={
+  id:'volSelectionPlugin',
+  afterDatasetsDraw(chart){
+    if(volDetailViewOn)return; // when ON, volStackedPlugin handles selection highlight
+    const{ctx,data}=chart;
+    const selectedIdx=data.datasets[0]._selectedIdx??-1;
+    if(selectedIdx<0)return;
+    const meta=chart.getDatasetMeta(0);
+    const bar=meta.data[selectedIdx];if(!bar)return;
+    const bx=bar.x,by=bar.y,bw=bar.width,bBase=bar.base,bh=bBase-by;if(bh<=2)return;
+    ctx.save();
+    // White thick overlay border
+    ctx.strokeStyle='rgba(255,255,255,0.95)';
+    ctx.lineWidth=3.5;
+    ctx.shadowColor='rgba(255,255,255,0.7)';
+    ctx.shadowBlur=12;
+    ctx.globalAlpha=1;
+    ctx.beginPath();ctx.roundRect(bx-bw/2,by,bw,bh,6);ctx.stroke();
+    // Lighter fill overlay to subtly brighten the bar
+    ctx.fillStyle='rgba(255,255,255,0.12)';
+    ctx.beginPath();ctx.roundRect(bx-bw/2,by,bw,bh,6);ctx.fill();
+    ctx.restore();
+  }
+};
+
+/* Volume stacked bar plugin — only activates when volDetailViewOn is true.
+   When off, chart.js draws the default gradient bars; this plugin does nothing. */
+const volStackedPlugin={
+  id:'volStackedPlugin',
+  afterDatasetsDraw(chart){
+    if(!volDetailViewOn)return; // OFF → let Chart.js draw default theme-colored bars
+    const{ctx,data}=chart;ctx.save();
+    const meta=chart.getDatasetMeta(0);
+    const selectedClass=data.datasets[0]._selectedClass||null;
+    const selectedIdx=data.datasets[0]._selectedIdx??-1;
+    const attWorkoutsPerBar=data.datasets[0]._attWorkouts||[];
+    meta.data.forEach((bar,i)=>{
+      const bx=bar.x,by=bar.y,bw=bar.width,bBase=bar.base;const bh=bBase-by;if(bh<=2)return;
+      const attNames=attWorkoutsPerBar[i]||[];
+      if(attNames.length===0)return;
+      const barHasClass=selectedClass?attNames.includes(selectedClass):true;
+      const globalAlpha=selectedClass&&!barHasClass?0.22:1;
+      ctx.globalAlpha=globalAlpha;
+      const total=attNames.length;
+      let drawnH=0;
+      attNames.forEach((cls,idx)=>{
+        const ratio=1/total;
+        const segH=bh*ratio;
+        const sy=bBase-drawnH-segH;
+        drawnH+=segH;
+        const color=CLASS_COLORS[cls]||CLASS_COLORS['Unknown'];
+        const segAlpha=(selectedClass&&selectedClass!==cls)?0.18:1;
+        ctx.save();ctx.globalAlpha=globalAlpha*segAlpha;
+        ctx.fillStyle=color;ctx.beginPath();
+        if(idx===0&&idx===attNames.length-1){ctx.roundRect(bx-bw/2,sy,bw,segH,4)}
+        else if(idx===attNames.length-1){ctx.roundRect(bx-bw/2,sy,bw,segH,[4,4,0,0])}
+        else if(idx===0){ctx.roundRect(bx-bw/2,sy,bw,segH,[0,0,4,4])}
+        else{ctx.rect(bx-bw/2,sy,bw,segH)}
+        ctx.fill();
+        if(idx<attNames.length-1){ctx.strokeStyle='rgba(255,255,255,0.25)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(bx-bw/2,bBase-drawnH);ctx.lineTo(bx+bw/2,bBase-drawnH);ctx.stroke()}
+        if(segH>=16){
+          ctx.save();ctx.translate(bx,sy+segH/2);ctx.rotate(-Math.PI/2);
+          ctx.fillStyle='#fff';const fs=Math.min(9,Math.max(7,bw*0.32));ctx.font=`bold ${fs}px Rajdhani,sans-serif`;
+          ctx.textAlign='center';ctx.textBaseline='middle';
+          let txt=cls;const maxW=segH-4;
+          while(ctx.measureText(txt).width>maxW&&txt.length>2)txt=txt.slice(0,-1);
+          if(txt!==cls)txt+='..';ctx.fillText(txt,0,0);
+          ctx.restore();
+        }
+        ctx.restore();
+      });
+      ctx.globalAlpha=1;
+      if(selectedClass&&barHasClass){
+        const glowColor=CLASS_COLORS[selectedClass]||'#fff';
+        ctx.save();ctx.shadowColor=glowColor;ctx.shadowBlur=i===selectedIdx?18:10;
+        ctx.strokeStyle=glowColor;ctx.lineWidth=i===selectedIdx?3:1.5;
+        ctx.globalAlpha=i===selectedIdx?0.95:0.55;
+        ctx.beginPath();ctx.roundRect(bx-bw/2,by,bw,bh,4);ctx.stroke();ctx.restore();
+      } else if(!selectedClass&&i===selectedIdx&&selectedIdx>=0){
+        ctx.save();ctx.shadowColor='rgba(37,99,235,0.7)';ctx.shadowBlur=16;
+        ctx.strokeStyle='rgba(255,255,255,0.85)';ctx.lineWidth=2.5;ctx.globalAlpha=0.9;
+        ctx.beginPath();ctx.roundRect(bx-bw/2,by,bw,bh,4);ctx.stroke();ctx.restore();
+      }
+    });
+    ctx.restore();
+  }
+};
+
+/* Returns ordered list of indices in the active cache that contain the given class */
+function _volIndicesForClass(cls){
+  const cache=volRangeMode==='weekly'?volDayDataCache:volLineDataCache;
+  return cache.map((_,i)=>i).filter(i=>(cache[i].attendanceWorkouts||[]).includes(cls));
+}
+
+/* Selects a bar (weekly) or point (monthly/3month) by index — updates highlight + drilldown */
+function _volSelectIndex(idx){
+  _volCurrentIdx=idx;
+  const cache=volRangeMode==='weekly'?volDayDataCache:volLineDataCache;
+  const day=cache[idx];if(!day)return;
+  if(volRangeMode==='weekly'){
+    if(_volWeeklyChartInstance){
+      _volWeeklyChartInstance.data.datasets[0]._selectedIdx=idx;
+      _volWeeklyChartInstance.data.datasets[0]._selectedClass=volSelectedClass||null;
+      _volWeeklyChartInstance.update('none');
+    }
+    _lastDrillDay['main']=day;
+    renderVolDrilldownEnhanced(day,'volDrillTitle','volDrillBody','main');
+    _updateVolGraphDetailBox(day);
+  } else {
+    _volHighlightLinePoint(idx);
+    _lastDrillDay['main']=day;
+    renderVolDrilldownEnhanced(day,'volDrillTitle','volDrillBody','main');
+    _updateVolGraphDetailBox(day);
+  }
+}
+
+/* Arrow navigation: when a class is selected moves only between bars/points containing that class
+   (wraps); otherwise steps freely through every index (wraps). Mirrors durNavigate. */
+function volNavigate(dir){
+  const cache=volRangeMode==='weekly'?volDayDataCache:volLineDataCache;
+  if(!cache.length)return;
+  if(volSelectedClass){
+    const indices=_volIndicesForClass(volSelectedClass);
+    if(!indices.length)return;
+    const pos=indices.indexOf(_volCurrentIdx);
+    const nextPos=(pos===-1)?(dir===1?0:indices.length-1):((pos+dir+indices.length)%indices.length);
+    _volCurrentIdx=indices[nextPos];
+  } else {
+    _volCurrentIdx=((_volCurrentIdx+dir)+cache.length)%cache.length;
+  }
+  _volSelectIndex(_volCurrentIdx);
+}
+
+/* Render the volume drilldown breakdown box:
+   - Always shows: each exercise name + its training volume (kg·reps)
+   - Always shows: each attendance class total volume (kg·reps) + percentage
+   - "Breakdown" toggle ON: additionally expands each exercise row to show all individual set values */
+function renderVolDrilldownEnhanced(day,titleId,bodyId,panel){
+  if(!day)return;
+  panel=panel||'main';
+  const titleEl=document.getElementById(titleId||'volDrillTitle');
+  const bodyEl=document.getElementById(bodyId||'volDrillBody');
+  if(!titleEl||!bodyEl)return;
+
+  const attNames=(day.attendanceWorkouts||[]);
+  const attBadge=attNames.length?`<div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:4px">${attNames.map(n=>{const col=CLASS_COLORS[n]||CLASS_COLORS['Unknown'];return`<span style="display:inline-block;background:${col};color:#fff;padding:2px 9px;border-radius:7px;font-size:10px;font-family:var(--font-alt);font-weight:700">${n}</span>`}).join('')}</div>`:'';
+  titleEl.innerHTML=`📋 <span style="color:var(--accent)">${day.label}</span> — Volume Breakdown${attBadge}`;
+
+  if(!day.workouts||day.workouts.length===0){
+    bodyEl.innerHTML=`<div style="color:var(--text-muted);font-family:var(--font-alt);font-size:13px;padding:8px 0">No workouts logged for this day.</div>`;
+    return;
+  }
+
+  // breakdownOn = "Breakdown" toggle — shows individual set values per exercise
+  const breakdownOn=_detailView[panel]||false;
+  const uid=panel==='left'?'L':panel==='right'?'R':panel;
+  const totalVol=day.volume||1;
+
+  // Build per-class volume using attendance classes as source of truth
+  let attClassVol={};
+  if(attNames.length>0){
+    attNames.forEach(n=>{attClassVol[n]=0;});
+    day.workouts.forEach(w=>{
+      const exCls=extractClassFromWorkoutName(w.name);
+      let matched=attNames.find(n=>n===exCls)
+        ||attNames.find(n=>exCls.toLowerCase().includes(n.toLowerCase())||n.toLowerCase().includes(exCls.toLowerCase()));
+      if(!matched)matched=attNames[0];
+      if(matched)attClassVol[matched]=(attClassVol[matched]||0)+w.vol;
+    });
+  } else {
+    day.workouts.forEach(w=>{const c=extractClassFromWorkoutName(w.name);attClassVol[c]=(attClassVol[c]||0)+w.vol;});
+  }
+  const classKeys=Object.keys(attClassVol).filter(c=>attClassVol[c]>0&&c!=='Unknown');
+
+  let html='';
+
+  // ── Section 1: Exercise list with volume (always visible) ──
+  html+=`<div style="margin-bottom:10px">`;
+  html+=`<div style="font-family:var(--font-alt);font-size:11px;font-weight:800;color:var(--text-muted);margin-bottom:6px;letter-spacing:0.5px">🏋 EXERCISES</div>`;
+  day.workouts.forEach((w,idx)=>{
+    const parts=w.name.split(':');
+    const exName=(parts[0]||w.name).trim();
+    const exClass=extractClassFromWorkoutName(w.name);
+    const exColor=CLASS_COLORS[exClass]||CLASS_COLORS['Unknown'];
+    const sets=parseWorkoutSets(w.name);
+    const setsId=`volSets_${uid}_${idx}`;
+    const rowId=`volRow_${uid}_${idx}`;
+
+    if(breakdownOn){
+      // Expanded: show set rows below each exercise
+      html+=`<div class="vol-drill-row expanded" id="${rowId}" onclick="toggleVolSets('${rowId}','${setsId}')"
+        style="border-radius:10px 10px 0 0;margin-bottom:0;border:1px solid ${exColor}55;border-left:3px solid ${exColor};border-bottom:none;padding:10px 14px;display:flex;align-items:center;gap:8px;background:var(--bg-card);cursor:pointer">
+        <span style="width:7px;height:7px;border-radius:2px;background:${exColor};flex-shrink:0"></span>
+        <span class="vol-drill-name" style="flex:1;font-size:12px">${exName}<small style="font-size:9px;color:${exColor};margin-left:5px;font-family:var(--font-alt);font-weight:700">${exClass}</small></span>
+        <span class="vol-drill-val">${Math.round(w.vol).toLocaleString()} <small style="font-size:9px;opacity:0.65">kg·reps</small></span>
+        <span class="vol-drill-chevron" id="chev_${rowId}">▼</span>
+      </div>`;
+      html+=`<div class="vol-drill-sets open" id="${setsId}" style="border-radius:0 0 10px 10px;margin-bottom:6px">`;
+      if(sets.length===0){
+        html+=`<div class="vol-set-line"><span class="vol-set-desc" style="color:var(--text-muted)">No set data found</span></div>`;
+      } else {
+        sets.forEach((s,si)=>{
+          html+=`<div class="vol-set-line"><span class="vol-set-desc">Set ${si+1} · ${s.desc}</span><span class="vol-set-vol">${s.vol.toLocaleString()} kg</span></div>`;
+        });
+        html+=`<div class="vol-sets-total"><span>Total</span><strong>${Math.round(w.vol).toLocaleString()} kg·reps</strong></div>`;
+      }
+      html+=`</div>`;
+    } else {
+      // Collapsed: just exercise name + volume, no sets
+      html+=`<div style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:8px;border:1px solid ${exColor}33;border-left:3px solid ${exColor};background:var(--bg-card);margin-bottom:5px">
+        <span style="width:7px;height:7px;border-radius:2px;background:${exColor};flex-shrink:0"></span>
+        <span style="flex:1;font-family:var(--font-alt);font-size:12px;font-weight:600;color:var(--text-primary)">${exName}<small style="font-size:9px;color:${exColor};margin-left:5px;font-weight:700">${exClass}</small></span>
+        <span style="font-family:var(--font-alt);font-size:12px;font-weight:700;color:var(--text-secondary)">${Math.round(w.vol).toLocaleString()} <small style="font-size:9px;opacity:0.65">kg·reps</small></span>
+      </div>`;
+    }
+  });
+  html+=`</div>`;
+
+  // ── Section 2: Class volume breakdown (always visible) ──
+  if(classKeys.length>0){
+    html+=`<div style="margin-bottom:10px;padding:10px 12px;border-radius:12px;background:var(--accent-soft);border:1px solid var(--border-col)">`;
+    html+=`<div style="font-family:var(--font-alt);font-size:11px;font-weight:800;color:var(--text-muted);margin-bottom:8px;letter-spacing:0.5px">📊 CLASS BREAKDOWN</div>`;
+    classKeys.sort((a,b)=>attClassVol[b]-attClassVol[a]).forEach(c=>{
+      const pct=totalVol>0?Math.round((attClassVol[c]/totalVol)*100):0;
+      const col=CLASS_COLORS[c]||CLASS_COLORS['Unknown'];
+      html+=`<div style="margin-bottom:8px">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:3px">
+          <div style="display:flex;align-items:center;gap:5px;min-width:0;flex:1">
+            <span style="width:9px;height:9px;border-radius:2px;background:${col};flex-shrink:0;display:inline-block"></span>
+            <span style="font-family:var(--font-alt);font-size:11px;font-weight:700;color:${col};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${c}</span>
+          </div>
+          <span style="font-family:var(--font-alt);font-size:10px;font-weight:700;color:var(--text-secondary);white-space:nowrap;flex-shrink:0">${Math.round(attClassVol[c]).toLocaleString()} Kg (${pct}%)</span>
+        </div>
+        <div style="width:100%;height:8px;border-radius:4px;background:var(--border-col);overflow:hidden"><div style="height:100%;width:${pct}%;background:${col};border-radius:4px;transition:width 0.3s ease"></div></div>
+      </div>`;
+    });
+    html+=`</div>`;
+  }
+
+  html+=`<div class="vol-drill-total" style="margin-top:4px"><span>📦 Daily Total</span><strong>${Math.round(day.volume).toLocaleString()} kg·reps</strong></div>`;
+  bodyEl.innerHTML=html;
+}
+
 /* ===================== COMPARE BOX (removed — replaced by compare mode) ===================== */
 
 
 
 /* ===================== WORKOUT FORM ===================== */
 let _prevPerfNonLiveTimer=null;
+/* ── Workout class picker (for multi-class or manually entered exercises) ── */
+function _showClassPickerForInput(inputId,baseName,mode){
+  const options=MULTI_CLASS_EXERCISES[baseName]||WORKOUT_CLASSES;
+  let existing=document.getElementById('_classPickerModal');
+  if(existing)existing.remove();
+  const modal=document.createElement('div');
+  modal.id='_classPickerModal';
+  modal.style.cssText='position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.55);backdrop-filter:blur(4px)';
+  modal.innerHTML=`<div style="background:var(--bg-card);border:1.5px solid var(--border-col);border-radius:20px;padding:22px 20px;max-width:320px;width:92%;box-shadow:0 8px 40px rgba(0,0,0,0.3)">
+    <div style="font-family:var(--font-alt);font-size:15px;font-weight:800;color:var(--accent);margin-bottom:14px;letter-spacing:0.5px">🏷 Which class is <em style="color:var(--text-primary)">${baseName}</em> for?</div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px">${options.map(c=>`<button onclick="window._pickExClass('${inputId}','${baseName}','${c}','${mode}')" style="padding:8px 14px;border-radius:12px;border:2px solid ${CLASS_COLORS[c]||'var(--border-col)'};background:var(--bg-panel);color:var(--text-primary);font-family:var(--font-alt);font-weight:700;font-size:12px;cursor:pointer">${c}</button>`).join('')}</div>
+    <button onclick="document.getElementById('_classPickerModal').remove()" style="width:100%;padding:9px;border-radius:11px;border:1px solid var(--border-col);background:var(--bg-panel);color:var(--text-muted);font-family:var(--font-alt);font-weight:700;cursor:pointer">Cancel</button>
+  </div>`;
+  document.body.appendChild(modal);
+}
+window._pickExClass=function(inputId,baseName,cls,mode){
+  document.getElementById('_classPickerModal').remove();
+  const fullName=`${baseName} (${cls})`;
+  document.getElementById(inputId).value=fullName;
+  // Hide the inline class button after selection
+  const btnId=mode==='nonlive'?'_inlineClassBtnNonLive':'_inlineClassBtnLive';
+  const btn=document.getElementById(btnId);if(btn)btn.style.display='none';
+  // Store selected class
+  if(mode==='nonlive'){
+    window._selectedWorkoutClass=cls;
+    fetchPrevPerformance(fullName,'nonlive');
+  } else {
+    window._selectedLiveWorkoutClass=cls;
+    fetchPrevPerformance(fullName,'live');
+  }
+};
+
+/* Show/hide the inline class button based on whether there's typed text without a class already */
+function _updateInlineClassBtn(inputId,btnId,mode){
+  const input=document.getElementById(inputId);const btn=document.getElementById(btnId);
+  if(!input||!btn)return;
+  const val=input.value.trim();
+  const hasClass=val.match(/\([^)]+\)\s*$/);
+  // Show button only when there's text and no class suffix already
+  btn.style.display=(val&&!hasClass)?'block':'none';
+  // Also update button label to reflect current name
+  if(val&&!hasClass)btn.textContent=`🏷 Choose Class for "${val}" (optional)`;
+}
+
+function _triggerInlineClassPicker(inputId,mode){
+  const val=document.getElementById(inputId).value.trim();
+  if(!val)return;
+  const baseName=val.replace(/\s*\([^)]+\)\s*$/,'').trim();
+  _showClassPickerForInput(inputId,baseName,mode);
+}
+
 function handleWorkoutSearchAuto(){
   let val=document.getElementById("workoutNameInput").value.toLowerCase();
   let box=document.getElementById("autoSuggestions");box.innerHTML="";box.style.display="none";
-  // Hide prev perf badge when input changes
   document.getElementById("prevPerfBadgeNonLive").classList.remove("visible");
   document.getElementById("quickFillCopyAllBtn").classList.remove("visible");
   if(_prevPerfNonLiveTimer)clearTimeout(_prevPerfNonLiveTimer);
-  if(!val)return;
+  window._selectedWorkoutClass=null;
+  _updateInlineClassBtn('workoutNameInput','_inlineClassBtnNonLive','nonlive');
+  if(!val){const nb=document.getElementById('_inlineClassBtnNonLive');if(nb)nb.style.display='none';return;}
   let matches=EXERCISE_CATALOG.filter(e=>e.name.toLowerCase().includes(val));
   if(matches.length){
-    box.style.display="block";matches.forEach(item=>{let div=document.createElement("div");div.textContent=item.name;div.onclick=()=>{document.getElementById("workoutNameInput").value=item.name;box.style.display="none";if(_prevPerfNonLiveTimer)clearTimeout(_prevPerfNonLiveTimer);fetchPrevPerformance(item.name,'nonlive')};box.appendChild(div)});
+    box.style.display="block";
+    matches.forEach(item=>{
+      let div=document.createElement("div");
+      const clr=CLASS_COLORS[item.class]||'var(--text-muted)';
+      const classTag=item.class==='multi'?`<span style="background:#6366f1;color:#fff;border-radius:6px;padding:1px 6px;font-size:9px;font-weight:800;margin-left:4px">MULTI</span>`:`<span style="background:${clr};color:#fff;border-radius:6px;padding:1px 6px;font-size:9px;font-weight:800;margin-left:4px">${item.class}</span>`;
+      div.innerHTML=`<span>${item.name}</span>${classTag}`;
+      div.style.cssText='display:flex;align-items:center;justify-content:space-between;gap:6px';
+      div.onclick=()=>{
+        box.style.display="none";
+        if(_prevPerfNonLiveTimer)clearTimeout(_prevPerfNonLiveTimer);
+        const nb=document.getElementById('_inlineClassBtnNonLive');if(nb)nb.style.display='none';
+        if(item.class==='multi'){
+          document.getElementById("workoutNameInput").value=item.name;
+          _showClassPickerForInput('workoutNameInput',item.name,'nonlive');
+        } else {
+          document.getElementById("workoutNameInput").value=item.name;
+          window._selectedWorkoutClass=item.class;
+          fetchPrevPerformance(item.name,'nonlive');
+        }
+      };
+      box.appendChild(div);
+    });
   }
-  // Debounced lookup for manually typed names (fires 800ms after user stops typing)
-  _prevPerfNonLiveTimer=setTimeout(()=>{
-    const typed=document.getElementById("workoutNameInput").value.trim();
-    if(typed)fetchPrevPerformance(typed,'nonlive');
-  },800);
+  // No auto class picker on pause — user uses the inline Choose Class button if needed
+  _updateInlineClassBtn('workoutNameInput','_inlineClassBtnNonLive','nonlive');
 }
 document.addEventListener("click",e=>{
   if(e.target.id!=="workoutNameInput")document.getElementById("autoSuggestions").style.display="none";
@@ -3999,21 +5569,39 @@ let _prevPerfLiveTimer=null;
 function handleLiveSearchAuto(){
   let val=document.getElementById("liveWorkoutNameInput").value.toLowerCase();
   let box=document.getElementById("liveAutoSuggestions");box.innerHTML="";box.style.display="none";
-  // Hide prev perf badge when input changes
   document.getElementById("prevPerfBadgeLive").classList.remove("visible");
   if(_prevPerfLiveTimer)clearTimeout(_prevPerfLiveTimer);
-  if(!val)return;
+  window._selectedLiveWorkoutClass=null;
+  _updateInlineClassBtn('liveWorkoutNameInput','_inlineClassBtnLive','live');
+  if(!val){const lb=document.getElementById('_inlineClassBtnLive');if(lb)lb.style.display='none';return;}
   let matches=EXERCISE_CATALOG.filter(e=>e.name.toLowerCase().includes(val));
   if(matches.length){
-    box.style.display="block";matches.forEach(item=>{let div=document.createElement("div");div.textContent=item.name;div.onclick=()=>{document.getElementById("liveWorkoutNameInput").value=item.name;box.style.display="none";if(_prevPerfLiveTimer)clearTimeout(_prevPerfLiveTimer);fetchPrevPerformance(item.name,'live')};box.appendChild(div)});
+    box.style.display="block";
+    matches.forEach(item=>{
+      let div=document.createElement("div");
+      const clr=CLASS_COLORS[item.class]||'var(--text-muted)';
+      const classTag=item.class==='multi'?`<span style="background:#6366f1;color:#fff;border-radius:6px;padding:1px 6px;font-size:9px;font-weight:800;margin-left:4px">MULTI</span>`:`<span style="background:${clr};color:#fff;border-radius:6px;padding:1px 6px;font-size:9px;font-weight:800;margin-left:4px">${item.class}</span>`;
+      div.innerHTML=`<span>${item.name}</span>${classTag}`;
+      div.style.cssText='display:flex;align-items:center;justify-content:space-between;gap:6px';
+      div.onclick=()=>{
+        box.style.display="none";
+        if(_prevPerfLiveTimer)clearTimeout(_prevPerfLiveTimer);
+        const lb=document.getElementById('_inlineClassBtnLive');if(lb)lb.style.display='none';
+        if(item.class==='multi'){
+          document.getElementById("liveWorkoutNameInput").value=item.name;
+          _showClassPickerForInput('liveWorkoutNameInput',item.name,'live');
+        } else {
+          document.getElementById("liveWorkoutNameInput").value=item.name;
+          window._selectedLiveWorkoutClass=item.class;
+          fetchPrevPerformance(item.name,'live');
+        }
+      };
+      box.appendChild(div);
+    });
   }
-  // Debounced lookup for manually typed names — skip when input is locked (edit mode)
-  const _liveInput=document.getElementById("liveWorkoutNameInput");
-  if(!_liveInput.readOnly){
-    _prevPerfLiveTimer=setTimeout(()=>{
-      const typed=_liveInput.value.trim();
-      if(typed)fetchPrevPerformance(typed,'live');
-    },800);
+  // No auto class picker on pause — user uses the inline Choose Class button
+  if(!document.getElementById("liveWorkoutNameInput").readOnly){
+    _updateInlineClassBtn('liveWorkoutNameInput','_inlineClassBtnLive','live');
   }
 }
 function startLiveSession(){
@@ -4839,7 +6427,7 @@ async function runWorkoutTracker(){
     const bestSetIn=(sess)=>sess&&sess.sets.length?[...sess.sets].sort((x,y)=>compareSetByWeight(y,x))[0]:null;
     const worstSetIn=(sess)=>sess&&sess.sets.length?[...sess.sets].sort((x,y)=>compareSetByWeight(x,y))[0]:null;
     return{sno:idx+1,name,frequency:data.frequency,sets:data.sets,sessions:data.sessions,
-      recentSet:recentSession?recentSession.sets[recentSession.sets.length-1]:null,
+      recentSet:bestSetIn(recentSession),
       recentSession,highestSet:bestSetIn(highestSession),highestSession,lowestSet:worstSetIn(lowestSession),lowestSession};
   });
   trackerAllData=exerciseMap;trackerCurrentPage=1;renderTrackerTable();
@@ -5126,6 +6714,165 @@ const LEARN_BY_CLASS={
   "Cardio":["Treadmill Sprint"],
   "Full Body":["Deadlift","Squats","Treadmill Sprint"]
 };
+
+/* ===================== CLASS ICON CAROUSEL ENGINE ===================== */
+/* _initCarousel(trackId, wrapId) — sets up drag/swipe + centering for any legend carousel */
+const _carousels={};
+function _initCarousel(trackId,wrapId){
+  const track=document.getElementById(trackId);
+  const wrap=document.getElementById(wrapId);
+  if(!track||!wrap)return;
+  const items=Array.from(track.children);
+  if(!items.length)return;
+
+  // State
+  let cx={idx:0,offset:0,dragging:false,startX:0,startOffset:0,vel:0,lastX:0,lastT:0,animId:null};
+  _carousels[trackId]=cx;
+
+  function itemW(i){return items[i]?(items[i].offsetWidth+8):80;}
+  function totalW(){return items.reduce((s,el)=>s+el.offsetWidth+8,0);}
+  function wrapW(){return wrap.offsetWidth||300;}
+
+  function centerOffset(i){
+    let x=0;for(let j=0;j<i;j++)x+=itemW(j);
+    x+=itemW(i)/2;
+    return wrapW()/2-x;
+  }
+
+  function clampOffset(o){
+    const tw=totalW();const ww=wrapW();
+    const minO=ww-tw-8;const maxO=0;
+    return Math.max(minO,Math.min(maxO,o));
+  }
+
+  function closestIdx(o){
+    let best=0,bestD=Infinity;
+    for(let i=0;i<items.length;i++){
+      const d=Math.abs(centerOffset(i)+o);
+      if(d<bestD){bestD=d;best=i;}
+    }
+    return best;
+  }
+
+  function applyOffset(o,animate){
+    track.style.transition=animate?'transform 0.38s cubic-bezier(0.34,1.26,0.64,1)':'none';
+    track.style.transform=`translateX(${o}px)`;
+    cx.offset=o;
+    // Scale center item
+    items.forEach((el,i)=>{
+      const ec=o+centerOffset(i)-(wrapW()/2-centerOffset(i));// relative to wrap center
+      // Actually easier: item center pos in wrap coords
+      let pos=o;for(let j=0;j<i;j++)pos+=itemW(j);pos+=itemW(i)/2;
+      const dist=Math.abs(pos-wrapW()/2);
+      const scale=Math.max(0.88,1-dist/wrapW()*0.4);
+      el.style.transform=`scale(${scale})`;
+      el.style.opacity=Math.max(0.5,1-dist/wrapW()*1.2);
+      el.style.transition=animate?'transform 0.25s ease,opacity 0.25s ease':'none';
+    });
+    cx.idx=closestIdx(o);
+  }
+
+  function snapTo(i,animate=true){
+    const o=clampOffset(centerOffset(i));
+    applyOffset(o,animate);
+    cx.idx=i;
+  }
+
+  // Start at first active or 0
+  const activeIdx=items.findIndex(el=>el.classList.contains('active')||el.style.background&&el.style.background.includes('linear-gradient')?false:el.style.border&&el.style.border.includes('2px solid')&&!el.style.border.includes('var(--border-col)'));
+  snapTo(Math.max(0,activeIdx)||0,false);
+
+  // Touch/mouse handlers
+  function onStart(x){
+    if(cx.animId){cancelAnimationFrame(cx.animId);cx.animId=null;}
+    cx.dragging=true;cx.startX=x;cx.startOffset=cx.offset;cx.vel=0;cx.lastX=x;cx.lastT=Date.now();
+    track.style.transition='none';
+  }
+  function onMove(x){
+    if(!cx.dragging)return;
+    const now=Date.now();const dt=Math.max(1,now-cx.lastT);
+    cx.vel=(x-cx.lastX)/dt*16;cx.lastX=x;cx.lastT=now;
+    applyOffset(clampOffset(cx.startOffset+(x-cx.startX)),false);
+  }
+  function onEnd(){
+    if(!cx.dragging)return;cx.dragging=false;
+    // Momentum flick
+    function flick(){
+      cx.vel*=0.88;
+      const next=clampOffset(cx.offset+cx.vel);
+      applyOffset(next,false);
+      if(Math.abs(cx.vel)>0.5)cx.animId=requestAnimationFrame(flick);
+      else{snapTo(closestIdx(cx.offset));}
+    }
+    if(Math.abs(cx.vel)>1)flick();else snapTo(closestIdx(cx.offset));
+  }
+
+  // Remove old listeners by cloning track
+  const newTrack=track.cloneNode(true);
+  track.parentNode.replaceChild(newTrack,track);
+  // Re-grab after clone
+  const t2=document.getElementById(trackId);
+  if(!t2)return;
+  t2.addEventListener('touchstart',e=>{onStart(e.touches[0].clientX)},{passive:true});
+  t2.addEventListener('touchmove',e=>{onMove(e.touches[0].clientX)},{passive:true});
+  t2.addEventListener('touchend',onEnd,{passive:true});
+  t2.addEventListener('mousedown',e=>{onStart(e.clientX);e.preventDefault()});
+  t2.addEventListener('mousemove',e=>{if(cx.dragging)onMove(e.clientX)});
+  t2.addEventListener('mouseup',onEnd);
+  t2.addEventListener('mouseleave',onEnd);
+
+  // Re-apply initial snap on new track
+  const items2=Array.from(t2.children);
+  setTimeout(()=>{
+    const o=clampOffset(centerOffset(0));
+    t2.style.transition='none';
+    t2.style.transform=`translateX(${o}px)`;
+    items2.forEach((el,i)=>{
+      let pos=o;for(let j=0;j<i;j++)pos+=(items2[j].offsetWidth+8);pos+=(items2[i].offsetWidth+8)/2;
+      const dist=Math.abs(pos-wrap.offsetWidth/2);
+      const scale=Math.max(0.88,1-dist/wrap.offsetWidth*0.4);
+      el.style.transform=`scale(${scale})`;
+      el.style.opacity=Math.max(0.5,1-dist/wrap.offsetWidth*1.2);
+    });
+  },0);
+}
+
+/* ===================== VOLUME SWIPE PANEL ENGINE ===================== */
+let _volSwipeIdx=0;
+function volSwipeTo(idx,animate=true){
+  _volSwipeIdx=idx;
+  const track=document.getElementById('volSwipeTrack');
+  const t0=document.getElementById('volSwipeTabStats');
+  const t1=document.getElementById('volSwipeTabBreak');
+  if(!track)return;
+  track.style.transition=animate?'transform 0.38s cubic-bezier(0.4,0,0.2,1)':'none';
+  track.style.transform=`translateX(${-idx*100}%)`;
+  if(t0){t0.classList.toggle('active',idx===0);}
+  if(t1){t1.classList.toggle('active',idx===1);}
+}
+
+// Touch swipe for the panel host
+(function(){
+  let sx=0,sy=0,swiping=false;
+  document.addEventListener('touchstart',e=>{
+    const host=e.target.closest('#volSwipeHost');if(!host)return;
+    sx=e.touches[0].clientX;sy=e.touches[0].clientY;swiping=true;
+  },{passive:true});
+  document.addEventListener('touchmove',e=>{
+    if(!swiping)return;
+    const host=e.target.closest('#volSwipeHost');if(!host){swiping=false;return;}
+    const dx=e.touches[0].clientX-sx,dy=e.touches[0].clientY-sy;
+    if(Math.abs(dx)>Math.abs(dy)&&Math.abs(dx)>12){
+      // horizontal swipe inside panel
+    }
+  },{passive:true});
+  document.addEventListener('touchend',e=>{
+    if(!swiping)return;swiping=false;
+    const host=e.target.closest('#volSwipeHost');if(!host)return;
+    const dx=e.changedTouches[0].clientX-sx;
+    if(Math.abs(dx)>40){volSwipeTo(dx<0?1:0);}
+  },{passive:true});
+})();
 
 function initLearnPage(){
   document.getElementById("learnSearchInput").value="";document.getElementById("learnClassFilter").value="";
