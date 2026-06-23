@@ -384,25 +384,6 @@ body:not(.theme-batman):not(.theme-godmode) .dur-graph-detail-divider strong{col
 .dur-legend-item{user-select:none;-webkit-tap-highlight-color:transparent}
 .dur-legend-item.active{transform:scale(1.04)}
 
-/* ── Class Icon Carousel ── */
-.class-carousel-wrap{position:relative;width:100%;margin-top:8px;overflow:hidden}
-.class-carousel-wrap.hidden{display:none!important}
-.class-carousel-track{display:flex;gap:8px;transition:transform 0.42s cubic-bezier(0.34,1.26,0.64,1);will-change:transform;padding:4px 2px}
-.class-carousel-item{flex-shrink:0;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform 0.22s ease,box-shadow 0.22s ease}
-.class-carousel-item.center-item{transform:scale(1.08);z-index:2}
-.class-carousel-fade-l,.class-carousel-fade-r{position:absolute;top:0;bottom:0;width:32px;pointer-events:none;z-index:3}
-.class-carousel-fade-l{left:0;background:linear-gradient(to right,var(--bg-card) 0%,transparent 100%)}
-.class-carousel-fade-r{right:0;background:linear-gradient(to left,var(--bg-card) 0%,transparent 100%)}
-
-/* ── Swipe Panel (Statistics ↔ Breakdown) ── */
-.vol-swipe-host{position:relative;overflow:hidden;border-radius:16px;touch-action:pan-y}
-.vol-swipe-track{display:flex;transition:transform 0.38s cubic-bezier(0.4,0,0.2,1);will-change:transform}
-.vol-swipe-panel{flex:0 0 100%;min-width:0;box-sizing:border-box}
-.vol-swipe-tabs{display:flex;gap:0;margin-bottom:6px;border-radius:12px;overflow:hidden;border:1px solid var(--border-col)}
-.vol-swipe-tab{flex:1;padding:9px 6px;text-align:center;font-family:var(--font-alt);font-size:12px;font-weight:700;letter-spacing:0.4px;cursor:pointer;background:var(--bg-card);color:var(--text-secondary);border:none;transition:background 0.2s,color 0.2s;-webkit-tap-highlight-color:transparent}
-.vol-swipe-tab.active{background:var(--tab-active-bg);color:var(--follow-btn-text)}
-body.theme-batman .vol-swipe-tab.active{color:#05050a}
-
 /* Paired nav arrows — centred together at the bottom of the graph box so one thumb can reach both */
 .dur-nav-pair{display:flex;gap:6px;align-items:center;justify-content:center;margin-top:8px;z-index:6}
 .dur-nav-arrow{background:var(--bg-card);border:1px solid var(--border-col);border-radius:50%;width:38px;height:38px;display:flex;align-items:center;justify-content:center;font-size:24px;line-height:1;color:var(--accent);cursor:pointer;transition:background 0.15s,transform 0.1s,box-shadow 0.15s;box-shadow:0 2px 8px rgba(0,0,0,0.18);padding:0;font-family:sans-serif;-webkit-tap-highlight-color:transparent}
@@ -419,7 +400,7 @@ body.theme-godmode .dur-nav-arrow.class-filtered{box-shadow:0 0 12px rgba(192,0,
 body.theme-batman .dur-detail-toggle.on{box-shadow:0 0 8px rgba(245,200,0,0.3)}
 body.theme-godmode .dur-detail-toggle.on{box-shadow:0 0 8px rgba(192,0,10,0.3)}
 /* Class legend grid — only shown when Detailed View is ON; neat pill-row layout */
-#statsChartLegend{gap:6px;margin-top:8px}
+#statsChartLegend{flex-wrap:wrap;gap:6px;margin-top:8px}
 #statsChartLegend.hidden{display:none!important}
 #volChartLegend{display:flex}
 #volChartLegend.hidden{display:none!important}
@@ -1255,11 +1236,7 @@ body.theme-godmode .levelup-toast{background:linear-gradient(135deg,#7a0006,#c00
             <button class="dur-nav-arrow" id="durNavRight" onclick="durNavigate(1)" title="Next">&#8250;</button>
           </div>
 
-          <div id="statsChartLegendWrap" class="class-carousel-wrap hidden">
-            <div class="class-carousel-fade-l"></div>
-            <div class="class-carousel-track" id="statsChartLegend"></div>
-            <div class="class-carousel-fade-r"></div>
-          </div>
+          <div id="statsChartLegend" class="hidden" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px"></div>
 
           <!-- Weekly/Monthly/3-Month toggle -->
           <div class="vol-range-toggle" style="margin-top:10px">
@@ -1339,12 +1316,8 @@ body.theme-godmode .levelup-toast{background:linear-gradient(135deg,#7a0006,#c00
               <button class="vol-range-btn" id="volRangeBtn3m" onclick="setVolRangeMode('3month')">3-Month</button>
             </div>
 
-            <!-- Class legend carousel (shown in detailed view mode) -->
-            <div id="volChartLegendWrap" class="class-carousel-wrap hidden">
-              <div class="class-carousel-fade-l"></div>
-              <div class="class-carousel-track" id="volChartLegend"></div>
-              <div class="class-carousel-fade-r"></div>
-            </div>
+            <!-- Class legend (shown in detailed view mode) -->
+            <div id="volChartLegend" class="hidden" style="flex-wrap:wrap;gap:6px;margin-top:8px"></div>
 
             <!-- Detailed View on/off toggle -->
             <div style="display:flex;align-items:center;gap:8px;margin-top:10px">
@@ -1355,47 +1328,33 @@ body.theme-godmode .levelup-toast{background:linear-gradient(135deg,#7a0006,#c00
               <span id="volDetailToggleLabel" style="font-family:var(--font-alt);font-size:12px;font-weight:700;color:var(--text-muted)">OFF</span>
             </div>
 
-            <!-- Swipeable Statistics / Breakdown panels -->
-            <div class="vol-swipe-tabs" style="margin-top:10px">
-              <button class="vol-swipe-tab active" id="volSwipeTabStats" onclick="volSwipeTo(0)">📊 Statistics</button>
-              <button class="vol-swipe-tab" id="volSwipeTabBreak" onclick="volSwipeTo(1)">📋 Breakdown</button>
+            <div style="font-size:11px;color:var(--text-muted);font-family:var(--font-alt);margin-top:8px" id="volHintText">
+              💡 Click or hover a bar to drill down into that day's workout breakdown
             </div>
-            <div class="vol-swipe-host" id="volSwipeHost">
-              <div class="vol-swipe-track" id="volSwipeTrack">
-                <!-- Panel 0: Statistics -->
-                <div class="vol-swipe-panel">
-                  <div class="stats-summary-row" style="margin-top:6px">
-                    <div id="highVolumeRow">High Volume: <strong id="highVolumeLabel" style="color:var(--accent)">None</strong></div>
+            <div class="stats-summary-row" style="margin-top:10px">
+              <div id="highVolumeRow">High Volume: <strong id="highVolumeLabel" style="color:var(--accent)">None</strong></div>
+            </div>
+            <div class="stats-summary-row" id="lowVolumeRow" style="margin-top:6px;background:rgba(225,29,72,0.07);border-color:rgba(225,29,72,0.18)">
+              <div style="color:#e11d48">Low Volume: <strong id="lowVolumeLabel">None</strong></div>
+            </div>
+            <div class="stats-summary-row" id="totalVolumeRow" style="margin-top:6px;background:rgba(37,99,235,0.07);border-color:rgba(37,99,235,0.18);display:none">
+              <div style="color:var(--accent)"><span id="totalVolumeLabel">Weekly Volume</span>: <strong id="totalVolumeValue">—</strong></div>
+            </div>
+            <div class="stats-summary-row" id="avgVolumeRow" style="margin-top:6px;background:rgba(99,102,241,0.07);border-color:rgba(99,102,241,0.18);display:none">
+              <div style="color:#6366f1">Avg Volume: <strong id="avgVolumeLabel">—</strong></div>
+            </div>
+            <div class="vol-drilldown" id="volDrilldown">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:8px">
+                <div class="vol-drilldown-title" id="volDrillTitle" style="margin-bottom:0">📋 Select a day to see details</div>
+                <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:12px;font-weight:700;color:var(--text-muted);font-family:var(--font-alt);letter-spacing:0.5px;flex-shrink:0">
+                  <span>BREAKDOWN</span>
+                  <div class="live-toggle" id="detailToggleMain" onclick="toggleDetailedView('main')" style="width:36px;height:20px">
+                    <div class="live-toggle-knob"></div>
                   </div>
-                  <div class="stats-summary-row" id="lowVolumeRow" style="margin-top:6px;background:rgba(225,29,72,0.07);border-color:rgba(225,29,72,0.18)">
-                    <div style="color:#e11d48">Low Volume: <strong id="lowVolumeLabel">None</strong></div>
-                  </div>
-                  <div class="stats-summary-row" id="totalVolumeRow" style="margin-top:6px;background:rgba(37,99,235,0.07);border-color:rgba(37,99,235,0.18);display:none">
-                    <div style="color:var(--accent)"><span id="totalVolumeLabel">Weekly Volume</span>: <strong id="totalVolumeValue">—</strong></div>
-                  </div>
-                  <div class="stats-summary-row" id="avgVolumeRow" style="margin-top:6px;background:rgba(99,102,241,0.07);border-color:rgba(99,102,241,0.18);display:none">
-                    <div style="color:#6366f1">Avg Volume: <strong id="avgVolumeLabel">—</strong></div>
-                  </div>
-                  <div style="font-size:11px;color:var(--text-muted);font-family:var(--font-alt);margin-top:10px;text-align:center;opacity:0.6">← Swipe left for Breakdown →</div>
-                </div>
-                <!-- Panel 1: Breakdown -->
-                <div class="vol-swipe-panel">
-                  <div class="vol-drilldown" id="volDrilldown" style="margin-top:6px">
-                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:8px">
-                      <div class="vol-drilldown-title" id="volDrillTitle" style="margin-bottom:0">📋 Select a day to see details</div>
-                      <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:12px;font-weight:700;color:var(--text-muted);font-family:var(--font-alt);letter-spacing:0.5px;flex-shrink:0">
-                        <span>BREAKDOWN</span>
-                        <div class="live-toggle" id="detailToggleMain" onclick="toggleDetailedView('main')" style="width:36px;height:20px">
-                          <div class="live-toggle-knob"></div>
-                        </div>
-                        <span id="detailLabelMain" style="color:var(--text-muted)">OFF</span>
-                      </label>
-                    </div>
-                    <div id="volDrillBody" style="color:var(--text-muted);font-family:var(--font-alt);font-size:13px">Hover or click on any bar above.</div>
-                  </div>
-                  <div style="font-size:11px;color:var(--text-muted);font-family:var(--font-alt);margin-top:10px;text-align:center;opacity:0.6">← Swipe right for Statistics →</div>
-                </div>
+                  <span id="detailLabelMain" style="color:var(--text-muted)">OFF</span>
+                </label>
               </div>
+              <div id="volDrillBody" style="color:var(--text-muted);font-family:var(--font-alt);font-size:13px">Hover or click on any bar above.</div>
             </div>
           </div>
 
@@ -3146,7 +3105,7 @@ function toggleDurDetailView(){
   durDetailViewOn=!durDetailViewOn;
   const tog=document.getElementById('durDetailToggle');
   const lbl=document.getElementById('durDetailToggleLabel');
-  const legend=document.getElementById('statsChartLegendWrap');
+  const legend=document.getElementById('statsChartLegend');
   if(tog)tog.classList.toggle('on',durDetailViewOn);
   if(lbl){lbl.textContent=durDetailViewOn?'ON':'OFF';lbl.style.color=durDetailViewOn?'var(--accent)':'var(--text-muted)';}
   if(legend)legend.classList.toggle('hidden',!durDetailViewOn);
@@ -3341,10 +3300,9 @@ function durSelectClass(cls){
 }
 
 function buildStatsLegend(classes){
-  const wrap=document.getElementById('statsChartLegendWrap');
   const el=document.getElementById('statsChartLegend');if(!el)return;
   // Legend is only visible when Detailed View mode is ON
-  if(wrap)wrap.classList.toggle('hidden',!durDetailViewOn);
+  el.classList.toggle('hidden',!durDetailViewOn);
   // Collect unique classes (excluding Rest), then sort by frequency high→low
   const seen=new Set();let uniqueClasses=[];
   classes.forEach(c=>{if(!seen.has(c)&&c!=='Rest'){seen.add(c);uniqueClasses.push(c)}});
@@ -3354,11 +3312,10 @@ function buildStatsLegend(classes){
     const color=CLASS_COLORS[c]||CLASS_COLORS['Unknown'];
     const freq=durClassFreqMap[c]||0;
     const isActive=durSelectedClass===c;
-    html+=`<div class="dur-legend-item class-carousel-item${isActive?' active':''}" data-cls="${c}" onclick="durSelectClass('${c}')" style="display:inline-flex;align-items:center;gap:5px;font-family:var(--font-alt);font-size:11px;font-weight:700;color:${isActive?'#fff':'var(--text-secondary)'};padding:5px 9px;border-radius:20px;border:2px solid ${isActive?color:'var(--border-col)'};background:${isActive?color:'var(--bg-card)'};white-space:nowrap;box-shadow:${isActive?'0 2px 10px '+color+'66':'none'};-webkit-tap-highlight-color:transparent"><span style="width:9px;height:9px;border-radius:3px;background:${isActive?'rgba(255,255,255,0.8)':color};display:inline-block;flex-shrink:0"></span>${c}<span style="background:${isActive?'rgba(255,255,255,0.25)':color+'33'};color:${isActive?'#fff':color};border-radius:10px;padding:1px 6px;font-size:9px;font-weight:800;min-width:16px;text-align:center">${freq}</span></div>`;
+    html+=`<div class="dur-legend-item${isActive?' active':''}" data-cls="${c}" onclick="durSelectClass('${c}')" style="display:inline-flex;align-items:center;gap:5px;font-family:var(--font-alt);font-size:11px;font-weight:700;color:${isActive?'#fff':'var(--text-secondary)'};cursor:pointer;padding:5px 9px;border-radius:20px;border:2px solid ${isActive?color:'var(--border-col)'};background:${isActive?color:'var(--bg-card)'};transition:all 0.15s;-webkit-tap-highlight-color:transparent"><span style="width:9px;height:9px;border-radius:3px;background:${isActive?'rgba(255,255,255,0.8)':color};display:inline-block;flex-shrink:0"></span>${c}<span style="background:${isActive?'rgba(255,255,255,0.25)':color+'33'};color:${isActive?'#fff':color};border-radius:10px;padding:1px 6px;font-size:9px;font-weight:800;min-width:16px;text-align:center">${freq}</span></div>`;
   });
-  if(!html)html=`<span style="font-size:11px;color:var(--text-muted);font-family:var(--font-alt);white-space:nowrap">No workouts in this range</span>`;
+  if(!html)html=`<span style="font-size:11px;color:var(--text-muted);font-family:var(--font-alt)">No workouts in this range</span>`;
   el.innerHTML=html;
-  if(durDetailViewOn)_initCarousel('statsChartLegend','statsChartLegendWrap');
 }
 
 
@@ -4288,19 +4245,19 @@ function setVolRangeMode(mode){
     if(weekSelect)weekSelect.style.display='';
     if(monthSelect)monthSelect.style.display='';
     rangeLabel.classList.remove('visible');
-    if(hintText)hintText.textContent='💡 Click or hover a bar to drill down into that day\'s workout breakdown';
+    hintText.textContent='💡 Click or hover a bar to drill down into that day\'s workout breakdown';
   } else if(mode==='monthly'){
     // Hide Week dropdown only — Month dropdown stays active for navigation
     weekRow.style.display='flex';
     if(weekSelect)weekSelect.style.display='none';
     if(monthSelect)monthSelect.style.display='';
     rangeLabel.classList.remove('visible');
-    if(hintText)hintText.textContent='💡 Tap or drag across the line to see each day\'s breakdown below';
+    hintText.textContent='💡 Tap or drag across the line to see each day\'s breakdown below';
   } else {
     // 3-Month: hide both dropdowns, show sliding range label instead
     weekRow.style.display='none';
     rangeLabel.classList.add('visible');
-    if(hintText)hintText.textContent='💡 Tap or drag across the line to see each day\'s breakdown below';
+    hintText.textContent='💡 Tap or drag across the line to see each day\'s breakdown below';
   }
   updateVolumeChart('main');
 }
@@ -4793,7 +4750,7 @@ function toggleVolDetailView(){
   volDetailViewOn=!volDetailViewOn;
   const tog=document.getElementById('volDetailToggle');
   const lbl=document.getElementById('volDetailToggleLabel');
-  const legend=document.getElementById('volChartLegendWrap');
+  const legend=document.getElementById('volChartLegend');
   if(tog)tog.classList.toggle('on',volDetailViewOn);
   if(lbl){lbl.textContent=volDetailViewOn?'ON':'OFF';lbl.style.color=volDetailViewOn?'var(--accent)':'var(--text-muted)';}
   if(legend)legend.classList.toggle('hidden',!volDetailViewOn);
@@ -4901,9 +4858,8 @@ function volSelectClass(cls){
 
 /* Build class legend sorted by volume high→low */
 function buildVolLegend(){
-  const wrap=document.getElementById('volChartLegendWrap');
   const el=document.getElementById('volChartLegend');if(!el)return;
-  if(wrap)wrap.classList.toggle('hidden',!volDetailViewOn);
+  el.classList.toggle('hidden',!volDetailViewOn);
   const classes=Object.keys(volClassFreqMap).filter(c=>c!=='Rest'&&c!=='Unknown'&&volClassFreqMap[c]>0);
   // Sort by total volume high→low
   classes.sort((a,b)=>(volClassVolumeMap[b]||0)-(volClassVolumeMap[a]||0));
@@ -4914,14 +4870,13 @@ function buildVolLegend(){
     const totalVol=Math.round(volClassVolumeMap[c]||0);
     const volStr=totalVol.toLocaleString()+' Kg';
     const isActive=volSelectedClass===c;
-    html+=`<div class="class-carousel-item" onclick="volSelectClass('${c}')" style="display:inline-flex;flex-direction:column;align-items:center;gap:2px;font-family:var(--font-alt);font-size:11px;font-weight:700;color:${isActive?'#fff':'var(--text-secondary)'};padding:5px 9px;border-radius:20px;border:2px solid ${isActive?color:'var(--border-col)'};background:${isActive?color:'var(--bg-card)'};white-space:nowrap;box-shadow:${isActive?'0 2px 10px '+color+'66':'none'}">
+    html+=`<div onclick="volSelectClass('${c}')" style="display:inline-flex;flex-direction:column;align-items:center;gap:2px;font-family:var(--font-alt);font-size:11px;font-weight:700;color:${isActive?'#fff':'var(--text-secondary)'};cursor:pointer;padding:5px 9px;border-radius:20px;border:2px solid ${isActive?color:'var(--border-col)'};background:${isActive?color:'var(--bg-card)'};transition:all 0.15s;-webkit-tap-highlight-color:transparent">
       <div style="display:flex;align-items:center;gap:5px"><span style="width:9px;height:9px;border-radius:3px;background:${isActive?'rgba(255,255,255,0.8)':color};display:inline-block;flex-shrink:0"></span>${c}<span style="background:${isActive?'rgba(255,255,255,0.25)':color+'33'};color:${isActive?'#fff':color};border-radius:10px;padding:1px 6px;font-size:9px;font-weight:800;min-width:16px;text-align:center">${freq}</span></div>
       <div style="font-size:9px;font-weight:700;color:${isActive?'rgba(255,255,255,0.85)':color};letter-spacing:0.2px;margin-top:1px">${volStr}</div>
     </div>`;
   });
-  if(!html)html=`<span style="font-size:11px;color:var(--text-muted);font-family:var(--font-alt);white-space:nowrap">No workouts in this range</span>`;
+  if(!html)html=`<span style="font-size:11px;color:var(--text-muted);font-family:var(--font-alt)">No workouts in this range</span>`;
   el.innerHTML=html;
-  if(volDetailViewOn)_initCarousel('volChartLegend','volChartLegendWrap');
 }
 
 /* Volume bar selection highlight plugin — activates when volDetailViewOn is FALSE.
@@ -6714,165 +6669,6 @@ const LEARN_BY_CLASS={
   "Cardio":["Treadmill Sprint"],
   "Full Body":["Deadlift","Squats","Treadmill Sprint"]
 };
-
-/* ===================== CLASS ICON CAROUSEL ENGINE ===================== */
-/* _initCarousel(trackId, wrapId) — sets up drag/swipe + centering for any legend carousel */
-const _carousels={};
-function _initCarousel(trackId,wrapId){
-  const track=document.getElementById(trackId);
-  const wrap=document.getElementById(wrapId);
-  if(!track||!wrap)return;
-  const items=Array.from(track.children);
-  if(!items.length)return;
-
-  // State
-  let cx={idx:0,offset:0,dragging:false,startX:0,startOffset:0,vel:0,lastX:0,lastT:0,animId:null};
-  _carousels[trackId]=cx;
-
-  function itemW(i){return items[i]?(items[i].offsetWidth+8):80;}
-  function totalW(){return items.reduce((s,el)=>s+el.offsetWidth+8,0);}
-  function wrapW(){return wrap.offsetWidth||300;}
-
-  function centerOffset(i){
-    let x=0;for(let j=0;j<i;j++)x+=itemW(j);
-    x+=itemW(i)/2;
-    return wrapW()/2-x;
-  }
-
-  function clampOffset(o){
-    const tw=totalW();const ww=wrapW();
-    const minO=ww-tw-8;const maxO=0;
-    return Math.max(minO,Math.min(maxO,o));
-  }
-
-  function closestIdx(o){
-    let best=0,bestD=Infinity;
-    for(let i=0;i<items.length;i++){
-      const d=Math.abs(centerOffset(i)+o);
-      if(d<bestD){bestD=d;best=i;}
-    }
-    return best;
-  }
-
-  function applyOffset(o,animate){
-    track.style.transition=animate?'transform 0.38s cubic-bezier(0.34,1.26,0.64,1)':'none';
-    track.style.transform=`translateX(${o}px)`;
-    cx.offset=o;
-    // Scale center item
-    items.forEach((el,i)=>{
-      const ec=o+centerOffset(i)-(wrapW()/2-centerOffset(i));// relative to wrap center
-      // Actually easier: item center pos in wrap coords
-      let pos=o;for(let j=0;j<i;j++)pos+=itemW(j);pos+=itemW(i)/2;
-      const dist=Math.abs(pos-wrapW()/2);
-      const scale=Math.max(0.88,1-dist/wrapW()*0.4);
-      el.style.transform=`scale(${scale})`;
-      el.style.opacity=Math.max(0.5,1-dist/wrapW()*1.2);
-      el.style.transition=animate?'transform 0.25s ease,opacity 0.25s ease':'none';
-    });
-    cx.idx=closestIdx(o);
-  }
-
-  function snapTo(i,animate=true){
-    const o=clampOffset(centerOffset(i));
-    applyOffset(o,animate);
-    cx.idx=i;
-  }
-
-  // Start at first active or 0
-  const activeIdx=items.findIndex(el=>el.classList.contains('active')||el.style.background&&el.style.background.includes('linear-gradient')?false:el.style.border&&el.style.border.includes('2px solid')&&!el.style.border.includes('var(--border-col)'));
-  snapTo(Math.max(0,activeIdx)||0,false);
-
-  // Touch/mouse handlers
-  function onStart(x){
-    if(cx.animId){cancelAnimationFrame(cx.animId);cx.animId=null;}
-    cx.dragging=true;cx.startX=x;cx.startOffset=cx.offset;cx.vel=0;cx.lastX=x;cx.lastT=Date.now();
-    track.style.transition='none';
-  }
-  function onMove(x){
-    if(!cx.dragging)return;
-    const now=Date.now();const dt=Math.max(1,now-cx.lastT);
-    cx.vel=(x-cx.lastX)/dt*16;cx.lastX=x;cx.lastT=now;
-    applyOffset(clampOffset(cx.startOffset+(x-cx.startX)),false);
-  }
-  function onEnd(){
-    if(!cx.dragging)return;cx.dragging=false;
-    // Momentum flick
-    function flick(){
-      cx.vel*=0.88;
-      const next=clampOffset(cx.offset+cx.vel);
-      applyOffset(next,false);
-      if(Math.abs(cx.vel)>0.5)cx.animId=requestAnimationFrame(flick);
-      else{snapTo(closestIdx(cx.offset));}
-    }
-    if(Math.abs(cx.vel)>1)flick();else snapTo(closestIdx(cx.offset));
-  }
-
-  // Remove old listeners by cloning track
-  const newTrack=track.cloneNode(true);
-  track.parentNode.replaceChild(newTrack,track);
-  // Re-grab after clone
-  const t2=document.getElementById(trackId);
-  if(!t2)return;
-  t2.addEventListener('touchstart',e=>{onStart(e.touches[0].clientX)},{passive:true});
-  t2.addEventListener('touchmove',e=>{onMove(e.touches[0].clientX)},{passive:true});
-  t2.addEventListener('touchend',onEnd,{passive:true});
-  t2.addEventListener('mousedown',e=>{onStart(e.clientX);e.preventDefault()});
-  t2.addEventListener('mousemove',e=>{if(cx.dragging)onMove(e.clientX)});
-  t2.addEventListener('mouseup',onEnd);
-  t2.addEventListener('mouseleave',onEnd);
-
-  // Re-apply initial snap on new track
-  const items2=Array.from(t2.children);
-  setTimeout(()=>{
-    const o=clampOffset(centerOffset(0));
-    t2.style.transition='none';
-    t2.style.transform=`translateX(${o}px)`;
-    items2.forEach((el,i)=>{
-      let pos=o;for(let j=0;j<i;j++)pos+=(items2[j].offsetWidth+8);pos+=(items2[i].offsetWidth+8)/2;
-      const dist=Math.abs(pos-wrap.offsetWidth/2);
-      const scale=Math.max(0.88,1-dist/wrap.offsetWidth*0.4);
-      el.style.transform=`scale(${scale})`;
-      el.style.opacity=Math.max(0.5,1-dist/wrap.offsetWidth*1.2);
-    });
-  },0);
-}
-
-/* ===================== VOLUME SWIPE PANEL ENGINE ===================== */
-let _volSwipeIdx=0;
-function volSwipeTo(idx,animate=true){
-  _volSwipeIdx=idx;
-  const track=document.getElementById('volSwipeTrack');
-  const t0=document.getElementById('volSwipeTabStats');
-  const t1=document.getElementById('volSwipeTabBreak');
-  if(!track)return;
-  track.style.transition=animate?'transform 0.38s cubic-bezier(0.4,0,0.2,1)':'none';
-  track.style.transform=`translateX(${-idx*100}%)`;
-  if(t0){t0.classList.toggle('active',idx===0);}
-  if(t1){t1.classList.toggle('active',idx===1);}
-}
-
-// Touch swipe for the panel host
-(function(){
-  let sx=0,sy=0,swiping=false;
-  document.addEventListener('touchstart',e=>{
-    const host=e.target.closest('#volSwipeHost');if(!host)return;
-    sx=e.touches[0].clientX;sy=e.touches[0].clientY;swiping=true;
-  },{passive:true});
-  document.addEventListener('touchmove',e=>{
-    if(!swiping)return;
-    const host=e.target.closest('#volSwipeHost');if(!host){swiping=false;return;}
-    const dx=e.touches[0].clientX-sx,dy=e.touches[0].clientY-sy;
-    if(Math.abs(dx)>Math.abs(dy)&&Math.abs(dx)>12){
-      // horizontal swipe inside panel
-    }
-  },{passive:true});
-  document.addEventListener('touchend',e=>{
-    if(!swiping)return;swiping=false;
-    const host=e.target.closest('#volSwipeHost');if(!host)return;
-    const dx=e.changedTouches[0].clientX-sx;
-    if(Math.abs(dx)>40){volSwipeTo(dx<0?1:0);}
-  },{passive:true});
-})();
 
 function initLearnPage(){
   document.getElementById("learnSearchInput").value="";document.getElementById("learnClassFilter").value="";
