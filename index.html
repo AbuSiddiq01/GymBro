@@ -585,34 +585,38 @@ body.theme-batman .bio-save-btn{color:#05050a}
 .avatar-lightbox-emoji{width:min(85vw,360px);height:min(85vw,360px);border-radius:50%;background:var(--accent-soft);border:4px solid var(--accent);box-shadow:0 0 60px var(--accent-glow);display:flex;align-items:center;justify-content:center;font-size:120px;animation:slideUp 0.25s ease}
 .avatar-lightbox-close{position:absolute;top:24px;right:24px;background:rgba(255,255,255,0.15);border:none;color:#fff;width:44px;height:44px;border-radius:50%;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background 0.2s}
 .avatar-lightbox-close:hover{background:rgba(255,255,255,0.3)}
-.avatar-upload-spinner{position:absolute;inset:0;border-radius:50%;background:rgba(0,0,0,0.55);display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;font-family:var(--font-alt);font-weight:700;letter-spacing:0.3px;animation:fadeIn 0.2s ease}
-/* ---- AVATAR CROP MODAL ---- */
-.crop-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:999999;display:flex;flex-direction:column;align-items:center;justify-content:center;animation:fadeIn 0.2s ease;backdrop-filter:blur(8px);padding:16px;box-sizing:border-box}
-.crop-modal-box{background:var(--bg-card);border:1px solid var(--border-col);border-radius:22px;padding:22px;width:min(96vw,420px);box-shadow:0 24px 80px rgba(0,0,0,0.6);display:flex;flex-direction:column;align-items:center;gap:14px}
-.crop-modal-title{font-family:var(--font-alt);font-size:16px;font-weight:800;color:var(--text-primary);letter-spacing:0.5px;align-self:flex-start}
-.crop-canvas-wrap{position:relative;width:100%;aspect-ratio:1;background:#111;border-radius:14px;overflow:hidden;cursor:grab;touch-action:none;user-select:none}
-.crop-canvas-wrap:active{cursor:grabbing}
-#cropCanvas{display:block;width:100%;height:100%}
-.crop-actions{display:flex;gap:10px;width:100%}
-.crop-zoom-row{display:flex;align-items:center;gap:10px;width:100%}
-.crop-zoom-row label{font-size:11px;font-weight:700;color:var(--text-muted);font-family:var(--font-alt);letter-spacing:0.4px;white-space:nowrap}
-.crop-zoom-row input[type=range]{flex:1;accent-color:var(--accent)}
-.crop-confirm-btn{flex:1;padding:11px;background:var(--btn-bg);color:var(--follow-btn-text);border:none;border-radius:12px;font-size:14px;font-weight:700;font-family:var(--font-alt);letter-spacing:0.5px;cursor:pointer;box-shadow:var(--btn-shadow);transition:opacity 0.2s}
-body.theme-batman .crop-confirm-btn{color:#05050a}
-.crop-confirm-btn:hover{opacity:0.88}
-.crop-cancel-btn{padding:11px 18px;background:var(--bg-panel);color:var(--text-secondary);border:1px solid var(--border-col);border-radius:12px;font-size:14px;font-weight:700;font-family:var(--font-alt);cursor:pointer;transition:background 0.2s}
-.crop-cancel-btn:hover{background:var(--accent-soft)}
-/* ---- AVATAR DELETE BUTTON ---- */
-.avatar-delete-overlay{position:absolute;top:0;right:0;width:26px;height:26px;background:#dc2626;border-radius:50%;display:none;align-items:center;justify-content:center;font-size:11px;border:2px solid var(--bg-card);cursor:pointer;transition:background 0.2s;z-index:2}
-.avatar-delete-overlay:hover{background:#b91c1c}
-.avatar-delete-overlay.visible{display:flex}
-/* lightbox action row */
-.avatar-lightbox-actions{display:flex;gap:12px;margin-top:20px}
-.avatar-lb-action-btn{padding:10px 22px;border-radius:12px;font-size:13px;font-weight:700;font-family:var(--font-alt);letter-spacing:0.5px;cursor:pointer;border:none;transition:opacity 0.2s}
-.avatar-lb-change-btn{background:var(--btn-bg);color:#fff;box-shadow:0 4px 14px rgba(37,99,235,0.35)}
-body.theme-batman .avatar-lb-change-btn{color:#05050a}
-.avatar-lb-delete-btn{background:rgba(220,38,38,0.18);color:#ef4444;border:1px solid rgba(220,38,38,0.4)}
-.avatar-lb-delete-btn:hover{background:rgba(220,38,38,0.3)}
+.avatar-upload-spinner{position:absolute;inset:0;border-radius:50%;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;font-size:20px;animation:fadeIn 0.2s ease}
+/* ---- CROP MODAL (Instagram-style) ---- */
+.crop-modal-overlay{position:fixed;inset:0;background:#000;z-index:999999;display:flex;flex-direction:column;align-items:stretch;animation:fadeIn 0.18s ease}
+.crop-modal-topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;flex-shrink:0}
+.crop-modal-topbar-title{font-family:var(--font-alt);font-size:15px;font-weight:800;color:#fff;letter-spacing:0.5px}
+.crop-top-btn{background:none;border:none;font-size:14px;font-weight:700;font-family:var(--font-alt);letter-spacing:0.3px;cursor:pointer;padding:6px 10px;border-radius:8px;transition:background 0.15s}
+.crop-top-cancel{color:rgba(255,255,255,0.7)}.crop-top-cancel:hover{background:rgba(255,255,255,0.1)}
+.crop-top-done{color:#3b82f6;background:rgba(59,130,246,0.15)}.crop-top-done:hover{background:rgba(59,130,246,0.28)}
+body.theme-batman .crop-top-done{color:#f5c800;background:rgba(245,200,0,0.12)}
+body.theme-godmode .crop-top-done{color:#ef4444;background:rgba(220,38,38,0.12)}
+.crop-viewport{flex:1;position:relative;overflow:hidden;background:#000;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none}
+.crop-viewport.dragging{cursor:grabbing}
+#cropCanvas{position:absolute;top:0;left:0;will-change:transform}
+.crop-circle-mask{position:absolute;inset:0;pointer-events:none}
+.crop-bottombar{flex-shrink:0;background:#111;padding:14px 20px 22px;display:flex;flex-direction:column;gap:12px}
+.crop-zoom-label{font-family:var(--font-alt);font-size:10px;font-weight:700;color:rgba(255,255,255,0.45);letter-spacing:0.8px;text-transform:uppercase;text-align:center}
+.crop-zoom-track{display:flex;align-items:center;gap:12px}
+.crop-zoom-track input[type=range]{flex:1;height:3px;accent-color:#3b82f6;cursor:pointer}
+body.theme-batman .crop-zoom-track input[type=range]{accent-color:#f5c800}
+body.theme-godmode .crop-zoom-track input[type=range]{accent-color:#ef4444}
+.crop-zoom-icon{font-size:14px;opacity:0.55;flex-shrink:0}
+/* lightbox */
+.avatar-lightbox{position:fixed;inset:0;background:rgba(0,0,0,0.9);z-index:999998;display:flex;flex-direction:column;align-items:center;justify-content:center;animation:fadeIn 0.2s ease;backdrop-filter:blur(10px)}
+.avatar-lightbox-img{width:min(80vw,320px);height:min(80vw,320px);border-radius:50%;object-fit:cover;border:3px solid rgba(255,255,255,0.2);box-shadow:0 0 0 1px rgba(255,255,255,0.08),0 20px 60px rgba(0,0,0,0.7);animation:slideUp 0.25s ease}
+.avatar-lightbox-emoji{width:min(80vw,320px);height:min(80vw,320px);border-radius:50%;background:var(--accent-soft);border:3px solid rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;font-size:100px;animation:slideUp 0.25s ease}
+.avatar-lightbox-close{position:absolute;top:20px;right:20px;background:rgba(255,255,255,0.12);border:none;color:#fff;width:40px;height:40px;border-radius:50%;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background 0.2s}
+.avatar-lightbox-close:hover{background:rgba(255,255,255,0.25)}
+.avatar-lightbox-actions{display:flex;flex-direction:column;gap:10px;margin-top:24px;width:min(80vw,320px)}
+.avatar-lb-action-btn{width:100%;padding:13px;border-radius:14px;font-size:14px;font-weight:700;font-family:var(--font-alt);letter-spacing:0.5px;cursor:pointer;border:none;text-align:center;transition:opacity 0.15s}
+.avatar-lb-action-btn:hover{opacity:0.85}
+.avatar-lb-change-btn{background:rgba(255,255,255,0.12);color:#fff;border:1px solid rgba(255,255,255,0.18)}
+.avatar-lb-delete-btn{background:rgba(220,38,38,0.2);color:#ef4444;border:1px solid rgba(220,38,38,0.35)}
 .social-counters{display:flex;gap:22px;margin-top:14px}
 .social-counter{text-align:center;cursor:pointer;transition:transform 0.2s}
 .social-counter:hover{transform:scale(1.1)}
@@ -1791,10 +1795,9 @@ body.theme-godmode .levelup-toast{background:linear-gradient(135deg,#7a0006,#c00
           <div style="position:relative;flex-shrink:0">
             <div class="avatar-ring" id="avatarRingBtn" onclick="openAvatarLightbox()" title="View profile picture">
               <div class="avatar-inner" id="profileAvatar">🏋</div>
-              <div id="avatarUploadSpinner" style="display:none" class="avatar-upload-spinner">⏳</div>
+              <div id="avatarUploadSpinner" style="display:none" class="avatar-upload-spinner">⬆️</div>
             </div>
-            <div class="avatar-edit-overlay" onclick="event.stopPropagation();document.getElementById('avatarFileInput').click()" title="Change photo">✏️</div>
-            <div class="avatar-delete-overlay" id="avatarDeleteBtn" onclick="event.stopPropagation();confirmDeleteAvatar()" title="Remove photo">✕</div>
+            <div class="avatar-edit-overlay" onclick="event.stopPropagation();openAvatarLightbox()" title="Change photo">✏️</div>
             <input type="file" id="avatarFileInput" accept="image/*" style="display:none" onchange="handleAvatarUpload(event)">
           </div>
 
@@ -6578,32 +6581,35 @@ async function loadUserProfile(){
 }
 
 function renderAvatarImage(url){
+  /* Always store the base URL (no cache-bust) so lightbox reads clean */
+  const base=url.split("?")[0];
+  localStorage.setItem("gymbro_avatar_url",base);
   const inner=document.getElementById("profileAvatar");
-  const src=url+(url.includes("?")?"&":"?")+"t="+Date.now();
-  inner.innerHTML=`<img src="${src}" alt="Avatar" style="width:100%;height:100%;object-fit:cover;border-radius:50%" onerror="this.parentElement.textContent='🏋';document.getElementById('avatarDeleteBtn').classList.remove('visible')">`;
-  document.getElementById("avatarDeleteBtn").classList.add("visible");
+  const bust=base+"?t="+Date.now();
+  inner.innerHTML=`<img src="${bust}" alt="Avatar" style="width:100%;height:100%;object-fit:cover;border-radius:50%" onerror="this.parentElement.textContent='🏋'">`;
 }
 
 function clearAvatarImage(){
   document.getElementById("profileAvatar").textContent="🏋";
-  document.getElementById("avatarDeleteBtn").classList.remove("visible");
 }
 
-/* ===================== CROP ENGINE ===================== */
-let _cropImg=null,_cropZoom=1,_cropOffX=0,_cropOffY=0,_cropDragging=false,_cropLastX=0,_cropLastY=0,_cropSize=0,_cropBlob=null;
+/* =====================================================================
+   CROP ENGINE — Instagram-style fullscreen
+   State is in module-level vars; the canvas fills a square viewport.
+   All coordinates are in "image pixels". The canvas CSS size matches
+   the viewport exactly; we draw at devicePixelRatio for sharpness.
+===================================================================== */
+const _c={img:null,zoom:1,minZoom:1,maxZoom:4,ox:0,oy:0,vw:0,vh:0,dpr:1,dragging:false,lx:0,ly:0,pinchDist:0};
 
 function handleAvatarUpload(event){
   const file=event.target.files[0];
   event.target.value="";
   if(!file)return;
-  if(file.size>5*1024*1024){showToast("❌ Image must be under 5MB.");return}
+  if(file.size>10*1024*1024){showToast("❌ Image must be under 10MB.");return}
   const reader=new FileReader();
-  reader.onload=function(e){
+  reader.onload=e=>{
     const img=new Image();
-    img.onload=function(){
-      _cropImg=img;_cropZoom=1;_cropOffX=0;_cropOffY=0;
-      openCropModal();
-    };
+    img.onload=()=>{_c.img=img;openCropModal()};
     img.src=e.target.result;
   };
   reader.readAsDataURL(file);
@@ -6611,57 +6617,61 @@ function handleAvatarUpload(event){
 
 function openCropModal(){
   if(document.getElementById("cropModalOverlay"))return;
+
   const overlay=document.createElement("div");
   overlay.id="cropModalOverlay";
   overlay.className="crop-modal-overlay";
   overlay.innerHTML=`
-    <div class="crop-modal-box">
-      <div class="crop-modal-title">✂️ Crop Profile Picture</div>
-      <div class="crop-canvas-wrap" id="cropWrap">
-        <canvas id="cropCanvas"></canvas>
-        <svg class="crop-circle-overlay" viewBox="0 0 100 100" preserveAspectRatio="none">
-          <defs>
-            <mask id="circMask">
-              <rect width="100" height="100" fill="white"/>
-              <circle cx="50" cy="50" r="46" fill="black"/>
-            </mask>
-          </defs>
-          <rect width="100" height="100" fill="rgba(0,0,0,0.55)" mask="url(#circMask)"/>
-          <circle cx="50" cy="50" r="46" fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="0.8"/>
-        </svg>
-      </div>
-      <div class="crop-zoom-row">
-        <label>🔍 ZOOM</label>
-        <input type="range" id="cropZoomSlider" min="1" max="4" step="0.01" value="1" oninput="onCropZoom(this.value)">
-      </div>
-      <div class="crop-actions">
-        <button class="crop-cancel-btn" onclick="closeCropModal()">Cancel</button>
-        <button class="crop-confirm-btn" onclick="confirmCrop()">✅ Use Photo</button>
+    <div class="crop-modal-topbar">
+      <button class="crop-top-btn crop-top-cancel" onclick="closeCropModal()">Cancel</button>
+      <span class="crop-modal-topbar-title">Move and Scale</span>
+      <button class="crop-top-btn crop-top-done" onclick="confirmCrop()">Done</button>
+    </div>
+    <div class="crop-viewport" id="cropViewport">
+      <canvas id="cropCanvas"></canvas>
+      <svg class="crop-circle-mask" id="cropMaskSvg"></svg>
+    </div>
+    <div class="crop-bottombar">
+      <div class="crop-zoom-label">Zoom</div>
+      <div class="crop-zoom-track">
+        <span class="crop-zoom-icon">🔍</span>
+        <input type="range" id="cropZoomSlider" min="0" max="100" value="0" step="0.1" oninput="_cropSliderZoom(this.value)">
+        <span class="crop-zoom-icon">🔎</span>
       </div>
     </div>`;
   document.body.appendChild(overlay);
 
-  // setup canvas size
-  const wrap=document.getElementById("cropWrap");
-  const canvas=document.getElementById("cropCanvas");
-  _cropSize=Math.min(wrap.offsetWidth||320,320);
-  canvas.width=_cropSize*2; // 2x for retina sharpness in preview
-  canvas.height=_cropSize*2;
-  canvas.style.width=_cropSize+"px";
-  canvas.style.height=_cropSize+"px";
+  /* Size the canvas to fill the square viewport */
+  requestAnimationFrame(()=>{
+    const vp=document.getElementById("cropViewport");
+    const vw=vp.offsetWidth, vh=vp.offsetHeight;
+    _c.vw=vw; _c.vh=vh;
+    _c.dpr=Math.min(window.devicePixelRatio||1,2);
 
-  // fit image to fill circle by default
-  const scale=Math.max(_cropSize/_cropImg.width,_cropSize/_cropImg.height);
-  _cropZoom=scale;
-  document.getElementById("cropZoomSlider").min=scale;
-  document.getElementById("cropZoomSlider").max=scale*4;
-  document.getElementById("cropZoomSlider").step=scale*0.005;
-  document.getElementById("cropZoomSlider").value=scale;
-  _cropOffX=(_cropSize-_cropImg.width*scale)/2;
-  _cropOffY=(_cropSize-_cropImg.height*scale)/2;
+    const canvas=document.getElementById("cropCanvas");
+    canvas.width=vw*_c.dpr; canvas.height=vh*_c.dpr;
+    canvas.style.width=vw+"px"; canvas.style.height=vh+"px";
 
-  drawCrop();
-  attachCropEvents(canvas);
+    /* Draw the circle mask SVG */
+    const cx=vw/2,cy=vh/2,r=Math.min(vw,vh)*0.46;
+    document.getElementById("cropMaskSvg").innerHTML=`
+      <defs><mask id="cm"><rect width="${vw}" height="${vh}" fill="white"/>
+      <circle cx="${cx}" cy="${cy}" r="${r}" fill="black"/></mask></defs>
+      <rect width="${vw}" height="${vh}" fill="rgba(0,0,0,0.5)" mask="url(#cm)"/>
+      <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="rgba(255,255,255,0.55)" stroke-width="1.5"/>`;
+
+    /* Initial zoom: image covers the circle (like Instagram) */
+    const coverScale=Math.max((r*2)/_c.img.width,(r*2)/_c.img.height);
+    _c.minZoom=coverScale;
+    _c.maxZoom=coverScale*5;
+    _c.zoom=coverScale;
+    /* Center image on viewport */
+    _c.ox=(vw-_c.img.width*_c.zoom)/2;
+    _c.oy=(vh-_c.img.height*_c.zoom)/2;
+    _clampCrop();
+    _drawCrop();
+    _attachCropEvents(canvas,vp);
+  });
 }
 
 function closeCropModal(){
@@ -6669,124 +6679,194 @@ function closeCropModal(){
   if(el)el.remove();
 }
 
-function onCropZoom(val){
-  const prevZoom=_cropZoom;
-  _cropZoom=parseFloat(val);
-  // zoom around center
-  const cx=_cropSize/2,cy=_cropSize/2;
-  _cropOffX=cx-(_cropZoom/prevZoom)*(cx-_cropOffX);
-  _cropOffY=cy-(_cropZoom/prevZoom)*(cy-_cropOffY);
-  clampCrop();drawCrop();
+function _cropSliderZoom(val){
+  /* Map slider 0–100 → minZoom–maxZoom logarithmically */
+  const t=parseFloat(val)/100;
+  const newZoom=_c.minZoom*Math.pow(_c.maxZoom/_c.minZoom,t);
+  _zoomAround(_c.vw/2,_c.vh/2,newZoom);
 }
 
-function clampCrop(){
-  const iw=_cropImg.width*_cropZoom,ih=_cropImg.height*_cropZoom;
-  const maxX=0,maxY=0;
-  const minX=_cropSize-iw,minY=_cropSize-ih;
-  _cropOffX=Math.min(maxX,Math.max(minX,_cropOffX));
-  _cropOffY=Math.min(maxY,Math.max(minY,_cropOffY));
+function _zoomAround(px,py,newZoom){
+  newZoom=Math.min(_c.maxZoom,Math.max(_c.minZoom,newZoom));
+  const ratio=newZoom/_c.zoom;
+  _c.ox=px-(px-_c.ox)*ratio;
+  _c.oy=py-(py-_c.oy)*ratio;
+  _c.zoom=newZoom;
+  _clampCrop();
+  _drawCrop();
+  /* Sync slider */
+  const t=Math.log(_c.zoom/_c.minZoom)/Math.log(_c.maxZoom/_c.minZoom);
+  const slider=document.getElementById("cropZoomSlider");
+  if(slider)slider.value=(t*100).toFixed(1);
 }
 
-function drawCrop(){
+function _clampCrop(){
+  /* Image must always cover the circle: use circle bbox for clamping */
+  const r=Math.min(_c.vw,_c.vh)*0.46;
+  const cx=_c.vw/2, cy=_c.vh/2;
+  const circL=cx-r,circT=cy-r,circR=cx+r,circB=cy+r;
+  const iw=_c.img.width*_c.zoom, ih=_c.img.height*_c.zoom;
+  /* Right edge of image must be ≥ right edge of circle */
+  _c.ox=Math.min(_c.ox,circL);
+  /* Left edge of image must be ≤ left edge of circle */
+  _c.ox=Math.max(_c.ox,circR-iw);
+  _c.oy=Math.min(_c.oy,circT);
+  _c.oy=Math.max(_c.oy,circB-ih);
+}
+
+function _drawCrop(){
   const canvas=document.getElementById("cropCanvas");
-  if(!canvas)return;
+  if(!canvas||!_c.img)return;
   const ctx=canvas.getContext("2d");
-  const s=2; // retina scale
+  const d=_c.dpr;
   ctx.clearRect(0,0,canvas.width,canvas.height);
-  ctx.drawImage(_cropImg,_cropOffX*s,_cropOffY*s,_cropImg.width*_cropZoom*s,_cropImg.height*_cropZoom*s);
+  ctx.drawImage(_c.img,_c.ox*d,_c.oy*d,_c.img.width*_c.zoom*d,_c.img.height*_c.zoom*d);
 }
 
-function attachCropEvents(canvas){
-  // Mouse
-  canvas.addEventListener("mousedown",e=>{_cropDragging=true;_cropLastX=e.clientX;_cropLastY=e.clientY});
-  window.addEventListener("mousemove",e=>{
-    if(!_cropDragging)return;
-    _cropOffX+=e.clientX-_cropLastX;_cropOffY+=e.clientY-_cropLastY;
-    _cropLastX=e.clientX;_cropLastY=e.clientY;
-    clampCrop();drawCrop();
-  });
-  window.addEventListener("mouseup",()=>{_cropDragging=false});
-  // Touch
-  canvas.addEventListener("touchstart",e=>{e.preventDefault();const t=e.touches[0];_cropDragging=true;_cropLastX=t.clientX;_cropLastY=t.clientY},{passive:false});
-  canvas.addEventListener("touchmove",e=>{
-    e.preventDefault();if(!_cropDragging)return;
-    const t=e.touches[0];
-    _cropOffX+=t.clientX-_cropLastX;_cropOffY+=t.clientY-_cropLastY;
-    _cropLastX=t.clientX;_cropLastY=t.clientY;
-    clampCrop();drawCrop();
+function _attachCropEvents(canvas,vp){
+  /* ---- Mouse ---- */
+  canvas.addEventListener("mousedown",e=>{
+    _c.dragging=true;_c.lx=e.clientX;_c.ly=e.clientY;
+    vp.classList.add("dragging");e.preventDefault();
   },{passive:false});
-  canvas.addEventListener("touchend",()=>{_cropDragging=false});
-  // Pinch zoom
-  let _lastDist=0;
-  canvas.addEventListener("touchstart",e=>{if(e.touches.length===2){const dx=e.touches[0].clientX-e.touches[1].clientX,dy=e.touches[0].clientY-e.touches[1].clientY;_lastDist=Math.hypot(dx,dy)}},{passive:true});
-  canvas.addEventListener("touchmove",e=>{
-    if(e.touches.length===2){
-      const dx=e.touches[0].clientX-e.touches[1].clientX,dy=e.touches[0].clientY-e.touches[1].clientY;
-      const dist=Math.hypot(dx,dy);
-      const slider=document.getElementById("cropZoomSlider");
-      const newZoom=Math.min(parseFloat(slider.max),Math.max(parseFloat(slider.min),_cropZoom*(dist/_lastDist)));
-      slider.value=newZoom;onCropZoom(newZoom);_lastDist=dist;
+  window.addEventListener("mousemove",e=>{
+    if(!_c.dragging)return;
+    _c.ox+=e.clientX-_c.lx;_c.oy+=e.clientY-_c.ly;
+    _c.lx=e.clientX;_c.ly=e.clientY;
+    _clampCrop();_drawCrop();
+  });
+  window.addEventListener("mouseup",()=>{_c.dragging=false;vp.classList.remove("dragging")});
+  /* Mouse wheel zoom */
+  canvas.addEventListener("wheel",e=>{
+    e.preventDefault();
+    const rect=canvas.getBoundingClientRect();
+    const px=e.clientX-rect.left, py=e.clientY-rect.top;
+    const delta=e.deltaY<0?1.08:0.93;
+    _zoomAround(px,py,_c.zoom*delta);
+  },{passive:false});
+
+  /* ---- Touch ---- */
+  let _touches={};
+  canvas.addEventListener("touchstart",e=>{
+    e.preventDefault();
+    Array.from(e.changedTouches).forEach(t=>{_touches[t.identifier]={x:t.clientX,y:t.clientY}});
+    const ids=Object.keys(_touches);
+    if(ids.length===1){
+      _c.dragging=true;
+      const t=e.touches[0];_c.lx=t.clientX;_c.ly=t.clientY;
     }
-  },{passive:true});
+    if(ids.length===2){
+      _c.dragging=false;
+      const a=_touches[ids[0]],b=_touches[ids[1]];
+      _c.pinchDist=Math.hypot(a.x-b.x,a.y-b.y);
+    }
+  },{passive:false});
+
+  canvas.addEventListener("touchmove",e=>{
+    e.preventDefault();
+    const active=e.touches;
+    if(active.length===1&&_c.dragging){
+      const t=active[0];
+      _c.ox+=t.clientX-_c.lx;_c.oy+=t.clientY-_c.ly;
+      _c.lx=t.clientX;_c.ly=t.clientY;
+      _clampCrop();_drawCrop();
+    }else if(active.length===2){
+      const dx=active[0].clientX-active[1].clientX;
+      const dy=active[0].clientY-active[1].clientY;
+      const dist=Math.hypot(dx,dy);
+      const midX=(active[0].clientX+active[1].clientX)/2;
+      const midY=(active[0].clientY+active[1].clientY)/2;
+      const rect=canvas.getBoundingClientRect();
+      _zoomAround(midX-rect.left,midY-rect.top,_c.zoom*(dist/_c.pinchDist));
+      _c.pinchDist=dist;
+      /* Update stored positions */
+      Array.from(e.changedTouches).forEach(t=>{_touches[t.identifier]={x:t.clientX,y:t.clientY}});
+    }
+  },{passive:false});
+
+  canvas.addEventListener("touchend",e=>{
+    Array.from(e.changedTouches).forEach(t=>{delete _touches[t.identifier]});
+    if(Object.keys(_touches).length===0)_c.dragging=false;
+    if(Object.keys(_touches).length===1){
+      const id=Object.keys(_touches)[0];
+      const remaining=Array.from(e.touches).find(t=>t.identifier==id);
+      if(remaining){_c.lx=remaining.clientX;_c.ly=remaining.clientY;_c.dragging=true;}
+    }
+  },{passive:false});
 }
 
 async function confirmCrop(){
-  // Render a high-quality 600×600 offscreen canvas for upload
-  const OUT=600;
+  /* Export the circular crop region at 800×800 for excellent quality */
+  const OUT=800;
+  const r=Math.min(_c.vw,_c.vh)*0.46;
+  const cx=_c.vw/2, cy=_c.vh/2;
+  /* Top-left of circle in image coords */
+  const srcX=(cx-r-_c.ox)/_c.zoom;
+  const srcY=(cy-r-_c.oy)/_c.zoom;
+  const srcSize=(r*2)/_c.zoom;
+
   const offscreen=document.createElement("canvas");
   offscreen.width=OUT;offscreen.height=OUT;
   const ctx=offscreen.getContext("2d");
-  // Scale factor: offscreen is OUT px, crop preview is _cropSize px
-  const scale=OUT/_cropSize;
-  ctx.drawImage(_cropImg,_cropOffX*scale,_cropOffY*scale,_cropImg.width*_cropZoom*scale,_cropImg.height*_cropZoom*scale);
+  ctx.imageSmoothingEnabled=true;
+  ctx.imageSmoothingQuality="high";
+  ctx.drawImage(_c.img,srcX,srcY,srcSize,srcSize,0,0,OUT,OUT);
 
-  offscreen.toBlob(async(blob)=>{
+  offscreen.toBlob(async blob=>{
     closeCropModal();
     if(!blob){showToast("❌ Crop failed.");return}
     await uploadAvatarBlob(blob);
-  },"image/jpeg",0.92);
+  },"image/jpeg",0.93);
 }
 
+/* ===================== UPLOAD ===================== */
 async function uploadAvatarBlob(blob){
   const uid=localStorage.getItem("user_id");
   if(!uid){showToast("⚠️ Not logged in.");return}
   const spinner=document.getElementById("avatarUploadSpinner");
-  spinner.style.display="flex";spinner.textContent="⬆️";
+  spinner.style.display="flex";
 
   try{
-    // Compress only if still over 220KB after crop
-    let finalBlob=blob;
-    if(blob.size>220*1024){
-      finalBlob=await imageCompression(blob,{maxSizeMB:0.2,maxWidthOrHeight:600,useWebWorker:true,initialQuality:0.92});
-    }
     const fileName=uid+".jpg";
+    /* Always delete first — Supabase storage upsert can silently fail on policy mismatch */
+    await db.storage.from("avatars").remove([fileName]);
+    /* Small wait so storage registers the delete before re-upload */
+    await new Promise(r=>setTimeout(r,400));
+
+    let finalBlob=blob;
+    if(blob.size>250*1024){
+      finalBlob=await imageCompression(blob,{maxSizeMB:0.22,maxWidthOrHeight:800,useWebWorker:true,initialQuality:0.93});
+    }
     const{error:upErr}=await db.storage.from("avatars").upload(fileName,finalBlob,{upsert:true,contentType:"image/jpeg"});
     if(upErr){spinner.style.display="none";showToast("❌ Upload failed: "+upErr.message);return}
+
     const{data:urlData}=db.storage.from("avatars").getPublicUrl(fileName);
     const publicUrl=urlData.publicUrl;
     const{error:dbErr}=await db.from("users").update({avatar_url:publicUrl}).eq("id",uid);
-    if(dbErr){spinner.style.display="none";showToast("❌ Could not save avatar URL.");return}
+    if(dbErr){spinner.style.display="none";showToast("❌ Could not save avatar.");return}
+
     renderAvatarImage(publicUrl);
-    localStorage.setItem("gymbro_avatar_url",publicUrl);
     spinner.style.display="none";
     showToast("✅ Profile picture updated!");
   }catch(e){
     spinner.style.display="none";
     showToast("❌ Error: "+e.message);
-    console.error("Avatar upload error:",e);
+    console.error(e);
   }
 }
 
+/* ===================== DELETE ===================== */
 async function confirmDeleteAvatar(){
   if(!confirm("Remove your profile picture?"))return;
   const uid=localStorage.getItem("user_id");
   if(!uid)return;
   const spinner=document.getElementById("avatarUploadSpinner");
-  spinner.style.display="flex";spinner.textContent="🗑️";
+  spinner.style.display="flex";
   try{
-    // Try to remove known file names (jpg/png/webp)
-    await db.storage.from("avatars").remove([uid+".jpg",uid+".png",uid+".jpeg",uid+".webp"]);
-    await db.from("users").update({avatar_url:null}).eq("id",uid);
+    /* Remove all possible extensions */
+    await db.storage.from("avatars").remove([uid+".jpg",uid+".jpeg",uid+".png",uid+".webp"]);
+    const{error}=await db.from("users").update({avatar_url:null}).eq("id",uid);
+    if(error){spinner.style.display="none";showToast("❌ Could not remove avatar.");return}
     clearAvatarImage();
     localStorage.removeItem("gymbro_avatar_url");
     spinner.style.display="none";
@@ -6794,66 +6874,63 @@ async function confirmDeleteAvatar(){
   }catch(e){
     spinner.style.display="none";
     showToast("❌ Error removing photo.");
+    console.error(e);
   }
 }
 
-/* ===================== AVATAR LIGHTBOX ===================== */
+/* ===================== LIGHTBOX ===================== */
 function openAvatarLightbox(){
-  const inner=document.getElementById("profileAvatar");
-  const img=inner.querySelector("img");
-  const hasImg=!!img;
-
   if(document.getElementById("avatarLightboxOverlay"))return;
+  const inner=document.getElementById("profileAvatar");
+  const hasImg=!!inner.querySelector("img");
+
   const lb=document.createElement("div");
   lb.id="avatarLightboxOverlay";
   lb.className="avatar-lightbox";
-  lb.onclick=function(e){if(e.target===lb)closeLightbox(lb)};
+  lb.onclick=e=>{if(e.target===lb)closeLightbox(lb)};
 
   const closeBtn=document.createElement("button");
   closeBtn.className="avatar-lightbox-close";
   closeBtn.innerHTML="✕";
   closeBtn.onclick=()=>closeLightbox(lb);
+  lb.appendChild(closeBtn);
 
-  let content;
   if(hasImg){
-    // Use full-res URL without cache-bust for lightbox (cleaner)
-    const rawUrl=localStorage.getItem("gymbro_avatar_url")||img.src;
-    content=document.createElement("img");
+    /* Use the stored base URL + fresh bust so lightbox always shows the LATEST photo */
+    const base=localStorage.getItem("gymbro_avatar_url")||"";
+    const content=document.createElement("img");
     content.className="avatar-lightbox-img";
-    // Override to show full non-circular HD view
-    content.style.cssText="width:min(82vw,340px);height:min(82vw,340px);border-radius:20px;object-fit:cover;border:3px solid var(--accent);box-shadow:0 0 60px rgba(0,0,0,0.5);animation:slideUp 0.25s ease";
-    content.src=rawUrl;
+    content.src=base+"?t="+Date.now();
     content.alt="Profile Picture";
+    lb.appendChild(content);
   }else{
-    content=document.createElement("div");
+    const content=document.createElement("div");
     content.className="avatar-lightbox-emoji";
     content.textContent="🏋";
+    lb.appendChild(content);
   }
 
-  // Action row below the image
   const actions=document.createElement("div");
   actions.className="avatar-lightbox-actions";
 
   const changeBtn=document.createElement("button");
   changeBtn.className="avatar-lb-action-btn avatar-lb-change-btn";
-  changeBtn.textContent="✏️ Change Photo";
-  changeBtn.onclick=()=>{closeLightbox(lb);document.getElementById("avatarFileInput").click()};
+  changeBtn.textContent="📷 Change Photo";
+  changeBtn.onclick=()=>{closeLightbox(lb);setTimeout(()=>document.getElementById("avatarFileInput").click(),200)};
   actions.appendChild(changeBtn);
 
   if(hasImg){
     const delBtn=document.createElement("button");
     delBtn.className="avatar-lb-action-btn avatar-lb-delete-btn";
     delBtn.textContent="🗑️ Remove Photo";
-    delBtn.onclick=()=>{closeLightbox(lb);confirmDeleteAvatar()};
+    delBtn.onclick=()=>{closeLightbox(lb);setTimeout(confirmDeleteAvatar,200)};
     actions.appendChild(delBtn);
   }
 
-  lb.appendChild(closeBtn);
-  lb.appendChild(content);
   lb.appendChild(actions);
   document.body.appendChild(lb);
 }
-function closeLightbox(lb){lb.style.opacity="0";lb.style.transition="opacity 0.2s";setTimeout(()=>lb.remove(),200)}
+function closeLightbox(lb){lb.style.opacity="0";lb.style.transition="opacity 0.18s";setTimeout(()=>lb.remove(),200)}
 
 /* ---- BIO FUNCTIONS ---- */
 const BIO_MAX=150;
