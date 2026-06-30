@@ -98,18 +98,15 @@ body.theme-custom {
   --custom-bg-image:none;
 }
 /* Optional user-uploaded Background image, applied like the Batman/God Mode backdrops.
-   Uses a fixed-position layer instead of `background-attachment:fixed` on body, because that
-   property is unreliable on many mobile browsers (the image drifts/scrolls with the page). A
-   dedicated fixed layer behind everything stays perfectly still on all devices. */
-body.theme-custom{position:relative}
-body.theme-custom::before{
-  content:'';
-  position:fixed;
-  top:0;left:0;right:0;bottom:0;
+   IMPORTANT: no `position:fixed` element and no `background-attachment:fixed` are used here —
+   both are known to drift/jump on mobile browsers during scroll, address-bar show/hide, or pinch
+   zoom. Instead this relies on background canvas propagation: since <html> has no background of
+   its own, the <body> background (image included) is automatically painted on the document canvas
+   itself rather than on the body box — the canvas never scrolls or shifts under any circumstance
+   (scroll, zoom, mobile toolbar resize), so the image stays perfectly still on every device. */
+body.theme-custom{
   background-image:var(--custom-bg-image,none);
   background-size:cover;background-position:center;background-repeat:no-repeat;
-  z-index:-1;
-  pointer-events:none;
 }
 /* Banner is just another box now — no separate banner image. It uses the same Box/Card color
    and the same glassy finish as every other box, so it always matches and never looks mismatched
