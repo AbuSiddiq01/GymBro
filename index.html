@@ -97,11 +97,19 @@ body.theme-custom {
   --feed-like-col:#4f8cff;--section-title-col:#4f8cff;
   --custom-bg-image:none;
 }
-/* Optional user-uploaded Background image, applied like the Batman/God Mode backdrops */
-body.theme-custom{
+/* Optional user-uploaded Background image, applied like the Batman/God Mode backdrops.
+   Uses a fixed-position layer instead of `background-attachment:fixed` on body, because that
+   property is unreliable on many mobile browsers (the image drifts/scrolls with the page). A
+   dedicated fixed layer behind everything stays perfectly still on all devices. */
+body.theme-custom{position:relative}
+body.theme-custom::before{
+  content:'';
+  position:fixed;
+  top:0;left:0;right:0;bottom:0;
   background-image:var(--custom-bg-image,none);
   background-size:cover;background-position:center;background-repeat:no-repeat;
-  background-attachment:fixed;
+  z-index:-1;
+  pointer-events:none;
 }
 /* Banner is just another box now — no separate banner image. It uses the same Box/Card color
    and the same glassy finish as every other box, so it always matches and never looks mismatched
@@ -112,10 +120,10 @@ body.theme-custom .gymbroTop,body.theme-custom .gymbroTopSolo{
   border:1px solid var(--border-col);
 }
 body.theme-custom .themeBtn.active{background:var(--accent-soft);color:var(--accent)}
-/* When a custom background image is active: keep the image clearly visible behind everything,
-   and turn boxes/cards/banner into a soft frosted-glass finish (dimmed + blurred, never opaque or
-   fully see-through) so they read comfortably on top of any photo. The dim/blur amount is the
-   single Box Opacity level the user picks — it applies uniformly to every box, including the banner. */
+/* When a custom background image is active: keep the image clearly visible behind everything.
+   Instead of a frosted-glass (blurred) finish, boxes/cards/banner simply go transparent so the
+   Background Image itself shows through them directly. The transparency amount is the single
+   Box Opacity level the user picks — it applies uniformly to every box, including the banner. */
 body.theme-custom.has-bg-image .card,
 body.theme-custom.has-bg-image .section,
 body.theme-custom.has-bg-image .glass,
@@ -130,7 +138,7 @@ body.theme-custom.has-bg-image .heroBanner,
 body.theme-custom.has-bg-image .gymbroTop,
 body.theme-custom.has-bg-image .gymbroTopSolo,
 body.theme-custom.has-bg-image .custom-theme-modal{
-  backdrop-filter:blur(14px) saturate(1.15)!important;-webkit-backdrop-filter:blur(14px) saturate(1.15)!important;
+  backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
   border:1px solid var(--border-col);
 }
 
@@ -196,6 +204,20 @@ body.theme-godmode .card .card-label,body.theme-godmode .xp-label{color:#e8b8b8}
 .ctm-row{display:flex;align-items:center;justify-content:space-between;gap:12px}
 .ctm-row label{font-size:13px;font-weight:600;color:var(--text-secondary);font-family:var(--font-alt)}
 .ctm-row input[type=color]{width:46px;height:34px;border:1px solid var(--border-col);border-radius:8px;background:none;cursor:pointer;padding:2px}
+/* Custom color picker — a full saturation/value box (drag to choose the color and its density)
+   plus a hue strip, built from scratch so it looks and behaves identically on every device
+   (uses Pointer Events, which unify mouse drag and touch drag into one code path). */
+.ctm-color-field{position:relative;display:flex;align-items:center;gap:6px}
+.ctm-color-swatch-btn{width:34px;height:34px;border:1px solid var(--border-col);border-radius:8px;cursor:pointer;padding:0;flex:0 0 auto}
+.ctm-color-hex{width:90px;height:34px;border:1px solid var(--border-col);border-radius:8px;background:var(--input-bg,#14161c);color:var(--text-primary,#fff);font-size:12px;font-family:var(--font-alt);padding:0 8px;text-transform:lowercase}
+.ctm-color-popover{position:absolute;top:calc(100% + 6px);right:0;z-index:50;width:208px;background:var(--bg-panel,#1a1d24);border:1px solid var(--border-col);border-radius:10px;padding:10px;box-shadow:0 8px 24px rgba(0,0,0,0.45);display:none}
+.ctm-color-popover.ctm-open{display:block}
+.ctm-sv-panel{position:relative;width:100%;height:140px;border-radius:8px;touch-action:none;cursor:crosshair;border:1px solid var(--border-col);
+  background-image:linear-gradient(to top,#000,rgba(0,0,0,0)),linear-gradient(to right,#fff,var(--ctm-hue-color,#ff0000));}
+.ctm-sv-cursor{position:absolute;width:14px;height:14px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,0.45),0 1px 4px rgba(0,0,0,0.5);transform:translate(-50%,-50%);pointer-events:none}
+.ctm-hue-slider{position:relative;width:100%;height:16px;margin-top:10px;border-radius:8px;touch-action:none;cursor:pointer;border:1px solid var(--border-col);
+  background-image:linear-gradient(to right,#f00 0%,#ff0 17%,#0f0 33%,#0ff 50%,#00f 67%,#f0f 83%,#f00 100%);}
+.ctm-hue-cursor{position:absolute;top:50%;width:18px;height:18px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,0.45),0 1px 4px rgba(0,0,0,0.5);transform:translate(-50%,-50%);pointer-events:none;background:transparent}
 .ctm-image-row{flex-direction:column;align-items:stretch;gap:8px}
 .ctm-image-row input[type=file]{font-size:12px;color:var(--text-secondary)}
 #ctmImagePreviewWrap{display:none;align-items:center;gap:10px;margin-top:4px;flex-wrap:wrap}
@@ -215,14 +237,14 @@ body.theme-godmode .card .card-label,body.theme-godmode .xp-label{color:#e8b8b8}
   background-color:var(--bg-base,#0d0f14);background-image:var(--custom-bg-image,none);
   background-size:cover;background-position:center;-webkit-overflow-scrolling:touch}
 .ctm-demo-banner{position:relative;padding:14px 12px;background:var(--bg-card,#1a1a1a);border:1px solid var(--border-col,rgba(255,255,255,0.15));overflow:hidden;transition:background 0.2s ease,backdrop-filter 0.2s ease}
-#ctmDemoScreen.has-bg-image .ctm-demo-banner{backdrop-filter:blur(8px) saturate(1.15)!important;-webkit-backdrop-filter:blur(8px) saturate(1.15)!important}
+#ctmDemoScreen.has-bg-image .ctm-demo-banner{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
 .ctm-demo-banner-inner{position:relative;display:flex;align-items:center;gap:8px}
 .ctm-demo-banner-inner span{font-size:13px;color:var(--header-text,#fff)}
 .ctm-demo-banner-inner h4{font-family:var(--font-display);font-size:13px;color:var(--header-text,#fff);letter-spacing:0.5px}
 .ctm-demo-banner-inner p{font-size:8px;color:var(--header-text,#fff);opacity:0.75;font-family:var(--font-alt)}
 .ctm-demo-body{padding:10px;display:flex;flex-direction:column;gap:8px}
 .ctm-demo-box{background:var(--bg-card,#1a1a1a);border:1px solid var(--border-col,rgba(255,255,255,0.15));border-radius:10px;padding:8px;color:var(--text-primary,#fff);transition:background 0.2s ease,backdrop-filter 0.2s ease}
-#ctmDemoScreen.has-bg-image .ctm-demo-box{backdrop-filter:blur(8px) saturate(1.15)!important;-webkit-backdrop-filter:blur(8px) saturate(1.15)!important}
+#ctmDemoScreen.has-bg-image .ctm-demo-box{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
 .ctm-demo-welcome h5{font-size:11px;font-family:var(--font-display);color:var(--text-primary,#fff);margin-bottom:2px}
 .ctm-demo-welcome p{font-size:8px;color:var(--text-secondary,#ccc);font-family:var(--font-body)}
 .ctm-demo-cards{display:grid;grid-template-columns:1fr 1fr;gap:6px}
@@ -2281,19 +2303,47 @@ body.theme-godmode .levelup-toast{background:linear-gradient(135deg,#7a0006,#c00
         </div>
         <div class="ctm-row">
           <label>Background Color</label>
-          <input type="color" id="ctmBg" value="#0d0f14" oninput="ctmUpdateLivePreview()">
+          <div class="ctm-color-field">
+            <button type="button" class="ctm-color-swatch-btn" id="ctmBgSwatch" style="background:#0d0f14" onclick="ctmTogglePalette('ctmBg')" aria-label="Choose background color"></button>
+            <input type="text" id="ctmBg" class="ctm-color-hex" value="#0d0f14" maxlength="7" autocomplete="off" oninput="ctmOnHexInput('ctmBg')">
+            <div class="ctm-color-popover" id="ctmBgPopover">
+              <div class="ctm-sv-panel" id="ctmBgSV" data-target="ctmBg" onpointerdown="ctmSVPointerDown(event)" onpointermove="ctmSVPointerMove(event)"><div class="ctm-sv-cursor" id="ctmBgSVCursor"></div></div>
+              <div class="ctm-hue-slider" id="ctmBgHue" data-target="ctmBg" onpointerdown="ctmHuePointerDown(event)" onpointermove="ctmHuePointerMove(event)"><div class="ctm-hue-cursor" id="ctmBgHueCursor"></div></div>
+            </div>
+          </div>
         </div>
         <div class="ctm-row">
           <label>Box / Card Color</label>
-          <input type="color" id="ctmBox" value="#14161c" oninput="ctmUpdateLivePreview()">
+          <div class="ctm-color-field">
+            <button type="button" class="ctm-color-swatch-btn" id="ctmBoxSwatch" style="background:#14161c" onclick="ctmTogglePalette('ctmBox')" aria-label="Choose box color"></button>
+            <input type="text" id="ctmBox" class="ctm-color-hex" value="#14161c" maxlength="7" autocomplete="off" oninput="ctmOnHexInput('ctmBox')">
+            <div class="ctm-color-popover" id="ctmBoxPopover">
+              <div class="ctm-sv-panel" id="ctmBoxSV" data-target="ctmBox" onpointerdown="ctmSVPointerDown(event)" onpointermove="ctmSVPointerMove(event)"><div class="ctm-sv-cursor" id="ctmBoxSVCursor"></div></div>
+              <div class="ctm-hue-slider" id="ctmBoxHue" data-target="ctmBox" onpointerdown="ctmHuePointerDown(event)" onpointermove="ctmHuePointerMove(event)"><div class="ctm-hue-cursor" id="ctmBoxHueCursor"></div></div>
+            </div>
+          </div>
         </div>
         <div class="ctm-row">
           <label>Heading / Accent Color</label>
-          <input type="color" id="ctmHeading" value="#4f8cff" oninput="ctmUpdateLivePreview()">
+          <div class="ctm-color-field">
+            <button type="button" class="ctm-color-swatch-btn" id="ctmHeadingSwatch" style="background:#4f8cff" onclick="ctmTogglePalette('ctmHeading')" aria-label="Choose heading color"></button>
+            <input type="text" id="ctmHeading" class="ctm-color-hex" value="#4f8cff" maxlength="7" autocomplete="off" oninput="ctmOnHexInput('ctmHeading')">
+            <div class="ctm-color-popover" id="ctmHeadingPopover">
+              <div class="ctm-sv-panel" id="ctmHeadingSV" data-target="ctmHeading" onpointerdown="ctmSVPointerDown(event)" onpointermove="ctmSVPointerMove(event)"><div class="ctm-sv-cursor" id="ctmHeadingSVCursor"></div></div>
+              <div class="ctm-hue-slider" id="ctmHeadingHue" data-target="ctmHeading" onpointerdown="ctmHuePointerDown(event)" onpointermove="ctmHuePointerMove(event)"><div class="ctm-hue-cursor" id="ctmHeadingHueCursor"></div></div>
+            </div>
+          </div>
         </div>
         <div class="ctm-row">
           <label>Font / Text Color</label>
-          <input type="color" id="ctmText" value="#e7e9ec" oninput="ctmUpdateLivePreview()">
+          <div class="ctm-color-field">
+            <button type="button" class="ctm-color-swatch-btn" id="ctmTextSwatch" style="background:#e7e9ec" onclick="ctmTogglePalette('ctmText')" aria-label="Choose text color"></button>
+            <input type="text" id="ctmText" class="ctm-color-hex" value="#e7e9ec" maxlength="7" autocomplete="off" oninput="ctmOnHexInput('ctmText')">
+            <div class="ctm-color-popover" id="ctmTextPopover">
+              <div class="ctm-sv-panel" id="ctmTextSV" data-target="ctmText" onpointerdown="ctmSVPointerDown(event)" onpointermove="ctmSVPointerMove(event)"><div class="ctm-sv-cursor" id="ctmTextSVCursor"></div></div>
+              <div class="ctm-hue-slider" id="ctmTextHue" data-target="ctmText" onpointerdown="ctmHuePointerDown(event)" onpointermove="ctmHuePointerMove(event)"><div class="ctm-hue-cursor" id="ctmTextHueCursor"></div></div>
+            </div>
+          </div>
         </div>
         <div class="ctm-row ctm-image-row">
           <label>Background Image — from your media files (optional). Also used for the Banner — the banner is a regular box, so it always matches your other boxes.</label>
@@ -2311,7 +2361,7 @@ body.theme-godmode .levelup-toast{background:linear-gradient(135deg,#7a0006,#c00
             <label>Box Opacity over Background Image</label>
             <span id="ctmBoxOpacityValue">60%</span>
           </div>
-          <input type="range" id="ctmBoxOpacity" min="20" max="95" value="60" oninput="ctmUpdateLivePreview()">
+          <input type="range" id="ctmBoxOpacity" min="0" max="95" value="60" oninput="ctmUpdateLivePreview()">
         </div>
       </div>
       <div class="ctm-footer">
@@ -2547,11 +2597,13 @@ function ctmContrastText(hex){
 function buildCustomThemeVars(data){
   const bg=data.bg||'#0d0f14',box=data.box||'#14161c',heading=data.heading||'#4f8cff',text=data.text||'#e7e9ec';
   const hasImg=!!data.bgImage;
-  // When a background image is active, boxes/cards/banner go semi-transparent + blurred (frosted
-  // glass) so the photo stays clearly visible behind them. The exact opacity is the single
-  // Box Opacity level the user picks (data.boxOpacity, 20–95) and applies uniformly everywhere.
-  const opacityPct=Math.max(20,Math.min(95,Number(data.boxOpacity)||60));
-  const cardAlpha=hasImg?opacityPct/100:0.95, panelAlpha=hasImg?Math.max(0.15,opacityPct/100-0.05):0.9;
+  // When a background image is active, boxes/cards/banner go transparent (no glass/blur finish —
+  // the image itself shows through) instead of opaque. The Box Opacity slider (data.boxOpacity,
+  // 20–95) is read as a TRANSPARENCY level: the higher the value, the more see-through the boxes
+  // become, so at high values the Background Image effectively takes over the boxes too.
+  const opacityPct=Math.max(0,Math.min(95,Number(data.boxOpacity)||60));
+  const transparency=opacityPct/100;
+  const cardAlpha=hasImg?Math.max(0.05,1-transparency):0.95, panelAlpha=hasImg?Math.max(0.05,cardAlpha-0.05):0.9;
   return {
     '--bg-base':bg,'--bg-card':ctmRgba(box,cardAlpha),'--bg-panel':ctmRgba(box,panelAlpha),
     '--border-col':ctmRgba(heading,0.3),'--text-primary':text,'--text-secondary':ctmRgba(text,0.72),
@@ -2561,7 +2613,7 @@ function buildCustomThemeVars(data){
     '--btn-shadow':`0 4px 18px ${ctmRgba(heading,0.35)}`,
     '--card-shadow':'0 8px 32px rgba(0,0,0,0.45)',
     /* Banner follows the Box/Card color — it's a regular box, same as every other box, so it
-       always uses the same color, opacity and frosted-glass behavior. No separate banner image. */
+       always uses the same color and transparency behavior. No separate banner image. */
     '--header-bg':`linear-gradient(135deg,${ctmShade(box,-0.3)} 0%,${box} 100%)`,'--header-text':heading,
     '--muscle-idle':ctmShade(box,-0.15),'--rank-badge-bg':`linear-gradient(135deg,${heading},${ctmShade(heading,-0.2)})`,
     '--xp-bar-fill':`linear-gradient(90deg,${heading},${ctmShade(heading,0.25)})`,
@@ -2597,12 +2649,138 @@ function selectCustomTheme(){
   if(!localStorage.getItem(CUSTOM_THEME_KEY)){openCustomThemeModal();return;}
   setTheme('custom');
 }
+// Cross-device color picker — a full saturation/value box (drag anywhere in it to pick the color
+// AND its density/brightness) plus a hue strip below it, instead of a fixed swatch grid or the
+// native <input type=color>. Built with Pointer Events, which give one identical code path for
+// mouse drag (desktop) and touch drag (mobile), so the structure and behavior are the same everywhere.
+const ctmColorState={}; // id -> {h:0-360, s:0-1, v:0-1}
+function ctmRgbToHsv(r,g,b){
+  r/=255;g/=255;b/=255;
+  const max=Math.max(r,g,b),min=Math.min(r,g,b),d=max-min;
+  let h=0;
+  if(d!==0){
+    if(max===r)h=((g-b)/d)%6;
+    else if(max===g)h=(b-r)/d+2;
+    else h=(r-g)/d+4;
+    h*=60;if(h<0)h+=360;
+  }
+  return {h,s:max===0?0:d/max,v:max};
+}
+function ctmHsvToRgb(h,s,v){
+  const c=v*s,x=c*(1-Math.abs((h/60)%2-1)),m=v-c;
+  let r=0,g=0,b=0;
+  if(h<60){r=c;g=x;}else if(h<120){r=x;g=c;}else if(h<180){g=c;b=x;}
+  else if(h<240){g=x;b=c;}else if(h<300){r=x;b=c;}else{r=c;b=x;}
+  return {r:Math.round((r+m)*255),g:Math.round((g+m)*255),b:Math.round((b+m)*255)};
+}
+function ctmHsvToHex(h,s,v){
+  const{r,g,b}=ctmHsvToRgb(h,s,v);
+  return '#'+[r,g,b].map(x=>Math.max(0,Math.min(255,x)).toString(16).padStart(2,'0')).join('');
+}
+function ctmHexToHsv(hex){const{r,g,b}=ctmHexToRgb(hex);return ctmRgbToHsv(r,g,b);}
+function ctmTogglePalette(id){
+  const pop=document.getElementById(id+'Popover');
+  if(!pop)return;
+  const isOpen=pop.classList.contains('ctm-open');
+  ['ctmBg','ctmBox','ctmHeading','ctmText'].forEach(other=>{
+    const p=document.getElementById(other+'Popover');
+    if(p)p.classList.remove('ctm-open');
+  });
+  if(!isOpen)pop.classList.add('ctm-open');
+}
+function ctmApplyColorSwatch(id,color){
+  const btn=document.getElementById(id+'Swatch');
+  if(btn&&/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(color))btn.style.background=color;
+}
+// Moves the round cursors to match the stored h/s/v state, and tints the SV box with the current hue.
+function ctmPositionCursors(id){
+  const st=ctmColorState[id];if(!st)return;
+  const svCursor=document.getElementById(id+'SVCursor');
+  if(svCursor){svCursor.style.left=(st.s*100)+'%';svCursor.style.top=((1-st.v)*100)+'%';}
+  const hueCursor=document.getElementById(id+'HueCursor');
+  if(hueCursor)hueCursor.style.left=((st.h/360)*100)+'%';
+  const svPanel=document.getElementById(id+'SV');
+  if(svPanel)svPanel.style.setProperty('--ctm-hue-color',ctmHsvToHex(st.h,1,1));
+}
+// Recomputes the hex from the current h/s/v state and pushes it everywhere (hex field, swatch
+// button, cursors, live preview).
+function ctmUpdateFromState(id){
+  const st=ctmColorState[id];if(!st)return;
+  const hex=ctmHsvToHex(st.h,st.s,st.v);
+  const input=document.getElementById(id);
+  if(input)input.value=hex;
+  ctmApplyColorSwatch(id,hex);
+  ctmPositionCursors(id);
+  ctmUpdateLivePreview();
+}
+// Sets the picker (state + UI) from a hex string — used on modal open and when the user types a hex.
+function ctmSetColorFromHex(id,hex){
+  ctmColorState[id]=ctmHexToHsv(hex);
+  const input=document.getElementById(id);
+  if(input)input.value=hex;
+  ctmApplyColorSwatch(id,hex);
+  ctmPositionCursors(id);
+}
+function ctmOnHexInput(id){
+  let v=document.getElementById(id).value.trim();
+  if(v&&!v.startsWith('#'))v='#'+v;
+  if(/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(v)){
+    ctmSetColorFromHex(id,v);
+    ctmUpdateLivePreview();
+  }
+}
+function ctmSVDrag(panel,e){
+  const rect=panel.getBoundingClientRect();
+  let x=(e.clientX-rect.left)/rect.width,y=(e.clientY-rect.top)/rect.height;
+  x=Math.max(0,Math.min(1,x));y=Math.max(0,Math.min(1,y));
+  const id=panel.dataset.target;
+  if(!ctmColorState[id])ctmColorState[id]={h:0,s:0,v:0};
+  ctmColorState[id].s=x;ctmColorState[id].v=1-y;
+  ctmUpdateFromState(id);
+}
+function ctmSVPointerDown(e){
+  e.preventDefault();
+  const panel=e.currentTarget;
+  panel.setPointerCapture(e.pointerId);
+  ctmSVDrag(panel,e);
+}
+function ctmSVPointerMove(e){
+  const panel=e.currentTarget;
+  if(panel.hasPointerCapture&&panel.hasPointerCapture(e.pointerId))ctmSVDrag(panel,e);
+}
+function ctmHueDrag(slider,e){
+  const rect=slider.getBoundingClientRect();
+  let x=(e.clientX-rect.left)/rect.width;
+  x=Math.max(0,Math.min(1,x));
+  const id=slider.dataset.target;
+  if(!ctmColorState[id])ctmColorState[id]={h:0,s:1,v:1};
+  ctmColorState[id].h=x*360;
+  ctmUpdateFromState(id);
+}
+function ctmHuePointerDown(e){
+  e.preventDefault();
+  const slider=e.currentTarget;
+  slider.setPointerCapture(e.pointerId);
+  ctmHueDrag(slider,e);
+}
+function ctmHuePointerMove(e){
+  const slider=e.currentTarget;
+  if(slider.hasPointerCapture&&slider.hasPointerCapture(e.pointerId))ctmHueDrag(slider,e);
+}
+document.addEventListener('click',function(e){
+  if(!e.target.closest('.ctm-color-field')){
+    ['ctmBg','ctmBox','ctmHeading','ctmText'].forEach(id=>{
+      const p=document.getElementById(id+'Popover');
+      if(p)p.classList.remove('ctm-open');
+    });
+  }
+});
 function openCustomThemeModal(){
   const data=loadCustomTheme();
-  document.getElementById('ctmBg').value=data.bg;
-  document.getElementById('ctmBox').value=data.box;
-  document.getElementById('ctmHeading').value=data.heading;
-  document.getElementById('ctmText').value=data.text;
+  ctmSetColorFromHex('ctmBg',data.bg);
+  ctmSetColorFromHex('ctmBox',data.box);
+  ctmSetColorFromHex('ctmHeading',data.heading);
+  ctmSetColorFromHex('ctmText',data.text);
   document.getElementById('ctmBoxOpacity').value=data.boxOpacity!=null?data.boxOpacity:60;
   window._ctmImageData=data.bgImage||null;
   ctmUpdateImagePreview();
