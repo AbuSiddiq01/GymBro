@@ -98,15 +98,32 @@ body.theme-custom {
   --custom-bg-image:none;
 }
 /* Optional user-uploaded Background image, applied like the Batman/God Mode backdrops.
-   IMPORTANT: no `position:fixed` element and no `background-attachment:fixed` are used here —
-   both are known to drift/jump on mobile browsers during scroll, address-bar show/hide, or pinch
-   zoom. Instead this relies on background canvas propagation: since <html> has no background of
-   its own, the <body> background (image included) is automatically painted on the document canvas
-   itself rather than on the body box — the canvas never scrolls or shifts under any circumstance
-   (scroll, zoom, mobile toolbar resize), so the image stays perfectly still on every device. */
+   The base color still uses canvas propagation (set on body, no background-image here) since a
+   flat color has no sizing to get wrong. The PHOTO itself is a separate fixed-position layer
+   pinned to the viewport (`inset:0` inside `position:fixed`), not painted on body/canvas — this
+   is deliberate: a canvas-propagated or body-painted background is sized against the page's full
+   content height, which changes every time content changes (opening an accordion, switching
+   pages, adding a card) — that resize is exactly what was causing the image to visibly "zoom" on
+   every click. A `position:fixed` layer's size only ever depends on the viewport, never on
+   document height, so it cannot resize from clicks or page switches. `transform:translateZ(0)`
+   forces it onto its own compositing layer so it also never drifts during a scroll on mobile.
+   Sizing uses `contain` (not `cover`): the photo was already cropped to its final framing in the
+   crop editor, so it must always be shown in full exactly as cropped — `cover` would re-crop and
+   rescale it differently depending on each page/device's viewport ratio. With `contain`, the whole
+   cropped photo is always shown at a consistent, un-cropped framing on every page and device. */
 body.theme-custom{
+  background-color:var(--bg-base);
+}
+body.theme-custom::before{
+  content:'';
+  position:fixed;
+  inset:0;
   background-image:var(--custom-bg-image,none);
-  background-size:cover;background-position:center;background-repeat:no-repeat;
+  background-size:contain;background-position:center;background-repeat:no-repeat;
+  z-index:-1;
+  pointer-events:none;
+  transform:translateZ(0);
+  -webkit-transform:translateZ(0);
 }
 /* Banner is just another box now — no separate banner image. It uses the same Box/Card color
    and the same glassy finish as every other box, so it always matches and never looks mismatched
