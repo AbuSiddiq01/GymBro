@@ -76,7 +76,44 @@ body.theme-godmode {
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
 body{background:var(--bg-base);min-height:100vh;color:var(--text-primary);font-family:var(--font-body);overflow-x:hidden;transition:background 0.5s ease,color 0.5s ease}
 body.theme-godmode{background-image:radial-gradient(ellipse at 20% 50%,rgba(140,0,0,0.07) 0%,transparent 60%),radial-gradient(ellipse at 80% 20%,rgba(100,0,0,0.06) 0%,transparent 60%)}
-body.theme-batman{background-image:radial-gradient(ellipse at 50% 100%,rgba(245,200,0,0.05) 0%,transparent 65%)}
+body.theme-batman{
+  background-image:
+    radial-gradient(ellipse at 50% 100%,rgba(245,200,0,0.05) 0%,transparent 65%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 300'%3E%3Cg fill='%23f5c800' opacity='0.05'%3E%3Cpath d='M300 150 C260 120 190 70 110 50 C65 38 18 46 0 80 C30 70 65 78 90 100 C120 78 150 88 180 118 C220 88 260 96 300 130 C340 96 380 88 420 118 C450 88 480 78 510 100 C535 78 570 70 600 80 C582 46 535 38 490 50 C410 70 340 120 300 150 Z'/%3E%3C/g%3E%3C/svg%3E");
+  background-repeat:no-repeat,repeat;
+  background-size:cover,420px 210px;
+  background-position:center,center;
+}
+/* ===== BAT-FINISH SHARP EDGES — banners, windows & boxes (Batman + God Mode) ===== */
+body.theme-batman .glass,body.theme-batman .card,body.theme-batman .section,
+body.theme-batman .xp-panel,body.theme-batman .auth-box,body.theme-batman .gymbroTopSolo,
+body.theme-batman .levelup-toast,body.theme-batman .session-resumed-banner,
+body.theme-godmode .glass,body.theme-godmode .card,body.theme-godmode .section,
+body.theme-godmode .xp-panel,body.theme-godmode .auth-box,body.theme-godmode .gymbroTopSolo,
+body.theme-godmode .levelup-toast,body.theme-godmode .session-resumed-banner{
+  clip-path:polygon(16px 0,100% 0,100% calc(100% - 16px),calc(100% - 16px) 100%,0 100%,0 16px)!important;
+  border-radius:4px!important;
+}
+body.theme-batman .glass::after,body.theme-batman .card::after,body.theme-batman .section::after,
+body.theme-batman .xp-panel::after,body.theme-batman .auth-box::after,body.theme-batman .gymbroTopSolo::after,
+body.theme-batman .levelup-toast::after,body.theme-batman .session-resumed-banner::after,
+body.theme-godmode .glass::after,body.theme-godmode .card::after,body.theme-godmode .section::after,
+body.theme-godmode .xp-panel::after,body.theme-godmode .auth-box::after,body.theme-godmode .gymbroTopSolo::after,
+body.theme-godmode .levelup-toast::after,body.theme-godmode .session-resumed-banner::after{
+  content:'';position:absolute;z-index:3;pointer-events:none;top:0;right:0;width:16px;height:16px;
+  background:linear-gradient(135deg,#ff2020 0%,#7a0006 100%);
+  clip-path:polygon(100% 0,0 0,100% 100%);
+}
+/* Bat watermark icon on the brand banner (Batman mode only) */
+body.theme-batman .gymbroBrandWrap h2::before{
+  content:'🦇';font-size:22px;line-height:1;filter:drop-shadow(0 0 6px rgba(245,200,0,0.7));
+}
+/* God Mode — white/red combo text finish on boxes & content */
+body.theme-godmode .card h3,body.theme-godmode .xp-value,body.theme-godmode .rank-badge{
+  color:#fff!important;text-shadow:0 0 8px rgba(192,0,10,0.9),0 0 2px #fff;
+}
+body.theme-godmode .section-title{color:#fff!important;text-shadow:0 0 6px rgba(192,0,10,0.85)}
+body.theme-godmode .card .card-label,body.theme-godmode .xp-label{color:#e8b8b8}
 .container{width:95%;max-width:1400px;margin:0 auto;padding:15px}
 
 /* ===================== BAT TRANSITION OVERLAY ===================== */
@@ -554,11 +591,11 @@ body.theme-batman .menuClose{color:#05050a}
 .heroBanner p{opacity:.8;font-size:13px;font-family:var(--font-alt)}
 
 /* ===================== SOCIAL ===================== */
-.profile-header{background:var(--bg-card);border:1px solid var(--border-col);border-radius:20px;padding:24px;box-shadow:var(--card-shadow)}
+.profile-header{background:var(--bg-card);border:1px solid var(--border-col);border-radius:20px;padding:24px;box-shadow:var(--card-shadow);overflow:visible}
 .profile-avatar-row{display:flex;align-items:flex-start;gap:20px}
-.avatar-ring{width:90px;height:90px;border-radius:50%;background:var(--btn-bg);padding:3px;box-shadow:0 0 0 2px var(--accent),0 6px 20px var(--accent-glow);flex-shrink:0;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:transform 0.2s,box-shadow 0.2s;position:relative}
+.avatar-ring{width:110px;height:110px;border-radius:50%;background:var(--btn-bg);padding:3px;box-shadow:0 0 0 2px var(--accent),0 6px 20px var(--accent-glow);flex-shrink:0;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:transform 0.2s,box-shadow 0.2s;position:relative}
 .avatar-ring:hover{transform:scale(1.04);box-shadow:0 0 0 3px var(--accent),0 8px 28px var(--accent-glow)}
-.avatar-inner{width:100%;height:100%;border-radius:50%;background:var(--accent-soft);display:flex;align-items:center;justify-content:center;font-size:30px;overflow:hidden}
+.avatar-inner{width:100%;height:100%;border-radius:50%;background:var(--accent-soft);display:flex;align-items:center;justify-content:center;font-size:38px;overflow:hidden}
 .avatar-inner img{width:100%;height:100%;object-fit:cover;border-radius:50%}
 .avatar-edit-overlay{position:absolute;bottom:0;right:0;width:26px;height:26px;background:var(--accent);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;border:2px solid var(--bg-card);cursor:pointer;transition:background 0.2s}
 .avatar-edit-overlay:hover{background:var(--accent2)}
@@ -624,9 +661,19 @@ body.theme-godmode .crop-zoom-track input[type=range]{accent-color:#ef4444}
 .social-counter .sc-label{font-size:11px;color:var(--text-muted);font-family:var(--font-alt);text-transform:uppercase;letter-spacing:0.5px}
 .search-gymbros{margin-top:18px;position:relative}
 .search-gymbros input{margin-top:0}
-.search-results-drop{position:absolute;left:0;right:0;top:100%;background:var(--bg-card);border:1px solid var(--border-col);border-radius:12px;max-height:200px;overflow-y:auto;z-index:50;box-shadow:0 10px 30px rgba(0,0,0,0.1);display:none;margin-top:4px}
-.search-result-item{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-bottom:1px solid var(--border-col);cursor:pointer;font-size:13px;color:var(--text-primary)}
+.search-results-drop{position:fixed;left:50%;transform:translateX(-50%);width:min(520px,94vw);background:var(--bg-card);border:1px solid var(--border-col);border-radius:16px;max-height:420px;overflow-y:auto;z-index:999800;box-shadow:0 16px 40px rgba(0,0,0,0.28);display:none}
+.search-result-item{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid var(--border-col);font-size:13px;color:var(--text-primary);gap:10px;min-height:68px}
+.search-result-item:last-child{border-bottom:none}
 .search-result-item:hover{background:var(--accent-soft)}
+.search-result-info{display:flex;align-items:center;gap:10px;flex:1;min-width:0;cursor:pointer}
+.search-result-ava{width:46px;height:46px;border-radius:50%;background:var(--accent-soft);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;overflow:hidden;border:2px solid var(--border-col)}
+.search-result-ava img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+.search-result-meta{display:flex;flex-direction:column;min-width:0;gap:3px}
+.search-result-name{font-weight:700;font-size:15px;color:var(--text-primary);font-family:var(--font-alt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.search-result-lid{font-size:12px;color:var(--text-muted)}
+.search-result-actions{display:flex;gap:6px;flex-shrink:0}
+.sr-view-btn{padding:7px 13px;border-radius:10px;font-size:12px;font-weight:700;font-family:var(--font-alt);cursor:pointer;background:var(--accent-soft);color:var(--accent);border:1.5px solid var(--accent);white-space:nowrap;letter-spacing:0.3px}
+.sr-view-btn:hover{background:var(--accent);color:#fff}
 .suggested-section{margin-top:18px}
 .suggested-title{font-size:13px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.8px;font-family:var(--font-alt);margin-bottom:12px}
 .suggested-row{display:flex;gap:12px;overflow-x:auto;padding-bottom:6px}
@@ -638,6 +685,74 @@ body.theme-godmode .crop-zoom-track input[type=range]{accent-color:#ef4444}
 body.theme-batman .follow-btn{color:#05050a}
 .follow-btn:hover{opacity:0.85;transform:scale(1.05)}
 .follow-btn.following{background:var(--accent-soft);color:var(--accent);border:1px solid var(--accent)}
+.follow-btn.requested{background:var(--accent-soft);color:var(--text-muted);border:1px solid var(--border-col)}
+/* Edit Profile Panel */
+.edit-profile-btn{display:inline-flex;align-items:center;gap:6px;margin-top:10px;padding:7px 16px;background:var(--bg-panel);border:1px solid var(--border-col);border-radius:10px;font-size:12px;font-weight:700;font-family:var(--font-alt);color:var(--text-primary);cursor:pointer;letter-spacing:0.3px;transition:background 0.2s}
+.edit-profile-btn:hover{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+.edit-profile-sheet{position:fixed;inset:0;z-index:999990;display:flex;align-items:flex-end;justify-content:center;background:rgba(0,0,0,0.6);backdrop-filter:blur(6px);animation:fadeIn 0.18s ease}
+.edit-profile-box{background:var(--bg-card);border:1px solid var(--border-col);border-radius:24px 24px 0 0;padding:24px 20px 36px;width:100%;max-width:480px;box-shadow:0 -20px 60px rgba(0,0,0,0.4)}
+.edit-profile-title{font-family:var(--font-alt);font-size:16px;font-weight:800;color:var(--text-primary);letter-spacing:0.5px;margin-bottom:18px;display:flex;align-items:center;justify-content:space-between}
+.edit-profile-close{background:none;border:none;font-size:20px;color:var(--text-muted);cursor:pointer;padding:0 4px}
+.edit-profile-row{display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid var(--border-col);cursor:pointer;transition:background 0.15s;border-radius:10px;padding-left:4px}
+.edit-profile-row:last-child{border-bottom:none}
+.edit-profile-row:hover{background:var(--accent-soft)}
+.edit-profile-row-icon{width:40px;height:40px;border-radius:12px;background:var(--accent-soft);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.edit-profile-row-text{flex:1}
+.edit-profile-row-label{font-size:14px;font-weight:700;color:var(--text-primary);font-family:var(--font-alt)}
+.edit-profile-row-sub{font-size:12px;color:var(--text-muted);margin-top:2px}
+.edit-profile-row-arrow{font-size:16px;color:var(--text-muted)}
+.privacy-toggle-row{display:flex;align-items:center;gap:14px;padding:14px 0;padding-left:4px}
+.privacy-toggle-switch{position:relative;width:46px;height:26px;flex-shrink:0}
+.privacy-toggle-switch input{opacity:0;width:0;height:0}
+.privacy-toggle-slider{position:absolute;inset:0;background:var(--bg-panel);border:1px solid var(--border-col);border-radius:26px;cursor:pointer;transition:background 0.2s}
+.privacy-toggle-slider:before{content:'';position:absolute;width:18px;height:18px;left:3px;top:3px;background:#fff;border-radius:50%;transition:transform 0.2s;box-shadow:0 1px 4px rgba(0,0,0,0.3)}
+input:checked+.privacy-toggle-slider{background:var(--accent);border-color:var(--accent)}
+input:checked+.privacy-toggle-slider:before{transform:translateX(20px)}
+/* Follow Request Notification */
+.follow-req-popup{position:fixed;top:0;left:0;right:0;z-index:999995;display:flex;flex-direction:column;gap:10px;padding:16px;pointer-events:none}
+.follow-req-toast{background:var(--bg-card);border:1px solid var(--border-col);border-radius:16px;padding:14px 16px;box-shadow:0 10px 40px rgba(0,0,0,0.35);display:flex;align-items:center;gap:12px;pointer-events:all;animation:slideUp 0.3s ease;max-width:400px;margin:0 auto;width:100%}
+.follow-req-toast-ava{width:42px;height:42px;border-radius:50%;background:var(--accent-soft);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;overflow:hidden;border:2px solid var(--accent)}
+.follow-req-toast-ava img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+.follow-req-toast-text{flex:1;min-width:0}
+.follow-req-toast-msg{font-size:13px;font-weight:700;color:var(--text-primary);font-family:var(--font-alt)}
+.follow-req-toast-sub{font-size:11px;color:var(--text-muted);margin-top:2px}
+.follow-req-toast-actions{display:flex;gap:6px;flex-shrink:0}
+.freq-accept-btn{padding:6px 12px;border-radius:8px;font-size:11px;font-weight:700;font-family:var(--font-alt);cursor:pointer;background:var(--btn-bg);color:var(--follow-btn-text);border:none}
+body.theme-batman .freq-accept-btn{color:#05050a}
+.freq-decline-btn{padding:6px 12px;border-radius:8px;font-size:11px;font-weight:700;font-family:var(--font-alt);cursor:pointer;background:var(--accent-soft);color:var(--text-muted);border:1px solid var(--border-col)}
+/* Follow Request section on profile page */
+.freq-section{background:var(--bg-panel);border:1px solid var(--border-col);border-radius:16px;padding:14px;margin-top:14px}
+.freq-section-title{font-size:12px;font-weight:800;color:var(--text-muted);font-family:var(--font-alt);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:10px}
+.freq-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border-col)}
+.freq-item:last-child{border-bottom:none}
+.freq-item-ava{width:36px;height:36px;border-radius:50%;background:var(--accent-soft);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;overflow:hidden}
+.freq-item-ava img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+.freq-item-info{flex:1;min-width:0}
+.freq-item-name{font-size:13px;font-weight:700;color:var(--text-primary);font-family:var(--font-alt)}
+.freq-item-sub{font-size:11px;color:var(--text-muted)}
+.freq-item-actions{display:flex;gap:6px;flex-shrink:0}
+/* User profile view page (fullscreen overlay) */
+.user-profile-page{position:fixed;inset:0;z-index:99990;background:var(--bg-main);overflow-y:auto;animation:slideUp 0.25s ease}
+.user-profile-topbar{display:flex;align-items:center;gap:12px;padding:16px 18px;border-bottom:1px solid var(--border-col);background:var(--bg-card);position:sticky;top:0;z-index:2}
+.user-profile-back{background:none;border:none;font-size:22px;color:var(--text-primary);cursor:pointer;padding:0 4px;line-height:1}
+.user-profile-topbar-name{font-family:var(--font-alt);font-size:16px;font-weight:800;color:var(--text-primary);letter-spacing:0.5px}
+.user-profile-content{padding:20px 16px 40px}
+.user-profile-ava-wrap{position:relative;width:90px;height:90px;margin:0 auto 16px}
+.user-profile-ava{width:90px;height:90px;border-radius:50%;background:var(--accent-soft);display:flex;align-items:center;justify-content:center;font-size:36px;overflow:hidden;border:3px solid var(--accent);box-shadow:0 0 0 2px var(--bg-card),0 6px 20px var(--accent-glow);cursor:pointer}
+.user-profile-ava img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+.user-profile-name{font-family:var(--font-display);font-size:22px;color:var(--text-primary);text-align:center;letter-spacing:1px}
+.user-profile-lid{font-size:12px;color:var(--text-muted);text-align:center;margin-top:2px;font-family:var(--font-alt)}
+.user-profile-bio{font-size:13px;color:var(--text-secondary);text-align:center;margin-top:10px;line-height:1.55;padding:0 16px}
+.user-profile-counters{display:flex;justify-content:center;gap:28px;margin-top:16px}
+.user-profile-counter{text-align:center}
+.upc-num{font-family:var(--font-display);font-size:22px;color:var(--text-primary);line-height:1}
+.upc-label{font-size:11px;color:var(--text-muted);font-family:var(--font-alt);margin-top:2px}
+.user-profile-follow-btn{display:block;width:calc(100% - 40px);margin:18px auto 0;padding:12px;border-radius:13px;font-size:14px;font-weight:800;font-family:var(--font-alt);letter-spacing:0.5px;cursor:pointer;border:none;background:var(--btn-bg);color:var(--follow-btn-text);box-shadow:var(--btn-shadow);transition:opacity 0.2s}
+body.theme-batman .user-profile-follow-btn{color:#05050a}
+.user-profile-follow-btn.following{background:var(--accent-soft);color:var(--accent);border:1px solid var(--accent);box-shadow:none}
+.user-profile-follow-btn.requested{background:var(--accent-soft);color:var(--text-muted);border:1px solid var(--border-col);box-shadow:none}
+.user-profile-private-notice{text-align:center;margin-top:24px;padding:20px;color:var(--text-muted);font-size:13px;font-family:var(--font-alt)}
+.user-profile-private-notice .lock-icon{font-size:36px;display:block;margin-bottom:8px}
 .feed-grid-title{font-size:13px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.8px;font-family:var(--font-alt);margin:20px 0 12px}
 .feed-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:4px}
 .feed-item{aspect-ratio:1;background:var(--accent-soft);border-radius:8px;border:1px solid var(--border-col);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px;cursor:pointer;position:relative;overflow:hidden;transition:transform 0.2s}
@@ -1791,57 +1906,44 @@ body.theme-godmode .levelup-toast{background:linear-gradient(135deg,#7a0006,#c00
     <div id="socialPage" class="memberTab" style="display:none">
       <div class="profile-header glass">
         <div class="profile-avatar-row">
-          <!-- Avatar with upload & lightbox -->
+          <!-- Avatar -->
           <div style="position:relative;flex-shrink:0">
             <div class="avatar-ring" id="avatarRingBtn" onclick="openAvatarLightbox()" title="View profile picture">
               <div class="avatar-inner" id="profileAvatar">🏋</div>
               <div id="avatarUploadSpinner" style="display:none" class="avatar-upload-spinner">⬆️</div>
             </div>
-            <div class="avatar-edit-overlay" onclick="event.stopPropagation();openAvatarLightbox()" title="Change photo">✏️</div>
             <input type="file" id="avatarFileInput" accept="image/*" style="display:none" onchange="handleAvatarUpload(event)">
           </div>
 
           <div class="profile-info">
             <div class="profile-name" id="profileDisplayName">GymBro</div>
             <div class="gym-title" id="profileGymTitle">🏆 Elite Lifter · GymBro Premium</div>
-
-            <!-- Bio display -->
             <div class="profile-bio" id="profileBio">No days off. Every rep counts. 💪</div>
-            <div class="bio-edit-trigger" id="bioEditTrigger" onclick="openBioEdit()">✏️ Edit Bio</div>
-
-            <!-- Bio edit box (hidden by default) -->
-            <div class="bio-edit-wrap" id="bioEditWrap" style="display:none">
-              <textarea class="bio-edit-area" id="bioEditArea" maxlength="150" placeholder="Add a bio..." oninput="updateBioCharCount()"></textarea>
-              <div class="bio-char-count" id="bioCharCount">0 / 150</div>
-              <div class="bio-edit-actions">
-                <button class="bio-save-btn" onclick="saveBio()">Save</button>
-                <button class="bio-cancel-btn" onclick="closeBioEdit()">Cancel</button>
-              </div>
-            </div>
 
             <div class="social-counters">
               <div class="social-counter"><div class="sc-num" id="postCount">0</div><div class="sc-label">Posts</div></div>
               <div class="social-counter"><div class="sc-num" id="followerCount">0</div><div class="sc-label">Followers</div></div>
               <div class="social-counter"><div class="sc-num" id="followingCount">0</div><div class="sc-label">Following</div></div>
             </div>
+
+            <!-- Edit Profile button -->
+            <button class="edit-profile-btn" onclick="openEditProfileSheet()">⚙️ Edit Profile</button>
           </div>
         </div>
-        <div class="search-gymbros">
-          <input type="text" id="gymBroSearchInput" placeholder="🔍 Search GymBros by name or login ID..." oninput="searchGymBros()" style="margin-top:16px">
+
+        <!-- Follow Requests section (only visible if private + has requests) -->
+        <div id="followRequestsSection" style="display:none">
+          <div class="freq-section">
+            <div class="freq-section-title">📬 Follow Requests</div>
+            <div id="followRequestsList"></div>
+          </div>
+        </div>
+
+        <!-- Search -->
+        <div class="search-gymbros" style="margin-top:16px">
+          <input type="text" id="gymBroSearchInput" placeholder="🔍 Search GymBros by name or @login_id..." oninput="searchGymBros()">
           <div class="search-results-drop" id="gymBroSearchResults"></div>
         </div>
-        <div class="suggested-section">
-          <div class="suggested-title">Suggested GymBros</div>
-          <div class="suggested-row" id="suggestedRow">
-            <div class="suggested-card"><div class="suggested-avatar">🦁</div><div class="suggested-name">IronKing</div><button class="follow-btn" onclick="toggleFollow(this,'IronKing')">Follow</button></div>
-            <div class="suggested-card"><div class="suggested-avatar">⚡</div><div class="suggested-name">ZeusGains</div><button class="follow-btn" onclick="toggleFollow(this,'ZeusGains')">Follow</button></div>
-            <div class="suggested-card"><div class="suggested-avatar">🔥</div><div class="suggested-name">EmberLifts</div><button class="follow-btn" onclick="toggleFollow(this,'EmberLifts')">Follow</button></div>
-            <div class="suggested-card"><div class="suggested-avatar">🥷</div><div class="suggested-name">ShadowPR</div><button class="follow-btn" onclick="toggleFollow(this,'ShadowPR')">Follow</button></div>
-            <div class="suggested-card"><div class="suggested-avatar">🏆</div><div class="suggested-name">ChampLifts</div><button class="follow-btn" onclick="toggleFollow(this,'ChampLifts')">Follow</button></div>
-          </div>
-        </div>
-        <div class="feed-grid-title">📸 WORKOUT FEED</div>
-        <div class="feed-grid" id="feedGrid"></div>
       </div>
     </div>
 
@@ -2527,6 +2629,8 @@ async function mountMemberDashboard(data){
   await switchMemberTab('dashPage');
   await resumeActiveSession(data.id);
   await renderTodayWorkoutBanner();
+  // Check for pending follow requests (for private accounts) — show pop-up notification
+  setTimeout(checkIncomingFollowRequests,2000);
 }
 
 /* ===================== AUTO-RESTORE SESSION ON PAGE LOAD ===================== */
@@ -6559,8 +6663,9 @@ function escapeHtml(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").repla
 /* ===================== SOCIAL ===================== */
 function loadSocialPage(){
   document.getElementById("profileDisplayName").textContent=localStorage.getItem("user_name")||"GymBro";
-  loadFollowerCounts(localStorage.getItem("user_id"));
-  populateFeedGrid();
+  const uid=localStorage.getItem("user_id");
+  loadFollowerCounts(uid);
+  loadFollowRequests();
   loadUserProfile();
 }
 
@@ -6568,7 +6673,7 @@ async function loadUserProfile(){
   const uid=localStorage.getItem("user_id");
   if(!uid)return;
   try{
-    const{data,error}=await db.from("users").select("avatar_url,bio").eq("id",uid).single();
+    const{data,error}=await db.from("users").select("avatar_url,bio,is_private").eq("id",uid).single();
     if(error||!data)return;
     if(data.avatar_url){
       renderAvatarImage(data.avatar_url);
@@ -6577,6 +6682,7 @@ async function loadUserProfile(){
     const bio=data.bio||"";
     document.getElementById("profileBio").textContent=bio||"No days off. Every rep counts. 💪";
     localStorage.setItem("gymbro_bio",bio);
+    localStorage.setItem("gymbro_is_private",String(!!data.is_private));
   }catch(e){console.error("loadUserProfile:",e)}
 }
 
@@ -6652,16 +6758,42 @@ function openCropModal(){
     canvas.width=vw*_c.dpr; canvas.height=vh*_c.dpr;
     canvas.style.width=vw+"px"; canvas.style.height=vh+"px";
 
-    /* Draw the circle mask SVG */
-    const cx=vw/2,cy=vh/2,r=Math.min(vw,vh)*0.46;
-    document.getElementById("cropMaskSvg").innerHTML=`
-      <defs><mask id="cm"><rect width="${vw}" height="${vh}" fill="white"/>
-      <circle cx="${cx}" cy="${cy}" r="${r}" fill="black"/></mask></defs>
-      <rect width="${vw}" height="${vh}" fill="rgba(0,0,0,0.5)" mask="url(#cm)"/>
-      <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="rgba(255,255,255,0.55)" stroke-width="1.5"/>`;
+    /* Crop square: centered, 88% of the smaller dimension */
+    const side=Math.min(vw,vh)*0.88;
+    const cx=vw/2, cy=vh/2;
+    const l=cx-side/2, t=cy-side/2, r=cx+side/2, b=cy+side/2;
+    // Store crop rect in _c for confirmCrop
+    _c.cropRect={l,t,r,b,side};
 
-    /* Initial zoom: image covers the circle (like Instagram) */
-    const coverScale=Math.max((r*2)/_c.img.width,(r*2)/_c.img.height);
+    /* Draw the rectangular crop mask SVG with corner guides (Instagram style) */
+    const sw=2; // guide line stroke width
+    const gs=22; // guide corner size
+    document.getElementById("cropMaskSvg").innerHTML=`
+      <defs>
+        <mask id="cm">
+          <rect width="${vw}" height="${vh}" fill="white"/>
+          <rect x="${l}" y="${t}" width="${side}" height="${side}" fill="black"/>
+        </mask>
+      </defs>
+      <rect width="${vw}" height="${vh}" fill="rgba(0,0,0,0.55)" mask="url(#cm)"/>
+      <!-- Crop border -->
+      <rect x="${l}" y="${t}" width="${side}" height="${side}" fill="none" stroke="rgba(255,255,255,0.85)" stroke-width="1"/>
+      <!-- Rule-of-thirds grid lines -->
+      <line x1="${l+side/3}" y1="${t}" x2="${l+side/3}" y2="${b}" stroke="rgba(255,255,255,0.2)" stroke-width="0.5"/>
+      <line x1="${l+2*side/3}" y1="${t}" x2="${l+2*side/3}" y2="${b}" stroke="rgba(255,255,255,0.2)" stroke-width="0.5"/>
+      <line x1="${l}" y1="${t+side/3}" x2="${r}" y2="${t+side/3}" stroke="rgba(255,255,255,0.2)" stroke-width="0.5"/>
+      <line x1="${l}" y1="${t+2*side/3}" x2="${r}" y2="${t+2*side/3}" stroke="rgba(255,255,255,0.2)" stroke-width="0.5"/>
+      <!-- Corner guides — top-left -->
+      <polyline points="${l},${t+gs} ${l},${t} ${l+gs},${t}" fill="none" stroke="#fff" stroke-width="${sw}" stroke-linecap="round"/>
+      <!-- top-right -->
+      <polyline points="${r-gs},${t} ${r},${t} ${r},${t+gs}" fill="none" stroke="#fff" stroke-width="${sw}" stroke-linecap="round"/>
+      <!-- bottom-left -->
+      <polyline points="${l},${b-gs} ${l},${b} ${l+gs},${b}" fill="none" stroke="#fff" stroke-width="${sw}" stroke-linecap="round"/>
+      <!-- bottom-right -->
+      <polyline points="${r-gs},${b} ${r},${b} ${r},${b-gs}" fill="none" stroke="#fff" stroke-width="${sw}" stroke-linecap="round"/>`;
+
+    /* Initial zoom: image covers the crop square (like Instagram) */
+    const coverScale=Math.max(side/_c.img.width,side/_c.img.height);
     _c.minZoom=coverScale;
     _c.maxZoom=coverScale*5;
     _c.zoom=coverScale;
@@ -6701,17 +6833,15 @@ function _zoomAround(px,py,newZoom){
 }
 
 function _clampCrop(){
-  /* Image must always cover the circle: use circle bbox for clamping */
-  const r=Math.min(_c.vw,_c.vh)*0.46;
-  const cx=_c.vw/2, cy=_c.vh/2;
-  const circL=cx-r,circT=cy-r,circR=cx+r,circB=cy+r;
+  /* Image must always cover the crop square */
+  const cr=_c.cropRect||{l:_c.vw*0.06,t:_c.vh*0.06,r:_c.vw*0.94,b:_c.vh*0.94,side:Math.min(_c.vw,_c.vh)*0.88};
   const iw=_c.img.width*_c.zoom, ih=_c.img.height*_c.zoom;
-  /* Right edge of image must be ≥ right edge of circle */
-  _c.ox=Math.min(_c.ox,circL);
-  /* Left edge of image must be ≤ left edge of circle */
-  _c.ox=Math.max(_c.ox,circR-iw);
-  _c.oy=Math.min(_c.oy,circT);
-  _c.oy=Math.max(_c.oy,circB-ih);
+  /* Right edge of image must be >= right edge of crop box */
+  _c.ox=Math.min(_c.ox,cr.l);
+  /* Left edge of image must be <= left edge of crop box */
+  _c.ox=Math.max(_c.ox,cr.r-iw);
+  _c.oy=Math.min(_c.oy,cr.t);
+  _c.oy=Math.max(_c.oy,cr.b-ih);
 }
 
 function _drawCrop(){
@@ -6796,14 +6926,13 @@ function _attachCropEvents(canvas,vp){
 }
 
 async function confirmCrop(){
-  /* Export the circular crop region at 800×800 for excellent quality */
+  /* Export the square crop region at 800×800 for excellent quality */
   const OUT=800;
-  const r=Math.min(_c.vw,_c.vh)*0.46;
-  const cx=_c.vw/2, cy=_c.vh/2;
-  /* Top-left of circle in image coords */
-  const srcX=(cx-r-_c.ox)/_c.zoom;
-  const srcY=(cy-r-_c.oy)/_c.zoom;
-  const srcSize=(r*2)/_c.zoom;
+  const cr=_c.cropRect||{l:_c.vw*0.06,t:_c.vh*0.06,side:Math.min(_c.vw,_c.vh)*0.88};
+  /* Top-left of crop box in image coords */
+  const srcX=(cr.l-_c.ox)/_c.zoom;
+  const srcY=(cr.t-_c.oy)/_c.zoom;
+  const srcSize=cr.side/_c.zoom;
 
   const offscreen=document.createElement("canvas");
   offscreen.width=OUT;offscreen.height=OUT;
@@ -6831,7 +6960,7 @@ async function uploadAvatarBlob(blob){
     /* Always delete first — Supabase storage upsert can silently fail on policy mismatch */
     await db.storage.from("avatars").remove([fileName]);
     /* Small wait so storage registers the delete before re-upload */
-    await new Promise(r=>setTimeout(r,400));
+    await new Promise(r=>setTimeout(r,500));
 
     let finalBlob=blob;
     if(blob.size>250*1024){
@@ -6842,10 +6971,13 @@ async function uploadAvatarBlob(blob){
 
     const{data:urlData}=db.storage.from("avatars").getPublicUrl(fileName);
     const publicUrl=urlData.publicUrl;
+    // Add a cache-bust param so storage always serves fresh image
+    const bustUrl=publicUrl+"?t="+Date.now();
     const{error:dbErr}=await db.from("users").update({avatar_url:publicUrl}).eq("id",uid);
     if(dbErr){spinner.style.display="none";showToast("❌ Could not save avatar.");return}
 
-    renderAvatarImage(publicUrl);
+    renderAvatarImage(bustUrl);
+    localStorage.setItem("gymbro_avatar_url",publicUrl);
     spinner.style.display="none";
     showToast("✅ Profile picture updated!");
   }catch(e){
@@ -6863,8 +6995,13 @@ async function confirmDeleteAvatar(){
   const spinner=document.getElementById("avatarUploadSpinner");
   spinner.style.display="flex";
   try{
-    /* Remove all possible extensions */
-    await db.storage.from("avatars").remove([uid+".jpg",uid+".jpeg",uid+".png",uid+".webp"]);
+    /* Remove all possible extensions to ensure storage is clean */
+    await Promise.all([
+      db.storage.from("avatars").remove([uid+".jpg"]),
+      db.storage.from("avatars").remove([uid+".jpeg"]),
+      db.storage.from("avatars").remove([uid+".png"]),
+      db.storage.from("avatars").remove([uid+".webp"])
+    ]);
     const{error}=await db.from("users").update({avatar_url:null}).eq("id",uid);
     if(error){spinner.style.display="none";showToast("❌ Could not remove avatar.");return}
     clearAvatarImage();
@@ -6896,7 +7033,6 @@ function openAvatarLightbox(){
   lb.appendChild(closeBtn);
 
   if(hasImg){
-    /* Use the stored base URL + fresh bust so lightbox always shows the LATEST photo */
     const base=localStorage.getItem("gymbro_avatar_url")||"";
     const content=document.createElement("img");
     content.className="avatar-lightbox-img";
@@ -6910,24 +7046,6 @@ function openAvatarLightbox(){
     lb.appendChild(content);
   }
 
-  const actions=document.createElement("div");
-  actions.className="avatar-lightbox-actions";
-
-  const changeBtn=document.createElement("button");
-  changeBtn.className="avatar-lb-action-btn avatar-lb-change-btn";
-  changeBtn.textContent="📷 Change Photo";
-  changeBtn.onclick=()=>{closeLightbox(lb);setTimeout(()=>document.getElementById("avatarFileInput").click(),200)};
-  actions.appendChild(changeBtn);
-
-  if(hasImg){
-    const delBtn=document.createElement("button");
-    delBtn.className="avatar-lb-action-btn avatar-lb-delete-btn";
-    delBtn.textContent="🗑️ Remove Photo";
-    delBtn.onclick=()=>{closeLightbox(lb);setTimeout(confirmDeleteAvatar,200)};
-    actions.appendChild(delBtn);
-  }
-
-  lb.appendChild(actions);
   document.body.appendChild(lb);
 }
 function closeLightbox(lb){lb.style.opacity="0";lb.style.transition="opacity 0.18s";setTimeout(()=>lb.remove(),200)}
@@ -6935,32 +7053,47 @@ function closeLightbox(lb){lb.style.opacity="0";lb.style.transition="opacity 0.1
 /* ---- BIO FUNCTIONS ---- */
 const BIO_MAX=150;
 function openBioEdit(){
+  if(document.getElementById("bioEditSheet"))return;
   const current=document.getElementById("profileBio").textContent;
   const isDefault=(current==="No days off. Every rep counts. 💪");
-  const area=document.getElementById("bioEditArea");
-  area.value=isDefault?"":current;
-  updateBioCharCount();
-  document.getElementById("bioEditWrap").style.display="block";
-  document.getElementById("bioEditTrigger").style.display="none";
-  document.getElementById("profileBio").style.display="none";
-  area.focus();
+  const sheet=document.createElement("div");
+  sheet.id="bioEditSheet";
+  sheet.className="edit-profile-sheet";
+  sheet.onclick=e=>{if(e.target===sheet)closeBioEdit()};
+  sheet.innerHTML=`
+    <div class="edit-profile-box">
+      <div class="edit-profile-title">Edit Bio <button class="edit-profile-close" onclick="closeBioEdit()">✕</button></div>
+      <div class="bio-edit-wrap" style="display:block;margin-top:0">
+        <textarea class="bio-edit-area" id="bioEditArea" maxlength="150" placeholder="Write something about yourself..." oninput="updateBioCharCount()">${isDefault?"":current}</textarea>
+        <div class="bio-char-count" id="bioCharCount">0 / 150</div>
+        <div class="bio-edit-actions" style="margin-top:10px">
+          <button class="bio-save-btn" onclick="saveBio()">Save</button>
+          <button class="bio-cancel-btn" onclick="closeBioEdit()">Cancel</button>
+        </div>
+      </div>
+    </div>`;
+  document.body.appendChild(sheet);
+  setTimeout(()=>{
+    const area=document.getElementById("bioEditArea");
+    if(area){area.focus();updateBioCharCount()}
+  },50);
 }
 function closeBioEdit(){
-  document.getElementById("bioEditWrap").style.display="none";
-  document.getElementById("bioEditTrigger").style.display="inline-flex";
-  document.getElementById("profileBio").style.display="block";
+  const el=document.getElementById("bioEditSheet");
+  if(el){el.style.opacity="0";el.style.transition="opacity 0.18s";setTimeout(()=>el.remove(),200)}
 }
 function updateBioCharCount(){
   const area=document.getElementById("bioEditArea");
+  if(!area)return;
   const count=area.value.length;
   const el=document.getElementById("bioCharCount");
-  el.textContent=count+" / "+BIO_MAX;
-  el.classList.toggle("over",count>BIO_MAX);
+  if(el){el.textContent=count+" / "+BIO_MAX;el.classList.toggle("over",count>BIO_MAX)}
 }
 async function saveBio(){
   const uid=localStorage.getItem("user_id");
   if(!uid){showToast("⚠️ Not logged in.");return}
   const area=document.getElementById("bioEditArea");
+  if(!area)return;
   const bio=area.value.trim().slice(0,BIO_MAX);
   const{error}=await db.from("users").update({bio}).eq("id",uid);
   if(error){showToast("❌ Could not save bio.");return}
@@ -6971,29 +7104,534 @@ async function saveBio(){
 }
 async function loadFollowerCounts(uid){
   if(!uid)return;
-  try{const{data:fd}=await db.from("followers").select("*").eq("following_id",uid);const{data:ing}=await db.from("followers").select("*").eq("follower_id",uid);document.getElementById("followerCount").textContent=fd?fd.length:0;document.getElementById("followingCount").textContent=ing?ing.length:0}
-  catch(e){document.getElementById("followerCount").textContent=0;document.getElementById("followingCount").textContent=0}
+  try{
+    const{data:fd}=await db.from("followers").select("id",{count:"exact"}).eq("following_id",uid).eq("status","accepted");
+    const{data:ing}=await db.from("followers").select("id",{count:"exact"}).eq("follower_id",uid).eq("status","accepted");
+    document.getElementById("followerCount").textContent=fd?fd.length:0;
+    document.getElementById("followingCount").textContent=ing?ing.length:0;
+  }catch(e){
+    // fallback — table may not have status column yet
+    try{
+      const{data:fd}=await db.from("followers").select("id").eq("following_id",uid);
+      const{data:ing}=await db.from("followers").select("id").eq("follower_id",uid);
+      document.getElementById("followerCount").textContent=fd?fd.length:0;
+      document.getElementById("followingCount").textContent=ing?ing.length:0;
+    }catch(e2){}
+  }
 }
+
+/* ===================== SEARCH ===================== */
 async function searchGymBros(){
-  let q=document.getElementById("gymBroSearchInput").value.trim(),rd=document.getElementById("gymBroSearchResults");rd.innerHTML="";rd.style.display="none";if(q.length<2)return;
-  const{data,error}=await db.from("users").select("id,name,login_id").ilike("name",`%${q}%`).limit(8);
-  if(error||!data||data.length===0){rd.innerHTML=`<div style="padding:12px;color:var(--text-muted);font-size:13px;font-family:var(--font-alt)">No GymBros found.</div>`;rd.style.display="block";return}
-  let myId=localStorage.getItem("user_id");
-  data.forEach(u=>{if(u.id===myId)return;let item=document.createElement("div");item.className="search-result-item";item.innerHTML=`<span>🏋 <strong>${u.name}</strong> <span style="color:var(--text-muted);font-size:11px">@${u.login_id}</span></span><button class="follow-btn" onclick="followUser('${u.id}',this)">Follow</button>`;rd.appendChild(item)});
+  const q=document.getElementById("gymBroSearchInput").value.trim();
+  const rd=document.getElementById("gymBroSearchResults");
+  // Fix: move the fixed-position results dropdown to <body>. Left in place, it sits
+  // inside a box that uses clip-path (Batman/God mode "sharp edge" boxes), and a
+  // clip-path on an ancestor makes that ancestor the containing block for any
+  // position:fixed child — silently trapping/hiding this dropdown in those two
+  // themes only. Reparenting to body removes that containing block with zero
+  // visual/CSS change, restoring identical behavior to Light mode.
+  if(rd && rd.parentElement !== document.body){document.body.appendChild(rd);}
+  rd.innerHTML="";rd.style.display="none";
+  if(q.length<2)return;
+  // Position fixed dropdown under the input
+  const inp2=document.getElementById("gymBroSearchInput");
+  if(inp2){const r2=inp2.getBoundingClientRect();rd.style.top=(r2.bottom+6)+"px";}
+  const myId=localStorage.getItem("user_id");
+
+  // Search by name OR login_id — for login_id do exact match to avoid showing multiple
+  const[byName,byLoginExact,byLoginPartial]=await Promise.all([
+    db.from("users").select("id,name,login_id,avatar_url,is_private").ilike("name",`%${q}%`).limit(6),
+    db.from("users").select("id,name,login_id,avatar_url,is_private").eq("login_id",q).limit(3),
+    db.from("users").select("id,name,login_id,avatar_url,is_private").ilike("login_id",`%${q}%`).limit(6)
+  ]);
+  // Merge: exact login_id match takes priority, then name matches, then partial login_id matches
+  const seen=new Set();
+  const combined=[];
+  // Exact login_id match first
+  (byLoginExact.data||[]).forEach(u=>{if(!seen.has(u.id)){seen.add(u.id);combined.push(u)}});
+  // Name matches
+  (byName.data||[]).forEach(u=>{if(!seen.has(u.id)){seen.add(u.id);combined.push(u)}});
+  // Partial login_id matches
+  (byLoginPartial.data||[]).forEach(u=>{if(!seen.has(u.id)){seen.add(u.id);combined.push(u)}});
+  const results=combined.filter(u=>u.id!==myId);
+
+  if(!results.length){
+    rd.innerHTML=`<div style="padding:12px;color:var(--text-muted);font-size:13px;font-family:var(--font-alt)">No GymBros found.</div>`;
+    rd.style.display="block";return;
+  }
+
+  results.forEach(u=>{
+    const avaHtml=u.avatar_url
+      ?`<img src="${u.avatar_url}?t=${Date.now()}" onerror="this.parentElement.textContent='🏋'">`
+      :`🏋`;
+
+    const item=document.createElement("div");
+    item.className="search-result-item";
+    item.innerHTML=`
+      <div class="search-result-info" onclick="openUserProfile('${u.id}')">
+        <div class="search-result-ava">${avaHtml}</div>
+        <div class="search-result-meta">
+          <div class="search-result-name">${u.name||"GymBro"}</div>
+          <div class="search-result-lid">@${u.login_id||"—"} ${u.is_private?'🔒':''}</div>
+        </div>
+      </div>
+      <div class="search-result-actions">
+        <button class="sr-view-btn" onclick="openUserProfile('${u.id}')">View</button>
+      </div>`;
+    rd.appendChild(item);
+  });
   rd.style.display="block";
 }
-async function followUser(tid,btn){
-  let myId=localStorage.getItem("user_id");if(!myId){alert("Login required.");return}
-  let isF=btn.classList.contains("following");
-  if(isF){await db.from("followers").delete().eq("follower_id",myId).eq("following_id",tid);btn.textContent="Follow";btn.classList.remove("following")}
-  else{await db.from("followers").insert([{follower_id:myId,following_id:tid}]);btn.textContent="Following ✓";btn.classList.add("following")}
+
+// Close search dropdown when clicking outside
+document.addEventListener("click",e=>{
+  const inp=document.getElementById("gymBroSearchInput");
+  const rd=document.getElementById("gymBroSearchResults");
+  if(inp&&rd&&!inp.contains(e.target)&&!rd.contains(e.target)){rd.style.display="none"}
+});
+
+/* ===================== FOLLOW LOGIC ===================== */
+async function sendFollowUser(tid,btn,isPrivate){
+  const myId=localStorage.getItem("user_id");if(!myId)return;
+  btn.disabled=true;
+  const newStatus=isPrivate?"pending":"accepted";
+  // Check if row already exists to avoid 409
+  const{data:existing}=await db.from("followers").select("id,status").eq("follower_id",myId).eq("following_id",tid);
+  let error;
+  if(existing&&existing.length>0){
+    // Row exists — update status
+    ({error}=await db.from("followers").update({status:newStatus}).eq("follower_id",myId).eq("following_id",tid));
+  }else{
+    // No row — insert
+    ({error}=await db.from("followers").insert([{follower_id:myId,following_id:tid,status:newStatus}]));
+  }
+  if(!error){
+    if(isPrivate){btn.textContent="Requested";btn.className="follow-btn requested";btn.onclick=()=>cancelFollowRequest(tid,btn);}
+    else{btn.textContent="Following ✓";btn.className="follow-btn following";btn.onclick=()=>unfollowUser(tid,btn);}
+  }else{showToast("❌ Follow failed: "+error.message);}
+  btn.disabled=false;
   loadFollowerCounts(myId);
 }
-function toggleFollow(btn,name){let f=btn.classList.contains("following");if(f){btn.textContent="Follow";btn.classList.remove("following")}else{btn.textContent="Following ✓";btn.classList.add("following")}}
-function populateFeedGrid(){
-  const items=[{emoji:"💪",label:"Bench Press\n120kg PR",tag:"Chest",likes:42},{emoji:"📅",label:"7-Day Streak!\nMorning Grind",tag:"Check-In",likes:28},{emoji:"🏆",label:"Deadlift\n180kg Beast",tag:"Lats",likes:67},{emoji:"⚡",label:"Leg Day\nSquats: 5×5",tag:"Legs",likes:19},{emoji:"🔥",label:"100 Push-Ups\nChallenge Done",tag:"Chest",likes:55},{emoji:"⏱",label:"2Hr Session\nFull Body",tag:"Cardio",likes:31},{emoji:"🥗",label:"Post-Workout\nMeal Prepped",tag:"Rest",likes:14},{emoji:"💥",label:"Shoulder Day\nNew PR!",tag:"Shoulders",likes:38},{emoji:"🎯",label:"Monthly Goal\nAchieved 💯",tag:"Stats",likes:73}];
-  document.getElementById("feedGrid").innerHTML=items.map(i=>`<div class="feed-item"><span class="feed-tag">${i.tag}</span><div class="feed-item-emoji">${i.emoji}</div><div class="feed-item-label">${i.label.replace('\n','<br>')}</div><div class="feed-item-likes">❤ ${i.likes}</div></div>`).join('');
+
+async function unfollowUser(tid,btn){
+  const myId=localStorage.getItem("user_id");if(!myId)return;
+  btn.disabled=true;
+  await db.from("followers").delete().eq("follower_id",myId).eq("following_id",tid);
+  btn.textContent="Follow";btn.className="follow-btn";
+  btn.onclick=async()=>{
+    // Re-check if private
+    const{data}=await db.from("users").select("is_private").eq("id",tid).single();
+    sendFollowUser(tid,btn,data&&data.is_private);
+  };
+  btn.disabled=false;
+  loadFollowerCounts(myId);
 }
+
+async function cancelFollowRequest(tid,btn){
+  const myId=localStorage.getItem("user_id");if(!myId)return;
+  btn.disabled=true;
+  await db.from("followers").delete().eq("follower_id",myId).eq("following_id",tid).eq("status","pending");
+  btn.textContent="Follow";btn.className="follow-btn";
+  btn.onclick=async()=>{
+    const{data}=await db.from("users").select("is_private").eq("id",tid).single();
+    sendFollowUser(tid,btn,data&&data.is_private);
+  };
+  btn.disabled=false;
+}
+
+/* Keeping old followUser for backward compat */
+async function followUser(tid,btn){
+  const{data}=await db.from("users").select("is_private").eq("id",tid).single();
+  sendFollowUser(tid,btn,data&&data.is_private);
+}
+
+/* ===================== FOLLOW REQUESTS (incoming) ===================== */
+async function loadFollowRequests(){
+  const uid=localStorage.getItem("user_id");if(!uid)return;
+  const{data:me}=await db.from("users").select("is_private").eq("id",uid).single();
+  if(!me||!me.is_private){document.getElementById("followRequestsSection").style.display="none";return}
+
+  const{data:reqs}=await db.from("followers").select("follower_id,created_at").eq("following_id",uid).eq("status","pending");
+  if(!reqs||!reqs.length){document.getElementById("followRequestsSection").style.display="none";return}
+
+  // Fetch requester profiles
+  const ids=reqs.map(r=>r.follower_id);
+  const{data:users}=await db.from("users").select("id,name,login_id,avatar_url").in("id",ids);
+  const userMap={};(users||[]).forEach(u=>{userMap[u.id]=u});
+
+  const list=document.getElementById("followRequestsList");
+  list.innerHTML="";
+  reqs.forEach(req=>{
+    const u=userMap[req.follower_id]||{};
+    const avaHtml=u.avatar_url?`<img src="${u.avatar_url}" onerror="this.parentElement.textContent='🏋'">`:`🏋`;
+    const item=document.createElement("div");
+    item.className="freq-item";
+    item.id=`freq-${req.follower_id}`;
+    item.innerHTML=`
+      <div class="freq-item-ava">${avaHtml}</div>
+      <div class="freq-item-info">
+        <div class="freq-item-name">${u.name||"GymBro"}</div>
+        <div class="freq-item-sub">@${u.login_id||"—"} wants to follow you</div>
+      </div>
+      <div class="freq-item-actions">
+        <button class="freq-accept-btn" onclick="acceptFollowRequest('${req.follower_id}','${uid}')">✓ Accept</button>
+        <button class="freq-decline-btn" onclick="declineFollowRequest('${req.follower_id}','${uid}')">✕</button>
+      </div>`;
+    list.appendChild(item);
+  });
+  document.getElementById("followRequestsSection").style.display="block";
+}
+
+async function acceptFollowRequest(followerId,myId){
+  await db.from("followers").update({status:"accepted"}).eq("follower_id",followerId).eq("following_id",myId).eq("status","pending");
+  document.getElementById(`freq-${followerId}`)?.remove();
+  const list=document.getElementById("followRequestsList");
+  if(!list.children.length)document.getElementById("followRequestsSection").style.display="none";
+  loadFollowerCounts(myId);
+  showToast("✅ Follow request accepted!");
+}
+
+async function declineFollowRequest(followerId,myId){
+  await db.from("followers").delete().eq("follower_id",followerId).eq("following_id",myId).eq("status","pending");
+  document.getElementById(`freq-${followerId}`)?.remove();
+  const list=document.getElementById("followRequestsList");
+  if(!list.children.length)document.getElementById("followRequestsSection").style.display="none";
+  showToast("🗑️ Request declined.");
+}
+
+/* Pop-up notification on app load */
+async function checkIncomingFollowRequests(){
+  const uid=localStorage.getItem("user_id");if(!uid)return;
+  const{data:me}=await db.from("users").select("is_private").eq("id",uid).single();
+  if(!me||!me.is_private)return;
+  const{data:reqs}=await db.from("followers").select("follower_id").eq("following_id",uid).eq("status","pending");
+  if(!reqs||!reqs.length)return;
+  const ids=reqs.map(r=>r.follower_id);
+  const{data:users}=await db.from("users").select("id,name,login_id,avatar_url").in("id",ids);
+  if(!users||!users.length)return;
+
+  // Show toasts one by one with delay
+  let container=document.getElementById("followReqPopupContainer");
+  if(!container){container=document.createElement("div");container.id="followReqPopupContainer";container.className="follow-req-popup";document.body.appendChild(container)}
+
+  users.slice(0,3).forEach((u,i)=>{
+    setTimeout(()=>{
+      const toast=document.createElement("div");
+      toast.className="follow-req-toast";
+      const avaHtml=u.avatar_url?`<img src="${u.avatar_url}" onerror="this.parentElement.textContent='🏋'">`:`🏋`;
+      const myId=localStorage.getItem("user_id");
+      toast.innerHTML=`
+        <div class="follow-req-toast-ava">${avaHtml}</div>
+        <div class="follow-req-toast-text">
+          <div class="follow-req-toast-msg">${u.name||"Someone"} wants to follow you</div>
+          <div class="follow-req-toast-sub">@${u.login_id||"—"} · Tap to manage</div>
+        </div>
+        <div class="follow-req-toast-actions">
+          <button class="freq-accept-btn" onclick="acceptFollowRequest('${u.id}','${myId}');this.closest('.follow-req-toast').remove()">✓</button>
+          <button class="freq-decline-btn" onclick="declineFollowRequest('${u.id}','${myId}');this.closest('.follow-req-toast').remove()">✕</button>
+        </div>`;
+      container.appendChild(toast);
+      setTimeout(()=>{toast.style.opacity="0";toast.style.transition="opacity 0.4s";setTimeout(()=>toast.remove(),400)},8000);
+    },i*600);
+  });
+}
+
+/* ===================== EDIT PROFILE SHEET ===================== */
+function openEditProfileSheet(){
+  if(document.getElementById("editProfileSheet"))return;
+  const sheet=document.createElement("div");
+  sheet.id="editProfileSheet";
+  sheet.className="edit-profile-sheet";
+  sheet.onclick=e=>{if(e.target===sheet)closeEditProfileSheet()};
+
+  const isPrivate=localStorage.getItem("gymbro_is_private")==="true";
+  const inner=document.getElementById("profileAvatar");
+  const hasImg=inner&&!!inner.querySelector("img");
+
+  sheet.innerHTML=`
+    <div class="edit-profile-box">
+      <div class="edit-profile-title">
+        Edit Profile
+        <button class="edit-profile-close" onclick="closeEditProfileSheet()">✕</button>
+      </div>
+
+      <div class="edit-profile-row" onclick="closeEditProfileSheet();openPhotoPicker()">
+        <div class="edit-profile-row-icon">📷</div>
+        <div class="edit-profile-row-text">
+          <div class="edit-profile-row-label">Profile Picture</div>
+          <div class="edit-profile-row-sub">${hasImg?"Change, crop or remove your photo":"Add a profile photo"}</div>
+        </div>
+        <div class="edit-profile-row-arrow">›</div>
+      </div>
+
+      <div class="edit-profile-row" onclick="closeEditProfileSheet();openBioEdit()">
+        <div class="edit-profile-row-icon">✏️</div>
+        <div class="edit-profile-row-text">
+          <div class="edit-profile-row-label">Edit Bio</div>
+          <div class="edit-profile-row-sub" id="editSheetBioPreview">${(localStorage.getItem("gymbro_bio")||"").slice(0,40)||"Add a bio..."}</div>
+        </div>
+        <div class="edit-profile-row-arrow">›</div>
+      </div>
+
+      <div class="privacy-toggle-row">
+        <div class="edit-profile-row-icon">🔒</div>
+        <div class="edit-profile-row-text">
+          <div class="edit-profile-row-label">Private Account</div>
+          <div class="edit-profile-row-sub">Only approved followers can see your profile</div>
+        </div>
+        <label class="privacy-toggle-switch">
+          <input type="checkbox" id="privacyToggle" ${isPrivate?"checked":""} onchange="savePrivacySetting(this.checked)">
+          <span class="privacy-toggle-slider"></span>
+        </label>
+      </div>
+    </div>`;
+  document.body.appendChild(sheet);
+}
+
+/* Opens the photo management bottom sheet */
+function openPhotoPicker(){
+  if(document.getElementById("photoPickerSheet"))return;
+  const inner=document.getElementById("profileAvatar");
+  const hasImg=inner&&!!inner.querySelector("img");
+
+  const sheet=document.createElement("div");
+  sheet.id="photoPickerSheet";
+  sheet.className="edit-profile-sheet";
+  sheet.onclick=e=>{if(e.target===sheet)closePhotoPicker()};
+
+  sheet.innerHTML=`
+    <div class="edit-profile-box">
+      <div class="edit-profile-title">
+        Profile Picture
+        <button class="edit-profile-close" onclick="closePhotoPicker()">✕</button>
+      </div>
+
+      ${hasImg?`
+      <div class="edit-profile-row" onclick="closePhotoPicker();setTimeout(()=>openAvatarLightbox(),200)">
+        <div class="edit-profile-row-icon">🔍</div>
+        <div class="edit-profile-row-text">
+          <div class="edit-profile-row-label">View Current Photo</div>
+          <div class="edit-profile-row-sub">Full screen preview</div>
+        </div>
+        <div class="edit-profile-row-arrow">›</div>
+      </div>`:""}
+
+      <div class="edit-profile-row" onclick="closePhotoPicker();setTimeout(()=>document.getElementById('avatarFileInput').click(),200)">
+        <div class="edit-profile-row-icon">📷</div>
+        <div class="edit-profile-row-text">
+          <div class="edit-profile-row-label">${hasImg?"Change Photo":"Add Photo"}</div>
+          <div class="edit-profile-row-sub">Choose from your gallery — crop & scale like Instagram</div>
+        </div>
+        <div class="edit-profile-row-arrow">›</div>
+      </div>
+
+      ${hasImg?`
+      <div class="edit-profile-row" onclick="closePhotoPicker();setTimeout(confirmDeleteAvatar,200)" style="color:#e11d48">
+        <div class="edit-profile-row-icon" style="background:rgba(225,29,72,0.12)">🗑️</div>
+        <div class="edit-profile-row-text">
+          <div class="edit-profile-row-label" style="color:#e11d48">Remove Photo</div>
+          <div class="edit-profile-row-sub">Delete your profile picture</div>
+        </div>
+        <div class="edit-profile-row-arrow">›</div>
+      </div>`:""}
+    </div>`;
+  document.body.appendChild(sheet);
+}
+
+function closePhotoPicker(){
+  const el=document.getElementById("photoPickerSheet");
+  if(el){el.style.opacity="0";el.style.transition="opacity 0.18s";setTimeout(()=>el.remove(),200)}
+}
+
+function closeEditProfileSheet(){
+  const el=document.getElementById("editProfileSheet");
+  if(el){el.style.opacity="0";el.style.transition="opacity 0.18s";setTimeout(()=>el.remove(),200)}
+}
+
+async function savePrivacySetting(isPrivate){
+  const uid=localStorage.getItem("user_id");if(!uid)return;
+  const{error}=await db.from("users").update({is_private:isPrivate}).eq("id",uid);
+  if(error){showToast("❌ Could not update privacy setting.");return}
+  localStorage.setItem("gymbro_is_private",String(isPrivate));
+  showToast(isPrivate?"🔒 Account set to Private":"🌐 Account set to Public");
+  // Reload follow requests section
+  loadFollowRequests();
+}
+
+/* ===================== USER PROFILE VIEW PAGE ===================== */
+async function openUserProfile(uid){
+  // Close search dropdown
+  const srEl=document.getElementById("gymBroSearchResults");
+  const siEl=document.getElementById("gymBroSearchInput");
+  if(srEl)srEl.style.display="none";
+  if(siEl)siEl.value="";
+
+  // Remove any existing profile page first
+  const existing=document.getElementById("userProfilePage");
+  if(existing)existing.remove();
+
+  const myId=localStorage.getItem("user_id");
+
+  // Fetch target user
+  const{data:u,error}=await db.from("users").select("id,name,login_id,avatar_url,bio,is_private").eq("id",uid).single();
+  if(error||!u){showToast("❌ Could not load profile.");return}
+
+  // Fetch follower counts + my relationship (use maybeSingle to avoid 406 when no row)
+  const[{data:followers},{data:following},{data:myRelArr}]=await Promise.all([
+    db.from("followers").select("id").eq("following_id",uid).eq("status","accepted"),
+    db.from("followers").select("id").eq("follower_id",uid).eq("status","accepted"),
+    db.from("followers").select("status").eq("follower_id",myId).eq("following_id",uid)
+  ]);
+
+  const myRel=(myRelArr&&myRelArr.length>0)?myRelArr[0]:null;
+  const followStatus=myRel?myRel.status:null; // null | 'pending' | 'accepted'
+  const isMe=uid===myId;
+  const isFollowing=followStatus==="accepted";
+  const canSeeContent=!u.is_private||isFollowing||isMe;
+
+  // Fetch XP data for the user
+  let userXp=0,userRank="Beginner",userRankEmoji="🥋",userLevel=1;
+  try{
+    const{data:xpData}=await db.from("attendance").select("xp").eq("user_id",uid);
+    if(xpData&&xpData.length){userXp=xpData.reduce((s,r)=>s+(r.xp||0),0)}
+    // Compute rank/level using same thresholds as main app
+    const RANKS=[
+      {name:"Beginner",emoji:"🥋",min:0},
+      {name:"Intermediate",emoji:"🏋",min:501},
+      {name:"Advanced",emoji:"💪",min:1501},
+      {name:"Elite",emoji:"🔥",min:3001},
+      {name:"Legend",emoji:"👑",min:6001}
+    ];
+    for(let i=RANKS.length-1;i>=0;i--){if(userXp>=RANKS[i].min){userRank=RANKS[i].name;userRankEmoji=RANKS[i].emoji;userLevel=i+1;break}}
+  }catch(e){}
+
+  // Build full-screen page that covers everything
+  const page=document.createElement("div");
+  page.id="userProfilePage";
+  page.className="user-profile-page";
+  // Ensure it sits on top of everything including the dashboard
+  page.style.cssText="position:fixed;inset:0;z-index:999900;background:var(--bg-base);overflow-y:auto;animation:slideUp 0.22s ease";
+
+  const avaHtml=u.avatar_url
+    ?`<img src="${u.avatar_url}?t=${Date.now()}" alt="Avatar" onerror="this.parentElement.textContent='🏋'">`
+    :`🏋`;
+
+  let contentHtml="";
+  if(!canSeeContent){
+    contentHtml=`<div class="user-profile-private-notice"><span class="lock-icon">🔒</span>This account is private.<br>Follow to see their profile.</div>`;
+  }
+
+  // XP & Level boxes (always visible)
+  const xpBoxesHtml=`
+    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:16px 0 4px">
+      <div style="background:var(--accent-soft);border:1px solid var(--border-col);border-radius:14px;padding:14px;text-align:center">
+        <div style="font-size:10px;font-weight:700;color:var(--text-muted);font-family:var(--font-alt);letter-spacing:0.8px;text-transform:uppercase;margin-bottom:4px">Level</div>
+        <div style="font-family:var(--font-display);font-size:28px;color:var(--accent);letter-spacing:1px">${userLevel}</div>
+        <div style="font-size:10px;color:var(--text-muted);font-family:var(--font-alt);margin-top:2px">${userRankEmoji}</div>
+      </div>
+      <div style="background:var(--accent-soft);border:1px solid var(--border-col);border-radius:14px;padding:14px;text-align:center">
+        <div style="font-size:10px;font-weight:700;color:var(--text-muted);font-family:var(--font-alt);letter-spacing:0.8px;text-transform:uppercase;margin-bottom:4px">Total XP</div>
+        <div style="font-family:var(--font-display);font-size:28px;color:var(--accent);letter-spacing:1px">${userXp}</div>
+        <div style="font-size:10px;color:var(--text-muted);font-family:var(--font-alt);margin-top:2px">XP Earned</div>
+      </div>
+      <div style="background:var(--accent-soft);border:1px solid var(--border-col);border-radius:14px;padding:14px;text-align:center">
+        <div style="font-size:10px;font-weight:700;color:var(--text-muted);font-family:var(--font-alt);letter-spacing:0.8px;text-transform:uppercase;margin-bottom:4px">Rank</div>
+        <div style="font-family:var(--font-display);font-size:20px;color:var(--accent);letter-spacing:1px;line-height:1.2">${userRank}</div>
+        <div style="font-size:10px;color:var(--text-muted);font-family:var(--font-alt);margin-top:4px">Current Rank</div>
+      </div>
+      <div style="background:var(--accent-soft);border:1px solid var(--border-col);border-radius:14px;padding:14px;text-align:center">
+        <div style="font-size:10px;font-weight:700;color:var(--text-muted);font-family:var(--font-alt);letter-spacing:0.8px;text-transform:uppercase;margin-bottom:4px">Followers</div>
+        <div style="font-family:var(--font-display);font-size:28px;color:var(--accent);letter-spacing:1px">${followers?followers.length:0}</div>
+        <div style="font-size:10px;color:var(--text-muted);font-family:var(--font-alt);margin-top:2px">GymBros</div>
+      </div>
+    </div>`;
+
+  page.innerHTML=`
+    <div class="user-profile-topbar">
+      <button class="user-profile-back" onclick="closeUserProfile()">‹ Back</button>
+      <span class="user-profile-topbar-name">@${u.login_id||u.name}</span>
+    </div>
+    <div class="user-profile-content">
+      <div class="user-profile-ava-wrap">
+        <div class="user-profile-ava" onclick="upViewAvatarLightbox('${u.avatar_url||""}')">${avaHtml}</div>
+      </div>
+      <div class="user-profile-name">${u.name||"GymBro"}</div>
+      <div class="user-profile-lid">@${u.login_id||"—"} ${u.is_private?'· 🔒 Private':''}</div>
+      ${u.bio&&canSeeContent?`<div class="user-profile-bio">${u.bio}</div>`:""}
+      ${xpBoxesHtml}
+      ${contentHtml}
+    </div>`;
+  document.body.appendChild(page);
+}
+
+function closeUserProfile(){
+  const el=document.getElementById("userProfilePage");
+  if(el){el.style.opacity="0";el.style.transform="translateY(20px)";el.style.transition="opacity 0.22s ease,transform 0.22s ease";setTimeout(()=>el.remove(),230)}
+}
+
+async function upToggleFollow(tid,isPrivate){
+  const myId=localStorage.getItem("user_id");if(!myId)return;
+  const btn=document.getElementById("upFollowBtn");
+  if(!btn)return;
+  btn.disabled=true;
+  const fcEl=document.getElementById("up-fc");
+
+  if(isPrivate==="cancel"){
+    // Cancel pending request
+    await db.from("followers").delete().eq("follower_id",myId).eq("following_id",tid).eq("status","pending");
+    btn.textContent=`Follow 🔒`;btn.className="user-profile-follow-btn";
+    btn.onclick=()=>upToggleFollow(tid,true);
+  }else if(btn.classList.contains("following")){
+    // Unfollow
+    await db.from("followers").delete().eq("follower_id",myId).eq("following_id",tid);
+    btn.textContent="Follow";btn.className="user-profile-follow-btn";
+    btn.onclick=async()=>{const{data}=await db.from("users").select("is_private").eq("id",tid).single();upToggleFollow(tid,data&&data.is_private)};
+    // Decrement shown count
+    if(fcEl){const n=parseInt(fcEl.textContent)||0;fcEl.textContent=Math.max(0,n-1);}
+  }else{
+    if(isPrivate){
+      // Check-then-insert to avoid 409
+      const{data:ex2}=await db.from("followers").select("id").eq("follower_id",myId).eq("following_id",tid);
+      if(ex2&&ex2.length>0){
+        await db.from("followers").update({status:"pending"}).eq("follower_id",myId).eq("following_id",tid);
+      }else{
+        await db.from("followers").insert([{follower_id:myId,following_id:tid,status:"pending"}]);
+      }
+      btn.textContent="Requested";btn.className="user-profile-follow-btn requested";
+      btn.onclick=()=>upToggleFollow(tid,"cancel");
+    }else{
+      // Check-then-insert to avoid 409
+      const{data:ex3}=await db.from("followers").select("id").eq("follower_id",myId).eq("following_id",tid);
+      if(ex3&&ex3.length>0){
+        await db.from("followers").update({status:"accepted"}).eq("follower_id",myId).eq("following_id",tid);
+      }else{
+        await db.from("followers").insert([{follower_id:myId,following_id:tid,status:"accepted"}]);
+      }
+      btn.textContent="Following ✓";btn.className="user-profile-follow-btn following";
+      btn.onclick=()=>upToggleFollow(tid,false);
+      // Increment shown count
+      if(fcEl){const n=parseInt(fcEl.textContent)||0;fcEl.textContent=n+1;}
+    }
+  }
+  btn.disabled=false;
+  loadFollowerCounts(myId);
+}
+
+function upViewAvatarLightbox(url){
+  if(!url)return;
+  const lb=document.createElement("div");
+  lb.style.cssText="position:fixed;inset:0;background:rgba(0,0,0,0.9);z-index:9999999;display:flex;align-items:center;justify-content:center;animation:fadeIn 0.2s ease;backdrop-filter:blur(10px)";
+  lb.onclick=()=>lb.remove();
+  const img=document.createElement("img");
+  img.src=url+"?t="+Date.now();
+  img.style.cssText="width:min(85vw,340px);height:min(85vw,340px);border-radius:50%;object-fit:cover;border:3px solid rgba(255,255,255,0.2);box-shadow:0 20px 60px rgba(0,0,0,0.7);animation:slideUp 0.25s ease";
+  img.onerror=()=>lb.remove();
+  lb.appendChild(img);
+  document.body.appendChild(lb);
+}
+
+function populateFeedGrid(){/* Dummy feed removed */}
+function toggleFollow(btn,name){/* Legacy stub */}
 </script>
 
 <!-- ===================== WORKOUT TRACKER ENGINE ===================== -->
@@ -7318,7 +7956,7 @@ const LEARN_DB = {
   "Preacher Curl": {class:"Biceps",gifEmoji:"🙏",gifLabel:"Preacher Curl Animation",youtubeUrl:"https://www.youtube.com/watch?v=fIWP-FRFNU0",youtubeLabel:"Preacher Curl — Perfect Technique",steps:["Adjust the preacher bench so the armrest pad is at armpit height.","Grip an EZ-bar or dumbbells with an underhand grip.","Rest your upper arms flat on the angled pad.","Start with arms almost fully extended at the bottom.","Curl the weight upward until the forearms are vertical.","Squeeze the biceps at the peak contraction.","Lower slowly back to the starting position for a full stretch."],mistakes:["Lifting the elbows off the pad during the curl","Not fully lowering to get the deep stretch at the bottom","Going too heavy causing poor range of motion","Jerking the weight at the start","Rushing — slow controlled reps work best here"],primaryMuscle:"Biceps (lower/long head emphasis)",secondaryMuscles:["Brachialis","Brachioradialis"]},
   "Concentration Curl": {class:"Biceps",gifEmoji:"🎯",gifLabel:"Concentration Curl Animation",youtubeUrl:"https://www.youtube.com/watch?v=0AUGkch3tzc",youtubeLabel:"Concentration Curl — Perfect Form",steps:["Sit on a bench with your legs spread and feet flat on the floor.","Hold a dumbbell in one hand and rest that elbow against your inner thigh.","Let the arm hang straight down in the starting position.","Curl the dumbbell up toward your shoulder.","Squeeze the bicep hard at the top.","Slowly lower back to the starting position.","Complete all reps on one side before switching."],mistakes:["Moving the upper arm away from the thigh","Swinging or using body momentum","Incomplete range of motion at the top or bottom","Going too heavy and compromising the isolation","Not squeezing at the peak contraction"],primaryMuscle:"Biceps (Biceps Brachii — peak focus)",secondaryMuscles:["Brachialis"]},
   "EZ Bar Curl": {class:"Biceps",gifEmoji:"〰",gifLabel:"EZ Bar Curl Animation",youtubeUrl:"https://www.youtube.com/watch?v=zG2i9tiwlXo",youtubeLabel:"EZ Bar Curl — Technique & Tips",steps:["Hold an EZ-bar with an underhand grip using the angled grip sections.","Stand upright with feet shoulder-width apart.","Let the bar hang at arm's length in front of your thighs.","Keep your elbows close to your torso throughout.","Curl the bar upward until your forearms are vertical.","Squeeze hard at the top and hold briefly.","Lower the bar slowly back to the starting position."],mistakes:["Swinging the torso to generate momentum","Gripping the straight sections instead of the angled grip zones","Elbows drifting too far forward during the curl","Not fully lowering for the complete stretch","Using excessively heavy weight"],primaryMuscle:"Biceps (Biceps Brachii)",secondaryMuscles:["Brachialis","Forearms"]},
-  "Tricep Pushdown": {class:"Triceps",gifEmoji:"⬇",gifLabel:"Tricep Pushdown Animation",youtubeUrl:"https://www.youtube.com/watch?v=2-LAMcpzODU",youtubeLabel:"Tricep Pushdown — Form Guide",steps:["Attach a straight bar or rope to the high cable pulley.","Stand facing the machine and grip the attachment with both hands.","Keep your elbows at your sides and slightly in front of your torso.","Start with forearms parallel to the floor.","Push the bar or rope downward until your arms are fully extended.","Squeeze your triceps hard at the bottom.","Slowly allow the weight to return to the starting position."],mistakes:["Letting the elbows flare out or move forward during the movement","Using body weight to push the bar down instead of the triceps","Not fully extending the arms at the bottom","Going too heavy — limits the range of motion","Rushing through reps without controlling the return"],primaryMuscle:"Triceps (all three heads)",secondaryMuscles:["Forearms (stabilizer)","Anconeus"]},
+  "Tricep Pushdown": {class:"Triceps",gifEmoji:"⬇",gifLabel:"Tricep Pushdown Animation",youtubeUrl:"https://youtube.com/shorts/Z1Yst7pgrZQ?si=ACL5OpzryY26Vnqk",youtubeLabel:"Tricep Pushdown — Form Guide",steps:["Attach a straight bar or rope to the high cable pulley.","Stand facing the machine and grip the attachment with both hands.","Keep your elbows at your sides and slightly in front of your torso.","Start with forearms parallel to the floor.","Push the bar or rope downward until your arms are fully extended.","Squeeze your triceps hard at the bottom.","Slowly allow the weight to return to the starting position."],mistakes:["Letting the elbows flare out or move forward during the movement","Using body weight to push the bar down instead of the triceps","Not fully extending the arms at the bottom","Going too heavy — limits the range of motion","Rushing through reps without controlling the return"],primaryMuscle:"Triceps (all three heads)",secondaryMuscles:["Forearms (stabilizer)","Anconeus"]},
   "Skull Crushers": {class:"Triceps",gifEmoji:"💀",gifLabel:"Skull Crushers Animation",youtubeUrl:"https://www.youtube.com/watch?v=d_KZxkY_0cM",youtubeLabel:"Skull Crushers — Proper Form",steps:["Lie flat on a bench holding an EZ-bar or dumbbells with an overhand grip.","Extend your arms directly above your chest — this is the start position.","Keep your upper arms vertical and stationary throughout.","Slowly lower the bar toward your forehead by bending only at the elbows.","Stop just before the bar reaches your forehead.","Extend your arms back to the start by contracting the triceps.","Keep the movement smooth and controlled at all times."],mistakes:["Letting the upper arms drift back toward the head","Using too much weight that causes loss of control","Not keeping the upper arms locked vertical","Flaring the elbows outward during the lowering phase","Rushing the movement near your head — safety first"],primaryMuscle:"Triceps (Long Head emphasis)",secondaryMuscles:["Medial Head","Lateral Head"]},
   "Overhead Press": {class:"Shoulders",gifEmoji:"🏋",gifLabel:"Overhead Press Animation",youtubeUrl:"https://www.youtube.com/watch?v=2yjwXTZQDDI",youtubeLabel:"Overhead Press — Perfect Form Tutorial",steps:["Stand with feet shoulder-width apart holding a barbell at shoulder level.","Grip the bar slightly wider than shoulder width with an overhand grip.","Take a deep breath, brace your core and squeeze your glutes.","Press the bar directly overhead, tilting your head back slightly as it passes your face.","Extend your arms fully overhead with the bar over your heels.","Lock out at the top and hold briefly.","Lower the bar back to the front-rack position under control."],mistakes:["Excessive lower back arch (hyperextension) under load","Pressing in front of the body instead of directly overhead","Not fully locking out the elbows at the top","Using leg drive when it's not intended (strict press)","Gripping too wide or too narrow"],primaryMuscle:"Anterior Deltoids (Front Shoulders)",secondaryMuscles:["Medial Deltoids","Triceps","Upper Traps","Core"]},
   "Lateral Raises": {class:"Shoulders",gifEmoji:"✈",gifLabel:"Lateral Raises Animation",youtubeUrl:"https://www.youtube.com/watch?v=3VcKaXpzqRo",youtubeLabel:"Lateral Raises — Proper Form & Common Mistakes",steps:["Stand holding light dumbbells at your sides with palms facing inward.","Keep a slight bend in your elbows throughout the movement.","Maintain an upright posture with a slight forward lean (10–15 degrees).","Raise both arms out to the sides until they reach shoulder height.","Lead with your elbows, not your hands.","Pause at the top and squeeze the lateral delts.","Lower slowly back to your sides over 2–3 seconds."],mistakes:["Using too heavy a weight — this is an isolation movement","Raising arms above shoulder height — reduces delt tension","Shrugging the traps during the raise","Swinging the torso or using momentum","Tilting the dumbbells with pinky too high instead of leading with the elbows"],primaryMuscle:"Medial Deltoids (Side Shoulders)",secondaryMuscles:["Anterior Deltoids","Supraspinatus","Traps (minor)"]},
