@@ -73,6 +73,67 @@ body.theme-godmode {
   --feed-like-col:#c0000a;--section-title-col:#d43030;
 }
 
+/* ===================== CUSTOM THEME (user-defined) ===================== */
+/* Fallback values only — the real colors are written in as inline CSS custom
+   properties on <body> by the theme engine JS (applyVarsToBody), built from
+   whatever the user picked in the Custom Theme editor / has saved before. */
+body.theme-custom {
+  --bg-base:#0d0f14;--bg-card:rgba(20,22,28,0.95);--bg-panel:rgba(14,16,20,0.92);
+  --border-col:rgba(120,170,255,0.25);--text-primary:#e7e9ec;--text-secondary:rgba(231,233,236,0.72);
+  --text-muted:rgba(231,233,236,0.45);--accent:#4f8cff;--accent2:#2f63cc;
+  --accent-glow:rgba(79,140,255,0.35);--accent-soft:rgba(79,140,255,0.08);
+  --btn-bg:linear-gradient(135deg,#4f8cff,#2f63cc);--btn-shadow:0 4px 18px rgba(79,140,255,0.35);
+  --card-shadow:0 8px 32px rgba(0,0,0,0.45);
+  --header-bg:linear-gradient(135deg,#06070a 0%,#0d0f14 100%);--header-text:#4f8cff;
+  --muscle-idle:#1b1d24;--rank-badge-bg:linear-gradient(135deg,#4f8cff,#2f63cc);
+  --xp-bar-fill:linear-gradient(90deg,#4f8cff,#8cb4ff);
+  --stopwatch-bg:linear-gradient(135deg,#14161c,#0e1014);--stopwatch-border:#4f8cff;
+  --toast-bg:linear-gradient(135deg,#0a0b0f,#0d0f14);
+  --input-bg:#14161c;--input-border:rgba(79,140,255,0.25);
+  --tab-active-bg:linear-gradient(135deg,#4f8cff,#2f63cc);--tab-text:rgba(231,233,236,0.7);
+  --checkin-right-bg:#121319;--workout-tag-bg:rgba(79,140,255,0.1);--workout-tag-col:#4f8cff;
+  --set-row-bg:#14161c;--social-grid-bg:#121319;
+  --follow-btn-bg:linear-gradient(135deg,#4f8cff,#2f63cc);--follow-btn-text:#fff;
+  --feed-like-col:#4f8cff;--section-title-col:#4f8cff;
+  --custom-bg-image:none;
+}
+/* Optional user-uploaded Background image, applied like the Batman/God Mode backdrops */
+body.theme-custom{
+  background-image:var(--custom-bg-image,none);
+  background-size:cover;background-position:center;background-repeat:no-repeat;
+  background-attachment:fixed;
+}
+/* Banner is just another box now — no separate banner image. It uses the same Box/Card color
+   and the same glassy finish as every other box, so it always matches and never looks mismatched
+   against a Background image. */
+body.theme-custom .gymbroTop,body.theme-custom .gymbroTopSolo{
+  background:var(--bg-card)!important;
+  backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+  border:1px solid var(--border-col);
+}
+body.theme-custom .themeBtn.active{background:var(--accent-soft);color:var(--accent)}
+/* When a custom background image is active: keep the image clearly visible behind everything,
+   and turn boxes/cards/banner into a soft frosted-glass finish (dimmed + blurred, never opaque or
+   fully see-through) so they read comfortably on top of any photo. The dim/blur amount is the
+   single Box Opacity level the user picks — it applies uniformly to every box, including the banner. */
+body.theme-custom.has-bg-image .card,
+body.theme-custom.has-bg-image .section,
+body.theme-custom.has-bg-image .glass,
+body.theme-custom.has-bg-image .xp-panel,
+body.theme-custom.has-bg-image .auth-box,
+body.theme-custom.has-bg-image .profile-header,
+body.theme-custom.has-bg-image .welcomeBox,
+body.theme-custom.has-bg-image .workout-log-card,
+body.theme-custom.has-bg-image .tracker-analytics-panel,
+body.theme-custom.has-bg-image .vol-drilldown,
+body.theme-custom.has-bg-image .heroBanner,
+body.theme-custom.has-bg-image .gymbroTop,
+body.theme-custom.has-bg-image .gymbroTopSolo,
+body.theme-custom.has-bg-image .custom-theme-modal{
+  backdrop-filter:blur(14px) saturate(1.15)!important;-webkit-backdrop-filter:blur(14px) saturate(1.15)!important;
+  border:1px solid var(--border-col);
+}
+
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
 body{background:var(--bg-base);min-height:100vh;color:var(--text-primary);font-family:var(--font-body);overflow-x:hidden;transition:background 0.5s ease,color 0.5s ease}
 body.theme-godmode{background-image:radial-gradient(ellipse at 20% 50%,rgba(140,0,0,0.07) 0%,transparent 60%),radial-gradient(ellipse at 80% 20%,rgba(100,0,0,0.06) 0%,transparent 60%)}
@@ -115,6 +176,91 @@ body.theme-godmode .card h3,body.theme-godmode .xp-value,body.theme-godmode .ran
 body.theme-godmode .section-title{color:#fff!important;text-shadow:0 0 6px rgba(192,0,10,0.85)}
 body.theme-godmode .card .card-label,body.theme-godmode .xp-label{color:#e8b8b8}
 .container{width:95%;max-width:1400px;margin:0 auto;padding:15px}
+
+/* ===================== CUSTOM THEME EDITOR MODAL ===================== */
+.custom-theme-modal-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:999700;
+  display:none;align-items:center;justify-content:center;padding:16px;
+  animation:fadeIn 0.18s ease;
+}
+.custom-theme-modal{
+  background:var(--bg-card);border:1px solid var(--border-col);border-radius:18px;
+  width:min(440px,94vw);max-height:88vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.5);
+  color:var(--text-primary);
+}
+.ctm-header{display:flex;align-items:center;justify-content:space-between;padding:18px 20px;border-bottom:1px solid var(--border-col)}
+.ctm-header h3{font-family:var(--font-display);font-size:20px;letter-spacing:0.5px}
+.ctm-close{background:none;border:none;color:var(--text-secondary);font-size:18px;cursor:pointer;padding:4px 8px;border-radius:8px}
+.ctm-close:hover{background:rgba(127,127,127,0.15)}
+.ctm-body{padding:18px 20px;display:flex;flex-direction:column;gap:16px}
+.ctm-row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.ctm-row label{font-size:13px;font-weight:600;color:var(--text-secondary);font-family:var(--font-alt)}
+.ctm-row input[type=color]{width:46px;height:34px;border:1px solid var(--border-col);border-radius:8px;background:none;cursor:pointer;padding:2px}
+.ctm-image-row{flex-direction:column;align-items:stretch;gap:8px}
+.ctm-image-row input[type=file]{font-size:12px;color:var(--text-secondary)}
+#ctmImagePreviewWrap{display:none;align-items:center;gap:10px;margin-top:4px;flex-wrap:wrap}
+#ctmImagePreview{width:64px;height:40px;object-fit:cover;border-radius:8px;border:1px solid var(--border-col)}
+.ctm-remove-img-btn{background:rgba(220,38,38,0.15);color:#dc2626;border:none;padding:6px 10px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer}
+.ctm-edit-crop-btn{background:rgba(127,127,127,0.18);color:var(--text-primary);border:none;padding:6px 10px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer}
+.ctm-img-btn-row{display:flex;gap:6px}
+/* Live mini-homepage demo — a real (non-functional) replica of the member homepage's banner,
+   welcome box, stat cards, XP panel & check-in section, sized like an actual phone screen, so
+   color/image choices can be judged exactly as they'll look on the real app. */
+.ctm-demo-wrap{display:flex;flex-direction:column;align-items:center;gap:8px}
+.ctm-live-preview-label{font-size:11px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;color:var(--text-muted);font-family:var(--font-alt);text-align:center}
+.ctm-phone-frame{width:232px;border-radius:26px;border:6px solid #0b0b0d;background:#0b0b0d;box-shadow:0 14px 34px rgba(0,0,0,0.5);overflow:hidden;flex:0 0 auto}
+.ctm-phone-notch{height:16px;background:#0b0b0d;display:flex;align-items:center;justify-content:center}
+.ctm-phone-notch::after{content:'';width:50px;height:5px;border-radius:4px;background:#222}
+.ctm-phone-screen{width:100%;height:400px;overflow-y:auto;overflow-x:hidden;position:relative;
+  background-color:var(--bg-base,#0d0f14);background-image:var(--custom-bg-image,none);
+  background-size:cover;background-position:center;-webkit-overflow-scrolling:touch}
+.ctm-demo-banner{position:relative;padding:14px 12px;background:var(--bg-card,#1a1a1a);border:1px solid var(--border-col,rgba(255,255,255,0.15));overflow:hidden;transition:background 0.2s ease,backdrop-filter 0.2s ease}
+#ctmDemoScreen.has-bg-image .ctm-demo-banner{backdrop-filter:blur(8px) saturate(1.15)!important;-webkit-backdrop-filter:blur(8px) saturate(1.15)!important}
+.ctm-demo-banner-inner{position:relative;display:flex;align-items:center;gap:8px}
+.ctm-demo-banner-inner span{font-size:13px;color:var(--header-text,#fff)}
+.ctm-demo-banner-inner h4{font-family:var(--font-display);font-size:13px;color:var(--header-text,#fff);letter-spacing:0.5px}
+.ctm-demo-banner-inner p{font-size:8px;color:var(--header-text,#fff);opacity:0.75;font-family:var(--font-alt)}
+.ctm-demo-body{padding:10px;display:flex;flex-direction:column;gap:8px}
+.ctm-demo-box{background:var(--bg-card,#1a1a1a);border:1px solid var(--border-col,rgba(255,255,255,0.15));border-radius:10px;padding:8px;color:var(--text-primary,#fff);transition:background 0.2s ease,backdrop-filter 0.2s ease}
+#ctmDemoScreen.has-bg-image .ctm-demo-box{backdrop-filter:blur(8px) saturate(1.15)!important;-webkit-backdrop-filter:blur(8px) saturate(1.15)!important}
+.ctm-demo-welcome h5{font-size:11px;font-family:var(--font-display);color:var(--text-primary,#fff);margin-bottom:2px}
+.ctm-demo-welcome p{font-size:8px;color:var(--text-secondary,#ccc);font-family:var(--font-body)}
+.ctm-demo-cards{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.ctm-demo-card{text-align:center;font-size:13px;padding:8px 4px}
+.ctm-demo-card b{display:block;font-size:8px;color:var(--text-secondary,#ccc);margin-top:2px;font-weight:600;font-family:var(--font-alt)}
+.ctm-demo-xp-badge{display:inline-block;font-size:7px;font-weight:700;padding:3px 7px;border-radius:8px;background:var(--accent,#4f8cff);color:#fff;margin-bottom:6px;font-family:var(--font-alt)}
+.ctm-demo-xp-bar{height:6px;border-radius:4px;background:rgba(127,127,127,0.25);overflow:hidden}
+.ctm-demo-xp-fill{height:100%;width:62%;background:var(--accent,#4f8cff)}
+.ctm-demo-section-title{font-size:10px;font-weight:700;color:var(--accent,#4f8cff);margin-bottom:6px;font-family:var(--font-alt)}
+.ctm-demo-btn{text-align:center;font-size:9px;font-weight:700;padding:7px;border-radius:8px;background:var(--btn-bg,#4f8cff);color:#fff;font-family:var(--font-alt)}
+/* Single global Box Opacity slider — only shown once a Background image is uploaded; controls how
+   see-through/dimmed every box (including the banner) is over that photo, everywhere at once. */
+.ctm-opacity-row{flex-direction:column;align-items:stretch;gap:6px}
+.ctm-opacity-row .ctm-opacity-head{display:flex;align-items:center;justify-content:space-between}
+.ctm-opacity-row input[type=range]{width:100%}
+#ctmBoxOpacityValue{font-size:12px;font-weight:700;color:var(--accent);font-family:var(--font-alt)}
+.ctm-swatch-row{display:flex;gap:6px;width:100%}
+.ctm-swatch-chip{flex:1;display:flex;align-items:center;gap:6px;font-size:10px;font-weight:700;letter-spacing:0.3px;padding:5px 7px;border-radius:7px;background:rgba(127,127,127,0.14);color:var(--text-secondary)}
+.ctm-swatch-dot{width:10px;height:10px;border-radius:50%;border:1px solid rgba(127,127,127,0.4);flex:0 0 auto}
+.ctm-footer{display:flex;gap:8px;padding:16px 20px;border-top:1px solid var(--border-col);flex-wrap:wrap}
+/* ===================== IMAGE CROP EDITOR (Instagram-style) ===================== */
+.ctm-crop-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.78);z-index:999800;display:none;align-items:center;justify-content:center;padding:16px;animation:fadeIn 0.15s ease}
+.ctm-crop-modal{background:var(--bg-card);border:1px solid var(--border-col);border-radius:18px;padding:18px;width:min(360px,94vw);max-height:92vh;overflow-y:auto;display:flex;flex-direction:column;gap:12px;align-items:center;color:var(--text-primary);box-shadow:0 20px 60px rgba(0,0,0,0.5)}
+.ctm-crop-modal h4{font-family:var(--font-display);font-size:16px;letter-spacing:0.4px;text-align:center}
+.ctm-crop-stage{position:relative;overflow:hidden;border-radius:12px;border:2px solid var(--accent);background:#000;cursor:grab;touch-action:none;user-select:none}
+.ctm-crop-stage:active{cursor:grabbing}
+.ctm-crop-stage-bg{width:200px;height:356px}
+.ctm-crop-stage img{position:absolute;left:0;top:0;max-width:none;pointer-events:none}
+.ctm-crop-controls{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text-secondary);width:100%}
+.ctm-crop-controls input[type=range]{flex:1}
+.ctm-crop-hint{font-size:11px;color:var(--text-muted);text-align:center}
+.ctm-crop-footer{display:flex;gap:8px;width:100%}
+.ctm-btn{flex:1;min-width:90px;padding:10px 12px;border:none;border-radius:10px;font-weight:700;font-size:13px;font-family:var(--font-alt);letter-spacing:0.4px;cursor:pointer;transition:transform 0.15s ease}
+.ctm-btn:active{transform:scale(0.96)}
+.ctm-preview-btn{background:rgba(127,127,127,0.18);color:var(--text-primary)}
+.ctm-save-btn{background:var(--btn-bg);color:#fff;box-shadow:var(--btn-shadow)}
+.ctm-cancel-btn{background:transparent;color:var(--text-secondary);border:1px solid var(--border-col)}
+.ctm-edit-btn{padding:7px 9px;border:none;border-radius:10px;cursor:pointer;font-size:13px;background:rgba(127,127,127,0.18);color:var(--text-secondary)}
 
 /* ===================== BAT TRANSITION OVERLAY ===================== */
 #batTransitionOverlay{
@@ -1976,7 +2122,9 @@ body.theme-godmode .levelup-toast{background:linear-gradient(135deg,#7a0006,#c00
                   <button class="themeBtn active" id="theme-light" onclick="setTheme('light')">☀ LIGHT</button>
                   <button class="themeBtn" id="theme-batman" onclick="setTheme('batman')">🦇 BATMAN</button>
                   <button class="themeBtn" id="theme-godmode" onclick="setTheme('godmode')">🔥 GOD</button>
+                  <button class="themeBtn" id="theme-custom" onclick="selectCustomTheme()">🎨 CUSTOM</button>
                 </div>
+                <button class="ctm-edit-btn" onclick="openCustomThemeModal()" title="Customize your theme">✎ Edit</button>
               </div>
             </div>
             <div class="settings-row">
@@ -2079,6 +2227,119 @@ body.theme-godmode .levelup-toast{background:linear-gradient(135deg,#7a0006,#c00
     </div>
 
   </div><!-- /memberDashboard -->
+
+  <!-- ===================== CUSTOM THEME EDITOR MODAL ===================== -->
+  <div id="customThemeModal" class="custom-theme-modal-overlay">
+    <div class="custom-theme-modal">
+      <div class="ctm-header">
+        <h3>🎨 Custom Theme</h3>
+        <button class="ctm-close" onclick="closeCustomThemeModal()">✕</button>
+      </div>
+      <div class="ctm-body">
+        <div class="ctm-demo-wrap">
+          <div class="ctm-live-preview-label">Live Homepage Preview</div>
+          <div class="ctm-phone-frame">
+            <div class="ctm-phone-notch"></div>
+            <div id="ctmDemoScreen" class="ctm-phone-screen">
+              <div class="ctm-demo-banner">
+                <div class="ctm-demo-banner-inner">
+                  <span>☰</span>
+                  <div>
+                    <h4>🏋 GYMBRO</h4>
+                    <p>TRACK · TRAIN · DOMINATE</p>
+                  </div>
+                </div>
+              </div>
+              <div class="ctm-demo-body">
+                <div class="ctm-demo-box ctm-demo-welcome">
+                  <h5>Welcome Back, GymBro</h5>
+                  <p>Your training metrics for this month.</p>
+                </div>
+                <div class="ctm-demo-cards">
+                  <div class="ctm-demo-box ctm-demo-card">🔥<b>Streak</b></div>
+                  <div class="ctm-demo-box ctm-demo-card">⏱<b>Minutes</b></div>
+                  <div class="ctm-demo-box ctm-demo-card">💪<b>Workouts</b></div>
+                  <div class="ctm-demo-box ctm-demo-card">📅<b>Check-ins</b></div>
+                </div>
+                <div class="ctm-demo-box">
+                  <div class="ctm-demo-xp-badge">BEGINNER</div>
+                  <div class="ctm-demo-xp-bar"><div class="ctm-demo-xp-fill"></div></div>
+                </div>
+                <div class="ctm-demo-box">
+                  <div class="ctm-demo-section-title">🏟 Gym Check-In</div>
+                  <div class="ctm-demo-btn">⚡ SUBMIT CHECK-IN</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="ctm-swatch-row">
+            <div class="ctm-swatch-chip"><span class="ctm-swatch-dot" id="ctmDotBg"></span>Background</div>
+            <div class="ctm-swatch-chip"><span class="ctm-swatch-dot" id="ctmDotBox"></span>Box/Card</div>
+            <div class="ctm-swatch-chip"><span class="ctm-swatch-dot" id="ctmDotHeading"></span>Heading</div>
+            <div class="ctm-swatch-chip"><span class="ctm-swatch-dot" id="ctmDotText"></span>Text</div>
+          </div>
+        </div>
+        <div class="ctm-row">
+          <label>Background Color</label>
+          <input type="color" id="ctmBg" value="#0d0f14" oninput="ctmUpdateLivePreview()">
+        </div>
+        <div class="ctm-row">
+          <label>Box / Card Color</label>
+          <input type="color" id="ctmBox" value="#14161c" oninput="ctmUpdateLivePreview()">
+        </div>
+        <div class="ctm-row">
+          <label>Heading / Accent Color</label>
+          <input type="color" id="ctmHeading" value="#4f8cff" oninput="ctmUpdateLivePreview()">
+        </div>
+        <div class="ctm-row">
+          <label>Font / Text Color</label>
+          <input type="color" id="ctmText" value="#e7e9ec" oninput="ctmUpdateLivePreview()">
+        </div>
+        <div class="ctm-row ctm-image-row">
+          <label>Background Image — from your media files (optional). Also used for the Banner — the banner is a regular box, so it always matches your other boxes.</label>
+          <input type="file" id="ctmImageInput" accept="image/*" onchange="handleCustomBgImageUpload(event)">
+          <div id="ctmImagePreviewWrap">
+            <img id="ctmImagePreview" alt="Background preview">
+            <div class="ctm-img-btn-row">
+              <button type="button" class="ctm-edit-crop-btn" onclick="ctmOpenCropEditor('bg')">✂ Edit crop</button>
+              <button type="button" class="ctm-remove-img-btn" onclick="removeCustomBgImage()">Remove</button>
+            </div>
+          </div>
+        </div>
+        <div class="ctm-row ctm-opacity-row" id="ctmOpacityRow" style="display:none">
+          <div class="ctm-opacity-head">
+            <label>Box Opacity over Background Image</label>
+            <span id="ctmBoxOpacityValue">60%</span>
+          </div>
+          <input type="range" id="ctmBoxOpacity" min="20" max="95" value="60" oninput="ctmUpdateLivePreview()">
+        </div>
+      </div>
+      <div class="ctm-footer">
+        <button class="ctm-btn ctm-preview-btn" onclick="previewCustomTheme()">👁 Preview</button>
+        <button class="ctm-btn ctm-save-btn" onclick="saveCustomTheme()">💾 Save &amp; Apply</button>
+        <button class="ctm-btn ctm-cancel-btn" onclick="closeCustomThemeModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== CUSTOM THEME — IMAGE CROP EDITOR (Instagram-style) ===================== -->
+  <div id="ctmCropOverlay" class="ctm-crop-overlay">
+    <div class="ctm-crop-modal">
+      <h4 id="ctmCropTitle">Adjust Image</h4>
+      <div class="ctm-crop-stage" id="ctmCropStage">
+        <img id="ctmCropImgEl" draggable="false" alt="">
+      </div>
+      <div class="ctm-crop-controls">
+        <label>🔍</label>
+        <input type="range" id="ctmCropZoom" min="100" max="300" value="100" oninput="ctmCropOnZoom()">
+      </div>
+      <div class="ctm-crop-hint">Drag the photo to reposition · use the slider to zoom</div>
+      <div class="ctm-crop-footer">
+        <button class="ctm-btn ctm-save-btn" onclick="ctmApplyCrop()">✓ Apply Crop</button>
+        <button class="ctm-btn ctm-cancel-btn" onclick="ctmCancelCrop()">Cancel</button>
+      </div>
+    </div>
+  </div>
 
   <!-- ADMIN -->
   <div id="adminDashboard" class="dashboard admin-panel">
@@ -2210,17 +2471,23 @@ function spawnBatTrails(parent){
 
 /* ===================== THEME ENGINE ===================== */
 function syncThemeButtonsActive(t){
-  if(!t)t=document.body.classList.contains('theme-batman')?'batman':document.body.classList.contains('theme-godmode')?'godmode':'light';
+  if(!t)t=document.body.classList.contains('theme-batman')?'batman':document.body.classList.contains('theme-godmode')?'godmode':document.body.classList.contains('theme-custom')?'custom':'light';
   document.querySelectorAll('.themeBtn').forEach(b=>b.classList.remove('active'));
   document.querySelectorAll(`[id="theme-${t}"]`).forEach(b=>b.classList.add('active'));
 }
 function setTheme(t){
-  const prev=document.body.classList.contains('theme-batman')?'batman':document.body.classList.contains('theme-godmode')?'godmode':'light';
+  const prev=document.body.classList.contains('theme-batman')?'batman':document.body.classList.contains('theme-godmode')?'godmode':document.body.classList.contains('theme-custom')?'custom':'light';
   if(t===prev)return;
   const applyTheme=()=>{
-    document.body.classList.remove('theme-batman','theme-godmode');
+    document.body.classList.remove('theme-batman','theme-godmode','theme-custom');
     if(t==='batman')document.body.classList.add('theme-batman');
     if(t==='godmode')document.body.classList.add('theme-godmode');
+    if(t==='custom'){
+      document.body.classList.add('theme-custom');
+      applyCustomThemeVars(loadCustomTheme());
+    } else {
+      clearCustomThemeVars();
+    }
     localStorage.setItem('gymbro_theme',t);
     // Volume graph uses a single solid color tied to --accent (Task 1) — refresh it live on theme switch,
     // but only if the Volume tab is actually visible right now (avoids needless work elsewhere).
@@ -2234,17 +2501,385 @@ function setTheme(t){
   if(t==='batman'){
     triggerBatTransition(applyTheme);
   } else {
-    // God mode & light: instant smooth transition
+    // God mode, Custom & light: instant smooth transition
     applyTheme();
   }
 }
+
+/* ===================== CUSTOM THEME ENGINE =====================
+   Lets the user pick their own Background / Box / Heading / Font colors
+   (the same "3-4 color pattern" approach Batman/God Mode use) plus two
+   independent optional images — a page Background image and a separate
+   Banner image — with a live Preview (rendered on a real mini homepage
+   mockup) before Save. Everything is stored locally (localStorage) —
+   nothing is sent to a database. */
+const CUSTOM_THEME_KEY='gymbro_custom_theme';
+function getDefaultCustomTheme(){
+  return {bg:'#0d0f14',box:'#14161c',heading:'#4f8cff',text:'#e7e9ec',bgImage:null,boxOpacity:60};
+}
+function loadCustomTheme(){
+  try{
+    const raw=localStorage.getItem(CUSTOM_THEME_KEY);
+    if(raw){const d=JSON.parse(raw);return Object.assign(getDefaultCustomTheme(),d);}
+  }catch(e){}
+  return getDefaultCustomTheme();
+}
+function ctmHexToRgb(hex){
+  hex=(hex||'#000000').replace('#','');
+  if(hex.length===3)hex=hex.split('').map(c=>c+c).join('');
+  const n=parseInt(hex,16)||0;
+  return {r:(n>>16)&255,g:(n>>8)&255,b:n&255};
+}
+function ctmRgba(hex,a){const{r,g,b}=ctmHexToRgb(hex);return `rgba(${r},${g},${b},${a})`;}
+function ctmShade(hex,percent){
+  const{r,g,b}=ctmHexToRgb(hex);
+  const t=percent<0?0:255,p=Math.abs(percent);
+  const mix=(c)=>Math.max(0,Math.min(255,Math.round((t-c)*p)+c));
+  return '#'+[mix(r),mix(g),mix(b)].map(v=>v.toString(16).padStart(2,'0')).join('');
+}
+function ctmContrastText(hex){
+  const{r,g,b}=ctmHexToRgb(hex);
+  return (0.299*r+0.587*g+0.114*b)/255>0.6?'#05050a':'#ffffff';
+}
+// Builds the full set of theme CSS variables from the user's chosen colors —
+// mirrors every variable Batman/God Mode define, so Custom mode reaches every
+// themed box, banner, button, and font in the app, not just a couple of spots.
+function buildCustomThemeVars(data){
+  const bg=data.bg||'#0d0f14',box=data.box||'#14161c',heading=data.heading||'#4f8cff',text=data.text||'#e7e9ec';
+  const hasImg=!!data.bgImage;
+  // When a background image is active, boxes/cards/banner go semi-transparent + blurred (frosted
+  // glass) so the photo stays clearly visible behind them. The exact opacity is the single
+  // Box Opacity level the user picks (data.boxOpacity, 20–95) and applies uniformly everywhere.
+  const opacityPct=Math.max(20,Math.min(95,Number(data.boxOpacity)||60));
+  const cardAlpha=hasImg?opacityPct/100:0.95, panelAlpha=hasImg?Math.max(0.15,opacityPct/100-0.05):0.9;
+  return {
+    '--bg-base':bg,'--bg-card':ctmRgba(box,cardAlpha),'--bg-panel':ctmRgba(box,panelAlpha),
+    '--border-col':ctmRgba(heading,0.3),'--text-primary':text,'--text-secondary':ctmRgba(text,0.72),
+    '--text-muted':ctmRgba(text,0.45),'--accent':heading,'--accent2':ctmShade(heading,-0.18),
+    '--accent-glow':ctmRgba(heading,0.35),'--accent-soft':ctmRgba(heading,0.08),
+    '--btn-bg':`linear-gradient(135deg,${heading},${ctmShade(heading,-0.2)})`,
+    '--btn-shadow':`0 4px 18px ${ctmRgba(heading,0.35)}`,
+    '--card-shadow':'0 8px 32px rgba(0,0,0,0.45)',
+    /* Banner follows the Box/Card color — it's a regular box, same as every other box, so it
+       always uses the same color, opacity and frosted-glass behavior. No separate banner image. */
+    '--header-bg':`linear-gradient(135deg,${ctmShade(box,-0.3)} 0%,${box} 100%)`,'--header-text':heading,
+    '--muscle-idle':ctmShade(box,-0.15),'--rank-badge-bg':`linear-gradient(135deg,${heading},${ctmShade(heading,-0.2)})`,
+    '--xp-bar-fill':`linear-gradient(90deg,${heading},${ctmShade(heading,0.25)})`,
+    '--stopwatch-bg':`linear-gradient(135deg,${box},${ctmShade(box,-0.08)})`,'--stopwatch-border':heading,
+    '--toast-bg':`linear-gradient(135deg,${ctmShade(bg,-0.15)},${bg})`,
+    '--input-bg':box,'--input-border':ctmRgba(heading,0.25),
+    '--tab-active-bg':`linear-gradient(135deg,${heading},${ctmShade(heading,-0.2)})`,'--tab-text':ctmRgba(text,0.7),
+    '--checkin-right-bg':ctmShade(box,-0.05),'--workout-tag-bg':ctmRgba(heading,0.1),'--workout-tag-col':heading,
+    '--set-row-bg':box,'--social-grid-bg':ctmShade(box,-0.05),
+    '--follow-btn-bg':`linear-gradient(135deg,${heading},${ctmShade(heading,-0.2)})`,'--follow-btn-text':ctmContrastText(heading),
+    '--feed-like-col':heading,'--section-title-col':heading,
+    '--custom-bg-image':hasImg?`url("${data.bgImage}")`:'none'
+  };
+}
+const CUSTOM_THEME_VAR_NAMES=['--bg-base','--bg-card','--bg-panel','--border-col','--text-primary','--text-secondary',
+  '--text-muted','--accent','--accent2','--accent-glow','--accent-soft','--btn-bg','--btn-shadow','--card-shadow',
+  '--header-bg','--header-text','--muscle-idle','--rank-badge-bg','--xp-bar-fill','--stopwatch-bg','--stopwatch-border',
+  '--toast-bg','--input-bg','--input-border','--tab-active-bg','--tab-text','--checkin-right-bg','--workout-tag-bg',
+  '--workout-tag-col','--set-row-bg','--social-grid-bg','--follow-btn-bg','--follow-btn-text','--feed-like-col',
+  '--section-title-col','--custom-bg-image'];
+function applyCustomThemeVars(data){
+  const vars=buildCustomThemeVars(data);
+  Object.keys(vars).forEach(k=>document.body.style.setProperty(k,vars[k]));
+  document.body.classList.toggle('has-bg-image',!!data.bgImage);
+}
+function clearCustomThemeVars(){
+  CUSTOM_THEME_VAR_NAMES.forEach(k=>document.body.style.removeProperty(k));
+  document.body.classList.remove('has-bg-image');
+}
+// Clicking the CUSTOM theme button: if the user has never saved a custom theme
+// yet, open the editor straight away instead of applying an empty theme.
+function selectCustomTheme(){
+  if(!localStorage.getItem(CUSTOM_THEME_KEY)){openCustomThemeModal();return;}
+  setTheme('custom');
+}
+function openCustomThemeModal(){
+  const data=loadCustomTheme();
+  document.getElementById('ctmBg').value=data.bg;
+  document.getElementById('ctmBox').value=data.box;
+  document.getElementById('ctmHeading').value=data.heading;
+  document.getElementById('ctmText').value=data.text;
+  document.getElementById('ctmBoxOpacity').value=data.boxOpacity!=null?data.boxOpacity:60;
+  window._ctmImageData=data.bgImage||null;
+  ctmUpdateImagePreview();
+  ctmUpdateLivePreview();
+  document.getElementById('customThemeModal').style.display='flex';
+}
+function closeCustomThemeModal(){
+  document.getElementById('customThemeModal').style.display='none';
+  ctmRevertPreview();
+}
+function ctmReadForm(){
+  return {
+    bg:document.getElementById('ctmBg').value,
+    box:document.getElementById('ctmBox').value,
+    heading:document.getElementById('ctmHeading').value,
+    text:document.getElementById('ctmText').value,
+    bgImage:window._ctmImageData!==undefined?window._ctmImageData:null,
+    boxOpacity:parseInt(document.getElementById('ctmBoxOpacity').value,10)||60
+  };
+}
+// Live Preview — applies the in-progress colors/image/opacity to the whole app immediately,
+// WITHOUT saving anything, so the user can see it before committing.
+function previewCustomTheme(){
+  const data=ctmReadForm();
+  document.body.classList.remove('theme-batman','theme-godmode');
+  document.body.classList.add('theme-custom');
+  applyCustomThemeVars(data);
+  ctmUpdateLivePreview();
+}
+// Renders a real (static-layout, non-functional) mini replica of the member homepage inside a
+// phone-sized frame in the editor — banner, welcome box, stat cards, XP panel, check-in section —
+// using the exact same CSS variables/classes the real homepage uses, so whatever the user picks
+// (colors, Background image, Box Opacity) shows up on the demo exactly like it will on the real
+// app. Runs live on every tweak and is guaranteed fresh whenever Preview is clicked.
+function ctmUpdateLivePreview(){
+  const screen=document.getElementById('ctmDemoScreen');
+  if(!screen)return;
+  const data=ctmReadForm();
+  const vars=buildCustomThemeVars(data);
+  Object.keys(vars).forEach(k=>screen.style.setProperty(k,vars[k]));
+  screen.classList.toggle('has-bg-image',!!data.bgImage);
+  // The opacity slider only makes sense once there's a Background image to show through.
+  const opacityRow=document.getElementById('ctmOpacityRow');
+  if(opacityRow)opacityRow.style.display=data.bgImage?'flex':'none';
+  const opacityVal=document.getElementById('ctmBoxOpacityValue');
+  if(opacityVal)opacityVal.textContent=data.boxOpacity+'%';
+  const dotBg=document.getElementById('ctmDotBg'),dotBox=document.getElementById('ctmDotBox'),
+        dotHeading=document.getElementById('ctmDotHeading'),dotText=document.getElementById('ctmDotText');
+  if(dotBg)dotBg.style.background=data.bg;
+  if(dotBox)dotBox.style.background=data.box;
+  if(dotHeading)dotHeading.style.background=data.heading;
+  if(dotText)dotText.style.background=data.text;
+}
+// Restores whatever theme was actually saved/active before the editor opened —
+// used by Cancel/Close so an unsaved Preview never sticks around.
+function ctmRevertPreview(){
+  const saved=localStorage.getItem('gymbro_theme')||'light';
+  document.body.classList.remove('theme-batman','theme-godmode','theme-custom');
+  if(saved==='batman')document.body.classList.add('theme-batman');
+  if(saved==='godmode')document.body.classList.add('theme-godmode');
+  if(saved==='custom'){
+    document.body.classList.add('theme-custom');
+    applyCustomThemeVars(loadCustomTheme());
+  } else {
+    clearCustomThemeVars();
+  }
+  syncThemeButtonsActive(saved);
+}
+function saveCustomTheme(){
+  const data=ctmReadForm();
+  localStorage.setItem(CUSTOM_THEME_KEY,JSON.stringify(data));
+  localStorage.setItem('gymbro_theme','custom');
+  document.body.classList.remove('theme-batman','theme-godmode');
+  document.body.classList.add('theme-custom');
+  applyCustomThemeVars(data);
+  syncThemeButtonsActive('custom');
+  document.getElementById('customThemeModal').style.display='none';
+}
+// ---- Background / Banner image upload -> crop -> store ----
+// Images are compressed client-side (same library already used for avatar uploads), then handed
+// straight to the Instagram-style crop editor so the user picks exactly which part of the photo
+// is used; only the cropped result (already a small, fixed-size export) is ever stored, as a
+// data URL, never uploaded anywhere.
+async function ctmProcessUpload(file,target){
+  try{
+    let blob=file;
+    if(typeof imageCompression==='function'){
+      blob=await imageCompression(file,{maxWidthOrHeight:1400,maxSizeMB:0.8,useWebWorker:true,initialQuality:0.85});
+    }
+    const dataUrl=await new Promise((res,rej)=>{
+      const r=new FileReader();
+      r.onload=()=>res(r.result);
+      r.onerror=()=>rej(new Error('read failed'));
+      r.readAsDataURL(blob);
+    });
+    ctmOpenCropEditor(target,dataUrl);
+  }catch(err){
+    console.error('Custom theme image processing failed',err);
+    alert('Could not use that image — please try a smaller photo.');
+  }
+}
+function handleCustomBgImageUpload(e){
+  const file=e.target.files&&e.target.files[0];
+  if(!file)return;
+  ctmProcessUpload(file,'bg');
+}
+function handleCustomBannerImageUpload(e){
+  const file=e.target.files&&e.target.files[0];
+  if(!file)return;
+  ctmProcessUpload(file,'banner');
+}
+function ctmUpdateImagePreview(){
+  const wrap=document.getElementById('ctmImagePreviewWrap');
+  const img=document.getElementById('ctmImagePreview');
+  if(window._ctmImageData){
+    img.src=window._ctmImageData;
+    wrap.style.display='flex';
+  } else {
+    wrap.style.display='none';
+    img.src='';
+  }
+}
+function removeCustomBgImage(){
+  window._ctmImageData=null;
+  ctmUpdateImagePreview();
+  ctmUpdateLivePreview();
+  const fileInput=document.getElementById('ctmImageInput');
+  if(fileInput)fileInput.value='';
+}
+function ctmUpdateBannerImagePreview(){
+  const wrap=document.getElementById('ctmBannerImagePreviewWrap');
+  const img=document.getElementById('ctmBannerImagePreview');
+  if(window._ctmBannerImageData){
+    img.src=window._ctmBannerImageData;
+    wrap.style.display='flex';
+  } else {
+    wrap.style.display='none';
+    img.src='';
+  }
+}
+function removeCustomBannerImage(){
+  window._ctmBannerImageData=null;
+  ctmUpdateBannerImagePreview();
+  ctmUpdateLivePreview();
+  const fileInput=document.getElementById('ctmBannerImageInput');
+  if(fileInput)fileInput.value='';
+}
+
+/* ===================== CUSTOM THEME — IMAGE CROP EDITOR (Instagram-style) =====================
+   Lets the user pick exactly which part of an uploaded photo becomes the Background or the
+   Banner image: drag to reposition, slider to zoom, inside a fixed-aspect frame that matches
+   where the image will actually be used — a tall mobile-screen frame for the Background, a wide
+   banner-shaped frame for the Banner. "Apply Crop" bakes that exact view into a small exported
+   image, which is what actually gets stored/used. */
+let _ctmCrop={target:null,natW:0,natH:0,scale:1,minScale:1,offX:0,offY:0,dragging:false,startX:0,startY:0,startOffX:0,startOffY:0};
+const CTM_CROP_OUTPUT={bg:{w:600,h:1067},banner:{w:900,h:300}};
+function ctmOpenCropEditor(target,srcOverride){
+  const src=srcOverride||(target==='bg'?window._ctmImageData:window._ctmBannerImageData);
+  if(!src)return;
+  _ctmCrop.target=target;
+  const overlay=document.getElementById('ctmCropOverlay');
+  const stage=document.getElementById('ctmCropStage');
+  stage.className='ctm-crop-stage ctm-crop-stage-'+target;
+  document.getElementById('ctmCropTitle').textContent=target==='bg'?'Adjust Background Image':'Adjust Banner Image';
+  const imgEl=document.getElementById('ctmCropImgEl');
+  overlay.style.display='flex';
+  imgEl.onload=()=>{
+    _ctmCrop.natW=imgEl.naturalWidth;_ctmCrop.natH=imgEl.naturalHeight;
+    const stageW=stage.offsetWidth,stageH=stage.offsetHeight;
+    const cover=Math.max(stageW/_ctmCrop.natW,stageH/_ctmCrop.natH);
+    _ctmCrop.minScale=cover;_ctmCrop.scale=cover;
+    _ctmCrop.offX=(stageW-_ctmCrop.natW*cover)/2;
+    _ctmCrop.offY=(stageH-_ctmCrop.natH*cover)/2;
+    document.getElementById('ctmCropZoom').value=100;
+    ctmCropRender();
+  };
+  imgEl.src=src;
+}
+function ctmCropRender(){
+  const imgEl=document.getElementById('ctmCropImgEl');
+  imgEl.style.width=(_ctmCrop.natW*_ctmCrop.scale)+'px';
+  imgEl.style.height=(_ctmCrop.natH*_ctmCrop.scale)+'px';
+  imgEl.style.left=_ctmCrop.offX+'px';
+  imgEl.style.top=_ctmCrop.offY+'px';
+}
+function ctmCropClamp(){
+  const stage=document.getElementById('ctmCropStage');
+  const stageW=stage.offsetWidth,stageH=stage.offsetHeight;
+  const w=_ctmCrop.natW*_ctmCrop.scale,h=_ctmCrop.natH*_ctmCrop.scale;
+  const minX=Math.min(0,stageW-w),maxX=0;
+  const minY=Math.min(0,stageH-h),maxY=0;
+  _ctmCrop.offX=Math.max(minX,Math.min(maxX,_ctmCrop.offX));
+  _ctmCrop.offY=Math.max(minY,Math.min(maxY,_ctmCrop.offY));
+}
+function ctmCropOnZoom(){
+  const stage=document.getElementById('ctmCropStage');
+  const stageW=stage.offsetWidth,stageH=stage.offsetHeight;
+  const pct=parseFloat(document.getElementById('ctmCropZoom').value)/100;
+  const newScale=_ctmCrop.minScale*pct;
+  // Keep the stage-center point anchored while zooming in/out.
+  const cx=stageW/2,cy=stageH/2;
+  const relX=(cx-_ctmCrop.offX)/_ctmCrop.scale, relY=(cy-_ctmCrop.offY)/_ctmCrop.scale;
+  _ctmCrop.scale=newScale;
+  _ctmCrop.offX=cx-relX*newScale;
+  _ctmCrop.offY=cy-relY*newScale;
+  ctmCropClamp();
+  ctmCropRender();
+}
+function ctmCropPointerDown(e){
+  _ctmCrop.dragging=true;
+  const p=e.touches?e.touches[0]:e;
+  _ctmCrop.startX=p.clientX;_ctmCrop.startY=p.clientY;
+  _ctmCrop.startOffX=_ctmCrop.offX;_ctmCrop.startOffY=_ctmCrop.offY;
+}
+function ctmCropPointerMove(e){
+  if(!_ctmCrop.dragging)return;
+  const p=e.touches?e.touches[0]:e;
+  _ctmCrop.offX=_ctmCrop.startOffX+(p.clientX-_ctmCrop.startX);
+  _ctmCrop.offY=_ctmCrop.startOffY+(p.clientY-_ctmCrop.startY);
+  ctmCropClamp();
+  ctmCropRender();
+  if(e.cancelable)e.preventDefault();
+}
+function ctmCropPointerUp(){_ctmCrop.dragging=false;}
+function ctmCancelCrop(){
+  document.getElementById('ctmCropOverlay').style.display='none';
+  const target=_ctmCrop.target;
+  if(target==='bg'&&!window._ctmImageData){const fi=document.getElementById('ctmImageInput');if(fi)fi.value='';}
+  if(target==='banner'&&!window._ctmBannerImageData){const fi=document.getElementById('ctmBannerImageInput');if(fi)fi.value='';}
+}
+function ctmApplyCrop(){
+  const target=_ctmCrop.target;
+  const out=CTM_CROP_OUTPUT[target];
+  const canvas=document.createElement('canvas');
+  canvas.width=out.w;canvas.height=out.h;
+  const ctx=canvas.getContext('2d');
+  const stage=document.getElementById('ctmCropStage');
+  const stageW=stage.offsetWidth,stageH=stage.offsetHeight;
+  const imgEl=document.getElementById('ctmCropImgEl');
+  // Map the visible crop frame -> output canvas, using the current pan/zoom.
+  const sx=(0-_ctmCrop.offX)/_ctmCrop.scale, sy=(0-_ctmCrop.offY)/_ctmCrop.scale;
+  const sw=stageW/_ctmCrop.scale, sh=stageH/_ctmCrop.scale;
+  ctx.drawImage(imgEl,sx,sy,sw,sh,0,0,out.w,out.h);
+  const dataUrl=canvas.toDataURL('image/jpeg',0.85);
+  if(target==='bg'){
+    window._ctmImageData=dataUrl;
+    ctmUpdateImagePreview();
+  } else {
+    window._ctmBannerImageData=dataUrl;
+    ctmUpdateBannerImagePreview();
+  }
+  document.getElementById('ctmCropOverlay').style.display='none';
+  ctmUpdateLivePreview();
+}
+(function(){
+  const stage=document.getElementById('ctmCropStage');
+  if(!stage)return;
+  stage.addEventListener('mousedown',ctmCropPointerDown);
+  window.addEventListener('mousemove',ctmCropPointerMove);
+  window.addEventListener('mouseup',ctmCropPointerUp);
+  stage.addEventListener('touchstart',ctmCropPointerDown,{passive:true});
+  stage.addEventListener('touchmove',ctmCropPointerMove,{passive:false});
+  stage.addEventListener('touchend',ctmCropPointerUp);
+})();
+
+
 // Restore saved theme on load — persists across refresh, and across logout/login since it's
 // stored independently of the session/auth keys (see logoutUser(), which never clears this key).
 (function(){
   const s=localStorage.getItem('gymbro_theme');if(!s)return;
-  document.body.classList.remove('theme-batman','theme-godmode');
+  document.body.classList.remove('theme-batman','theme-godmode','theme-custom');
   if(s==='batman')document.body.classList.add('theme-batman');
   if(s==='godmode')document.body.classList.add('theme-godmode');
+  if(s==='custom'){
+    document.body.classList.add('theme-custom');
+    applyCustomThemeVars(loadCustomTheme());
+  }
   syncThemeButtonsActive(s);
 })();
 </script>
