@@ -105,8 +105,17 @@ body.theme-custom {
    content height, which changes every time content changes (opening an accordion, switching
    pages, adding a card) — that resize is exactly what was causing the image to visibly "zoom" on
    every click. A `position:fixed` layer's size only ever depends on the viewport, never on
-   document height, so it cannot resize from clicks or page switches. `transform:translateZ(0)`
-   forces it onto its own compositing layer so it also never drifts during a scroll on mobile.
+   document height, so it cannot resize from clicks or page switches.
+   To also stop the layer from visibly jumping during FAST/fling scrolling on mobile: a negative
+   z-index on a `position:fixed` element is known to make some mobile browsers fall back to
+   repainting it after the scroll settles instead of compositing it on the GPU, which is exactly
+   what shows up as a jump on quick scrolls. Using z-index:0 (never negative) plus explicit
+   compositing hints (translateZ, backface-visibility, will-change) forces the browser to always
+   promote this layer to its own GPU-composited layer, so it tracks the screen in real time and
+   never lags behind even on a fast scroll. It still stays behind every themed box with no other
+   changes needed: `position:fixed` already creates its own stacking context, and since this is a
+   `::before` (the very first thing painted for <body>), normal in-flow content — which has no
+   z-index of its own — always paints after it, i.e. on top of it, exactly as before.
    Sizing uses `contain` (not `cover`): the photo was already cropped to its final framing in the
    crop editor, so it must always be shown in full exactly as cropped — `cover` would re-crop and
    rescale it differently depending on each page/device's viewport ratio. With `contain`, the whole
@@ -120,10 +129,13 @@ body.theme-custom::before{
   inset:0;
   background-image:var(--custom-bg-image,none);
   background-size:contain;background-position:center;background-repeat:no-repeat;
-  z-index:-1;
+  z-index:0;
   pointer-events:none;
   transform:translateZ(0);
   -webkit-transform:translateZ(0);
+  will-change:transform;
+  backface-visibility:hidden;
+  -webkit-backface-visibility:hidden;
 }
 /* Banner is just another box now — no separate banner image. It uses the same Box/Card color
    and the same glassy finish as every other box, so it always matches and never looks mismatched
