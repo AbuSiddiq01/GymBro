@@ -98,32 +98,36 @@ body.theme-custom {
   --custom-bg-image:none;
 }
 /* Optional user-uploaded Background image, applied like the Batman/God Mode backdrops.
-   The base color still uses canvas propagation (set on body, no background-image here) since a
-   flat color has no sizing to get wrong. The PHOTO itself is a separate fixed-position layer
-   pinned to the viewport (`inset:0` inside `position:fixed`), not painted on body/canvas — this
-   is deliberate: a canvas-propagated or body-painted background is sized against the page's full
-   content height, which changes every time content changes (opening an accordion, switching
-   pages, adding a card) — that resize is exactly what was causing the image to visibly "zoom" on
-   every click. A `position:fixed` layer's size only ever depends on the viewport, never on
-   document height, so it cannot resize from clicks or page switches. `transform:translateZ(0)`
-   forces it onto its own compositing layer so it also never drifts during a scroll on mobile.
-   Sizing uses `contain` (not `cover`): the photo was already cropped to its final framing in the
-   crop editor, so it must always be shown in full exactly as cropped — `cover` would re-crop and
-   rescale it differently depending on each page/device's viewport ratio. With `contain`, the whole
-   cropped photo is always shown at a consistent, un-cropped framing on every page and device. */
+   <body> here only ever carries the flat base color — the same simple mechanism every other theme
+   (Light/Batman/God Mode) already uses, which is why that color never moves or resizes.
+   The photo itself lives on the dedicated #ctmBgLayer element (declared as the very first thing in
+   <body> in the HTML), not on body/html's own background. This is the important part: a CSS
+   background sized with `cover` against the LIVE viewport (whether on body, html, or any
+   `inset:0` fixed element) recomputes every time the live viewport dimensions change — and on
+   mobile, the address bar hiding/showing on almost any tap or scroll changes that live viewport
+   height, and on desktop a scrollbar appearing/disappearing changes the live viewport width. Both
+   are exactly what was causing the image to visibly "zoom" on clicks and scrolls, on every earlier
+   attempt at this fix. #ctmBgLayer instead gets an explicit PIXEL width/height set once via JS
+   (see ctmSizeBgLayer()), locked to the device's actual physical screen resolution — a number that
+   does not change when browser chrome shows/hides or a scrollbar toggles, only on a genuine
+   rotation/resize. With a fixed pixel-size box, `background-size:cover` inside it never has a live
+   viewport to react to, so it truly cannot resize on any click, scroll, or page switch.
+   IMPORTANT: <body> must turn transparent whenever an image is active, since #ctmBgLayer sits
+   *behind* body's own background (see the has-bg-image rule below) — otherwise body's own solid
+   color would completely cover it. With no image, body keeps its normal solid base color exactly
+   as before. */
 body.theme-custom{
   background-color:var(--bg-base);
 }
-body.theme-custom::before{
-  content:'';
+body.theme-custom.has-bg-image{
+  background-color:transparent;
+}
+#ctmBgLayer{
   position:fixed;
-  inset:0;
-  background-image:var(--custom-bg-image,none);
-  background-size:contain;background-position:center;background-repeat:no-repeat;
+  top:0;left:0;
   z-index:-1;
   pointer-events:none;
-  transform:translateZ(0);
-  -webkit-transform:translateZ(0);
+  background-size:cover;background-position:center;background-repeat:no-repeat;
 }
 /* Banner is just another box now — no separate banner image. It uses the same Box/Card color
    and the same glassy finish as every other box, so it always matches and never looks mismatched
@@ -1381,6 +1385,12 @@ body.theme-godmode .levelup-toast{background:linear-gradient(135deg,#7a0006,#c00
 </style>
 </head>
 <body>
+
+<!-- Fixed Background Image layer for the Custom theme. Kept as its own real element (not a CSS
+     pseudo-element) because it needs a JS-computed pixel size — see ctmSizeBgLayer() — locked to
+     the device's actual screen resolution instead of live viewport units, so it never recomputes
+     from a mobile browser's address bar hiding/showing or a desktop scrollbar appearing on click. -->
+<div id="ctmBgLayer"></div>
 
 <!-- ===================== BAT TRANSITION OVERLAY ===================== -->
 <div id="batTransitionOverlay">
@@ -2648,14 +2658,53 @@ const CUSTOM_THEME_VAR_NAMES=['--bg-base','--bg-card','--bg-panel','--border-col
   '--toast-bg','--input-bg','--input-border','--tab-active-bg','--tab-text','--checkin-right-bg','--workout-tag-bg',
   '--workout-tag-col','--set-row-bg','--social-grid-bg','--follow-btn-bg','--follow-btn-text','--feed-like-col',
   '--section-title-col','--custom-bg-image'];
+// Locks the #ctmBgLayer element's box to the device's actual physical screen resolution (in CSS
+// pixels) instead of the live browser viewport. This is the key to a truly non-moving background:
+// window.screen.width/height do NOT change when a mobile address bar hides/shows or a desktop
+// scrollbar appears/disappears — only on a genuine device rotation or window resize — so
+// background-size:cover inside this box never has a reason to recompute on a click, scroll, or
+// page switch.
+function ctmSizeBgLayer(){
+  const el=document.getElementById('ctmBgLayer');
+  if(!el)return;
+  const w=(window.screen&&window.screen.width)?window.screen.width:window.innerWidth;
+  const h=(window.screen&&window.screen.height)?window.screen.height:window.innerHeight;
+  el.style.width=w+'px';
+  el.style.height=h+'px';
+}
+ctmSizeBgLayer();
+let ctmSizeResizeTimer=null;
+window.addEventListener('resize',()=>{
+  clearTimeout(ctmSizeResizeTimer);
+  ctmSizeResizeTimer=setTimeout(ctmSizeBgLayer,150);
+});
+window.addEventListener('orientationchange',()=>setTimeout(ctmSizeBgLayer,150));
 function applyCustomThemeVars(data){
   const vars=buildCustomThemeVars(data);
   Object.keys(vars).forEach(k=>document.body.style.setProperty(k,vars[k]));
   document.body.classList.toggle('has-bg-image',!!data.bgImage);
+  // The Background Image itself is painted on the dedicated #ctmBgLayer element (see its CSS and
+  // ctmSizeBgLayer() above) instead of through the --custom-bg-image CSS variable on <body>.
+  const layer=document.getElementById('ctmBgLayer');
+  if(layer){
+    if(data.bgImage){
+      ctmSizeBgLayer();
+      layer.style.backgroundImage=`url("${data.bgImage}")`;
+      layer.style.backgroundColor=vars['--bg-base'];
+    }else{
+      layer.style.backgroundImage='';
+      layer.style.backgroundColor='';
+    }
+  }
 }
 function clearCustomThemeVars(){
   CUSTOM_THEME_VAR_NAMES.forEach(k=>document.body.style.removeProperty(k));
   document.body.classList.remove('has-bg-image');
+  const layer=document.getElementById('ctmBgLayer');
+  if(layer){
+    layer.style.backgroundImage='';
+    layer.style.backgroundColor='';
+  }
 }
 // Clicking the CUSTOM theme button: if the user has never saved a custom theme
 // yet, open the editor straight away instead of applying an empty theme.
