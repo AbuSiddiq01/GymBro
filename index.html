@@ -98,25 +98,32 @@ body.theme-custom {
   --custom-bg-image:none;
 }
 /* Optional user-uploaded Background image, applied like the Batman/God Mode backdrops.
-   This is set as one single background on <body> itself — no separate element, no
-   `position:fixed`, no z-index tricks, no transform/will-change hacks. That matters: those extra
-   layers/hints were themselves causing bugs (some homepage boxes failing to paint until a click,
-   and residual jitter on a slow scroll on low-end phones).
-   The reason a plain body background is safe to use here — and behaves exactly like the existing
-   `background-color` on this same element, which the person confirmed never moves — is that the
-   browser always paints the root/body background onto the page canvas, which is locked to the
-   viewport by definition. The canvas is not part of the scrolling content, so it is never
-   recalculated by a scroll (any speed), a click, or switching pages — only an actual viewport
-   resize (e.g. rotating the phone) can change it. No extra CSS is needed to "pin" it; it is
-   already pinned by how root backgrounds work, identically on desktop and low-end mobile.
+   The base color still uses canvas propagation (set on body, no background-image here) since a
+   flat color has no sizing to get wrong. The PHOTO itself is a separate fixed-position layer
+   pinned to the viewport (`inset:0` inside `position:fixed`), not painted on body/canvas — this
+   is deliberate: a canvas-propagated or body-painted background is sized against the page's full
+   content height, which changes every time content changes (opening an accordion, switching
+   pages, adding a card) — that resize is exactly what was causing the image to visibly "zoom" on
+   every click. A `position:fixed` layer's size only ever depends on the viewport, never on
+   document height, so it cannot resize from clicks or page switches. `transform:translateZ(0)`
+   forces it onto its own compositing layer so it also never drifts during a scroll on mobile.
    Sizing uses `contain` (not `cover`): the photo was already cropped to its final framing in the
    crop editor, so it must always be shown in full exactly as cropped — `cover` would re-crop and
    rescale it differently depending on each page/device's viewport ratio. With `contain`, the whole
    cropped photo is always shown at a consistent, un-cropped framing on every page and device. */
 body.theme-custom{
   background-color:var(--bg-base);
+}
+body.theme-custom::before{
+  content:'';
+  position:fixed;
+  inset:0;
   background-image:var(--custom-bg-image,none);
   background-size:contain;background-position:center;background-repeat:no-repeat;
+  z-index:-1;
+  pointer-events:none;
+  transform:translateZ(0);
+  -webkit-transform:translateZ(0);
 }
 /* Banner is just another box now — no separate banner image. It uses the same Box/Card color
    and the same glassy finish as every other box, so it always matches and never looks mismatched
