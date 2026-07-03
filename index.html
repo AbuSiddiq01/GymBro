@@ -203,6 +203,63 @@ body.theme-godmode .section-title{color:#fff!important;text-shadow:0 0 6px rgba(
 body.theme-godmode .card .card-label,body.theme-godmode .xp-label{color:#e8b8b8}
 .container{width:95%;max-width:1400px;margin:0 auto;padding:15px}
 
+/* ===================== WORKOUT ROOM ===================== */
+.room-modal-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:999700;
+  display:none;align-items:center;justify-content:center;padding:16px;
+  animation:fadeIn 0.18s ease;
+}
+.room-modal{
+  background:var(--bg-card);border:1px solid var(--border-col);border-radius:18px;
+  width:min(380px,94vw);padding:20px;box-shadow:0 20px 60px rgba(0,0,0,0.5);color:var(--text-primary);
+}
+.room-modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.room-modal-header h3{font-family:var(--font-display);font-size:19px;letter-spacing:0.5px}
+.room-modal-label{font-size:11px;font-weight:800;color:var(--text-muted);font-family:var(--font-alt);letter-spacing:0.6px;display:block;margin-bottom:6px}
+.room-modal-select{width:100%;padding:10px;border-radius:10px;border:1px solid var(--border-col);background:var(--bg-input,var(--bg-card));color:var(--text-primary);font-family:var(--font-alt);font-size:14px}
+.room-code-display{font-family:var(--font-display);font-size:34px;letter-spacing:6px;color:var(--accent);margin-top:6px}
+.room-member-tile{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;width:56px}
+.room-member-tile .rm-name{font-size:9.5px;font-family:var(--font-alt);font-weight:800;color:var(--text-muted);white-space:nowrap;max-width:56px;overflow:hidden;text-overflow:ellipsis}
+.room-member-tile.active-target .rm-name{color:var(--accent)}
+.room-member-avatar{width:40px;height:40px;border-radius:50%;border:2.5px solid var(--border-col);display:flex;align-items:center;justify-content:center;font-size:16px;overflow:hidden;position:relative;transition:border-color .2s,transform .2s;background:var(--accent-soft)}
+.room-member-avatar img{width:100%;height:100%;object-fit:cover}
+.room-member-tile.active-target .room-member-avatar{border-width:4px;border-color:var(--accent);transform:scale(1.12);box-shadow:0 0 0 4px var(--accent-glow),0 0 18px 4px var(--accent-glow),0 0 32px 8px var(--accent-glow);animation:roomGlowPulse 1.6s ease-in-out infinite}
+@keyframes roomGlowPulse{0%,100%{box-shadow:0 0 0 4px var(--accent-glow),0 0 18px 4px var(--accent-glow),0 0 32px 8px var(--accent-glow)}50%{box-shadow:0 0 0 4px var(--accent-glow),0 0 26px 8px var(--accent-glow),0 0 44px 14px var(--accent-glow)}}
+.room-member-tile.pending{opacity:0.7;cursor:default}
+.room-member-tile-wrap{position:relative}
+.room-member-remove-x{position:absolute;top:-4px;right:-2px;width:18px;height:18px;border-radius:50%;background:#e11d48;color:#fff;font-size:11px;line-height:18px;text-align:center;font-weight:800;cursor:pointer;border:2px solid var(--bg-card);z-index:2;display:none}
+.room-member-tile-wrap:hover .room-member-remove-x{display:block}
+.room-pending-tile{display:flex;flex-direction:column;align-items:center;gap:6px;width:64px}
+.room-pending-tile .room-member-avatar{border-color:#f59e0b;box-shadow:0 0 0 3px rgba(245,158,11,0.3)}
+.room-pending-actions{display:flex;gap:4px}
+.room-pending-actions button{width:22px;height:22px;border-radius:50%;border:none;cursor:pointer;font-size:11px;font-weight:800;color:#fff}
+.room-pending-accept{background:#16a34a}
+.room-pending-reject{background:#dc2626}
+/* Room target badge — shown near the Add/Edit workout entry area while host is acting on behalf of a member */
+.room-target-badge{display:none;align-items:center;gap:10px;background:var(--accent-soft);border:1.5px solid var(--accent);border-radius:12px;padding:8px 12px;margin-bottom:12px}
+.room-target-badge.visible{display:flex}
+.room-target-badge-avatar{width:34px;height:34px;border-radius:50%;overflow:hidden;flex-shrink:0;border:2px solid var(--accent);display:flex;align-items:center;justify-content:center;background:var(--bg-card);font-size:15px}
+.room-target-badge-avatar img{width:100%;height:100%;object-fit:cover}
+.room-target-badge-text{font-family:var(--font-alt);font-size:12px;line-height:1.35}
+.room-target-badge-text b{color:var(--accent);font-size:13px}
+/* Approval toggle row */
+.room-approval-row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:12px 0}
+.room-approval-row .room-approval-label{font-size:12px;font-weight:700;color:var(--text-secondary);font-family:var(--font-alt)}
+.room-approval-row .room-approval-sub{font-size:10.5px;color:var(--text-muted);font-family:var(--font-alt);margin-top:2px}
+/* Scrollable Hour:Min time picker */
+.time-picker-wrap{display:flex;align-items:center;justify-content:center;gap:8px;background:var(--input-bg,var(--bg-card));border:1px solid var(--border-col);border-radius:12px;padding:6px 0;position:relative}
+.time-picker-wrap::before{content:'';position:absolute;top:50%;left:8px;right:8px;height:36px;transform:translateY(-50%);background:var(--accent-soft);border-radius:8px;pointer-events:none;z-index:0}
+.time-picker-col{height:108px;width:64px;overflow-y:scroll;scroll-snap-type:y mandatory;-webkit-overflow-scrolling:touch;position:relative;z-index:1;scrollbar-width:none}
+.time-picker-col::-webkit-scrollbar{display:none}
+.time-picker-col-pad{height:36px}
+.time-picker-item{height:36px;display:flex;align-items:center;justify-content:center;scroll-snap-align:center;font-family:var(--font-alt);font-weight:700;font-size:15px;color:var(--text-muted)}
+.time-picker-item.selected{color:var(--accent);font-size:18px;font-weight:800}
+.time-picker-sep{font-family:var(--font-display);font-size:22px;color:var(--text-primary);z-index:1}
+.time-picker-unit{font-family:var(--font-alt);font-size:10px;color:var(--text-muted);text-align:center;margin-top:2px}
+.time-picker-typed{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:8px}
+.time-picker-typed input{width:52px;padding:6px;text-align:center;border-radius:8px;border:1px solid var(--border-col);background:var(--input-bg,var(--bg-card));color:var(--text-primary);font-family:var(--font-alt);font-weight:700}
+.time-picker-typed span{font-size:11px;color:var(--text-muted);font-family:var(--font-alt)}
+
 /* ===================== CUSTOM THEME EDITOR MODAL ===================== */
 .custom-theme-modal-overlay{
   position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:999700;
@@ -529,6 +586,10 @@ body.theme-batman .set-new-timer-btn{color:#05050a}
 .set-delete-btn:hover{background:rgba(220,38,38,0.25)}
 .set-row.set-selected .set-delete-btn{display:flex}
 .suggestion-box{position:relative;margin-bottom:8px}
+.suggestion-box input{padding-right:38px}
+.sugg-dropdown-icon{position:absolute;right:10px;top:0;bottom:0;width:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-muted);font-size:11px;user-select:none;transition:color 0.2s ease,transform 0.2s ease}
+.sugg-dropdown-icon:hover{color:var(--accent)}
+.sugg-dropdown-icon.open{color:var(--accent);transform:translateY(1px) rotate(180deg)}
 .suggestions-list{position:absolute;left:0;right:0;background:var(--bg-card);border:1px solid var(--border-col);border-radius:11px;max-height:180px;overflow-y:auto;z-index:100;box-shadow:0 10px 30px rgba(0,0,0,0.12);display:none}
 .suggestions-list div{padding:10px 14px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--border-col);color:var(--text-primary)}
 .suggestions-list div:hover{background:var(--accent-soft);color:var(--accent)}
@@ -560,6 +621,12 @@ body.theme-batman .stats-subnav-btn.active{color:#05050a}
 
 /* Calendar / period controls */
 .stats-period-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+/* Muscle + Equipment filter dropdowns — used above the exercise name input on Add Workout, and
+   above the search bar on the Workout Tracker. */
+.ctm-muscle-eq-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.ctm-muscle-eq-row>div{flex:1;min-width:130px}
+.ctm-muscle-eq-row label{font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.6px;font-family:var(--font-alt);display:block;margin-bottom:4px}
+.ctm-muscle-eq-row select{margin-top:0;padding:10px 12px;font-size:13px}
 .stats-period-row select{margin-top:0;padding:10px;flex:1;min-width:130px}
 
 /* Volume bar glossy hover */
@@ -1037,6 +1104,18 @@ body.theme-batman .live-break-btn.start{color:#05050a}
 .quick-fill-btn:hover{background:var(--accent-soft);border-style:solid}
 .quick-fill-btn.visible{display:block}
 
+/* ===================== TRACK WORKOUT BUTTON ===================== */
+.track-workout-btn{
+  display:none;width:100%;align-items:center;justify-content:center;gap:6px;padding:9px 14px;
+  background:var(--btn-bg);border:none;border-radius:10px;
+  color:var(--follow-btn-text);font-size:12px;font-weight:800;font-family:var(--font-alt);
+  letter-spacing:0.6px;cursor:pointer;margin-top:8px;box-shadow:var(--btn-shadow);
+  transition:all 0.2s ease;text-align:center;
+}
+body.theme-batman .track-workout-btn{color:#05050a}
+.track-workout-btn.visible{display:flex}
+.track-workout-btn:hover{transform:translateY(-2px);box-shadow:0 8px 24px var(--accent-glow)}
+
 /* ===================== MIN:SEC PICKER WIDGET ===================== */
 .minsec-picker{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
 .minsec-scroll-group{display:flex;align-items:center;gap:4px;background:var(--input-bg);border:1px solid var(--input-border);border-radius:10px;padding:4px 6px}
@@ -1098,6 +1177,12 @@ body.theme-batman .tracker-page-btn.active{color:#05050a}
 .tracker-graph-detail-list li .tracker-set-num{color:var(--text-muted);font-weight:700;margin-right:3px}
 .tracker-graph-detail-total{margin-top:6px;padding-top:6px;border-top:1px solid var(--border-col);font-size:11px;color:var(--text-muted);font-weight:600;white-space:nowrap;text-align:right;flex-shrink:0}
 .tracker-graph-detail-total strong{color:var(--accent);font-family:var(--font-display);font-size:15px;letter-spacing:0.4px;margin-left:4px}
+.tracker-graph-nav-row{display:none;justify-content:center;align-items:center;gap:16px;margin-top:12px}
+.tracker-graph-nav-row.visible{display:flex}
+.tracker-graph-nav-btn{width:38px;height:38px;border-radius:50%;border:1px solid var(--border-col);background:var(--bg-card);color:var(--accent);font-size:20px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(0,0,0,0.18);transition:all 0.2s ease;line-height:1;padding:0}
+.tracker-graph-nav-btn:hover:not(:disabled){background:var(--accent-soft);transform:scale(1.1)}
+.tracker-graph-nav-btn:disabled{opacity:0.3;cursor:not-allowed}
+@media (max-width:600px){.tracker-graph-nav-btn{width:34px;height:34px;font-size:17px}}
 @media (max-width:480px){
   .tracker-graph-detail-box{max-width:54%;height:112px;padding:6px 8px;border-radius:10px}
   .tracker-graph-detail-date{font-size:10px}
@@ -1573,7 +1658,7 @@ body.theme-godmode .levelup-toast{background:linear-gradient(135deg,#7a0006,#c00
                   <option value="Biceps">Biceps</option>
                   <option value="Triceps">Triceps</option>
                   <option value="Shoulders">Shoulders</option>
-                  <option value="Lats">Lats</option>
+                  <option value="Lat/Back">Lat/Back</option>
                   <option value="Legs">Legs</option>
                   <option value="Abs">Abs</option>
                   <option value="Cardio">Cardio</option>
@@ -1923,18 +2008,83 @@ body.theme-godmode .levelup-toast{background:linear-gradient(135deg,#7a0006,#c00
             <span id="liveModeLabel" style="color:var(--text-muted)">OFF</span>
           </label>
         </div>
+
+        <!-- ===== WORKOUT ROOM STRIP ===== -->
+        <div id="roomIdleControls" style="display:flex;gap:8px;margin-bottom:14px">
+          <button class="btn" style="flex:1;background:linear-gradient(135deg,#7c3aed,#6d28d9)" onclick="openCreateRoomModal()">👥 Create Room</button>
+          <button class="btn" style="flex:1;background:linear-gradient(135deg,#0891b2,#0e7490)" onclick="openJoinRoomModal()">🔑 Enter Room ID</button>
+        </div>
+        <div id="memberRoomWaitingStrip" style="display:none;background:var(--bg-card);border:1px solid #f59e0b;border-radius:14px;padding:12px 14px;margin-bottom:14px">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+            <div style="font-family:var(--font-alt);font-size:12px;font-weight:800;color:#f59e0b;letter-spacing:0.5px">
+              ⏳ WAITING FOR APPROVAL — Room <span id="memberWaitingRoomIdText"></span> · hosted by <span id="memberWaitingHostName"></span>
+            </div>
+            <button class="action-icon-btn delete" style="width:auto;padding:4px 10px;font-size:11px" onclick="leaveWorkoutRoom()">Cancel</button>
+          </div>
+          <div style="margin-top:8px;font-family:var(--font-alt);font-size:11.5px;color:var(--text-muted)">The host needs to approve you before you can join this room.</div>
+        </div>
+        <div id="memberRoomStrip" style="display:none;background:var(--bg-card);border:1px solid var(--accent);border-radius:14px;padding:12px 14px;margin-bottom:14px">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+            <div style="font-family:var(--font-alt);font-size:12px;font-weight:800;color:var(--accent);letter-spacing:0.5px">
+              🙋 IN ROOM <span id="memberRoomIdText"></span> · hosted by <span id="memberRoomHostName"></span>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px">
+              <span id="memberRoomTimerText" style="font-family:var(--font-alt);font-size:12px;font-weight:800;color:var(--text-muted)"></span>
+              <button class="action-icon-btn delete" style="width:auto;padding:4px 10px;font-size:11px" onclick="leaveWorkoutRoom()">Leave Room</button>
+            </div>
+          </div>
+          <div style="margin-top:8px;font-family:var(--font-alt);font-size:11.5px;color:var(--text-muted)">Ask your host to switch their Workout Log Manager to your name to log entries.</div>
+        </div>
+        <div id="roomActiveStrip" style="display:none;background:var(--bg-card);border:1px solid var(--accent);border-radius:14px;padding:12px 14px;margin-bottom:14px">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+            <div style="font-family:var(--font-alt);font-size:12px;font-weight:800;color:var(--accent);letter-spacing:0.5px">
+              ROOM <span id="roomIdBadgeText"></span> <span id="roomOwnerBadge" style="color:var(--text-muted);font-weight:700"></span>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px">
+              <span id="roomTimerText" style="font-family:var(--font-alt);font-size:12px;font-weight:800;color:var(--text-muted)"></span>
+              <button class="action-icon-btn delete" style="width:auto;padding:4px 10px;font-size:11px" onclick="endWorkoutRoom()" id="roomEndBtn">End Room</button>
+            </div>
+          </div>
+          <div class="room-approval-row" style="margin:10px 0 0">
+            <div>
+              <div class="room-approval-label" style="font-size:11px">🔒 Members need approval to join</div>
+            </div>
+            <div class="live-toggle" id="liveRoomApprovalToggle" onclick="toggleLiveRoomApproval()"><div class="live-toggle-knob"></div></div>
+          </div>
+          <div id="roomPendingStrip" style="display:none;gap:12px;margin-top:10px;flex-wrap:wrap;align-items:flex-start"></div>
+          <div id="roomMembersStrip" style="display:flex;gap:10px;margin-top:10px;flex-wrap:wrap;align-items:center"></div>
+          <div id="roomModeBanner" style="display:none;margin-top:10px;padding:8px 10px;background:var(--accent-soft);border-radius:10px;font-family:var(--font-alt);font-size:11.5px;color:var(--accent);font-weight:700">
+            ✏️ Editing <span id="roomModeBannerName"></span>'s workout — today only. <a href="#" style="color:inherit;text-decoration:underline" onclick="switchRoomTarget(null);return false">Switch back to me</a>
+          </div>
+        </div>
+
         <div style="margin-bottom:14px">
           <label style="font-size:12px;font-weight:700;color:var(--text-muted);font-family:var(--font-alt);letter-spacing:0.5px">FILTER BY DATE:</label>
           <input type="date" id="workoutCalendarFilter" onchange="loadWorkoutsForDate()">
+        </div>
+        <div id="roomTargetBadge" class="room-target-badge">
+          <div class="room-target-badge-avatar" id="roomTargetBadgeAvatarBox">🏋</div>
+          <div class="room-target-badge-text">You are adding/editing for<br><b id="roomTargetBadgeName"></b></div>
         </div>
         <div id="initialWorkoutBox">
           <button class="btn" onclick="showAddWorkoutForm()">+ ADD WORKOUT ENTRY</button>
         </div>
         <div id="workoutFormStructure" class="workout-form-wrapper" style="display:none">
           <h4 id="formActionTitle">LOG NEW ENTRY</h4>
+          <div class="ctm-muscle-eq-row">
+            <div>
+              <label>Muscle</label>
+              <select id="addWorkoutMuscleFilter" onchange="handleWorkoutSearchAuto()"></select>
+            </div>
+            <div>
+              <label>Equipment</label>
+              <select id="addWorkoutEquipmentFilter" onchange="handleWorkoutSearchAuto()"></select>
+            </div>
+          </div>
           <label style="font-size:12px;font-weight:700;color:var(--text-muted);font-family:var(--font-alt)">EXERCISE NAME:</label>
           <div class="suggestion-box">
-            <input type="text" id="workoutNameInput" placeholder="Type or Select (e.g. Bench Press)" oninput="handleWorkoutSearchAuto()" autocomplete="off">
+            <input type="text" id="workoutNameInput" placeholder="Type or Select (e.g. Bench Press)" oninput="handleWorkoutSearchAuto()" onfocus="handleWorkoutSearchAuto()" autocomplete="off">
+            <span class="sugg-dropdown-icon" id="workoutNameDropdownIcon" onclick="toggleWorkoutNameDropdown(event)">▼</span>
             <div id="autoSuggestions" class="suggestions-list"></div>
           </div>
           <button id="_inlineClassBtnNonLive" type="button" style="display:none;margin-top:6px;padding:7px 14px;border-radius:11px;border:1.5px solid var(--accent);background:var(--accent-soft);color:var(--accent);font-family:var(--font-alt);font-size:12px;font-weight:800;cursor:pointer;letter-spacing:0.4px" onclick="_triggerInlineClassPicker('workoutNameInput','nonlive')">🏷 Choose Class (optional)</button>
@@ -1946,6 +2096,8 @@ body.theme-godmode .levelup-toast{background:linear-gradient(135deg,#7a0006,#c00
               <span class="prev-perf-value" id="prevPerfValueNonLive">—</span>
             </div>
           </div>
+          <!-- Track Workout (Non-Live) — always available while an exercise name is entered, whether adding or editing -->
+          <button type="button" class="track-workout-btn" id="trackWorkoutBtnNonLive" onclick="trackWorkoutFromForm('nonlive')">📈 Track Workout</button>
           <label style="font-size:12px;font-weight:700;color:var(--text-muted);font-family:var(--font-alt)">SETS STRUCTURE:</label>
           <select id="setsCountSelect" style="margin-top:5px" onchange="handleSetsCountSelectChange()">
             <option value="1">1 Set</option><option value="2">2 Sets</option><option value="3">3 Sets</option>
@@ -1962,9 +2114,20 @@ body.theme-godmode .levelup-toast{background:linear-gradient(135deg,#7a0006,#c00
             <span class="live-dot"></span> LIVE WORKOUT SESSION
           </h4>
           <div id="liveSetupPanel">
+            <div class="ctm-muscle-eq-row">
+              <div>
+                <label>Muscle</label>
+                <select id="liveWorkoutMuscleFilter" onchange="handleLiveSearchAuto()"></select>
+              </div>
+              <div>
+                <label>Equipment</label>
+                <select id="liveWorkoutEquipmentFilter" onchange="handleLiveSearchAuto()"></select>
+              </div>
+            </div>
             <label style="font-size:12px;font-weight:700;color:var(--text-muted);font-family:var(--font-alt)">EXERCISE NAME:</label>
             <div class="suggestion-box">
-              <input type="text" id="liveWorkoutNameInput" placeholder="Type or Select (e.g. Bench Press)" oninput="handleLiveSearchAuto()" autocomplete="off">
+              <input type="text" id="liveWorkoutNameInput" placeholder="Type or Select (e.g. Bench Press)" oninput="handleLiveSearchAuto()" onfocus="handleLiveSearchAuto()" autocomplete="off">
+              <span class="sugg-dropdown-icon" id="liveWorkoutNameDropdownIcon" onclick="toggleLiveNameDropdown(event)">▼</span>
               <div id="liveAutoSuggestions" class="suggestions-list"></div>
             </div>
             <button id="_inlineClassBtnLive" type="button" style="display:none;margin-top:6px;padding:7px 14px;border-radius:11px;border:1.5px solid var(--accent);background:var(--accent-soft);color:var(--accent);font-family:var(--font-alt);font-size:12px;font-weight:800;cursor:pointer;letter-spacing:0.4px" onclick="_triggerInlineClassPicker('liveWorkoutNameInput','live')">🏷 Choose Class (optional)</button>
@@ -1976,6 +2139,8 @@ body.theme-godmode .levelup-toast{background:linear-gradient(135deg,#7a0006,#c00
                 <span class="prev-perf-value" id="prevPerfValueLive">—</span>
               </div>
             </div>
+            <!-- Track Workout (Live) — always available while an exercise name is entered, whether starting fresh or live-editing -->
+            <button type="button" class="track-workout-btn" id="trackWorkoutBtnLive" onclick="trackWorkoutFromForm('live')">📈 Track Workout</button>
             <label style="font-size:12px;font-weight:700;color:var(--text-muted);font-family:var(--font-alt);margin-top:6px;display:block">SETS STRUCTURE:</label>
             <select id="liveSetsCountSelect" style="margin-top:5px" onchange="handleLiveSetsCountSelectChange()">
               <option value="1">1 Set</option><option value="2">2 Sets</option><option value="3">3 Sets</option>
@@ -2005,6 +2170,16 @@ body.theme-godmode .levelup-toast{background:linear-gradient(135deg,#7a0006,#c00
         </div>
         <!-- Search + close bar — shown only when results are visible -->
         <div id="trackerSearchBar" style="display:none;margin-top:14px;position:relative">
+          <div class="ctm-muscle-eq-row">
+            <div>
+              <label>Muscle</label>
+              <select id="trackerMuscleFilter" onchange="handleTrackerSearch()"></select>
+            </div>
+            <div>
+              <label>Equipment</label>
+              <select id="trackerEquipmentFilter" onchange="handleTrackerSearch()"></select>
+            </div>
+          </div>
           <div style="display:flex;align-items:center;gap:10px">
             <div style="position:relative;flex:1">
               <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:15px;pointer-events:none">🔍</span>
@@ -2012,10 +2187,10 @@ body.theme-godmode .levelup-toast{background:linear-gradient(135deg,#7a0006,#c00
                 style="margin-top:0;padding-left:38px;border-radius:12px;font-size:13px">
               <div id="trackerSearchSuggestions" style="display:none;position:absolute;left:0;right:0;top:calc(100% + 4px);background:var(--bg-card);border:1px solid var(--border-col);border-radius:12px;max-height:200px;overflow-y:auto;z-index:200;box-shadow:0 8px 24px rgba(0,0,0,0.12)"></div>
             </div>
-            <button onclick="closeTrackerResults()" title="Close results"
-              style="flex-shrink:0;width:36px;height:36px;border-radius:10px;border:1px solid var(--border-col);background:var(--bg-card);color:var(--text-secondary);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s ease;font-weight:700;line-height:1"
+            <button onclick="closeTrackerResults()" title="Close"
+              style="flex-shrink:0;padding:0 16px;height:36px;border-radius:10px;border:1px solid var(--border-col);background:var(--bg-card);color:var(--text-secondary);font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;transition:all 0.2s ease;font-weight:700;font-family:var(--font-alt);letter-spacing:0.4px;line-height:1;white-space:nowrap"
               onmouseover="this.style.background='var(--accent-soft)';this.style.color='var(--accent)'"
-              onmouseout="this.style.background='var(--bg-card)';this.style.color='var(--text-secondary)'">✕</button>
+              onmouseout="this.style.background='var(--bg-card)';this.style.color='var(--text-secondary)'">✕ Close</button>
           </div>
         </div>
         <div id="trackerResultsArea"></div>
@@ -2035,6 +2210,10 @@ body.theme-godmode .levelup-toast{background:linear-gradient(135deg,#7a0006,#c00
               <div class="tracker-graph-detail-total" id="trackerGraphDetailTotal" style="display:none"></div>
             </div>
             <canvas id="trackerAnalyticsChart"></canvas>
+          </div>
+          <div class="tracker-graph-nav-row" id="trackerGraphNavRow">
+            <button type="button" class="tracker-graph-nav-btn" id="trackerGraphPrevBtn" onclick="navigateTrackerPoint(-1)" title="Previous point" aria-label="Previous point">‹</button>
+            <button type="button" class="tracker-graph-nav-btn" id="trackerGraphNextBtn" onclick="navigateTrackerPoint(1)" title="Next point" aria-label="Next point">›</button>
           </div>
         </div>
       </div>
@@ -2273,6 +2452,56 @@ body.theme-godmode .levelup-toast{background:linear-gradient(135deg,#7a0006,#c00
     </div>
 
   </div><!-- /memberDashboard -->
+
+  <!-- ===================== WORKOUT ROOM: CREATE MODAL ===================== -->
+  <div id="createRoomModalOverlay" class="room-modal-overlay">
+    <div class="room-modal">
+      <div class="room-modal-header"><h3>👥 Create Workout Room</h3><button class="ctm-close" onclick="closeCreateRoomModal()">✕</button></div>
+      <div id="createRoomStepPick">
+        <label class="room-modal-label">SESSION LENGTH (HOUR : MIN)</label>
+        <div class="time-picker-wrap">
+          <div class="time-picker-col" id="roomHourScroll" onscroll="onTimeScroll('hour')"></div>
+          <div class="time-picker-sep">:</div>
+          <div class="time-picker-col" id="roomMinScroll" onscroll="onTimeScroll('min')"></div>
+        </div>
+        <div style="display:flex;justify-content:center;gap:44px;margin-top:2px">
+          <span class="time-picker-unit">HOUR</span><span class="time-picker-unit">MIN</span>
+        </div>
+        <div class="time-picker-typed">
+          <input type="number" id="roomHourInput" min="0" max="12" value="0" onchange="onTimeTyped('hour')">
+          <span>h</span>
+          <input type="number" id="roomMinInput" min="0" max="59" value="30" onchange="onTimeTyped('min')">
+          <span>m</span>
+        </div>
+        <div class="room-approval-row">
+          <div>
+            <div class="room-approval-label">🔒 Members need approval to join</div>
+            <div class="room-approval-sub">If ON, you'll accept/reject each member who tries to join.</div>
+          </div>
+          <div class="live-toggle" id="createRoomApprovalToggle" onclick="toggleCreateRoomApproval()"><div class="live-toggle-knob"></div></div>
+        </div>
+        <button class="btn" style="margin-top:6px" onclick="confirmCreateRoom()">Create Room</button>
+      </div>
+      <div id="createRoomStepShare" style="display:none;text-align:center">
+        <div class="room-modal-label">SHARE THIS ROOM ID</div>
+        <div id="createRoomCodeDisplay" class="room-code-display"></div>
+        <div style="font-size:12px;color:var(--text-muted);font-family:var(--font-alt);margin-top:6px">Have up to 3 gym bros enter this code to join.</div>
+        <button class="btn" style="margin-top:16px" onclick="closeCreateRoomModal()">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== WORKOUT ROOM: JOIN MODAL ===================== -->
+  <div id="joinRoomModalOverlay" class="room-modal-overlay">
+    <div class="room-modal">
+      <div class="room-modal-header"><h3>🔑 Enter Room ID</h3><button class="ctm-close" onclick="closeJoinRoomModal()">✕</button></div>
+      <label class="room-modal-label">ROOM ID</label>
+      <input type="text" id="joinRoomIdInput" class="room-modal-select" placeholder="e.g. 483920" maxlength="6" style="text-align:center;letter-spacing:2px;font-weight:800">
+      <div style="font-size:11px;color:var(--text-muted);font-family:var(--font-alt);margin-top:8px">You'll join as your logged-in account.</div>
+      <button class="btn" style="margin-top:14px" onclick="confirmJoinRoom()">Join Room</button>
+      <div id="joinRoomError" style="display:none;margin-top:10px;color:#ef4444;font-size:12px;font-family:var(--font-alt);text-align:center"></div>
+    </div>
+  </div>
 
   <!-- ===================== CUSTOM THEME EDITOR MODAL ===================== -->
   <div id="customThemeModal" class="custom-theme-modal-overlay">
@@ -3129,7 +3358,7 @@ function ctmApplyCrop(){
 /* ===================== CLASS COLORS ===================== */
 const CLASS_COLORS={
   'Chest':'#3b82f6','Biceps':'#f97316','Triceps':'#8b5cf6','Shoulders':'#a855f7',
-  'Lats':'#06b6d4','Legs':'#10b981','Abs':'#ec4899','Cardio':'#eab308',
+  'Lats':'#06b6d4','Lat/Back':'#06b6d4','Legs':'#10b981','Abs':'#ec4899','Cardio':'#eab308',
   'Rest':'#94a3b8','Unknown':'#6b7280','Back':'#0ea5e9','Forearms':'#d97706',
   'Calves':'#84cc16','Glutes':'#f43f5e','Full Body':'#6366f1','Warmup':'#22d3ee'
 };
@@ -3322,99 +3551,379 @@ function calculateVolumeXP(s){
 const MULTI_CLASS_EXERCISES={
   "Dumbbell Press":["Chest","Biceps"],
   "Close Grip Bench Press":["Chest","Triceps"],
-  "Pull Up":["Lats","Biceps"],
-  "Chin Up":["Lats","Biceps"],
-  "Seated Row":["Lats","Back"],
-  "Bent Over Row":["Lats","Back"],
-  "Deadlift":["Lats","Back","Legs","Glutes"],
-  "Romanian Deadlift":["Legs","Glutes","Back"],
+  "Pull Up":["Lat/Back","Biceps"],
+  "Chin Up":["Lat/Back","Biceps"],
+  "Seated Row":["Lat/Back"],
+  "Bent Over Row":["Lat/Back"],
+  "Deadlift":["Lat/Back","Legs"],
+  "Romanian Deadlift":["Legs","Lat/Back"],
   "Arnold Press":["Shoulders","Triceps"],
   "Push Up":["Chest","Triceps","Shoulders"],
   "Diamond Push Up":["Chest","Triceps"],
   "Dips":["Chest","Triceps"],
-  "Cable Row":["Back","Lats","Biceps"],
-  "Face Pull":["Shoulders","Back"],
-  "Shrugs":["Shoulders","Back"],
-  "Good Morning":["Back","Glutes","Legs"],
+  "Cable Row":["Lat/Back","Biceps"],
+  "Face Pull":["Shoulders","Lat/Back"],
+  "Shrugs":["Shoulders","Lat/Back"],
+  "Good Morning":["Lat/Back","Legs"],
   "Plank":["Abs","Full Body"],
   "Burpees":["Full Body","Cardio"],
   "Mountain Climbers":["Cardio","Abs"],
   "Jump Squat":["Legs","Cardio"],
 };
 const EXERCISE_CATALOG=[
-  // Chest
-  {name:"Bench Press (Chest)",class:"Chest"},{name:"Incline Bench Press (Chest)",class:"Chest"},
-  {name:"Decline Bench Press (Chest)",class:"Chest"},{name:"Incline Dumbbell Press (Chest)",class:"Chest"},
-  {name:"Flat Dumbbell Press (Chest)",class:"Chest"},{name:"Cable Flyes (Chest)",class:"Chest"},
-  {name:"Pec Deck Flyes (Chest)",class:"Chest"},{name:"Chest Press Machine (Chest)",class:"Chest"},
-  {name:"Low to High Cable Fly (Chest)",class:"Chest"},{name:"High to Low Cable Fly (Chest)",class:"Chest"},
-  // Biceps
-  {name:"Bicep Curl (Biceps)",class:"Biceps"},{name:"Hammer Curl (Biceps)",class:"Biceps"},
-  {name:"Preacher Curl (Biceps)",class:"Biceps"},{name:"Concentration Curl (Biceps)",class:"Biceps"},
-  {name:"Cable Curl (Biceps)",class:"Biceps"},{name:"EZ Bar Curl (Biceps)",class:"Biceps"},
-  {name:"Incline Dumbbell Curl (Biceps)",class:"Biceps"},{name:"Reverse Curl (Biceps)",class:"Biceps"},
-  // Triceps
-  {name:"Tricep Pushdown (Triceps)",class:"Triceps"},{name:"Skull Crushers (Triceps)",class:"Triceps"},
-  {name:"Overhead Tricep Extension (Triceps)",class:"Triceps"},{name:"Tricep Kickback (Triceps)",class:"Triceps"},
-  {name:"Close Grip Press (Triceps)",class:"Triceps"},{name:"Rope Pushdown (Triceps)",class:"Triceps"},
-  {name:"Single Arm Pushdown (Triceps)",class:"Triceps"},
-  // Shoulders
-  {name:"Overhead Press (Shoulders)",class:"Shoulders"},{name:"Lateral Raise (Shoulders)",class:"Shoulders"},
-  {name:"Front Raise (Shoulders)",class:"Shoulders"},{name:"Rear Delt Fly (Shoulders)",class:"Shoulders"},
-  {name:"Seated Dumbbell Press (Shoulders)",class:"Shoulders"},{name:"Barbell Overhead Press (Shoulders)",class:"Shoulders"},
-  {name:"Cable Lateral Raise (Shoulders)",class:"Shoulders"},{name:"Upright Row (Shoulders)",class:"Shoulders"},
-  // Lats / Back
-  {name:"Lat Pulldown (Lats)",class:"Lats"},{name:"Barbell Row (Lats)",class:"Lats"},
-  {name:"T-Bar Row (Back)",class:"Back"},{name:"Single Arm Dumbbell Row (Back)",class:"Back"},
-  {name:"Rack Pull (Back)",class:"Back"},{name:"Hyperextension (Back)",class:"Back"},
-  {name:"Wide Grip Pulldown (Lats)",class:"Lats"},{name:"Straight Arm Pulldown (Lats)",class:"Lats"},
-  // Legs
-  {name:"Squats (Legs)",class:"Legs"},{name:"Leg Press (Legs)",class:"Legs"},
-  {name:"Leg Extension (Legs)",class:"Legs"},{name:"Leg Curl (Legs)",class:"Legs"},
-  {name:"Hack Squat (Legs)",class:"Legs"},{name:"Lunges (Legs)",class:"Legs"},
-  {name:"Bulgarian Split Squat (Legs)",class:"Legs"},{name:"Sumo Squat (Legs)",class:"Legs"},
-  {name:"Wall Sit (Legs)",class:"Legs"},{name:"Step Up (Legs)",class:"Legs"},
-  // Glutes
-  {name:"Hip Thrust (Glutes)",class:"Glutes"},{name:"Glute Bridge (Glutes)",class:"Glutes"},
-  {name:"Cable Kickback (Glutes)",class:"Glutes"},{name:"Donkey Kick (Glutes)",class:"Glutes"},
-  // Calves
-  {name:"Standing Calf Raise (Calves)",class:"Calves"},{name:"Seated Calf Raise (Calves)",class:"Calves"},
-  {name:"Donkey Calf Raise (Calves)",class:"Calves"},
-  // Abs
-  {name:"Crunches (Abs)",class:"Abs"},{name:"Hanging Leg Raises (Abs)",class:"Abs"},
-  {name:"Cable Crunch (Abs)",class:"Abs"},{name:"Russian Twist (Abs)",class:"Abs"},
-  {name:"Ab Wheel Rollout (Abs)",class:"Abs"},{name:"V-Ups (Abs)",class:"Abs"},
-  {name:"Decline Sit Up (Abs)",class:"Abs"},{name:"Side Plank (Abs)",class:"Abs"},
-  // Forearms
-  {name:"Wrist Curl (Forearms)",class:"Forearms"},{name:"Reverse Wrist Curl (Forearms)",class:"Forearms"},
-  {name:"Farmer's Walk (Forearms)",class:"Forearms"},
-  // Cardio / Warmup
-  {name:"Treadmill Sprint (Cardio)",class:"Cardio"},{name:"Cycling (Cardio)",class:"Cardio"},
-  {name:"Jump Rope (Cardio)",class:"Cardio"},{name:"Rowing Machine (Cardio)",class:"Cardio"},
-  {name:"Elliptical (Cardio)",class:"Cardio"},{name:"Box Jump (Cardio)",class:"Cardio"},
-  {name:"Push Up (Warmup)",class:"Warmup"},{name:"Jumping Jacks (Warmup)",class:"Warmup"},
-  {name:"High Knees (Warmup)",class:"Warmup"},{name:"Arm Circles (Warmup)",class:"Warmup"},
-  {name:"Leg Swings (Warmup)",class:"Warmup"},
-  // Full Body
-  {name:"Deadlift (Full Body)",class:"Full Body"},{name:"Burpees (Full Body)",class:"Full Body"},
-  {name:"Kettlebell Swing (Full Body)",class:"Full Body"},{name:"Clean and Press (Full Body)",class:"Full Body"},
+  // Chest (49)
+  {name:"Bench Press (Barbell)",class:"Chest",equipment:"Barbell"},{name:"Bench Press (Dumbbell)",class:"Chest",equipment:"Dumbbell"},
+  {name:"Bench Press (Cable)",class:"Chest",equipment:"Cable"},{name:"Bench Press (Smith Machine)",class:"Chest",equipment:"Smith Machine"},
+  {name:"Bench Press - Wide Grip (Barbell)",class:"Chest",equipment:"Barbell"},{name:"Decline Bench Press (Barbell)",class:"Chest",equipment:"Barbell"},
+  {name:"Decline Bench Press (Dumbbell)",class:"Chest",equipment:"Dumbbell"},{name:"Decline Bench Press (Machine)",class:"Chest",equipment:"Machine"},
+  {name:"Decline Bench Press (Smith Machine)",class:"Chest",equipment:"Smith Machine"},{name:"Feet Up Bench Press (Barbell)",class:"Chest",equipment:"Barbell"},
+  {name:"Incline Bench Press (Barbell)",class:"Chest",equipment:"Barbell"},{name:"Incline Bench Press (Dumbbell)",class:"Chest",equipment:"Dumbbell"},
+  {name:"Incline Bench Press (Smith Machine)",class:"Chest",equipment:"Smith Machine"},{name:"Chest Fly (Dumbbell)",class:"Chest",equipment:"Dumbbell"},
+  {name:"Chest Fly (Machine)",class:"Chest",equipment:"Machine"},{name:"Chest Fly (Band)",class:"Chest",equipment:"Band"},
+  {name:"Chest Fly (Suspension)",class:"Chest",equipment:"Suspension"},{name:"Decline Chest Fly (Dumbbell)",class:"Chest",equipment:"Dumbbell"},
+  {name:"Incline Chest Fly (Dumbbell)",class:"Chest",equipment:"Dumbbell"},{name:"Seated Chest Flys (Cable)",class:"Chest",equipment:"Cable"},
+  {name:"Assisted Chest Dip (Machine)",class:"Chest",equipment:"Machine"},{name:"Chest Dip (Bodyweight)",class:"Chest",equipment:"Bodyweight"},
+  {name:"Weighted Chest Dip (Bodyweight)",class:"Chest",equipment:"Bodyweight"},{name:"Chest Press (Machine)",class:"Chest",equipment:"Machine"},
+  {name:"Chest Press (Band)",class:"Chest",equipment:"Band"},{name:"Incline Chest Press (Machine)",class:"Chest",equipment:"Machine"},
+  {name:"Iso-Lateral Chest Press (Machine)",class:"Chest",equipment:"Machine"},{name:"Pec Deck Butterfly (Machine)",class:"Chest",equipment:"Machine"},
+  {name:"Squeeze Press (Dumbbell)",class:"Chest",equipment:"Dumbbell"},{name:"Hex Press (Dumbbell)",class:"Chest",equipment:"Dumbbell"},
+  {name:"Around The World (Dumbbell)",class:"Chest",equipment:"Dumbbell"},{name:"Floor Press (Barbell)",class:"Chest",equipment:"Barbell"},
+  {name:"Floor Press (Dumbbell)",class:"Chest",equipment:"Dumbbell"},{name:"Fly Crossovers (Cable)",class:"Chest",equipment:"Cable"},
+  {name:"Low Cable Fly Crossovers (Cable)",class:"Chest",equipment:"Cable"},{name:"Plate Press (Machine)",class:"Chest",equipment:"Machine"},
+  {name:"Ring Dips (Bodyweight)",class:"Chest",equipment:"Bodyweight"},{name:"Single Arm Cable Crossover (Cable)",class:"Chest",equipment:"Cable"},
+  {name:"Svend Press Plate Squeeze (Dumbbell)",class:"Chest",equipment:"Dumbbell"},{name:"Clap Push Ups (Bodyweight)",class:"Chest",equipment:"Bodyweight"},
+  {name:"Decline Push Up (Bodyweight)",class:"Chest",equipment:"Bodyweight"},{name:"Incline Push Ups (Bodyweight)",class:"Chest",equipment:"Bodyweight"},
+  {name:"Kneeling Push Up (Bodyweight)",class:"Chest",equipment:"Bodyweight"},{name:"One Arm Push Up (Bodyweight)",class:"Chest",equipment:"Bodyweight"},
+  {name:"Plank Pushup (Bodyweight)",class:"Chest",equipment:"Bodyweight"},{name:"Push Up (Bodyweight)",class:"Chest",equipment:"Bodyweight"},
+  {name:"Push Up - Close Grip (Bodyweight)",class:"Chest",equipment:"Bodyweight"},{name:"Ring Push Up (Bodyweight)",class:"Chest",equipment:"Bodyweight"},
+  {name:"Weighted Push Up (Bodyweight)",class:"Chest",equipment:"Bodyweight"},
+  // Biceps (36)
+  {name:"Preacher Curl (Barbell)",class:"Biceps",equipment:"Barbell"},{name:"Preacher Curl (Dumbbell)",class:"Biceps",equipment:"Dumbbell"},
+  {name:"Preacher Curl (Machine)",class:"Biceps",equipment:"Machine"},{name:"21s Bicep Curl (Barbell)",class:"Biceps",equipment:"Barbell"},
+  {name:"Bicep Curl (Barbell)",class:"Biceps",equipment:"Barbell"},{name:"Bicep Curl (Dumbbell)",class:"Biceps",equipment:"Dumbbell"},
+  {name:"Bicep Curl (Cable)",class:"Biceps",equipment:"Cable"},{name:"Bicep Curl (Machine)",class:"Biceps",equipment:"Machine"},
+  {name:"Bicep Curl (Suspension)",class:"Biceps",equipment:"Suspension"},{name:"Cross Body Hammer Curl (Dumbbell)",class:"Biceps",equipment:"Dumbbell"},
+  {name:"Hammer Curl (Dumbbell)",class:"Biceps",equipment:"Dumbbell"},{name:"Hammer Curl (Cable)",class:"Biceps",equipment:"Cable"},
+  {name:"Hammer Curl (Band)",class:"Biceps",equipment:"Band"},{name:"Concentration Curl (Dumbbell)",class:"Biceps",equipment:"Dumbbell"},
+  {name:"Reverse Grip Concentration Curl (Dumbbell)",class:"Biceps",equipment:"Dumbbell"},{name:"Spider Curl (Barbell)",class:"Biceps",equipment:"Barbell"},
+  {name:"Spider Curl (Dumbbell)",class:"Biceps",equipment:"Dumbbell"},{name:"Reverse Curl (Barbell)",class:"Biceps",equipment:"Barbell"},
+  {name:"Reverse Curl (Dumbbell)",class:"Biceps",equipment:"Dumbbell"},{name:"Reverse Curl (Cable)",class:"Biceps",equipment:"Cable"},
+  {name:"Biceps Curl (EZ Bar)",class:"Biceps",equipment:"EZ Bar"},{name:"Behind the Back Bicep Wrist Curl (Barbell)",class:"Biceps",equipment:"Barbell"},
+  {name:"Behind the Back Curl (Cable)",class:"Biceps",equipment:"Cable"},{name:"Curl (Kettlebell)",class:"Biceps",equipment:"Kettlebell"},
+  {name:"Drag Curl (Barbell)",class:"Biceps",equipment:"Barbell"},{name:"Overhead Curl (Cable)",class:"Biceps",equipment:"Cable"},
+  {name:"Pinwheel Curl (Dumbbell)",class:"Biceps",equipment:"Dumbbell"},{name:"Plate Curl (Machine)",class:"Biceps",equipment:"Machine"},
+  {name:"Rope Cable Curl (Cable)",class:"Biceps",equipment:"Cable"},{name:"Seated Incline Curl (Dumbbell)",class:"Biceps",equipment:"Dumbbell"},
+  {name:"Seated Palms Up Wrist Curl (Barbell)",class:"Biceps",equipment:"Barbell"},{name:"Seated Wrist Extension (Barbell)",class:"Biceps",equipment:"Barbell"},
+  {name:"Single Arm Curl (Cable)",class:"Biceps",equipment:"Cable"},{name:"Waiter Curl (Dumbbell)",class:"Biceps",equipment:"Dumbbell"},
+  {name:"Wrist Roller (Machine)",class:"Biceps",equipment:"Machine"},{name:"Zottman Curl (Dumbbell)",class:"Biceps",equipment:"Dumbbell"},
+  // Triceps (26)
+  {name:"Single Arm Triceps Pushdown (Cable)",class:"Triceps",equipment:"Cable"},{name:"Triceps Pushdown (Cable)",class:"Triceps",equipment:"Cable"},
+  {name:"Triceps Rope Pushdown (Cable)",class:"Triceps",equipment:"Cable"},{name:"Triceps Pressdown (Cable)",class:"Triceps",equipment:"Cable"},
+  {name:"Overhead Triceps Extension (Cable)",class:"Triceps",equipment:"Cable"},{name:"Triceps Extension (Barbell)",class:"Triceps",equipment:"Barbell"},
+  {name:"Triceps Extension (Dumbbell)",class:"Triceps",equipment:"Dumbbell"},{name:"Triceps Extension (Cable)",class:"Triceps",equipment:"Cable"},
+  {name:"Triceps Extension (Machine)",class:"Triceps",equipment:"Machine"},{name:"Triceps Extension (Suspension)",class:"Triceps",equipment:"Suspension"},
+  {name:"Skullcrusher (Barbell)",class:"Triceps",equipment:"Barbell"},{name:"Skullcrusher (Dumbbell)",class:"Triceps",equipment:"Dumbbell"},
+  {name:"Assisted Triceps Dip (Machine)",class:"Triceps",equipment:"Machine"},{name:"Floor Triceps Dip (Bodyweight)",class:"Triceps",equipment:"Bodyweight"},
+  {name:"Triceps Dip (Bodyweight)",class:"Triceps",equipment:"Bodyweight"},{name:"Weighted Triceps Dip (Bodyweight)",class:"Triceps",equipment:"Bodyweight"},
+  {name:"Bench Dip (Bodyweight)",class:"Triceps",equipment:"Bodyweight"},{name:"Triceps Kickback (Dumbbell)",class:"Triceps",equipment:"Dumbbell"},
+  {name:"Triceps Kickback (Cable)",class:"Triceps",equipment:"Cable"},{name:"Bench Press - Close Grip (Barbell)",class:"Triceps",equipment:"Barbell"},
+  {name:"Diamond Push Up (Bodyweight)",class:"Triceps",equipment:"Bodyweight"},{name:"JM Press (Barbell)",class:"Triceps",equipment:"Barbell"},
+  {name:"Seated Dip Machine (Machine)",class:"Triceps",equipment:"Machine"},{name:"Seated Triceps Press (Machine)",class:"Triceps",equipment:"Machine"},
+  {name:"Single Arm Tricep Extension (Dumbbell)",class:"Triceps",equipment:"Dumbbell"},{name:"Wide-Elbow Triceps Press (Dumbbell)",class:"Triceps",equipment:"Dumbbell"},
+  // Shoulders (47)
+  {name:"Overhead Press (Barbell)",class:"Shoulders",equipment:"Barbell"},{name:"Overhead Press (Dumbbell)",class:"Shoulders",equipment:"Dumbbell"},
+  {name:"Overhead Press (Smith Machine)",class:"Shoulders",equipment:"Smith Machine"},{name:"Seated Overhead Press (Barbell)",class:"Shoulders",equipment:"Barbell"},
+  {name:"Seated Overhead Press (Dumbbell)",class:"Shoulders",equipment:"Dumbbell"},{name:"Standing Military Press (Barbell)",class:"Shoulders",equipment:"Barbell"},
+  {name:"Plates Shoulder Press (Machine)",class:"Shoulders",equipment:"Machine"},{name:"Seated Shoulder Press (Machine)",class:"Shoulders",equipment:"Machine"},
+  {name:"Shoulder Press (Dumbbell)",class:"Shoulders",equipment:"Dumbbell"},{name:"Shoulder Press (Kettlebell)",class:"Shoulders",equipment:"Kettlebell"},
+  {name:"Lateral Raise (Dumbbell)",class:"Shoulders",equipment:"Dumbbell"},{name:"Lateral Raise (Cable)",class:"Shoulders",equipment:"Cable"},
+  {name:"Lateral Raise (Machine)",class:"Shoulders",equipment:"Machine"},{name:"Lateral Raise (Band)",class:"Shoulders",equipment:"Band"},
+  {name:"Seated Lateral Raise (Dumbbell)",class:"Shoulders",equipment:"Dumbbell"},{name:"Single Arm Lateral Raise (Cable)",class:"Shoulders",equipment:"Cable"},
+  {name:"Front Raise (Barbell)",class:"Shoulders",equipment:"Barbell"},{name:"Front Raise (Dumbbell)",class:"Shoulders",equipment:"Dumbbell"},
+  {name:"Front Raise (Cable)",class:"Shoulders",equipment:"Cable"},{name:"Front Raise (Band)",class:"Shoulders",equipment:"Band"},
+  {name:"Front Raise (Suspension)",class:"Shoulders",equipment:"Suspension"},{name:"Plate Front Raise (Machine)",class:"Shoulders",equipment:"Machine"},
+  {name:"Face Pull (Cable)",class:"Shoulders",equipment:"Cable"},{name:"Shrug (Barbell)",class:"Shoulders",equipment:"Barbell"},
+  {name:"Shrug (Dumbbell)",class:"Shoulders",equipment:"Dumbbell"},{name:"Shrug (Cable)",class:"Shoulders",equipment:"Cable"},
+  {name:"Shrug (Machine)",class:"Shoulders",equipment:"Machine"},{name:"Shrug (Smith Machine)",class:"Shoulders",equipment:"Smith Machine"},
+  {name:"Upright Row (Barbell)",class:"Shoulders",equipment:"Barbell"},{name:"Upright Row (Dumbbell)",class:"Shoulders",equipment:"Dumbbell"},
+  {name:"Upright Row (Cable)",class:"Shoulders",equipment:"Cable"},{name:"Rear Delt Reverse Fly (Dumbbell)",class:"Shoulders",equipment:"Dumbbell"},
+  {name:"Rear Delt Reverse Fly (Cable)",class:"Shoulders",equipment:"Cable"},{name:"Rear Delt Reverse Fly (Machine)",class:"Shoulders",equipment:"Machine"},
+  {name:"Arnold Press (Dumbbell)",class:"Shoulders",equipment:"Dumbbell"},{name:"Around the World (Kettlebell)",class:"Shoulders",equipment:"Kettlebell"},
+  {name:"Chest Supported Reverse Fly (Dumbbell)",class:"Shoulders",equipment:"Dumbbell"},{name:"Chest Supported Y Raise (Dumbbell)",class:"Shoulders",equipment:"Dumbbell"},
+  {name:"Halo (Kettlebell)",class:"Shoulders",equipment:"Kettlebell"},{name:"Handstand Push Up (Bodyweight)",class:"Shoulders",equipment:"Bodyweight"},
+  {name:"Overhead Plate Raise (Machine)",class:"Shoulders",equipment:"Machine"},{name:"Pike Pushup (Bodyweight)",class:"Shoulders",equipment:"Bodyweight"},
+  {name:"Pullaparts (Band)",class:"Shoulders",equipment:"Band"},{name:"Push Press (Barbell)",class:"Shoulders",equipment:"Barbell"},
+  {name:"Reverse Fly Single Arm (Cable)",class:"Shoulders",equipment:"Cable"},{name:"Shoulder Taps (Bodyweight)",class:"Shoulders",equipment:"Bodyweight"},
+  {name:"Single Arm Landmine Press (Barbell)",class:"Shoulders",equipment:"Barbell"},
+  // Lat/Back (52)
+  {name:"Assisted Pull Up (Machine)",class:"Lat/Back",equipment:"Machine"},{name:"Gironda Sternum Pull up (Bodyweight)",class:"Lat/Back",equipment:"Bodyweight"},
+  {name:"Kipping Pull Up (Bodyweight)",class:"Lat/Back",equipment:"Bodyweight"},{name:"Negative Pull Up (Bodyweight)",class:"Lat/Back",equipment:"Bodyweight"},
+  {name:"Pull Up (Band)",class:"Lat/Back",equipment:"Band"},{name:"Pull Up (Bodyweight)",class:"Lat/Back",equipment:"Bodyweight"},
+  {name:"Ring Pull Up (Bodyweight)",class:"Lat/Back",equipment:"Bodyweight"},{name:"Scapular Pull Ups (Bodyweight)",class:"Lat/Back",equipment:"Bodyweight"},
+  {name:"Weighted Pull Up (Bodyweight)",class:"Lat/Back",equipment:"Bodyweight"},{name:"Wide Pull Up (Bodyweight)",class:"Lat/Back",equipment:"Bodyweight"},
+  {name:"Lat Pulldown (Cable)",class:"Lat/Back",equipment:"Cable"},{name:"Lat Pulldown (Machine)",class:"Lat/Back",equipment:"Machine"},
+  {name:"Lat Pulldown (Band)",class:"Lat/Back",equipment:"Band"},{name:"Lat Pulldown - Close Grip (Cable)",class:"Lat/Back",equipment:"Cable"},
+  {name:"Reverse Grip Lat Pulldown (Cable)",class:"Lat/Back",equipment:"Cable"},{name:"Single Arm Lat Pulldown (Cable)",class:"Lat/Back",equipment:"Cable"},
+  {name:"Straight Arm Lat Pulldown (Cable)",class:"Lat/Back",equipment:"Cable"},{name:"Bent Over Row (Barbell)",class:"Lat/Back",equipment:"Barbell"},
+  {name:"Bent Over Row (Dumbbell)",class:"Lat/Back",equipment:"Dumbbell"},{name:"Bent Over Row (Band)",class:"Lat/Back",equipment:"Band"},
+  {name:"Seated Cable Row - Bar Grip (Cable)",class:"Lat/Back",equipment:"Cable"},{name:"Seated Cable Row - Bar Wide Grip (Cable)",class:"Lat/Back",equipment:"Cable"},
+  {name:"Seated Cable Row - V Grip (Cable)",class:"Lat/Back",equipment:"Cable"},{name:"Seated Row (Machine)",class:"Lat/Back",equipment:"Machine"},
+  {name:"T Bar Row (Machine)",class:"Lat/Back",equipment:"Machine"},{name:"Pendlay Row (Barbell)",class:"Lat/Back",equipment:"Barbell"},
+  {name:"Rack Pull (Barbell)",class:"Lat/Back",equipment:"Barbell"},{name:"Chest Supported Incline Row (Dumbbell)",class:"Lat/Back",equipment:"Dumbbell"},
+  {name:"Gorilla Row (Kettlebell)",class:"Lat/Back",equipment:"Kettlebell"},{name:"Inverted Row (Bodyweight)",class:"Lat/Back",equipment:"Bodyweight"},
+  {name:"Iso-Lateral High Row (Machine)",class:"Lat/Back",equipment:"Machine"},{name:"Iso-Lateral Low Row (Machine)",class:"Lat/Back",equipment:"Machine"},
+  {name:"Iso-Lateral Row (Machine)",class:"Lat/Back",equipment:"Machine"},{name:"Landmine Row (Barbell)",class:"Lat/Back",equipment:"Barbell"},
+  {name:"Low Row (Suspension)",class:"Lat/Back",equipment:"Suspension"},{name:"Meadows Rows (Barbell)",class:"Lat/Back",equipment:"Barbell"},
+  {name:"Renegade Row (Dumbbell)",class:"Lat/Back",equipment:"Dumbbell"},{name:"Row (Dumbbell)",class:"Lat/Back",equipment:"Dumbbell"},
+  {name:"Single Arm Cable Row (Cable)",class:"Lat/Back",equipment:"Cable"},{name:"Assisted Chin Up (Machine)",class:"Lat/Back",equipment:"Machine"},
+  {name:"Chin Up (Bodyweight)",class:"Lat/Back",equipment:"Bodyweight"},{name:"Weighted Chin Up (Bodyweight)",class:"Lat/Back",equipment:"Bodyweight"},
+  {name:"Back Extension (Machine)",class:"Lat/Back",equipment:"Machine"},{name:"Dead Hang (Bodyweight)",class:"Lat/Back",equipment:"Bodyweight"},
+  {name:"Hyperextension Back Extension (Bodyweight)",class:"Lat/Back",equipment:"Bodyweight"},{name:"Kneeling Pulldown (Band)",class:"Lat/Back",equipment:"Band"},
+  {name:"Pullover (Dumbbell)",class:"Lat/Back",equipment:"Dumbbell"},{name:"Pullover (Machine)",class:"Lat/Back",equipment:"Machine"},
+  {name:"Rope Straight Arm Pulldown (Cable)",class:"Lat/Back",equipment:"Cable"},{name:"Superman (Bodyweight)",class:"Lat/Back",equipment:"Bodyweight"},
+  {name:"Vertical Traction (Machine)",class:"Lat/Back",equipment:"Machine"},{name:"Weighted Hyperextension Back Extension (Bodyweight)",class:"Lat/Back",equipment:"Bodyweight"},
+  // Legs (104)
+  {name:"Assisted Pistol Squats (Machine)",class:"Legs",equipment:"Machine"},{name:"Belt Squat (Machine)",class:"Legs",equipment:"Machine"},
+  {name:"Box Squat (Barbell)",class:"Legs",equipment:"Barbell"},{name:"Bulgarian Split Squat (Dumbbell)",class:"Legs",equipment:"Dumbbell"},
+  {name:"Front Squat (Barbell)",class:"Legs",equipment:"Barbell"},{name:"Full Squat (Barbell)",class:"Legs",equipment:"Barbell"},
+  {name:"Goblet Squat (Dumbbell)",class:"Legs",equipment:"Dumbbell"},{name:"Goblet Squat (Kettlebell)",class:"Legs",equipment:"Kettlebell"},
+  {name:"Hack Squat (Barbell)",class:"Legs",equipment:"Barbell"},{name:"Hack Squat (Machine)",class:"Legs",equipment:"Machine"},
+  {name:"Jump Squat (Bodyweight)",class:"Legs",equipment:"Bodyweight"},{name:"Lateral Squat (Bodyweight)",class:"Legs",equipment:"Bodyweight"},
+  {name:"Pause Squat (Barbell)",class:"Legs",equipment:"Barbell"},{name:"Pendulum Squat (Machine)",class:"Legs",equipment:"Machine"},
+  {name:"Pistol Squat (Bodyweight)",class:"Legs",equipment:"Bodyweight"},{name:"Split Squat (Dumbbell)",class:"Legs",equipment:"Dumbbell"},
+  {name:"Squat (Barbell)",class:"Legs",equipment:"Barbell"},{name:"Squat (Dumbbell)",class:"Legs",equipment:"Dumbbell"},
+  {name:"Squat (Machine)",class:"Legs",equipment:"Machine"},{name:"Squat (Smith Machine)",class:"Legs",equipment:"Smith Machine"},
+  {name:"Squat (Band)",class:"Legs",equipment:"Band"},{name:"Squat (Bodyweight)",class:"Legs",equipment:"Bodyweight"},
+  {name:"Squat (Suspension)",class:"Legs",equipment:"Suspension"},{name:"Sumo Squat (Barbell)",class:"Legs",equipment:"Barbell"},
+  {name:"Sumo Squat (Dumbbell)",class:"Legs",equipment:"Dumbbell"},{name:"Sumo Squat (Kettlebell)",class:"Legs",equipment:"Kettlebell"},
+  {name:"Sumo Squat (Bodyweight)",class:"Legs",equipment:"Bodyweight"},{name:"Weighted Sissy Squat (Bodyweight)",class:"Legs",equipment:"Bodyweight"},
+  {name:"Zercher Squat (Barbell)",class:"Legs",equipment:"Barbell"},{name:"Leg Press (Machine)",class:"Legs",equipment:"Machine"},
+  {name:"Leg Press Horizontal (Machine)",class:"Legs",equipment:"Machine"},{name:"Single Leg Press (Machine)",class:"Legs",equipment:"Machine"},
+  {name:"Romanian Deadlift (Barbell)",class:"Legs",equipment:"Barbell"},{name:"Romanian Deadlift (Dumbbell)",class:"Legs",equipment:"Dumbbell"},
+  {name:"Single Leg Romanian Deadlift (Barbell)",class:"Legs",equipment:"Barbell"},{name:"Single Leg Romanian Deadlift (Dumbbell)",class:"Legs",equipment:"Dumbbell"},
+  {name:"Deadlift (Barbell)",class:"Legs",equipment:"Barbell"},{name:"Deadlift (Dumbbell)",class:"Legs",equipment:"Dumbbell"},
+  {name:"Deadlift (Smith Machine)",class:"Legs",equipment:"Smith Machine"},{name:"Deadlift (Band)",class:"Legs",equipment:"Band"},
+  {name:"Straight Leg Deadlift (Barbell)",class:"Legs",equipment:"Barbell"},{name:"Sumo Deadlift (Barbell)",class:"Legs",equipment:"Barbell"},
+  {name:"Trap bar Deadlift (Barbell)",class:"Legs",equipment:"Barbell"},{name:"Curtsy Lunge (Dumbbell)",class:"Legs",equipment:"Dumbbell"},
+  {name:"Jumping Lunge (Bodyweight)",class:"Legs",equipment:"Bodyweight"},{name:"Lateral Lunge (Bodyweight)",class:"Legs",equipment:"Bodyweight"},
+  {name:"Lunge (Barbell)",class:"Legs",equipment:"Barbell"},{name:"Lunge (Dumbbell)",class:"Legs",equipment:"Dumbbell"},
+  {name:"Lunge (Bodyweight)",class:"Legs",equipment:"Bodyweight"},{name:"Overhead Dumbbell Lunge (Dumbbell)",class:"Legs",equipment:"Dumbbell"},
+  {name:"Reverse Lunge (Barbell)",class:"Legs",equipment:"Barbell"},{name:"Reverse Lunge (Dumbbell)",class:"Legs",equipment:"Dumbbell"},
+  {name:"Reverse Lunge (Bodyweight)",class:"Legs",equipment:"Bodyweight"},{name:"Walking Lunge (Dumbbell)",class:"Legs",equipment:"Dumbbell"},
+  {name:"Walking Lunge (Bodyweight)",class:"Legs",equipment:"Bodyweight"},{name:"Leg Extension (Machine)",class:"Legs",equipment:"Machine"},
+  {name:"Single Leg Extensions (Bodyweight)",class:"Legs",equipment:"Bodyweight"},{name:"Lying Leg Curl (Machine)",class:"Legs",equipment:"Machine"},
+  {name:"Seated Leg Curl (Machine)",class:"Legs",equipment:"Machine"},{name:"Standing Leg Curls (Machine)",class:"Legs",equipment:"Machine"},
+  {name:"Hip Thrust (Barbell)",class:"Legs",equipment:"Barbell"},{name:"Hip Thrust (Machine)",class:"Legs",equipment:"Machine"},
+  {name:"Hip Thrust (Smith Machine)",class:"Legs",equipment:"Smith Machine"},{name:"Hip Thrust (Bodyweight)",class:"Legs",equipment:"Bodyweight"},
+  {name:"Single Leg Hip Thrust (Dumbbell)",class:"Legs",equipment:"Dumbbell"},{name:"Single Leg Hip Thrust (Bodyweight)",class:"Legs",equipment:"Bodyweight"},
+  {name:"Seated Calf Raise (Machine)",class:"Legs",equipment:"Machine"},{name:"Single Leg Standing Calf Raise (Barbell)",class:"Legs",equipment:"Barbell"},
+  {name:"Single Leg Standing Calf Raise (Dumbbell)",class:"Legs",equipment:"Dumbbell"},{name:"Single Leg Standing Calf Raise (Machine)",class:"Legs",equipment:"Machine"},
+  {name:"Single Leg Standing Calf Raise (Bodyweight)",class:"Legs",equipment:"Bodyweight"},{name:"Standing Calf Raise (Barbell)",class:"Legs",equipment:"Barbell"},
+  {name:"Standing Calf Raise (Dumbbell)",class:"Legs",equipment:"Dumbbell"},{name:"Standing Calf Raise (Machine)",class:"Legs",equipment:"Machine"},
+  {name:"Standing Calf Raise (Smith Machine)",class:"Legs",equipment:"Smith Machine"},
+  {name:"Bird Dog (Bodyweight)",class:"Legs",equipment:"Bodyweight"},{name:"Box Jump (Bodyweight)",class:"Legs",equipment:"Bodyweight"},
+  {name:"Calf Extension (Machine)",class:"Legs",equipment:"Machine"},{name:"Calf Press (Machine)",class:"Legs",equipment:"Machine"},
+  {name:"Clamshell (Bodyweight)",class:"Legs",equipment:"Bodyweight"},{name:"Fire Hydrants (Bodyweight)",class:"Legs",equipment:"Bodyweight"},
+  {name:"Frog Jumps (Bodyweight)",class:"Legs",equipment:"Bodyweight"},{name:"Frog Pumps (Dumbbell)",class:"Legs",equipment:"Dumbbell"},
+  {name:"Glute Bridge (Bodyweight)",class:"Legs",equipment:"Bodyweight"},{name:"Glute Ham Raise (Machine)",class:"Legs",equipment:"Machine"},
+  {name:"Glute Kickback (Machine)",class:"Legs",equipment:"Machine"},{name:"Glute Kickback on Floor (Bodyweight)",class:"Legs",equipment:"Bodyweight"},
+  {name:"Good Morning (Barbell)",class:"Legs",equipment:"Barbell"},{name:"Hip Abduction (Machine)",class:"Legs",equipment:"Machine"},
+  {name:"Hip Adduction (Machine)",class:"Legs",equipment:"Machine"},{name:"Lateral Band Walks (Band)",class:"Legs",equipment:"Band"},
+  {name:"Lateral Box Jump (Bodyweight)",class:"Legs",equipment:"Bodyweight"},{name:"Lateral Leg Raises (Bodyweight)",class:"Legs",equipment:"Bodyweight"},
+  {name:"Nordic Hamstrings Curls (Bodyweight)",class:"Legs",equipment:"Bodyweight"},{name:"Partial Glute Bridge (Barbell)",class:"Legs",equipment:"Barbell"},
+  {name:"Pull Through (Cable)",class:"Legs",equipment:"Cable"},{name:"Rear Kick (Machine)",class:"Legs",equipment:"Machine"},
+  {name:"Reverse Hyperextension (Machine)",class:"Legs",equipment:"Machine"},{name:"Single Leg Glute Bridge (Bodyweight)",class:"Legs",equipment:"Bodyweight"},
+  {name:"Standing Cable Glute Kickbacks (Cable)",class:"Legs",equipment:"Cable"},{name:"Step Up (Dumbbell)",class:"Legs",equipment:"Dumbbell"},
+  {name:"Step Up (Bodyweight)",class:"Legs",equipment:"Bodyweight"},{name:"Wall Sit (Bodyweight)",class:"Legs",equipment:"Bodyweight"},
+  // Abs (35)
+  {name:"Plank (Bodyweight)",class:"Abs",equipment:"Bodyweight"},{name:"Reverse Plank (Bodyweight)",class:"Abs",equipment:"Bodyweight"},
+  {name:"Side Plank (Bodyweight)",class:"Abs",equipment:"Bodyweight"},{name:"Hanging Leg Raise (Bodyweight)",class:"Abs",equipment:"Bodyweight"},
+  {name:"Leg Raise Parallel Bars (Bodyweight)",class:"Abs",equipment:"Bodyweight"},{name:"Lying Leg Raise (Bodyweight)",class:"Abs",equipment:"Bodyweight"},
+  {name:"Jackknife Sit Up (Bodyweight)",class:"Abs",equipment:"Bodyweight"},{name:"Sit Up (Bodyweight)",class:"Abs",equipment:"Bodyweight"},
+  {name:"Weighted Sit Up (Bodyweight)",class:"Abs",equipment:"Bodyweight"},{name:"Decline Crunch (Bodyweight)",class:"Abs",equipment:"Bodyweight"},
+  {name:"Oblique Crunch (Bodyweight)",class:"Abs",equipment:"Bodyweight"},{name:"Reverse Crunch (Bodyweight)",class:"Abs",equipment:"Bodyweight"},
+  {name:"Weighted Decline Crunch (Bodyweight)",class:"Abs",equipment:"Bodyweight"},{name:"Russian Twist (Bodyweight)",class:"Abs",equipment:"Bodyweight"},
+  {name:"Weighted Russian Twist (Bodyweight)",class:"Abs",equipment:"Bodyweight"},{name:"Toes to Bar (Bodyweight)",class:"Abs",equipment:"Bodyweight"},
+  {name:"V Up (Bodyweight)",class:"Abs",equipment:"Bodyweight"},{name:"Dead Bug (Bodyweight)",class:"Abs",equipment:"Bodyweight"},
+  {name:"Dragon Flag (Bodyweight)",class:"Abs",equipment:"Bodyweight"},{name:"Dragonfly (Bodyweight)",class:"Abs",equipment:"Bodyweight"},
+  {name:"Elbow to Knee (Bodyweight)",class:"Abs",equipment:"Bodyweight"},{name:"Flutter Kicks (Bodyweight)",class:"Abs",equipment:"Bodyweight"},
+  {name:"Hanging Knee Raise (Bodyweight)",class:"Abs",equipment:"Bodyweight"},{name:"Heel Taps (Bodyweight)",class:"Abs",equipment:"Bodyweight"},
+  {name:"Hollow Rock (Bodyweight)",class:"Abs",equipment:"Bodyweight"},{name:"Jack Knife (Suspension)",class:"Abs",equipment:"Suspension"},
+  {name:"Knee Raise Parallel Bars (Bodyweight)",class:"Abs",equipment:"Bodyweight"},{name:"L-Sit Hold (Bodyweight)",class:"Abs",equipment:"Bodyweight"},
+  {name:"Landmine 180 (Bodyweight)",class:"Abs",equipment:"Bodyweight"},{name:"Lying Knee Raise (Bodyweight)",class:"Abs",equipment:"Bodyweight"},
+  {name:"Side Bend (Dumbbell)",class:"Abs",equipment:"Dumbbell"},{name:"Side Bend (Bodyweight)",class:"Abs",equipment:"Bodyweight"},
+  {name:"Spiderman (Bodyweight)",class:"Abs",equipment:"Bodyweight"},{name:"Toe Touch (Bodyweight)",class:"Abs",equipment:"Bodyweight"},
+  {name:"Torso Rotation (Bodyweight)",class:"Abs",equipment:"Bodyweight"},
+  // Cardio (20)
+  {name:"Treadmill Sprint (Machine)",class:"Cardio",equipment:"Machine"},{name:"Treadmill Incline Walk (Machine)",class:"Cardio",equipment:"Machine"},
+  {name:"Stationary Cycling (Machine)",class:"Cardio",equipment:"Machine"},{name:"Rowing Machine (Machine)",class:"Cardio",equipment:"Machine"},
+  {name:"Jump Rope (Bodyweight)",class:"Cardio",equipment:"Bodyweight"},{name:"Elliptical (Machine)",class:"Cardio",equipment:"Machine"},
+  {name:"Stair Climber (Machine)",class:"Cardio",equipment:"Machine"},{name:"Assault Bike (Machine)",class:"Cardio",equipment:"Machine"},
+  {name:"Battle Ropes (Bodyweight)",class:"Cardio",equipment:"Bodyweight"},{name:"Box Jump (Bodyweight)",class:"Cardio",equipment:"Bodyweight"},
+  {name:"Cardio Burpees (Bodyweight)",class:"Cardio",equipment:"Bodyweight"},{name:"Farmer's Carry (Dumbbell)",class:"Cardio",equipment:"Dumbbell"},
+  {name:"High Knees (Bodyweight)",class:"Cardio",equipment:"Bodyweight"},{name:"Jumping Jacks (Bodyweight)",class:"Cardio",equipment:"Bodyweight"},
+  {name:"Outdoor Running (Bodyweight)",class:"Cardio",equipment:"Bodyweight"},{name:"Shadow Boxing (Bodyweight)",class:"Cardio",equipment:"Bodyweight"},
+  {name:"Skater Jumps (Bodyweight)",class:"Cardio",equipment:"Bodyweight"},{name:"Sled Pull (Machine)",class:"Cardio",equipment:"Machine"},
+  {name:"Sled Push (Machine)",class:"Cardio",equipment:"Machine"},{name:"Swimming (Bodyweight)",class:"Cardio",equipment:"Bodyweight"},
+  // Warmup (15)
+  {name:"Jumping Jacks (Bodyweight)",class:"Warmup",equipment:"Bodyweight"},{name:"Arm Circles (Bodyweight)",class:"Warmup",equipment:"Bodyweight"},
+  {name:"Leg Swings (Bodyweight)",class:"Warmup",equipment:"Bodyweight"},{name:"Squat (Bodyweight)",class:"Warmup",equipment:"Bodyweight"},
+  {name:"High Knees (Bodyweight)",class:"Warmup",equipment:"Bodyweight"},{name:"Walking Lunge (Bodyweight)",class:"Warmup",equipment:"Bodyweight"},
+  {name:"Hip Circles (Bodyweight)",class:"Warmup",equipment:"Bodyweight"},{name:"Torso Twists (Bodyweight)",class:"Warmup",equipment:"Bodyweight"},
+  {name:"Cat Cow Stretch (Bodyweight)",class:"Warmup",equipment:"Bodyweight"},{name:"Glute Bridge Warmup (Bodyweight)",class:"Warmup",equipment:"Bodyweight"},
+  {name:"Inchworm (Bodyweight)",class:"Warmup",equipment:"Bodyweight"},{name:"Pull Apart (Band)",class:"Warmup",equipment:"Band"},
+  {name:"Push Up (Bodyweight)",class:"Warmup",equipment:"Bodyweight"},{name:"Shoulder Dislocates (Band)",class:"Warmup",equipment:"Band"},
+  {name:"World's Greatest Stretch (Bodyweight)",class:"Warmup",equipment:"Bodyweight"},
+  // Full Body (40)
+  {name:"Burpee (Bodyweight)",class:"Full Body",equipment:"Bodyweight"},{name:"Burpee Over the Bar (Barbell)",class:"Full Body",equipment:"Barbell"},
+  {name:"Clean and Press (Barbell)",class:"Full Body",equipment:"Barbell"},{name:"Power Clean (Barbell)",class:"Full Body",equipment:"Barbell"},
+  {name:"Clean and Jerk (Barbell)",class:"Full Body",equipment:"Barbell"},{name:"Thruster (Barbell)",class:"Full Body",equipment:"Barbell"},
+  {name:"Thruster (Kettlebell)",class:"Full Body",equipment:"Kettlebell"},{name:"Farmers Walk (Dumbbell)",class:"Full Body",equipment:"Dumbbell"},
+  {name:"Wall Ball (Machine)",class:"Full Body",equipment:"Machine"},{name:"Mountain Climber (Bodyweight)",class:"Full Body",equipment:"Bodyweight"},
+  {name:"Ball Slams (Machine)",class:"Full Body",equipment:"Machine"},{name:"Clean (Barbell)",class:"Full Body",equipment:"Barbell"},
+  {name:"Clean (Kettlebell)",class:"Full Body",equipment:"Kettlebell"},{name:"Clean Pull (Barbell)",class:"Full Body",equipment:"Barbell"},
+  {name:"Deadlift High Pull (Barbell)",class:"Full Body",equipment:"Barbell"},{name:"Downward Dog (Bodyweight)",class:"Full Body",equipment:"Bodyweight"},
+  {name:"Front Lever Hold (Bodyweight)",class:"Full Body",equipment:"Bodyweight"},{name:"Front Lever Raise (Bodyweight)",class:"Full Body",equipment:"Bodyweight"},
+  {name:"Handstand Hold (Bodyweight)",class:"Full Body",equipment:"Bodyweight"},{name:"Hang Clean (Barbell)",class:"Full Body",equipment:"Barbell"},
+  {name:"Hang Snatch (Barbell)",class:"Full Body",equipment:"Barbell"},{name:"High Knee Skips (Bodyweight)",class:"Full Body",equipment:"Bodyweight"},
+  {name:"High Knees (Bodyweight)",class:"Full Body",equipment:"Bodyweight"},{name:"High Pull (Kettlebell)",class:"Full Body",equipment:"Kettlebell"},
+  {name:"Jump Shrug (Barbell)",class:"Full Body",equipment:"Barbell"},{name:"Jumping Jack (Bodyweight)",class:"Full Body",equipment:"Bodyweight"},
+  {name:"Landmine Squat and Press (Barbell)",class:"Full Body",equipment:"Barbell"},{name:"Muscle Up (Bodyweight)",class:"Full Body",equipment:"Bodyweight"},
+  {name:"Overhead Squat (Barbell)",class:"Full Body",equipment:"Barbell"},{name:"Pilates (Bodyweight)",class:"Full Body",equipment:"Bodyweight"},
+  {name:"Power Snatch (Barbell)",class:"Full Body",equipment:"Barbell"},{name:"Press Under (Barbell)",class:"Full Body",equipment:"Barbell"},
+  {name:"Sled Push (Machine)",class:"Full Body",equipment:"Machine"},{name:"Snatch (Barbell)",class:"Full Body",equipment:"Barbell"},
+  {name:"Snatch (Dumbbell)",class:"Full Body",equipment:"Dumbbell"},{name:"Snatch (Kettlebell)",class:"Full Body",equipment:"Kettlebell"},
+  {name:"Split Jerk (Barbell)",class:"Full Body",equipment:"Barbell"},{name:"Squat Row (Machine)",class:"Full Body",equipment:"Machine"},
+  {name:"Swing (Kettlebell)",class:"Full Body",equipment:"Kettlebell"},{name:"Turkish Get Up (Kettlebell)",class:"Full Body",equipment:"Kettlebell"},
   // Multi-class (user picks class)
-  {name:"Dumbbell Press",class:"multi"},{name:"Pull Up",class:"multi"},
-  {name:"Chin Up",class:"multi"},{name:"Dips",class:"multi"},
-  {name:"Push Up",class:"multi"},{name:"Arnold Press",class:"multi"},
-  {name:"Romanian Deadlift",class:"multi"},{name:"Face Pull",class:"multi"},
-  {name:"Close Grip Bench Press",class:"multi"},{name:"Bent Over Row",class:"multi"},
-  {name:"Seated Row",class:"multi"},{name:"Cable Row",class:"multi"},
+  {name:"Dumbbell Press",class:"multi",equipment:"Dumbbell"},{name:"Pull Up",class:"multi",equipment:"Bodyweight"},
+  {name:"Chin Up",class:"multi",equipment:"Bodyweight"},{name:"Dips",class:"multi",equipment:"Bodyweight"},
+  {name:"Push Up",class:"multi",equipment:"Bodyweight"},{name:"Arnold Press",class:"multi",equipment:"Dumbbell"},
+  {name:"Romanian Deadlift",class:"multi",equipment:"Barbell"},{name:"Face Pull",class:"multi",equipment:"Cable"},
+  {name:"Close Grip Bench Press",class:"multi",equipment:"Barbell"},{name:"Bent Over Row",class:"multi",equipment:"Barbell"},
+  {name:"Seated Row",class:"multi",equipment:"Cable"},{name:"Cable Row",class:"multi",equipment:"Cable"},
 ];
-/* Build lookup: exercise base name → class (strips the "(Class)" suffix) */
+/* Build lookup: exercise base name → class. The trailing "(...)" on a stored/typed name now holds
+   the Equipment tag, not the Class, so resolve class by matching the base name (parens stripped from
+   both sides) against the catalog rather than trusting whatever is inside the parens. A direct
+   exact-name match is tried first (covers manually class-tagged names from the "Choose Class" picker,
+   e.g. "Deadlift (Legs)", and legacy rows saved before this change), then falls back to a base-name match. */
 function getExerciseClass(nameRaw){
-  const m=nameRaw.match(/\(([^)]+)\)\s*$/);
-  if(m)return m[1];
-  const found=EXERCISE_CATALOG.find(e=>e.name===nameRaw||e.name.replace(/\s*\([^)]+\)/,'').trim()===nameRaw);
+  let found=EXERCISE_CATALOG.find(e=>e.name===nameRaw);
+  if(!found){
+    const base=nameRaw.replace(/\s*\([^)]+\)\s*$/,'').trim().toLowerCase();
+    found=EXERCISE_CATALOG.find(e=>e.name.replace(/\s*\([^)]+\)\s*$/,'').trim().toLowerCase()===base);
+  }
   return found&&found.class!=='multi'?found.class:'Unknown';
 }
-/* Strip "(Class)" suffix from exercise name for display/storage */
+/* Strip "(Equipment)" (or legacy "(Class)") suffix from exercise name for display/storage */
 function stripExerciseClass(name){return name.replace(/\s*\([^)]+\)\s*$/, '').trim();}
+/* Same lookup pattern as getExerciseClass(), but for the Equipment tag */
+function getExerciseEquipment(nameRaw){
+  const found=EXERCISE_CATALOG.find(e=>e.name===nameRaw||e.name.replace(/\s*\([^)]+\)/,'').trim()===nameRaw);
+  return found?found.equipment:'Unknown';
+}
+/* ===================== MUSCLE / EQUIPMENT DROPDOWNS (Add Workout + Tracker) ===================== */
+/* Muscle list is built from every real class actually used in the catalog (excluding "multi",
+   which is a picker flag, not a muscle) so it always stays in sync with the catalog above. */
+const MUSCLE_LIST=[...new Set(EXERCISE_CATALOG.filter(e=>e.class!=='multi').map(e=>e.class))];
+const EQUIPMENT_LIST=[...new Set(EXERCISE_CATALOG.map(e=>e.equipment))].sort();
+/* "Upper Body" / "Lower Body" are convenience super-groups over the specific muscle classes. */
+const MUSCLE_GROUP_MAP={
+  "Upper Body":["Chest","Biceps","Triceps","Shoulders","Lat/Back"],
+  "Lower Body":["Legs"],
+};
+/* Returns every catalog class that should match a chosen muscle-dropdown value — either the
+   class itself, or (for a super-group like "Upper Body") every class inside that group. */
+function ctmMuscleClassesFor(muscleVal){
+  if(!muscleVal)return null;
+  if(MUSCLE_GROUP_MAP[muscleVal])return MUSCLE_GROUP_MAP[muscleVal];
+  return [muscleVal];
+}
+/* Builds the <option> list shared by both Muscle dropdowns (Add Workout + Tracker). */
+function ctmBuildMuscleOptionsHTML(){
+  let html='<option value="">All Muscles</option>';
+  MUSCLE_LIST.forEach(m=>html+=`<option value="${m}">${m}</option>`);
+  html+='<option value="Upper Body">Upper Body</option><option value="Lower Body">Lower Body</option>';
+  return html;
+}
+function ctmBuildEquipmentOptionsHTML(){
+  let html='<option value="">All Equipment</option>';
+  EQUIPMENT_LIST.forEach(eq=>html+=`<option value="${eq}">${eq}</option>`);
+  return html;
+}
+function ctmInitMuscleEquipmentDropdowns(){
+  ['addWorkoutMuscleFilter','addWorkoutEquipmentFilter','trackerMuscleFilter','trackerEquipmentFilter','liveWorkoutMuscleFilter','liveWorkoutEquipmentFilter'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el&&!el.dataset.built){
+      el.innerHTML=id.toLowerCase().includes('muscle')?ctmBuildMuscleOptionsHTML():ctmBuildEquipmentOptionsHTML();
+      el.dataset.built='1';
+    }
+  });
+}
+/* Per-exercise frequency for the CURRENT user, used to sort "most-done first" for existing users.
+   Loaded once (fire-and-forget) right after login/session-restore in mountMemberDashboard(), then
+   cached — an empty map (brand-new user with no logged history yet) naturally falls back to the
+   catalog's own built-in order as a "most popular first" default. */
+window._exerciseFreqMap=null;
+async function loadExerciseFrequencyMap(){
+  const uid=localStorage.getItem("user_id");
+  const map={};
+  if(uid){
+    try{
+      const{data}=await db.from("workouts").select("*").eq("user_id",uid);
+      if(data){
+        data.forEach(row=>{
+          for(let ci=1;ci<=15;ci++){
+            const cell=row[`workout_${ci}`];
+            if(!cell||!cell.trim())continue;
+            const exName=cell.includes(':')?cell.substring(0,cell.indexOf(':')).trim():cell.trim();
+            map[exName]=(map[exName]||0)+1;
+          }
+        });
+      }
+    }catch(e){console.log('[ExerciseFreq] load failed',e);}
+  }
+  window._exerciseFreqMap=map;
+  return map;
+}
+/* Core filter+sort used by both the Add Workout suggestion box and the Tracker search.
+   - muscleVal / equipmentVal: current dropdown selections ('' = no filter)
+   - textVal: currently typed search text ('' = none)
+   - includeMulti: whether to include "user picks class at add-time" multi entries (Add Workout
+     wants these included so typing/selecting still works exactly as before; a pure muscle/equipment
+     browse list excludes them since they have no fixed class/equipment of their own to match against)
+   Sort order: always the catalog's own built-in order, which is a hand-curated "most popular
+   first" ranking per muscle group — the common Barbell/Dumbbell compound lifts come first, niche
+   accessory and bodyweight variants come last. This is deliberately NOT re-sorted by the current
+   user's personal log frequency, so picking a muscle always surfaces the same popular-first list
+   instead of whatever that one person happens to have logged the most. */
+function ctmGetFilteredCatalog(muscleVal,equipmentVal,textVal,includeMulti){
+  const classes=ctmMuscleClassesFor(muscleVal);
+  const text=(textVal||'').toLowerCase().trim();
+  let list=EXERCISE_CATALOG.filter(e=>{
+    if(e.class==='multi'){
+      if(!includeMulti)return false;
+      // multi entries have no fixed class, so only text search (not muscle filter) applies to them;
+      // equipment filter still applies since multi entries do carry a real equipment tag.
+      if(classes)return false;
+    }else if(classes&&!classes.includes(e.class)){
+      return false;
+    }
+    if(equipmentVal&&e.equipment!==equipmentVal)return false;
+    if(text&&!e.name.toLowerCase().includes(text))return false;
+    return true;
+  });
+  return list;
+}
+function _unusedFreqSort(list){
+  const freqMap=window._exerciseFreqMap;
+  const hasHistory=freqMap&&Object.keys(freqMap).length>0;
+  if(hasHistory){
+    list=[...list].sort((a,b)=>(freqMap[a.name]||0)-(freqMap[b.name]||0)).reverse();
+  }
+  return list;
+}
 document.getElementById('workoutCalendarFilter').value=getLocalDateString();
 
 /* ===================== TASK 1: REGISTRATION ===================== */
@@ -3484,6 +3993,9 @@ async function login(){
 async function mountMemberDashboard(data){
   document.getElementById("memberWelcome").innerText="Welcome Back, "+data.name;
   document.getElementById("profileDisplayName").textContent=data.name;
+  // Stored so "Enter Room ID" can identify this device's logged-in user automatically —
+  // members must never type someone else's Login ID to add entries on their behalf.
+  if(data.login_id)localStorage.setItem("user_login_id",String(data.login_id));
   document.getElementById("loginPage").style.display="none";
   document.getElementById("registerPage").style.display="none";
   document.getElementById("memberDashboard").style.display="block";
@@ -3505,6 +4017,13 @@ async function mountMemberDashboard(data){
   await switchMemberTab('dashPage');
   await resumeActiveSession(data.id);
   await renderTodayWorkoutBanner();
+  // Resume an in-progress workout room (as host or joined member) if one is saved for this device —
+  // covers page refresh AND logout→login, until the room's own timer/host ends it.
+  await restoreRoomSessionIfAny(data);
+  // Populate the Muscle/Equipment filter dropdowns (Add Workout + Tracker) and preload this
+  // user's exercise-frequency map (used to sort those dropdowns' results by "most done first").
+  ctmInitMuscleEquipmentDropdowns();
+  loadExerciseFrequencyMap();
   // Check for pending follow requests (for private accounts) — show pop-up notification
   setTimeout(checkIncomingFollowRequests,2000);
 }
@@ -3562,7 +4081,7 @@ function syncBottomNav(activeTabId){
 }
 
 /* ===================== SETTINGS PAGE ===================== */
-const WORKOUT_CLASSES=['Chest','Biceps','Triceps','Shoulders','Lats','Legs','Abs','Cardio','Full Body','Back','Forearms','Calves','Glutes'];
+const WORKOUT_CLASSES=['Chest','Biceps','Triceps','Shoulders','Lat/Back','Legs','Abs','Cardio','Warmup','Full Body'];
 const SCHEDULE_DAY_KEYS=['Day 1','Day 2','Day 3','Day 4','Day 5','Day 6','Day 7'];
 const REST_VALUE='Rest';
 
@@ -3938,12 +4457,15 @@ function showToast(msg){
 function logoutUser(){
   if(activeWorkoutTimer){clearInterval(activeWorkoutTimer);activeWorkoutTimer=null}
   activeSessionCheckInTimestamp=null;
+  // Tear down any live room subscriptions/timers, but keep the room-session key so it resumes on next login.
+  if(typeof teardownRoomUiOnLogout==='function')teardownRoomUiOnLogout();
   // Clear only the session/auth keys — NOT the whole of localStorage. Personalized settings
   // (workout schedule, default break timer, notification sound) are namespaced per user
   // (see settingsUid()) and must survive logout so they're there again on next login.
   localStorage.removeItem("user_id");
   localStorage.removeItem("user_uuid");
   localStorage.removeItem("user_name");
+  localStorage.removeItem("user_login_id");
   localStorage.removeItem("gymbro_session_active");
   localStorage.removeItem("gymbro_avatar_url");
   localStorage.removeItem("gymbro_bio");
@@ -4079,7 +4601,7 @@ function handleClassSelection(){
     for(let i=sel.options.length-1;i>=0;i--){if(sel.options[i].selected){sel.options[i].selected=false;break}}
     return handleClassSelection();
   }
-  const cm={Chest:["Chest_Left","Chest_Right"],Biceps:["Biceps_Left","Biceps_Right"],Triceps:["Triceps_Left","Triceps_Right"],Shoulders:["Shoulders_Left","Shoulders_Right"],Lats:["Lats_Left","Lats_Right"],Legs:["Legs_Front_L","Legs_Front_R","Legs_Back_L","Legs_Back_R"],Abs:["Abs"]};
+  const cm={Chest:["Chest_Left","Chest_Right"],Biceps:["Biceps_Left","Biceps_Right"],Triceps:["Triceps_Left","Triceps_Right"],Shoulders:["Shoulders_Left","Shoulders_Right"],"Lat/Back":["Lats_Left","Lats_Right"],Legs:["Legs_Front_L","Legs_Front_R","Legs_Back_L","Legs_Back_R"],Abs:["Abs"]};
   const cc={Chest:"#3b82f6",Biceps:"#f97316",Triceps:"#8b5cf6",Shoulders:"#a855f7",Lats:"#06b6d4",Legs:"#10b981",Abs:"#ec4899"};
   selected.forEach(val=>{if(cm[val])cm[val].forEach(id=>{let el=document.getElementById(id);if(el)el.style.fill=cc[val]||"#2563eb"})});
 }
@@ -6415,6 +6937,7 @@ window._pickExClass=function(inputId,baseName,cls,mode){
     window._selectedLiveWorkoutClass=cls;
     fetchPrevPerformance(fullName,'live');
   }
+  updateTrackWorkoutBtnVisibility(mode);
 };
 
 /* Show/hide the inline class button based on whether there's typed text without a class already */
@@ -6436,18 +6959,38 @@ function _triggerInlineClassPicker(inputId,mode){
   _showClassPickerForInput(inputId,baseName,mode);
 }
 
-function handleWorkoutSearchAuto(){
+function toggleWorkoutNameDropdown(e){
+  if(e)e.stopPropagation();
+  const box=document.getElementById("autoSuggestions");
+  const icon=document.getElementById("workoutNameDropdownIcon");
+  if(box.style.display==="block"){
+    box.style.display="none";
+    if(icon)icon.classList.remove("open");
+  }else{
+    handleWorkoutSearchAuto(true);
+    if(icon)icon.classList.add("open");
+  }
+}
+function handleWorkoutSearchAuto(forceShow){
   let val=document.getElementById("workoutNameInput").value.toLowerCase();
+  const muscleVal=document.getElementById("addWorkoutMuscleFilter")?document.getElementById("addWorkoutMuscleFilter").value:"";
+  const equipVal=document.getElementById("addWorkoutEquipmentFilter")?document.getElementById("addWorkoutEquipmentFilter").value:"";
   let box=document.getElementById("autoSuggestions");box.innerHTML="";box.style.display="none";
+  const icon=document.getElementById("workoutNameDropdownIcon");if(icon)icon.classList.remove("open");
   document.getElementById("prevPerfBadgeNonLive").classList.remove("visible");
+  updateTrackWorkoutBtnVisibility('nonlive');
   document.getElementById("quickFillCopyAllBtn").classList.remove("visible");
   if(_prevPerfNonLiveTimer)clearTimeout(_prevPerfNonLiveTimer);
   window._selectedWorkoutClass=null;
   _updateInlineClassBtn('workoutNameInput','_inlineClassBtnNonLive','nonlive');
-  if(!val){const nb=document.getElementById('_inlineClassBtnNonLive');if(nb)nb.style.display='none';return;}
-  let matches=EXERCISE_CATALOG.filter(e=>e.name.toLowerCase().includes(val));
+  // Show nothing only when there's no typed text AND no Muscle/Equipment filter selected AND the
+  // dropdown icon wasn't clicked — choosing either dropdown (even with the text box empty), or
+  // clicking the dropdown icon itself, should instantly show the (filtered) full list.
+  if(!forceShow&&!val&&!muscleVal&&!equipVal){const nb=document.getElementById('_inlineClassBtnNonLive');if(nb)nb.style.display='none';return;}
+  let matches=ctmGetFilteredCatalog(muscleVal,equipVal,val,true);
   if(matches.length){
     box.style.display="block";
+    if(icon)icon.classList.add("open");
     matches.forEach(item=>{
       let div=document.createElement("div");
       const clr=CLASS_COLORS[item.class]||'var(--text-muted)';
@@ -6456,10 +6999,12 @@ function handleWorkoutSearchAuto(){
       div.style.cssText='display:flex;align-items:center;justify-content:space-between;gap:6px';
       div.onclick=()=>{
         box.style.display="none";
+        if(icon)icon.classList.remove("open");
         if(_prevPerfNonLiveTimer)clearTimeout(_prevPerfNonLiveTimer);
         const nb=document.getElementById('_inlineClassBtnNonLive');if(nb)nb.style.display='none';
         if(item.class==='multi'){
           document.getElementById("workoutNameInput").value=item.name;
+          updateTrackWorkoutBtnVisibility('nonlive');
           _showClassPickerForInput('workoutNameInput',item.name,'nonlive');
         } else {
           document.getElementById("workoutNameInput").value=item.name;
@@ -6474,8 +7019,8 @@ function handleWorkoutSearchAuto(){
   _updateInlineClassBtn('workoutNameInput','_inlineClassBtnNonLive','nonlive');
 }
 document.addEventListener("click",e=>{
-  if(e.target.id!=="workoutNameInput")document.getElementById("autoSuggestions").style.display="none";
-  if(e.target.id!=="liveWorkoutNameInput")document.getElementById("liveAutoSuggestions").style.display="none";
+  if(e.target.id!=="workoutNameInput"&&e.target.id!=="workoutNameDropdownIcon"){document.getElementById("autoSuggestions").style.display="none";const wi=document.getElementById("workoutNameDropdownIcon");if(wi)wi.classList.remove("open");}
+  if(e.target.id!=="liveWorkoutNameInput"&&e.target.id!=="liveWorkoutNameDropdownIcon"){document.getElementById("liveAutoSuggestions").style.display="none";const li=document.getElementById("liveWorkoutNameDropdownIcon");if(li)li.classList.remove("open");}
   let sr=document.getElementById("gymBroSearchResults");if(sr&&e.target.id!=="gymBroSearchInput"&&!sr.contains(e.target))sr.style.display="none";
   const ls=document.getElementById("learnSuggestions");if(ls&&e.target.id!=="learnSearchInput"&&!ls.contains(e.target))ls.style.display="none";
 });
@@ -6552,7 +7097,7 @@ function applySetsCountMinConstraint(){
 }
 
 async function saveWorkoutLogEntry(){
-  let uid=localStorage.getItem("user_uuid")||localStorage.getItem("user_id");
+  let uid=getEffectiveUid();
   let name=document.getElementById("workoutNameInput").value.trim();
   let td=document.getElementById("workoutCalendarFilter").value;
   let sc=parseInt(document.getElementById("setsCountSelect").value);
@@ -6587,10 +7132,88 @@ async function saveWorkoutLogEntry(){
   alert(`✅ Workout saved! +${xpe} XP earned!`);cancelWorkoutLogging();await loadWorkoutsForDate();await syncCoreDashboardMetrics();
 }
 
+/* ===================== TRACK WORKOUT (redirect to Workout Tracker for this exercise) ===================== */
+/* Keeps the "Track Workout" button's visibility in sync with whatever's currently typed/selected in the
+   exercise name box — shown whenever there's a name, regardless of whether it has previous-performance
+   history, so custom/first-time exercise names still get the option. Fixed for both add & edit, Live & Non-Live. */
+function updateTrackWorkoutBtnVisibility(mode){
+  const inputId=mode==='live'?'liveWorkoutNameInput':'workoutNameInput';
+  const btnId=mode==='live'?'trackWorkoutBtnLive':'trackWorkoutBtnNonLive';
+  const input=document.getElementById(inputId),btn=document.getElementById(btnId);
+  if(!input||!btn)return;
+  const val=input.value.trim();
+  if(val)btn.classList.add('visible');else btn.classList.remove('visible');
+}
+/* Entry point for the "Track Workout" button click — reads whichever name box is active and jumps to the tracker. */
+function trackWorkoutFromForm(mode){
+  const inputId=mode==='live'?'liveWorkoutNameInput':'workoutNameInput';
+  const name=(document.getElementById(inputId)?.value||'').trim();
+  if(!name)return;
+  goToWorkoutTrackerForExercise(name);
+}
+/* Jumps to the Workout Tracker section and reproduces exactly what a manual name search there would show:
+   the matching row in the table plus its Volume Journey graph. Widens the date range to all-time first so
+   an exercise logged outside the tracker's current From/To filter still gets found. If genuinely no data
+   exists for this exercise (including brand-new custom names), informs the user instead of showing a blank tracker. */
+async function goToWorkoutTrackerForExercise(rawName){
+  const name=(rawName||'').trim();
+  if(!name)return;
+  if(isRoomMemberModeActive()){showToast("🔒 History isn't available while adding a room member's workout.");return}
+  const uid=localStorage.getItem("user_id");
+  if(!uid){alert("Please log in first.");return}
+  const trackerSection=document.getElementById("workoutTrackerSection");
+  if(trackerSection)trackerSection.scrollIntoView({behavior:"smooth",block:"start"});
+  // Stay "focused" on this exercise: re-running Track Workouts after the user changes the date range
+  // will keep showing just this exercise, instead of snapping back to the full exercise list.
+  trackerFocusedExerciseName=name;
+  // Default to the last 3 months → today. The user can still widen/narrow this range themselves afterward.
+  const fromEl=document.getElementById("trackerFromDate"),toEl=document.getElementById("trackerToDate");
+  const threeMonthsAgo=new Date();threeMonthsAgo.setMonth(threeMonthsAgo.getMonth()-3);
+  if(fromEl)fromEl.value=getLocalDateStringFor(threeMonthsAgo);
+  if(toEl)toEl.value=getLocalDateString();
+  const area=document.getElementById("trackerResultsArea");
+  if(area)area.innerHTML=`<div class="tracker-loading">⏳ Looking up "${escapeHtml(name)}"...</div>`;
+  closeTrackerAnalytics();
+  trackerSortedList=[];trackerAllData={};
+  await runWorkoutTracker();
+}
+/* Finds & displays the exercise the tracker is currently "focused" on (trackerFocusedExerciseName) within
+   whatever data runWorkoutTracker() just fetched — table row selected + graph shown, or a clear "no data
+   in this range" message if it isn't there. Called automatically at the end of every runWorkoutTracker()
+   run while a focus is active, so changing the date range and re-tracking stays on the same exercise. */
+function applyTrackerFocus(){
+  const name=trackerFocusedExerciseName;
+  if(!name)return;
+  const area=document.getElementById("trackerResultsArea");
+  const nameLower=name.toLowerCase();
+  let match=trackerSortedList.find(i=>i.name.toLowerCase()===nameLower);
+  if(!match)match=trackerSortedList.find(i=>i.name.toLowerCase().includes(nameLower)||nameLower.includes(i.name.toLowerCase()));
+  if(!match){
+    if(area)area.innerHTML=`<div class="tracker-empty">😕 No workout data available for "${escapeHtml(name)}" in this date range.</div>`;
+    const searchBar=document.getElementById('trackerSearchBar');if(searchBar)searchBar.style.display='none';
+    closeTrackerAnalytics();
+    return;
+  }
+  const searchInput=document.getElementById('trackerSearchInput');
+  if(searchInput)searchInput.value=match.name;
+  const sugBox=document.getElementById('trackerSearchSuggestions');if(sugBox)sugBox.style.display='none';
+  trackerCurrentPage=1;
+  renderTrackerTable(match.name);
+  // Find the exact row for this exercise (there may be more than one substring match rendered) and select it,
+  // which reveals its eye icon + analytics button exactly as a manual click would.
+  const rows=[...document.querySelectorAll('#trackerResultsArea .tracker-row')];
+  const rowEl=rows.find(r=>{const span=r.querySelector('.tracker-exercise-name');return span&&span.textContent===match.name});
+  if(rowEl)selectTrackerRow(rowEl,match.name);
+  // Show the table AND the graph together, as requested — no extra click needed.
+  showTrackerAnalytics(match.name);
+}
+
 /* ===================== PREVIOUS PERFORMANCE LOOKUP ===================== */
 async function fetchPrevPerformance(exerciseName, mode){
-  const uid=localStorage.getItem("user_uuid")||localStorage.getItem("user_id");
+  if(isRoomMemberModeActive())return; // members: no history/previous-performance visibility
+  const uid=getEffectiveUid();
   if(!uid||!exerciseName)return;
+  updateTrackWorkoutBtnVisibility(mode);
   const badgeEl=document.getElementById(mode==='live'?'prevPerfBadgeLive':'prevPerfBadgeNonLive');
   const valueEl=document.getElementById(mode==='live'?'prevPerfValueLive':'prevPerfValueNonLive');
   if(!badgeEl||!valueEl)return;
@@ -6682,7 +7305,8 @@ function liveEditCopyFromPrevSet(idx){
    toast if the current saved Kg exceeds the previous entry. */
 async function checkAndShowLevelUp(exerciseName,currentKg,currentReps){
   if(!exerciseName||currentKg<=0)return;
-  const uid=localStorage.getItem('user_uuid')||localStorage.getItem('user_id');
+  if(isRoomMemberModeActive())return; // members: skip prior-day comparisons/toasts
+  const uid=getEffectiveUid();
   if(!uid)return;
   // Exclude today — only compare against strictly prior-day historical data so that
   // sets saved within the same day's session don't compare against themselves.
@@ -6747,6 +7371,8 @@ function toggleLiveMode(){
 }
 function showAddWorkoutForm(){
   currentEditingIndex=null;window._liveEditMode=false;editOriginalSetCount=0;
+  if(typeof updateRoomTargetBadge==='function')updateRoomTargetBadge();
+  ctmInitMuscleEquipmentDropdowns();
   // Reset name input in case it was locked by live-edit mode
   const ni=document.getElementById("liveWorkoutNameInput");if(ni){ni.readOnly=false;ni.style.opacity="1";}
   if(liveMode){
@@ -6754,6 +7380,7 @@ function showAddWorkoutForm(){
     document.getElementById("liveWorkoutNameInput").value="";document.getElementById("liveSetsCountSelect").value="1";document.getElementById("liveSetsContainer").innerHTML="";
     document.getElementById("liveSetupPanel").style.display="block";document.getElementById("liveSessionTitle").style.display="none";
     document.getElementById("prevPerfBadgeLive").classList.remove("visible");
+    updateTrackWorkoutBtnVisibility('live');
     liveCurrentSet=1;liveTotalSets=0;liveSetTimers={};liveSetSeconds={};liveBreakTimers={};liveBreakSeconds={};liveBreakTotalSecs={};liveSetResults=[];liveSessionSlot=null;
     applyLiveSetsCountMinConstraint();
   } else {
@@ -6763,10 +7390,12 @@ function showAddWorkoutForm(){
     document.getElementById("setsCountSelect").value="1";buildSetsInputFields();
     document.getElementById("prevPerfBadgeNonLive").classList.remove("visible");
     document.getElementById("quickFillCopyAllBtn").classList.remove("visible");
+    updateTrackWorkoutBtnVisibility('nonlive');
   }
 }
 function cancelWorkoutLogging(){
   currentEditingIndex=null;document.getElementById("workoutNameInput").value="";
+  updateTrackWorkoutBtnVisibility('nonlive');
   editOriginalDurations={};editOriginalSetCount=0;applySetsCountMinConstraint();
   document.getElementById("workoutFormStructure").style.display="none";document.getElementById("liveWorkoutForm").style.display="none";document.getElementById("initialWorkoutBox").style.display="block";stopAllLiveTimers();
 }
@@ -6776,17 +7405,36 @@ function cancelLiveWorkout(){
 }
 function stopAllLiveTimers(){Object.values(liveSetTimers).forEach(t=>clearInterval(t));Object.values(liveBreakTimers).forEach(t=>clearInterval(t));liveSetTimers={};liveSetSeconds={};liveBreakTimers={};liveBreakSeconds={};liveBreakTotalSecs={}}
 let _prevPerfLiveTimer=null;
-function handleLiveSearchAuto(){
+function toggleLiveNameDropdown(e){
+  if(e)e.stopPropagation();
+  const box=document.getElementById("liveAutoSuggestions");
+  const icon=document.getElementById("liveWorkoutNameDropdownIcon");
+  if(box.style.display==="block"){
+    box.style.display="none";
+    if(icon)icon.classList.remove("open");
+  }else{
+    handleLiveSearchAuto(true);
+    if(icon)icon.classList.add("open");
+  }
+}
+function handleLiveSearchAuto(forceShow){
   let val=document.getElementById("liveWorkoutNameInput").value.toLowerCase();
+  const muscleVal=document.getElementById("liveWorkoutMuscleFilter")?document.getElementById("liveWorkoutMuscleFilter").value:"";
+  const equipVal=document.getElementById("liveWorkoutEquipmentFilter")?document.getElementById("liveWorkoutEquipmentFilter").value:"";
   let box=document.getElementById("liveAutoSuggestions");box.innerHTML="";box.style.display="none";
+  const icon=document.getElementById("liveWorkoutNameDropdownIcon");if(icon)icon.classList.remove("open");
   document.getElementById("prevPerfBadgeLive").classList.remove("visible");
+  updateTrackWorkoutBtnVisibility('live');
   if(_prevPerfLiveTimer)clearTimeout(_prevPerfLiveTimer);
   window._selectedLiveWorkoutClass=null;
   _updateInlineClassBtn('liveWorkoutNameInput','_inlineClassBtnLive','live');
-  if(!val){const lb=document.getElementById('_inlineClassBtnLive');if(lb)lb.style.display='none';return;}
-  let matches=EXERCISE_CATALOG.filter(e=>e.name.toLowerCase().includes(val));
+  // Show nothing only when there's no typed text AND no Muscle/Equipment filter selected AND the
+  // dropdown icon wasn't clicked — mirrors the non-live Add Workout behavior exactly.
+  if(!forceShow&&!val&&!muscleVal&&!equipVal){const lb=document.getElementById('_inlineClassBtnLive');if(lb)lb.style.display='none';return;}
+  let matches=ctmGetFilteredCatalog(muscleVal,equipVal,val,true);
   if(matches.length){
     box.style.display="block";
+    if(icon)icon.classList.add("open");
     matches.forEach(item=>{
       let div=document.createElement("div");
       const clr=CLASS_COLORS[item.class]||'var(--text-muted)';
@@ -6795,10 +7443,12 @@ function handleLiveSearchAuto(){
       div.style.cssText='display:flex;align-items:center;justify-content:space-between;gap:6px';
       div.onclick=()=>{
         box.style.display="none";
+        if(icon)icon.classList.remove("open");
         if(_prevPerfLiveTimer)clearTimeout(_prevPerfLiveTimer);
         const lb=document.getElementById('_inlineClassBtnLive');if(lb)lb.style.display='none';
         if(item.class==='multi'){
           document.getElementById("liveWorkoutNameInput").value=item.name;
+          updateTrackWorkoutBtnVisibility('live');
           _showClassPickerForInput('liveWorkoutNameInput',item.name,'live');
         } else {
           document.getElementById("liveWorkoutNameInput").value=item.name;
@@ -6884,7 +7534,7 @@ async function saveLiveSet(idx){
   if(liveSetTimers[idx]){clearInterval(liveSetTimers[idx]);delete liveSetTimers[idx]}
   let secs=liveSetSeconds[idx]||0;let timeLabel=secs===0?"0 sec":secs<60?`${secs} sec`:secs%60>0?`${Math.floor(secs/60)} min ${secs%60} sec`:`${Math.floor(secs/60)} min`;
   let setStr=`${kg}Kg x ${reps} [${timeLabel}]`;liveSetResults.push(setStr);
-  let name=document.getElementById("liveWorkoutNameInput").value.trim(),uid=localStorage.getItem("user_uuid")||localStorage.getItem("user_id"),td=document.getElementById("workoutCalendarFilter").value;
+  let name=document.getElementById("liveWorkoutNameInput").value.trim(),uid=getEffectiveUid(),td=document.getElementById("workoutCalendarFilter").value;
   let combinedEntry=`${name}: ${liveSetResults.join(", ")}`;
   const{data:er}=await db.from("workouts").select("*").eq("user_id",uid).eq("date",td).maybeSingle();let p={};
   if(liveSessionSlot){p[liveSessionSlot]=combinedEntry;await db.from("workouts").update(p).eq("user_id",uid).eq("date",td)}
@@ -7006,7 +7656,7 @@ function finishLiveSession(name){
   let closeBtn=document.createElement("button");closeBtn.className="btn";closeBtn.style.cssText="margin-top:12px;background:linear-gradient(135deg,#64748b,#475569)";closeBtn.textContent="DONE";closeBtn.onclick=cancelLiveWorkout;container.appendChild(closeBtn);
 }
 async function loadWorkoutsForDate(){
-  let uid=localStorage.getItem("user_id"),date=document.getElementById("workoutCalendarFilter").value;
+  let uid=getEffectiveUid(),date=isRoomMemberModeActive()?getLocalDateString():document.getElementById("workoutCalendarFilter").value;
   let con=document.getElementById("savedWorkoutLogsContainer");
   con.innerHTML=`<p style="font-size:13px;color:var(--text-muted);text-align:center;padding:10px;font-family:var(--font-alt)">Loading...</p>`;
   const{data,error}=await db.from("workouts").select("*").eq("user_id",uid).eq("date",date);
@@ -7025,6 +7675,7 @@ async function loadWorkoutsForDate(){
 function toggleCardSelectionState(el,ci,rv){let a=el.classList.contains("selected-active");document.querySelectorAll(".workout-log-card").forEach(c=>c.classList.remove("selected-active"));if(!a)el.classList.add("selected-active")}
 function initiateWorkoutEdit(e,ci,rv){
   e.stopPropagation();currentEditingIndex=ci;
+  if(typeof updateRoomTargetBadge==='function')updateRoomTargetBadge();
   editOriginalDurations={};
 
   let en=rv,ss="";
@@ -7059,9 +7710,10 @@ function initiateWorkoutEdit(e,ci,rv){
   document.getElementById("setsCountSelect").value=segs.length;
   editOriginalSetCount=segs.length;
   applySetsCountMinConstraint();
-  // Editing — hide prev perf badge and kill any pending debounce lookup
+  // Editing — hide prev perf badge and kill any pending debounce lookup, but keep Track Workout available
   document.getElementById("prevPerfBadgeNonLive").classList.remove("visible");
   if(_prevPerfNonLiveTimer){clearTimeout(_prevPerfNonLiveTimer);_prevPerfNonLiveTimer=null;}
+  updateTrackWorkoutBtnVisibility('nonlive');
 
   renderNonLiveSetsRows(parsedSets.map(ps=>ps.w),parsedSets.map(ps=>ps.r));
 }
@@ -7097,7 +7749,7 @@ async function deleteNonLiveSavedSet(i){
     sd.push(editOriginalDurations[k+1]?`${w}Kg x ${r} [${editOriginalDurations[k+1]}]`:`${w}kg x ${r}`);
   }
   const name=document.getElementById("workoutNameInput").value.trim();
-  const uid=localStorage.getItem("user_uuid")||localStorage.getItem("user_id");
+  const uid=getEffectiveUid();
   const td=document.getElementById("workoutCalendarFilter").value;
   let p={};p[`workout_${currentEditingIndex}`]=`${name}: ${sd.join(", ")}`;
   await db.from("workouts").update(p).eq("user_id",uid).eq("date",td);
@@ -7139,6 +7791,7 @@ function getLiveEditCommittedSegments(){
 }
 
 function startLiveEditSession(ci,exerciseName,setsStr,segs){
+  if(typeof updateRoomTargetBadge==='function')updateRoomTargetBadge();
   // Parse existing saved sets so we can re-build the combined entry on every save
   liveEditSlot=`workout_${ci}`;
   liveEditExistingResults=segs.map(s=>s.trim()).filter(Boolean);
@@ -7158,9 +7811,10 @@ function startLiveEditSession(ci,exerciseName,setsStr,segs){
   nameInput.value=exerciseName;
   nameInput.readOnly=true;
   nameInput.style.opacity="0.7";
-  // Editing — hide prev perf badge and kill any pending debounce lookup
+  // Editing — hide prev perf badge and kill any pending debounce lookup, but keep Track Workout available
   document.getElementById("prevPerfBadgeLive").classList.remove("visible");
   if(_prevPerfLiveTimer){clearTimeout(_prevPerfLiveTimer);_prevPerfLiveTimer=null;}
+  updateTrackWorkoutBtnVisibility('live');
 
   // Update the live setup panel title
   let titleEl=document.getElementById("liveSessionTitle");
@@ -7277,7 +7931,7 @@ async function updateLiveEditExistingSets(){
   for(let i=0;i<liveEditNewResults.length;i++)liveEditNewResults[i]=rebuilt[liveEditExistingResults.length+i];
 
   let exName=document.getElementById("liveWorkoutNameInput").value.trim();
-  let uid=localStorage.getItem("user_uuid")||localStorage.getItem("user_id");
+  let uid=getEffectiveUid();
   let td=document.getElementById("workoutCalendarFilter").value;
   let combinedEntry=`${exName}: ${rebuilt.join(", ")}`;
   let p={};p[liveEditSlot]=combinedEntry;
@@ -7319,7 +7973,7 @@ async function deleteLiveEditSavedSet(i){
 
   const newCommitted=getLiveEditCommittedSegments();
   const exName=document.getElementById("liveWorkoutNameInput").value.trim();
-  const uid=localStorage.getItem("user_uuid")||localStorage.getItem("user_id");
+  const uid=getEffectiveUid();
   const td=document.getElementById("workoutCalendarFilter").value;
   let p={};p[liveEditSlot]=`${exName}: ${newCommitted.join(", ")}`;
   await db.from("workouts").update(p).eq("user_id",uid).eq("date",td);
@@ -7399,7 +8053,7 @@ async function saveLiveEditSet(idx){
   let setStr=`${kg}Kg x ${reps} [${timeLabel}]`;liveEditNewResults.push(setStr);
 
   let exName=document.getElementById("liveWorkoutNameInput").value.trim();
-  let uid=localStorage.getItem("user_uuid")||localStorage.getItem("user_id");
+  let uid=getEffectiveUid();
   let td=document.getElementById("workoutCalendarFilter").value;
   let allResults=[...liveEditExistingResults,...liveEditNewResults];
   let combinedEntry=`${exName}: ${allResults.join(", ")}`;
@@ -7530,10 +8184,560 @@ function cancelLiveEditWorkout(){
 }
 async function triggerWorkoutDelete(e,ci){
   e.stopPropagation();if(!confirm("Delete this workout entry?"))return;
-  let uid=localStorage.getItem("user_uuid")||localStorage.getItem("user_id"),td=document.getElementById("workoutCalendarFilter").value;
+  let uid=getEffectiveUid(),td=document.getElementById("workoutCalendarFilter").value;
   let cp={};cp[`workout_${ci}`]=null;await db.from("workouts").update(cp).eq("user_id",uid).eq("date",td);
   alert("Entry deleted.");await loadWorkoutsForDate();await syncCoreDashboardMetrics();
 }
+/* ===================== WORKOUT ROOM (multi-user, shared-phone) ===================== */
+/* window.__room only exists on the HOST device.
+   Shape: {roomId, ownerId, endTime, target:null|{loginId,userId,name,avatarUrl},
+           membersMeta:{ "<login_id>": {userId,name,avatarUrl,loginId} }, channel, countdownInterval, savedDateValue}
+   window.__memberRoom only exists on a JOINED MEMBER's own device.
+   Shape: {roomId, loginId, hostName, hostAvatar, endTime, channel, countdownInterval} */
+const ROOM_SESSION_KEY='gymbro_room_session';
+function saveRoomSession(obj){try{localStorage.setItem(ROOM_SESSION_KEY,JSON.stringify(obj))}catch(e){}}
+function clearRoomSession(){localStorage.removeItem(ROOM_SESSION_KEY)}
+
+/* Every workout add/edit/view/delete call in the Workouts tab should read the uid through this helper,
+   so that switching to a joined member's tile transparently redirects all of them to that member's row,
+   without touching the logged-in owner's own session/localStorage at all. */
+function getEffectiveUid(){
+  if(window.__room&&window.__room.target)return window.__room.target.userId;
+  return localStorage.getItem('user_uuid')||localStorage.getItem('user_id');
+}
+/* Whether the Workouts tab is currently restricted to "today only, add/edit only" room-member mode. */
+function isRoomMemberModeActive(){return !!(window.__room&&window.__room.target)}
+
+/* ===================== SCROLLABLE HOUR:MIN TIME PICKER ===================== */
+const TIME_PICKER_ITEM_H=36;
+let __timePicker={hour:0,min:30};
+let __timeScrollDebounce={};
+function buildTimeColumn(colId,max,selected){
+  const col=document.getElementById(colId);
+  if(!col)return;
+  let html='<div class="time-picker-col-pad"></div>';
+  for(let i=0;i<=max;i++)html+=`<div class="time-picker-item" data-val="${i}">${String(i).padStart(2,'0')}</div>`;
+  html+='<div class="time-picker-col-pad"></div>';
+  col.innerHTML=html;
+  col.scrollTop=selected*TIME_PICKER_ITEM_H;
+  highlightTimeSelection(colId,selected);
+}
+function highlightTimeSelection(colId,val){
+  const col=document.getElementById(colId);
+  if(!col)return;
+  col.querySelectorAll('.time-picker-item').forEach(it=>it.classList.toggle('selected',parseInt(it.dataset.val,10)===val));
+}
+function onTimeScroll(type){
+  const colId=type==='hour'?'roomHourScroll':'roomMinScroll';
+  clearTimeout(__timeScrollDebounce[type]);
+  __timeScrollDebounce[type]=setTimeout(()=>{
+    const col=document.getElementById(colId);
+    if(!col)return;
+    const max=type==='hour'?12:59;
+    let idx=Math.round(col.scrollTop/TIME_PICKER_ITEM_H);
+    idx=Math.max(0,Math.min(max,idx));
+    col.scrollTo({top:idx*TIME_PICKER_ITEM_H,behavior:'smooth'});
+    __timePicker[type]=idx;
+    highlightTimeSelection(colId,idx);
+    const inp=document.getElementById(type==='hour'?'roomHourInput':'roomMinInput');
+    if(inp)inp.value=idx;
+  },120);
+}
+function onTimeTyped(type){
+  const inputId=type==='hour'?'roomHourInput':'roomMinInput';
+  const max=type==='hour'?12:59;
+  const inp=document.getElementById(inputId);
+  let v=parseInt(inp.value,10);
+  if(isNaN(v))v=0;
+  v=Math.max(0,Math.min(max,v));
+  inp.value=v;
+  __timePicker[type]=v;
+  const colId=type==='hour'?'roomHourScroll':'roomMinScroll';
+  const col=document.getElementById(colId);
+  if(col)col.scrollTo({top:v*TIME_PICKER_ITEM_H,behavior:'smooth'});
+  highlightTimeSelection(colId,v);
+}
+function initTimePicker(){
+  buildTimeColumn('roomHourScroll',12,__timePicker.hour||0);
+  buildTimeColumn('roomMinScroll',59,__timePicker.min!==undefined?__timePicker.min:30);
+  const hi=document.getElementById('roomHourInput'),mi=document.getElementById('roomMinInput');
+  if(hi)hi.value=__timePicker.hour||0;
+  if(mi)mi.value=__timePicker.min!==undefined?__timePicker.min:30;
+}
+
+/* ===================== CREATE / JOIN ROOM MODALS ===================== */
+window.__createRoomApprovalOn=false;
+function toggleCreateRoomApproval(){
+  window.__createRoomApprovalOn=!window.__createRoomApprovalOn;
+  const t=document.getElementById('createRoomApprovalToggle');
+  if(t)t.classList.toggle('on',window.__createRoomApprovalOn);
+}
+function openCreateRoomModal(){
+  document.getElementById('createRoomStepPick').style.display='block';
+  document.getElementById('createRoomStepShare').style.display='none';
+  document.getElementById('createRoomModalOverlay').style.display='flex';
+  window.__createRoomApprovalOn=false;
+  const t=document.getElementById('createRoomApprovalToggle');
+  if(t)t.classList.remove('on');
+  __timePicker={hour:0,min:30};
+  setTimeout(initTimePicker,20);
+}
+function closeCreateRoomModal(){document.getElementById('createRoomModalOverlay').style.display='none'}
+function openJoinRoomModal(){
+  document.getElementById('joinRoomIdInput').value='';
+  document.getElementById('joinRoomError').style.display='none';
+  document.getElementById('joinRoomModalOverlay').style.display='flex';
+}
+function closeJoinRoomModal(){document.getElementById('joinRoomModalOverlay').style.display='none'}
+
+async function confirmCreateRoom(){
+  const h=parseInt(document.getElementById('roomHourInput').value,10)||0;
+  const m=parseInt(document.getElementById('roomMinInput').value,10)||0;
+  const mins=(h*60)+m;
+  if(mins<=0){alert('Please pick a session length greater than 0 minutes.');return}
+  const approvalRequired=!!window.__createRoomApprovalOn;
+  const ownerId=localStorage.getItem('user_uuid')||localStorage.getItem('user_id');
+  if(!ownerId){alert('Please log in first.');return}
+  const endTime=new Date(Date.now()+mins*60000).toISOString();
+  let roomId=null;
+  for(let attempt=0;attempt<5&&!roomId;attempt++){
+    const code=String(Math.floor(100000+Math.random()*900000));
+    const{error}=await db.from('workout_rooms').insert([{room_id:code,owner_id:ownerId,members_id:{},end_time:endTime,room_status:'ongoing',approval_required:approvalRequired}]);
+    if(!error)roomId=code;
+  }
+  if(!roomId){alert('Could not create the room. Please try again.');return}
+  document.getElementById('createRoomStepPick').style.display='none';
+  document.getElementById('createRoomStepShare').style.display='block';
+  document.getElementById('createRoomCodeDisplay').textContent=roomId;
+  await startOwnerRoomSession(roomId,ownerId,endTime,approvalRequired);
+  saveRoomSession({role:'host',roomId});
+}
+
+async function startOwnerRoomSession(roomId,ownerId,endTime,approvalRequired){
+  window.__room={roomId,ownerId,endTime,target:null,membersMeta:{},pendingMeta:{},approvalRequired:!!approvalRequired,channel:null,countdownInterval:null,savedDateValue:null};
+  document.getElementById('memberRoomStrip').style.display='none';
+  document.getElementById('memberRoomWaitingStrip').style.display='none';
+  document.getElementById('roomIdleControls').style.display='none';
+  document.getElementById('roomActiveStrip').style.display='block';
+  document.getElementById('roomIdBadgeText').textContent='#'+roomId;
+  document.getElementById('roomOwnerBadge').textContent='(you are hosting)';
+  const lt=document.getElementById('liveRoomApprovalToggle');
+  if(lt)lt.classList.toggle('on',window.__room.approvalRequired);
+  renderRoomMembersStrip();
+  startRoomCountdown();
+  subscribeRoomRealtime(roomId);
+}
+
+async function toggleLiveRoomApproval(){
+  if(!window.__room)return;
+  const next=!window.__room.approvalRequired;
+  window.__room.approvalRequired=next;
+  const lt=document.getElementById('liveRoomApprovalToggle');
+  if(lt)lt.classList.toggle('on',next);
+  try{await db.from('workout_rooms').update({approval_required:next}).eq('room_id',window.__room.roomId)}catch(e){}
+  showToast(next?'🔒 New joins now need your approval.':'🔓 Members can now join instantly.');
+}
+
+async function confirmJoinRoom(){
+  const roomId=(document.getElementById('joinRoomIdInput').value||'').trim();
+  const errEl=document.getElementById('joinRoomError');
+  errEl.style.display='none';
+  if(!roomId){errEl.textContent='Enter the Room ID.';errEl.style.display='block';return}
+  const myLoginId=localStorage.getItem('user_login_id');
+  if(!myLoginId){errEl.textContent='Please log in first, then try again.';errEl.style.display='block';return}
+  const{data:userRow,error:userErr}=await db.from('users').select('id,login_id,name,avatar_url').eq('login_id',myLoginId).maybeSingle();
+  if(userErr||!userRow){errEl.textContent='Could not verify your account. Please re-login and try again.';errEl.style.display='block';return}
+  const{data:roomRow,error:joinErr}=await db.rpc('join_workout_room',{p_room_id:roomId,p_login_id:String(userRow.login_id)});
+  if(joinErr||!roomRow){errEl.textContent='Room not found, or it has already ended.';errEl.style.display='block';return}
+  closeJoinRoomModal();
+  const myStatus=(roomRow.members_id||{})[String(userRow.login_id)];
+  if(myStatus==='pending'){
+    showToast(`⏳ Request sent to join room #${roomId}. Waiting for the host to approve you...`);
+    await startMemberWaitingSession(roomRow,String(userRow.login_id));
+  }else{
+    showToast(`✅ Joined room #${roomId} as ${userRow.name}! Ask the host to switch to you.`);
+    await startMemberRoomSession(roomRow,String(userRow.login_id));
+  }
+  saveRoomSession({role:'member',roomId,loginId:String(userRow.login_id)});
+}
+
+/* ===================== MEMBER-SIDE: WAITING FOR APPROVAL ===================== */
+async function startMemberWaitingSession(row,loginId){
+  let hostName='the host';
+  const{data:hostUser}=await db.from('users').select('name').eq('id',row.owner_id).maybeSingle();
+  if(hostUser)hostName=hostUser.name||hostName;
+  window.__memberWaiting={roomId:row.room_id,loginId,channel:null};
+  document.getElementById('roomIdleControls').style.display='none';
+  document.getElementById('roomActiveStrip').style.display='none';
+  document.getElementById('memberRoomStrip').style.display='none';
+  document.getElementById('memberRoomWaitingStrip').style.display='block';
+  document.getElementById('memberWaitingRoomIdText').textContent='#'+row.room_id;
+  document.getElementById('memberWaitingHostName').textContent=hostName;
+  subscribeWaitingRoomRealtime(row.room_id,loginId);
+}
+function subscribeWaitingRoomRealtime(roomId,loginId){
+  const channel=db.channel('workout_room_waiting_'+roomId+'_'+loginId)
+    .on('postgres_changes',{event:'*',schema:'public',table:'workout_rooms',filter:'room_id=eq.'+roomId},payload=>{
+      if(payload.eventType==='DELETE'){cleanupWaitingRoomState('The room was closed by the host.');return}
+      const row=payload.new;
+      if(!row)return;
+      if(row.room_status&&row.room_status!=='ongoing'){cleanupWaitingRoomState('The room was closed by the host.');return}
+      const membersObj=row.members_id||{};
+      const myStatus=membersObj[loginId];
+      if(myStatus==='joined'){
+        const chan=window.__memberWaiting&&window.__memberWaiting.channel;
+        window.__memberWaiting=null;
+        if(chan)db.removeChannel(chan);
+        showToast('✅ You were approved! Joining the room...');
+        startMemberRoomSession(row,loginId);
+        return;
+      }
+      if(!myStatus){cleanupWaitingRoomState('❌ Your join request was declined by the host.');}
+    })
+    .subscribe();
+  if(window.__memberWaiting)window.__memberWaiting.channel=channel;
+}
+function cleanupWaitingRoomState(msg){
+  if(window.__memberWaiting&&window.__memberWaiting.channel)db.removeChannel(window.__memberWaiting.channel);
+  window.__memberWaiting=null;
+  clearRoomSession();
+  document.getElementById('memberRoomWaitingStrip').style.display='none';
+  document.getElementById('roomIdleControls').style.display='flex';
+  if(msg)showToast(msg);
+}
+
+/* ===================== MEMBER-SIDE ROOM VIEW (host info, timer, leave) ===================== */
+async function startMemberRoomSession(row,loginId){
+  let hostName='the host',hostAvatar=null;
+  const{data:hostUser}=await db.from('users').select('name,avatar_url').eq('id',row.owner_id).maybeSingle();
+  if(hostUser){hostName=hostUser.name||hostName;hostAvatar=hostUser.avatar_url||null}
+  window.__memberRoom={roomId:row.room_id,loginId,hostName,hostAvatar,endTime:row.end_time,channel:null,countdownInterval:null};
+  document.getElementById('roomIdleControls').style.display='none';
+  document.getElementById('roomActiveStrip').style.display='none';
+  document.getElementById('memberRoomWaitingStrip').style.display='none';
+  document.getElementById('memberRoomStrip').style.display='block';
+  document.getElementById('memberRoomIdText').textContent='#'+row.room_id;
+  document.getElementById('memberRoomHostName').textContent=hostName;
+  startMemberRoomCountdown();
+  subscribeMemberRoomRealtime(row.room_id,loginId);
+}
+
+function subscribeMemberRoomRealtime(roomId,loginId){
+  if(!window.__memberRoom)return;
+  const channel=db.channel('workout_room_member_'+roomId+'_'+loginId)
+    .on('postgres_changes',{event:'*',schema:'public',table:'workout_rooms',filter:'room_id=eq.'+roomId},payload=>{
+      if(payload.eventType==='DELETE'){cleanupMemberRoomState('The room was closed by the host.');return}
+      const row=payload.new;
+      if(!row)return;
+      window.__memberRoom.endTime=row.end_time;
+      if(row.room_status&&row.room_status!=='ongoing'){cleanupMemberRoomState('The room was closed by the host.');return}
+      // If our own login_id was removed by the host, or we're no longer marked joined, drop out too
+      const membersObj=row.members_id||{};
+      if(membersObj[window.__memberRoom.loginId]!=='joined'){cleanupMemberRoomState('You were removed from the room.');return}
+    })
+    .subscribe();
+  window.__memberRoom.channel=channel;
+}
+
+function startMemberRoomCountdown(){
+  if(window.__memberRoom.countdownInterval)clearInterval(window.__memberRoom.countdownInterval);
+  window.__memberRoom.countdownInterval=setInterval(()=>{
+    if(!window.__memberRoom)return;
+    const remain=new Date(window.__memberRoom.endTime).getTime()-Date.now();
+    const timerEl=document.getElementById('memberRoomTimerText');
+    if(remain<=0){
+      if(timerEl)timerEl.textContent='⏱ 00:00';
+      cleanupMemberRoomState('⏱ Room time is up.');
+      return;
+    }
+    const m=Math.floor(remain/60000),s=Math.floor((remain%60000)/1000);
+    if(timerEl)timerEl.textContent=`⏱ ${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  },1000);
+}
+
+async function leaveWorkoutRoom(){
+  if(window.__memberWaiting){
+    if(!confirm('Cancel your join request?'))return;
+    const{roomId,loginId}=window.__memberWaiting;
+    try{await db.rpc('leave_workout_room',{p_room_id:roomId,p_login_id:loginId})}catch(e){}
+    cleanupWaitingRoomState('Join request cancelled.');
+    return;
+  }
+  if(!window.__memberRoom)return;
+  if(!confirm('Leave this workout room?'))return;
+  const{roomId,loginId}=window.__memberRoom;
+  try{await db.rpc('leave_workout_room',{p_room_id:roomId,p_login_id:loginId})}catch(e){}
+  cleanupMemberRoomState('You left the room.');
+}
+
+function cleanupMemberRoomState(msg){
+  if(window.__memberRoom){
+    if(window.__memberRoom.channel)db.removeChannel(window.__memberRoom.channel);
+    if(window.__memberRoom.countdownInterval)clearInterval(window.__memberRoom.countdownInterval);
+  }
+  window.__memberRoom=null;
+  clearRoomSession();
+  document.getElementById('memberRoomStrip').style.display='none';
+  document.getElementById('roomIdleControls').style.display='flex';
+  if(msg)showToast(msg);
+}
+
+/* ===================== HOST-SIDE MEMBER STRIP / SWITCHING ===================== */
+function renderRoomMembersStrip(){
+  if(!window.__room)return;
+  const strip=document.getElementById('roomMembersStrip');
+  const ownerName=localStorage.getItem('user_name')||'Me';
+  const ownerAvatarUrl=localStorage.getItem('gymbro_avatar_url')||null;
+  const ownerInner=ownerAvatarUrl?`<img src="${ownerAvatarUrl}" onerror="this.parentElement.textContent='🙂'">`:'🙂';
+  let html=`<div class="room-member-tile-wrap"><div class="room-member-tile${window.__room.target===null?' active-target':''}" onclick="switchRoomTarget(null)" title="Switch back to me">
+    <span class="rm-name">${escapeHtml(ownerName)} (You)</span>
+    <div class="room-member-avatar">${ownerInner}</div>
+  </div></div>`;
+  Object.values(window.__room.membersMeta).forEach(m=>{
+    const isActive=window.__room.target&&window.__room.target.loginId===m.loginId;
+    const inner=m.avatarUrl?`<img src="${m.avatarUrl}" onerror="this.parentElement.textContent='🏋'">`:'🏋';
+    html+=`<div class="room-member-tile-wrap">
+      <div class="room-member-remove-x" onclick="event.stopPropagation();removeRoomMember('${m.loginId}','${escapeHtml(m.name||'')}')" title="Remove from room">✕</div>
+      <div class="room-member-tile${isActive?' active-target':''}" onclick="switchRoomTarget('${m.loginId}')" title="Switch to ${escapeHtml(m.name||'')}">
+        <span class="rm-name">${escapeHtml(m.name||('@'+m.loginId))}</span>
+        <div class="room-member-avatar">${inner}</div>
+      </div>
+    </div>`;
+  });
+  strip.innerHTML=html;
+  renderRoomPendingStrip();
+}
+
+/* Renders the "needs approval" strip for pending join requests, one Accept/Reject tile per pending member,
+   shown even if several people request to join at the same time. */
+function renderRoomPendingStrip(){
+  if(!window.__room)return;
+  const strip=document.getElementById('roomPendingStrip');
+  if(!strip)return;
+  const pendingList=Object.values(window.__room.pendingMeta||{});
+  if(!pendingList.length){strip.style.display='none';strip.innerHTML='';return}
+  strip.style.display='flex';
+  let html=`<div style="width:100%;font-family:var(--font-alt);font-size:10.5px;font-weight:800;color:#f59e0b;letter-spacing:0.5px">⏳ WAITING FOR YOUR APPROVAL</div>`;
+  pendingList.forEach(m=>{
+    const inner=m.avatarUrl?`<img src="${m.avatarUrl}" onerror="this.parentElement.textContent='🏋'">`:'🏋';
+    html+=`<div class="room-pending-tile">
+      <div class="room-member-avatar">${inner}</div>
+      <span class="rm-name">${escapeHtml(m.name||('@'+m.loginId))}</span>
+      <div class="room-pending-actions">
+        <button class="room-pending-accept" onclick="approveRoomMember('${m.loginId}','${escapeHtml(m.name||'')}')" title="Accept">✓</button>
+        <button class="room-pending-reject" onclick="rejectRoomMember('${m.loginId}','${escapeHtml(m.name||'')}')" title="Reject">✕</button>
+      </div>
+    </div>`;
+  });
+  strip.innerHTML=html;
+}
+
+async function approveRoomMember(loginId,name){
+  if(!window.__room)return;
+  try{await db.rpc('approve_room_member',{p_room_id:window.__room.roomId,p_login_id:loginId,p_owner_id:window.__room.ownerId})}catch(e){showToast('Could not approve this member.');return}
+  showToast(`✅ Approved ${name||('@'+loginId)}.`);
+}
+async function rejectRoomMember(loginId,name){
+  if(!window.__room)return;
+  try{await db.rpc('remove_room_member',{p_room_id:window.__room.roomId,p_login_id:loginId,p_owner_id:window.__room.ownerId})}catch(e){showToast('Could not reject this member.');return}
+  showToast(`🚫 Rejected ${name||('@'+loginId)}.`);
+}
+async function removeRoomMember(loginId,name){
+  if(!window.__room)return;
+  if(!confirm(`Remove ${name||('@'+loginId)} from this room?`))return;
+  if(window.__room.target&&window.__room.target.loginId===loginId)switchRoomTarget(null);
+  try{await db.rpc('remove_room_member',{p_room_id:window.__room.roomId,p_login_id:loginId,p_owner_id:window.__room.ownerId})}catch(e){showToast('Could not remove this member.');return}
+  showToast(`👋 Removed ${name||('@'+loginId)} from the room.`);
+}
+
+/* Updates the badge that sits right above the Add/Edit workout entry area, showing the currently
+   selected member's DP + name so the host can never accidentally add/edit for the wrong person. */
+function updateRoomTargetBadge(){
+  const badge=document.getElementById('roomTargetBadge');
+  if(!badge)return;
+  const target=window.__room&&window.__room.target;
+  if(!target){badge.classList.remove('visible');return}
+  const box=document.getElementById('roomTargetBadgeAvatarBox');
+  box.innerHTML=target.avatarUrl?`<img src="${target.avatarUrl}" onerror="this.parentElement.textContent='🏋'">`:'🏋';
+  document.getElementById('roomTargetBadgeName').textContent=target.name||('@'+target.loginId);
+  badge.classList.add('visible');
+}
+
+/* Switching does NOT touch localStorage/user_id at all — it only changes what getEffectiveUid() returns,
+   forces the date filter to today, and hides history-revealing actions, matching "today only, add/edit only". */
+function switchRoomTarget(loginId){
+  if(!window.__room)return;
+  const dateInput=document.getElementById('workoutCalendarFilter');
+  const banner=document.getElementById('roomModeBanner');
+  if(loginId===null){
+    window.__room.target=null;
+    if(dateInput){dateInput.disabled=false;if(window.__room.savedDateValue)dateInput.value=window.__room.savedDateValue}
+    banner.style.display='none';
+  }else{
+    const m=window.__room.membersMeta[loginId];
+    if(!m){showToast('This member hasn\'t joined yet.');return}
+    window.__room.target=m;
+    if(dateInput){
+      if(window.__room.savedDateValue===null)window.__room.savedDateValue=dateInput.value;
+      dateInput.value=getLocalDateString();
+      dateInput.disabled=true;
+    }
+    document.getElementById('roomModeBannerName').textContent=m.name||('@'+m.loginId);
+    banner.style.display='block';
+  }
+  if(typeof cancelWorkoutLogging==='function')cancelWorkoutLogging();
+  renderRoomMembersStrip();
+  updateRoomTargetBadge();
+  if(typeof loadWorkoutsForDate==='function')loadWorkoutsForDate();
+}
+
+function subscribeRoomRealtime(roomId){
+  if(!window.__room)return;
+  const channel=db.channel('workout_room_'+roomId)
+    .on('postgres_changes',{event:'*',schema:'public',table:'workout_rooms',filter:'room_id=eq.'+roomId},payload=>{
+      if(payload.eventType==='DELETE'){handleRoomEndedRemotely();return}
+      onRoomRowUpdate(payload.new);
+    })
+    .subscribe();
+  window.__room.channel=channel;
+}
+
+async function onRoomRowUpdate(row,announce){
+  if(announce===undefined)announce=true;
+  if(!window.__room||!row)return;
+  window.__room.endTime=row.end_time;
+  if(row.room_status&&row.room_status!=='ongoing'){handleRoomEndedRemotely();return}
+  if(typeof row.approval_required==='boolean'){
+    window.__room.approvalRequired=row.approval_required;
+    const lt=document.getElementById('liveRoomApprovalToggle');
+    if(lt)lt.classList.toggle('on',row.approval_required);
+  }
+  const membersObj=row.members_id||{};
+  const joinedLoginIds=Object.keys(membersObj).filter(k=>membersObj[k]==='joined');
+  const pendingLoginIds=Object.keys(membersObj).filter(k=>membersObj[k]==='pending');
+
+  const newJoinedIds=joinedLoginIds.filter(id=>!window.__room.membersMeta[id]);
+  const newPendingIds=pendingLoginIds.filter(id=>!window.__room.pendingMeta[id]);
+  const idsToFetch=[...new Set([...newJoinedIds,...newPendingIds])];
+  let fetchedUsers=[];
+  if(idsToFetch.length){
+    const{data}=await db.from('users').select('id,name,login_id,avatar_url').in('login_id',idsToFetch);
+    fetchedUsers=data||[];
+  }
+  fetchedUsers.forEach(u=>{
+    const meta={userId:u.id,name:u.name,avatarUrl:u.avatar_url,loginId:String(u.login_id)};
+    if(newJoinedIds.includes(String(u.login_id)))window.__room.membersMeta[String(u.login_id)]=meta;
+    if(newPendingIds.includes(String(u.login_id)))window.__room.pendingMeta[String(u.login_id)]=meta;
+  });
+  if(announce&&newJoinedIds.length){
+    const names=newJoinedIds.map(id=>(window.__room.membersMeta[id]&&window.__room.membersMeta[id].name)||('@'+id));
+    showToast(`👋 ${names.join(', ')} joined the room!`);
+  }
+  if(announce&&newPendingIds.length){
+    const names=newPendingIds.map(id=>(window.__room.pendingMeta[id]&&window.__room.pendingMeta[id].name)||('@'+id));
+    showToast(`🙋 ${names.join(', ')} ${newPendingIds.length>1?'want':'wants'} to join — accept or reject below.`);
+  }
+  // Detect members who left/were removed (present locally but no longer "joined" in the DB row)
+  Object.keys(window.__room.membersMeta).forEach(loginId=>{
+    if(!joinedLoginIds.includes(loginId)){
+      const leftMeta=window.__room.membersMeta[loginId];
+      if(window.__room.target&&window.__room.target.loginId===loginId)switchRoomTarget(null);
+      delete window.__room.membersMeta[loginId];
+      if(announce)showToast(`👋 ${leftMeta.name||('@'+loginId)} left the room.`);
+    }
+  });
+  // Drop pending entries that were approved (now joined) or resolved (no longer in the row at all)
+  Object.keys(window.__room.pendingMeta).forEach(loginId=>{
+    if(!pendingLoginIds.includes(loginId))delete window.__room.pendingMeta[loginId];
+  });
+  renderRoomMembersStrip();
+}
+
+function startRoomCountdown(){
+  if(window.__room.countdownInterval)clearInterval(window.__room.countdownInterval);
+  window.__room.countdownInterval=setInterval(()=>{
+    if(!window.__room)return;
+    const remain=new Date(window.__room.endTime).getTime()-Date.now();
+    const timerEl=document.getElementById('roomTimerText');
+    if(remain<=0){
+      if(timerEl)timerEl.textContent='⏱ 00:00';
+      endWorkoutRoom(true);
+      return;
+    }
+    const m=Math.floor(remain/60000),s=Math.floor((remain%60000)/1000);
+    if(timerEl)timerEl.textContent=`⏱ ${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  },1000);
+}
+
+async function endWorkoutRoom(auto){
+  if(!window.__room)return;
+  if(!auto&&!confirm('End this workout room for everyone?'))return;
+  const roomId=window.__room.roomId;
+  const status=auto?'completed':'cancelled';
+  try{await db.from('workout_rooms').update({room_status:status}).eq('room_id',roomId)}catch(e){}
+  cleanupRoomState(auto?'⏱ Room time is up — workout room closed.':'Room closed.');
+}
+
+function handleRoomEndedRemotely(){cleanupRoomState('The workout room was closed.')}
+
+function cleanupRoomState(msg){
+  if(window.__room){
+    switchRoomTarget(null);
+    if(window.__room.channel)db.removeChannel(window.__room.channel);
+    if(window.__room.countdownInterval)clearInterval(window.__room.countdownInterval);
+  }
+  window.__room=null;
+  clearRoomSession();
+  document.getElementById('roomActiveStrip').style.display='none';
+  document.getElementById('roomIdleControls').style.display='flex';
+  if(msg)showToast(msg);
+}
+
+/* Tears down any live room UI/subscriptions/timers on logout WITHOUT touching the DB record or the
+   saved room-session key, so the room survives a logout+login (or refresh) until it naturally ends. */
+function teardownRoomUiOnLogout(){
+  if(window.__room){
+    if(window.__room.channel)db.removeChannel(window.__room.channel);
+    if(window.__room.countdownInterval)clearInterval(window.__room.countdownInterval);
+    window.__room=null;
+  }
+  if(window.__memberRoom){
+    if(window.__memberRoom.channel)db.removeChannel(window.__memberRoom.channel);
+    if(window.__memberRoom.countdownInterval)clearInterval(window.__memberRoom.countdownInterval);
+    window.__memberRoom=null;
+  }
+  if(window.__memberWaiting){
+    if(window.__memberWaiting.channel)db.removeChannel(window.__memberWaiting.channel);
+    window.__memberWaiting=null;
+  }
+  const ras=document.getElementById('roomActiveStrip');if(ras)ras.style.display='none';
+  const mrs=document.getElementById('memberRoomStrip');if(mrs)mrs.style.display='none';
+  const mws=document.getElementById('memberRoomWaitingStrip');if(mws)mws.style.display='none';
+  const ric=document.getElementById('roomIdleControls');if(ric)ric.style.display='flex';
+}
+
+/* Called from mountMemberDashboard() on BOTH fresh login and page-refresh auto-restore, so an
+   in-progress room (as host or as a joined member) reappears until its timer/host ends it. */
+async function restoreRoomSessionIfAny(userData){
+  const raw=localStorage.getItem(ROOM_SESSION_KEY);
+  if(!raw)return;
+  let sess;
+  try{sess=JSON.parse(raw)}catch(e){clearRoomSession();return}
+  const{data:row,error}=await db.from('workout_rooms').select('*').eq('room_id',sess.roomId).maybeSingle();
+  if(error||!row||row.room_status!=='ongoing'){clearRoomSession();return}
+  if(sess.role==='host'){
+    if(String(row.owner_id)!==String(userData.id)){clearRoomSession();return}
+    await startOwnerRoomSession(row.room_id,row.owner_id,row.end_time,row.approval_required);
+    await onRoomRowUpdate(row,false);
+  }else if(sess.role==='member'){
+    const membersObj=row.members_id||{};
+    const myStatus=membersObj[sess.loginId];
+    if(myStatus==='pending'){await startMemberWaitingSession(row,sess.loginId);return}
+    if(myStatus!=='joined'){clearRoomSession();return}
+    await startMemberRoomSession(row,sess.loginId);
+  }
+}
+
 function escapeHtml(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;")}
 
 /* ===================== SOCIAL ===================== */
@@ -8514,7 +9718,15 @@ function toggleFollow(btn,name){/* Legacy stub */}
 <script>
 let trackerAllData=[],trackerSortedList=[],trackerCurrentPage=1;
 const TRACKER_PAGE_SIZE=5;
+/* When set (via the "Track Workout" button on the Add/Edit form), the tracker stays "focused" on this one
+   exercise: re-running Track Workouts after changing the date range keeps showing only this exercise
+   (table row + graph), instead of snapping back to the full list. A manual/normal Track Workouts run
+   (never used Track Workout, or after Close) leaves this null and behaves exactly as before — all exercises. */
+let trackerFocusedExerciseName=null;
 let trackerAnalyticsChartInstance=null;
+/* Graph marker navigation/highlight state — module-level so the arrow buttons & keyboard handler
+   (outside the showTrackerAnalytics closure) can drive the currently-selected point. */
+let trackerGraphPointCount=0,trackerGraphSelectedIdx=-1,trackerGraphSelectFn=null;
 function formatTrackerDate(dateStr){const d=new Date(dateStr+'T00:00:00'),months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];return `${months[d.getMonth()]} ${String(d.getDate()).padStart(2,'0')}/${d.getFullYear()}`}
 function parseSetVolume(setStr){const m=setStr.trim().match(/^([\d.]+)\s*[Kk][Gg]?\s*x\s*(\d+)/);if(!m)return 0;return parseFloat(m[1])*(parseInt(m[2])||0)}
 function parseSetWeightReps(setStr){const m=setStr.trim().match(/^([\d.]+)\s*[Kk][Gg]?\s*x\s*(\d+)/);if(!m)return{weight:0,reps:0};return{weight:parseFloat(m[1])||0,reps:parseInt(m[2])||0}}
@@ -8552,12 +9764,22 @@ function compareSessionByWeight(sessionA,sessionB){
 }
 async function runWorkoutTracker(){
   const uid=localStorage.getItem("user_id");if(!uid){alert("Please log in first.");return}
+  ctmInitMuscleEquipmentDropdowns();
   const fromDate=document.getElementById("trackerFromDate").value,toDate=document.getElementById("trackerToDate").value;
   if(!fromDate||!toDate){alert("Please select both From and To dates.");return}if(fromDate>toDate){alert("From Date must be before or equal to To Date.");return}
   const area=document.getElementById("trackerResultsArea");area.innerHTML=`<div class="tracker-loading">⏳ Fetching workout data...</div>`;closeTrackerAnalytics();
   const{data,error}=await db.from("workouts").select("*").eq("user_id",uid).gte("date",fromDate).lte("date",toDate).order("date",{ascending:true});
   if(error){area.innerHTML=`<div class="tracker-empty">❌ Error fetching data: ${error.message}</div>`;return}
-  if(!data||data.length===0){area.innerHTML=`<div class="tracker-empty">😴 No workouts found in this date range. Start logging!</div>`;return}
+  if(!data||data.length===0){
+    trackerSortedList=[];trackerAllData={};
+    if(trackerFocusedExerciseName){
+      area.innerHTML=`<div class="tracker-empty">😕 No workout data available for "${escapeHtml(trackerFocusedExerciseName)}" in this date range.</div>`;
+      const searchBar=document.getElementById('trackerSearchBar');if(searchBar)searchBar.style.display='none';
+    } else {
+      area.innerHTML=`<div class="tracker-empty">😴 No workouts found in this date range. Start logging!</div>`;
+    }
+    return;
+  }
   const exerciseMap={};
   data.forEach(row=>{const rowDate=row.date;for(let ci=1;ci<=15;ci++){const cell=row[`workout_${ci}`];if(!cell||!cell.trim())continue;let exName='Unknown',setsRaw=[];if(cell.includes(':')){const ci2=cell.indexOf(':');exName=cell.substring(0,ci2).trim();setsRaw=cell.substring(ci2+1).split(',').map(s=>s.trim()).filter(Boolean)}else{exName=cell.trim()}if(!exerciseMap[exName])exerciseMap[exName]={frequency:0,sets:[],sessions:{}};exerciseMap[exName].frequency++;
     // Track per-session (per-date) groups of sets so we can show a full session breakdown (Recent / Highest / Lowest)
@@ -8582,7 +9804,8 @@ async function runWorkoutTracker(){
       recentSet:bestSetIn(recentSession),
       recentSession,highestSet:bestSetIn(highestSession),highestSession,lowestSet:worstSetIn(lowestSession),lowestSession};
   });
-  trackerAllData=exerciseMap;trackerCurrentPage=1;renderTrackerTable();
+  trackerAllData=exerciseMap;
+  if(trackerFocusedExerciseName){applyTrackerFocus();}else{trackerCurrentPage=1;renderTrackerTable();}
 }
 function renderTrackerTable(filterName){
   const area=document.getElementById("trackerResultsArea");
@@ -8591,10 +9814,14 @@ function renderTrackerTable(filterName){
   // Show the search bar when results are rendered
   document.getElementById('trackerSearchBar').style.display='block';
 
-  // Apply name filter if provided
-  const list=filterName
-    ? trackerSortedList.filter(i=>i.name.toLowerCase().includes(filterName.toLowerCase()))
-    : trackerSortedList;
+  // Apply name filter, plus the Muscle/Equipment dropdown filters, if provided
+  const muscleVal=document.getElementById("trackerMuscleFilter")?document.getElementById("trackerMuscleFilter").value:"";
+  const equipVal=document.getElementById("trackerEquipmentFilter")?document.getElementById("trackerEquipmentFilter").value:"";
+  const muscleClasses=ctmMuscleClassesFor(muscleVal);
+  let list=trackerSortedList;
+  if(filterName)list=list.filter(i=>i.name.toLowerCase().includes(filterName.toLowerCase()));
+  if(muscleClasses)list=list.filter(i=>muscleClasses.includes(getExerciseClass(i.name)));
+  if(equipVal)list=list.filter(i=>getExerciseEquipment(i.name)===equipVal);
 
   if(!list.length){area.innerHTML=`<div class="tracker-empty">No exercises match your search.</div>`;return}
 
@@ -8682,6 +9909,9 @@ function toggleTrackerRowExpand(rowId,eyeBtn){
 function handleTrackerSearch(){
   const val=document.getElementById('trackerSearchInput').value.trim();
   const sugBox=document.getElementById('trackerSearchSuggestions');
+  // Manually editing the search box means the person wants to browse freely again —
+  // drop any "focused on one exercise" state from a prior Track Workout redirect.
+  trackerFocusedExerciseName=null;
 
   // Live filter the table
   trackerCurrentPage=1;
@@ -8696,6 +9926,7 @@ function handleTrackerSearch(){
   sugBox.style.display='block';
 }
 function pickTrackerSuggestion(name){
+  trackerFocusedExerciseName=null;
   document.getElementById('trackerSearchInput').value=name;
   document.getElementById('trackerSearchSuggestions').style.display='none';
   trackerCurrentPage=1;
@@ -8708,8 +9939,18 @@ function closeTrackerResults(){
   document.getElementById('trackerSearchBar').style.display='none';
   document.getElementById('trackerSearchInput').value='';
   document.getElementById('trackerSearchSuggestions').style.display='none';
+  // Reset the Muscle/Equipment filter dropdowns (tracker only) so the next Track Workouts run starts fresh
+  const muscleSel=document.getElementById('trackerMuscleFilter'),equipSel=document.getElementById('trackerEquipmentFilter');
+  if(muscleSel)muscleSel.value='';
+  if(equipSel)equipSel.value='';
+  // Reset the date range back to the tracker's normal default: 1st of this month → today
+  const now=new Date(),y=now.getFullYear(),m=String(now.getMonth()+1).padStart(2,'0');
+  const fromEl=document.getElementById('trackerFromDate'),toEl=document.getElementById('trackerToDate');
+  if(fromEl)fromEl.value=`${y}-${m}-01`;
+  if(toEl)toEl.value=getLocalDateStringFor(now);
   closeTrackerAnalytics();
   trackerSortedList=[];trackerAllData={};trackerCurrentPage=1;_selectedTrackerRow=null;
+  trackerFocusedExerciseName=null;
 }
 function goTrackerPage(page){trackerCurrentPage=page;renderTrackerTable();document.getElementById("workoutTrackerSection").scrollIntoView({behavior:"smooth",block:"start"})}
 function showTrackerAnalytics(exName){
@@ -8755,13 +9996,21 @@ function showTrackerAnalytics(exName){
   const ctx=document.getElementById("trackerAnalyticsChart").getContext("2d");
   const isGod=document.body.classList.contains("theme-godmode"),isBat=document.body.classList.contains("theme-batman");
   const lineColor=isGod?"#c0000a":isBat?"#f5c800":"#2563eb",pointColor=isGod?"#8b0000":isBat?"#c8a000":"#1d4ed8",fillColor=isGod?"rgba(192,0,10,0.1)":isBat?"rgba(245,200,0,0.08)":"rgba(37,99,235,0.1)";
+  // Highlight color for the currently-selected marker (click / finger-drag / arrow-nav) — a warm amber
+  // reads clearly as "selected" against every theme's line/point color without needing a theme lookup.
+  const highlightColor="#f59e0b";
   // Fixed height-ratio safety: the Y-axis max is computed so the tallest point on the line is
   // scaled to a constrained ratio of the plot area, always leaving headroom above it — the line
   // and its markers can never reach the top-right corner where the detail box sits.
   const trkMaxVal=Math.max(0,...volumes);
   const trkSuggestedMax=trkMaxVal>0?Math.ceil((trkMaxVal*1.45)/10)*10:100;
+
+  // Per-point style arrays so the selected marker can be enlarged + recolored without affecting the rest.
+  const basePointRadius=sortedDates.map(()=>6),baseHoverRadius=sortedDates.map(()=>9);
+  const basePointBg=sortedDates.map(()=>pointColor),basePointBorder=sortedDates.map(()=>'#fff'),basePointBorderW=sortedDates.map(()=>2);
+
   trackerAnalyticsChartInstance=new Chart(ctx,{
-    type:'line',data:{labels,datasets:[{label:'Volume (kg × reps)',data:volumes,borderColor:lineColor,backgroundColor:fillColor,pointBackgroundColor:pointColor,pointBorderColor:'#fff',pointBorderWidth:2,pointRadius:6,pointHoverRadius:9,borderWidth:2.5,fill:true,tension:0.35}]},
+    type:'line',data:{labels,datasets:[{label:'Volume (kg × reps)',data:volumes,borderColor:lineColor,backgroundColor:fillColor,pointBackgroundColor:[...basePointBg],pointBorderColor:[...basePointBorder],pointBorderWidth:[...basePointBorderW],pointRadius:[...basePointRadius],pointHoverRadius:[...baseHoverRadius],borderWidth:2.5,fill:true,tension:0.35}]},
     options:{
       responsive:true,maintainAspectRatio:false,
       interaction:{mode:'index',intersect:false},
@@ -8781,13 +10030,33 @@ function showTrackerAnalytics(exName){
       // Fires on tap (mobile) and click (desktop) — selects the nearest point and updates the fixed detail box
       onClick(evt,elements,chart){
         const points=chart.getElementsAtEventForMode(evt,'index',{intersect:false},true);
-        if(points.length)updateGraphDetailBox(points[0].index);
+        if(points.length)selectTrackerGraphPoint(points[0].index);
       }
     }
   });
 
-  // Touch-drag support: as a finger moves along the line (without lifting), keep the detail box live-updating.
-  // preventDefault stops the page from scrolling while the user is actively dragging across the chart.
+  // Selects a marker point by index: highlights it on the chart (bigger radius + amber ring), updates the
+  // detail box, syncs the left/right arrow enabled state, and remembers the index for arrow/keyboard nav.
+  // Shared by click, touch-drag, the arrow buttons, and keyboard left/right.
+  function selectTrackerGraphPoint(idx){
+    if(idx<0||idx>=sortedDates.length||!trackerAnalyticsChartInstance)return;
+    trackerGraphSelectedIdx=idx;
+    const ds=trackerAnalyticsChartInstance.data.datasets[0];
+    ds.pointRadius=basePointRadius.map((r,i)=>i===idx?11:r);
+    ds.pointHoverRadius=baseHoverRadius.map((r,i)=>i===idx?13:r);
+    ds.pointBackgroundColor=basePointBg.map((c,i)=>i===idx?pointColor:c);
+    ds.pointBorderColor=basePointBorder.map((c,i)=>i===idx?highlightColor:c);
+    ds.pointBorderWidth=basePointBorderW.map((w,i)=>i===idx?4:w);
+    trackerAnalyticsChartInstance.update('none');
+    updateGraphDetailBox(idx);
+    updateTrackerGraphNavButtons();
+  }
+  trackerGraphSelectFn=selectTrackerGraphPoint;
+  trackerGraphPointCount=sortedDates.length;
+  trackerGraphSelectedIdx=-1;
+
+  // Touch-drag support: as a finger moves along the line (without lifting), keep the detail box live-updating
+  // and the touched marker highlighted. preventDefault stops the page from scrolling while dragging.
   const canvasEl=document.getElementById("trackerAnalyticsChart");
   canvasEl.ontouchmove=function(evt){
     if(!trackerAnalyticsChartInstance)return;
@@ -8795,15 +10064,46 @@ function showTrackerAnalytics(exName){
     const rect=canvasEl.getBoundingClientRect();
     const fakeEvt={x:touch.clientX-rect.left,y:touch.clientY-rect.top,native:evt};
     const points=trackerAnalyticsChartInstance.getElementsAtEventForMode(fakeEvt,'index',{intersect:false},true);
-    if(points.length){evt.preventDefault();updateGraphDetailBox(points[0].index)}
+    if(points.length){evt.preventDefault();selectTrackerGraphPoint(points[0].index)}
   };
 
+  // Left/right marker navigation arrows — only worth showing once there's more than one point to move between
+  const navRow=document.getElementById('trackerGraphNavRow');
+  const showArrows=sortedDates.length>1;
+  if(navRow)navRow.classList.toggle('visible',showArrows);
+
   // Auto-select the most recent day so the detail box isn't empty on first render
-  if(sortedDates.length)updateGraphDetailBox(sortedDates.length-1);
+  if(sortedDates.length)selectTrackerGraphPoint(sortedDates.length-1);
 
   panel.scrollIntoView({behavior:"smooth",block:"start"});
 }
-function closeTrackerAnalytics(){const panel=document.getElementById("trackerAnalyticsPanel");panel.classList.remove("visible");if(trackerAnalyticsChartInstance){trackerAnalyticsChartInstance.destroy();trackerAnalyticsChartInstance=null}const cv=document.getElementById("trackerAnalyticsChart");if(cv)cv.ontouchmove=null}
+// Enables/disables the left/right arrow buttons based on how close the current selection is to either end
+function updateTrackerGraphNavButtons(){
+  const prevBtn=document.getElementById('trackerGraphPrevBtn'),nextBtn=document.getElementById('trackerGraphNextBtn');
+  if(prevBtn)prevBtn.disabled=trackerGraphSelectedIdx<=0;
+  if(nextBtn)nextBtn.disabled=trackerGraphSelectedIdx>=trackerGraphPointCount-1||trackerGraphPointCount===0;
+}
+// Moves the selected marker point left (-1) or right (+1) — wired to the arrow buttons and to the
+// keyboard ArrowLeft/ArrowRight keys while the analytics graph is visible.
+function navigateTrackerPoint(direction){
+  if(!trackerGraphPointCount||!trackerGraphSelectFn)return;
+  let next=trackerGraphSelectedIdx<0?(direction>0?0:trackerGraphPointCount-1):trackerGraphSelectedIdx+direction;
+  if(next<0)next=0;
+  if(next>trackerGraphPointCount-1)next=trackerGraphPointCount-1;
+  if(next===trackerGraphSelectedIdx)return;
+  trackerGraphSelectFn(next);
+}
+document.addEventListener('keydown',function(e){
+  if(e.key!=='ArrowLeft'&&e.key!=='ArrowRight')return;
+  const panel=document.getElementById('trackerAnalyticsPanel');
+  if(!panel||!panel.classList.contains('visible'))return;
+  // Don't hijack arrow keys while the person is typing in a field elsewhere on the page
+  const tag=document.activeElement&&document.activeElement.tagName;
+  if(tag==='INPUT'||tag==='TEXTAREA'||tag==='SELECT')return;
+  e.preventDefault();
+  navigateTrackerPoint(e.key==='ArrowLeft'?-1:1);
+});
+function closeTrackerAnalytics(){const panel=document.getElementById("trackerAnalyticsPanel");panel.classList.remove("visible");if(trackerAnalyticsChartInstance){trackerAnalyticsChartInstance.destroy();trackerAnalyticsChartInstance=null}const cv=document.getElementById("trackerAnalyticsChart");if(cv)cv.ontouchmove=null;trackerGraphPointCount=0;trackerGraphSelectedIdx=-1;trackerGraphSelectFn=null;const navRow=document.getElementById('trackerGraphNavRow');if(navRow)navRow.classList.remove('visible')}
 
 document.addEventListener('click',function(e){
   const sug=document.getElementById('trackerSearchSuggestions');
@@ -8811,7 +10111,7 @@ document.addEventListener('click',function(e){
 });
 (function initTrackerDates(){
   const now=new Date(),y=now.getFullYear(),m=String(now.getMonth()+1).padStart(2,'0');
-  document.getElementById("trackerFromDate").value=`${y}-${m}-01`;document.getElementById("trackerToDate").value=now.toISOString().split('T')[0];
+  document.getElementById("trackerFromDate").value=`${y}-${m}-01`;document.getElementById("trackerToDate").value=getLocalDateStringFor(now);
 })();
 </script>
 
