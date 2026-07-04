@@ -1431,6 +1431,20 @@ body.theme-batman .settings-save-btn{color:#05050a}
 .custom-sound-file-row input[type="file"]{flex:1;min-width:160px;font-size:11px;color:var(--text-secondary);font-family:var(--font-alt)}
 .custom-sound-name{font-size:11px;color:var(--accent);font-family:var(--font-alt);font-weight:700;margin-top:6px}
 
+/* ===================== ON/OFF TOGGLE SWITCH (sound & vibration) =====================
+   Self-contained switch: the checkbox itself is stretched over the full pill (not
+   opacity:0/width:0) so taps register reliably even on small, low-end mobile screens.
+   Uses the general-sibling combinator (~) so state styling can't be broken by any
+   markup that ends up between the input and the slider span. */
+.gb-toggle{position:relative;display:inline-block;width:46px;height:26px;flex-shrink:0}
+.gb-toggle input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer;z-index:2;-webkit-tap-highlight-color:transparent}
+.gb-toggle-slider{position:absolute;inset:0;background:var(--bg-panel);border:1px solid var(--border-col);border-radius:26px;transition:background 0.2s ease,border-color 0.2s ease;pointer-events:none}
+.gb-toggle-slider:before{content:'';position:absolute;width:18px;height:18px;left:3px;top:3px;background:#fff;border-radius:50%;transition:transform 0.2s ease;box-shadow:0 1px 4px rgba(0,0,0,0.3)}
+.gb-toggle input:checked~.gb-toggle-slider{background:var(--accent);border-color:var(--accent)}
+.gb-toggle input:checked~.gb-toggle-slider:before{transform:translateX(20px)}
+#soundSettingsGroup,#vibrationSettingsGroup{transition:opacity 0.15s ease}
+.sound-option-row label small,.sound-option-row label .vib-sub{display:block;font-size:10px;font-weight:500;color:var(--text-muted);margin-top:2px}
+
 /* ===================== LIVE SET COPY-FROM-PREVIOUS BUTTON ===================== */
 .live-copy-prev-btn{
   display:inline-flex;align-items:center;gap:6px;
@@ -1543,7 +1557,7 @@ body.theme-godmode .levelup-toast{background:linear-gradient(135deg,#7a0006,#c00
   <!-- ===================== LOGIN PAGE ===================== -->
   <div class="auth-box glass" id="loginPage">
     <h2>🏋 GYMBRO</h2>
-    <p>TRACK · TRAIN · TRANSFORM · DOMINATE</p>
+    <p>TRACK · TRAIN · TRANSFORM</p>
     <label class="form-label">Login ID</label>
     <input type="text" placeholder="Your Login ID (e.g. 1001)" id="loginId" autocomplete="username">
     <label class="form-label">Password</label>
@@ -2417,34 +2431,71 @@ body.theme-godmode .levelup-toast{background:linear-gradient(135deg,#7a0006,#c00
           </div>
         </div>
 
-        <!-- Notification Sound Accordion -->
+        <!-- Notification Sound & Vibration Accordion -->
         <div class="settings-accordion" id="accordion-notifsound">
           <div class="settings-accordion-header" onclick="toggleSettingsAccordion('notifsound')">
             <div class="settings-accordion-title-wrap">
               <span class="settings-accordion-icon">🔔</span>
               <div>
-                <div class="settings-accordion-title">Notification Sound</div>
-                <div class="settings-accordion-sub">Choose break-timer alert sound &amp; volume</div>
+                <div class="settings-accordion-title">Notification Alerts</div>
+                <div class="settings-accordion-sub">Sound &amp; vibration when your break timer ends</div>
               </div>
             </div>
             <span class="settings-accordion-chevron">▼</span>
           </div>
           <div class="settings-accordion-body">
-            <p style="font-size:12px;color:var(--text-muted);font-family:var(--font-alt);margin:14px 0 4px;letter-spacing:0.3px">Pick the sound that plays when your break timer ends.</p>
-            <div id="soundOptionsList"></div>
-            <div class="volume-slider-row">
-              <label><span>🔊 Volume</span><span id="notifVolumeValue">80%</span></label>
-              <input type="range" id="notifVolumeSlider" min="0" max="100" value="80" oninput="handleVolumeSliderChange()">
-            </div>
-            <div class="custom-sound-upload">
-              <label>📁 Or upload your own sound from your media files</label>
-              <div class="custom-sound-file-row">
-                <input type="file" id="customSoundFileInput" accept="audio/*" onchange="handleCustomSoundUpload(event)">
-                <button class="sound-preview-btn" onclick="previewSelectedSound()">▶ PREVIEW</button>
+
+            <!-- Sound Notification on/off -->
+            <div class="settings-row">
+              <div>
+                <div class="settings-row-label">🔊 Sound Notification</div>
+                <div class="settings-row-sub">Play an alert sound when your break timer ends.</div>
               </div>
-              <div class="custom-sound-name" id="customSoundFileName"></div>
+              <div class="settings-row-ctrl">
+                <label class="gb-toggle">
+                  <input type="checkbox" id="soundEnabledToggle" onchange="handleSoundEnabledToggleChange()">
+                  <span class="gb-toggle-slider"></span>
+                </label>
+              </div>
             </div>
-            <button class="settings-save-btn" onclick="saveNotificationSoundSettings()">💾 SAVE SOUND SETTING</button>
+
+            <div id="soundSettingsGroup">
+              <p style="font-size:12px;color:var(--text-muted);font-family:var(--font-alt);margin:14px 0 4px;letter-spacing:0.3px">Pick the sound that plays when your break timer ends.</p>
+              <div id="soundOptionsList"></div>
+              <div class="volume-slider-row">
+                <label><span>🔊 Volume</span><span id="notifVolumeValue">80%</span></label>
+                <input type="range" id="notifVolumeSlider" min="0" max="100" value="80" oninput="handleVolumeSliderChange()">
+              </div>
+              <div class="custom-sound-upload">
+                <label>📁 Or upload your own sound from your media files</label>
+                <div class="custom-sound-file-row">
+                  <input type="file" id="customSoundFileInput" accept="audio/*" onchange="handleCustomSoundUpload(event)">
+                  <button class="sound-preview-btn" type="button" onclick="previewSelectedSound()">▶ PREVIEW</button>
+                </div>
+                <div class="custom-sound-name" id="customSoundFileName"></div>
+              </div>
+            </div>
+
+            <!-- Vibration Alert on/off -->
+            <div class="settings-row" style="padding-top:14px;border-top:1px solid var(--border-col);margin-top:8px">
+              <div>
+                <div class="settings-row-label">📳 Vibration Alert</div>
+                <div class="settings-row-sub">Vibrate the device when your break timer ends. Works on Android; iOS Safari doesn't yet support device vibration.</div>
+              </div>
+              <div class="settings-row-ctrl">
+                <label class="gb-toggle">
+                  <input type="checkbox" id="vibrationEnabledToggle" onchange="handleVibrationEnabledToggleChange()">
+                  <span class="gb-toggle-slider"></span>
+                </label>
+              </div>
+            </div>
+
+            <div id="vibrationSettingsGroup">
+              <p style="font-size:12px;color:var(--text-muted);font-family:var(--font-alt);margin:14px 0 4px;letter-spacing:0.3px">Pick how strong the vibration feels. Tap "Test" to feel it on your device.</p>
+              <div id="vibrationOptionsList"></div>
+            </div>
+
+            <button class="settings-save-btn" onclick="saveNotificationSoundSettings()">💾 SAVE NOTIFICATION SETTINGS</button>
           </div>
         </div>
 
@@ -4095,6 +4146,18 @@ const NOTIF_SOUNDS=[
   {id:'digital_alert',label:'📟 Digital Alert',tones:[1046,1318,1568]}
 ];
 
+/* Built-in vibration patterns. The Web Vibration API only accepts on/off durations in ms —
+   it cannot control motor amplitude/strength — so "light" vs "strong" is simulated through
+   pulse length and rhythm (short taps feel lighter, long sustained buzzes feel heavier).
+   Total duration is kept under ~2s so it stays snappy and reliable on low-end devices. */
+const VIBRATION_PATTERNS=[
+  {id:'light_tap',label:'🔹 Light Tap',sub:'Quick, gentle single pulse',pattern:[90]},
+  {id:'soft_pulse',label:'🔸 Soft Pulse',sub:'Two short, gentle taps',pattern:[100,80,100]},
+  {id:'medium_buzz',label:'🔶 Medium Buzz',sub:'Balanced, everyday strength',pattern:[220,100,220]},
+  {id:'strong_buzz',label:'🔴 Strong Buzz',sub:'Longer, heavier buzzes',pattern:[400,120,400,120,400]},
+  {id:'rapid_pulses',label:'⚡ Rapid Pulses',sub:'Fast repeated taps — hard to miss',pattern:[90,70,90,70,90,70,90,70,90]}
+];
+
 /* ── Accordion toggle ── */
 function toggleSettingsAccordion(key){
   const el=document.getElementById('accordion-'+key);
@@ -4246,20 +4309,80 @@ function getPickerSeconds(pickerKey){
   return m*60+s;
 }
 
-/* ===================== NOTIFICATION SOUND SETTINGS ===================== */
+/* ===================== NOTIFICATION (SOUND + VIBRATION) SETTINGS ===================== */
+
+/* Reads the saved notification config, migrating older flat-shape saves
+   (from before Sound/Vibration had separate on/off toggles) to the current shape:
+   { soundEnabled, sound:{type,id|customData|customName,volume}, vibrationEnabled, vibrationId } */
+function getNotifSettings(){
+  let raw=null;
+  try{raw=JSON.parse(localStorage.getItem('gymbro_notif_sound_'+settingsUid())||'null')}catch(e){raw=null}
+  const defaults={soundEnabled:true,sound:{type:'builtin',id:'classic_beep',volume:80},vibrationEnabled:true,vibrationId:'medium_buzz'};
+  if(!raw)return defaults;
+  if(raw.sound===undefined&&raw.type!==undefined){
+    // legacy flat shape
+    return {
+      soundEnabled:true,
+      sound:{type:raw.type,id:raw.id,volume:raw.volume!==undefined?raw.volume:80,customData:raw.customData,customName:raw.customName},
+      vibrationEnabled:raw.vibration!==undefined?!!raw.vibration:true,
+      vibrationId:'medium_buzz'
+    };
+  }
+  return {
+    soundEnabled:raw.soundEnabled!==undefined?!!raw.soundEnabled:true,
+    sound:raw.sound||defaults.sound,
+    vibrationEnabled:raw.vibrationEnabled!==undefined?!!raw.vibrationEnabled:true,
+    vibrationId:raw.vibrationId||'medium_buzz'
+  };
+}
+
 function renderSoundOptions(){
-  const saved=JSON.parse(localStorage.getItem('gymbro_notif_sound_'+settingsUid())||'{"type":"builtin","id":"classic_beep","volume":80}');
+  const cfg=getNotifSettings();
+  document.getElementById('soundEnabledToggle').checked=cfg.soundEnabled;
+  document.getElementById('vibrationEnabledToggle').checked=cfg.vibrationEnabled;
+
   const list=document.getElementById('soundOptionsList');
   list.innerHTML=NOTIF_SOUNDS.map(s=>`
     <div class="sound-option-row">
-      <input type="radio" name="notifSoundChoice" id="sound_${s.id}" value="${s.id}" ${saved.type==='builtin'&&saved.id===s.id?'checked':''} onchange="handleSoundChoiceChange()">
+      <input type="radio" name="notifSoundChoice" id="sound_${s.id}" value="${s.id}" ${cfg.sound.type==='builtin'&&cfg.sound.id===s.id?'checked':''} onchange="handleSoundChoiceChange()">
       <label for="sound_${s.id}">${s.label}</label>
-      <button class="sound-preview-btn" onclick="playBuiltinSound('${s.id}')">▶ Play</button>
+      <button class="sound-preview-btn" type="button" onclick="playBuiltinSound('${s.id}')">▶ Play</button>
     </div>`).join('');
-  document.getElementById('notifVolumeSlider').value=saved.volume!==undefined?saved.volume:80;
-  document.getElementById('notifVolumeValue').textContent=(saved.volume!==undefined?saved.volume:80)+'%';
-  if(saved.type==='custom'&&saved.customName){
-    document.getElementById('customSoundFileName').textContent=`📁 Custom: ${saved.customName}`;
+  document.getElementById('notifVolumeSlider').value=cfg.sound.volume!==undefined?cfg.sound.volume:80;
+  document.getElementById('notifVolumeValue').textContent=(cfg.sound.volume!==undefined?cfg.sound.volume:80)+'%';
+  if(cfg.sound.type==='custom'&&cfg.sound.customName){
+    document.getElementById('customSoundFileName').textContent=`📁 Custom: ${cfg.sound.customName}`;
+  }
+
+  renderVibrationOptions(cfg.vibrationId);
+  applyNotifGroupVisibility();
+}
+
+function renderVibrationOptions(selectedId){
+  const list=document.getElementById('vibrationOptionsList');
+  list.innerHTML=VIBRATION_PATTERNS.map(v=>`
+    <div class="sound-option-row">
+      <input type="radio" name="vibrationChoice" id="vib_${v.id}" value="${v.id}" ${selectedId===v.id?'checked':''}>
+      <label for="vib_${v.id}">${v.label}<span class="vib-sub">${v.sub}</span></label>
+      <button class="sound-preview-btn" type="button" onclick="previewVibrationPattern('${v.id}')">📳 Test</button>
+    </div>`).join('');
+}
+
+/* Shows/hides the sound and vibration settings groups based on their on/off toggles */
+function applyNotifGroupVisibility(){
+  document.getElementById('soundSettingsGroup').style.display=document.getElementById('soundEnabledToggle').checked?'block':'none';
+  document.getElementById('vibrationSettingsGroup').style.display=document.getElementById('vibrationEnabledToggle').checked?'block':'none';
+}
+
+function handleSoundEnabledToggleChange(){
+  applyNotifGroupVisibility();
+}
+
+function handleVibrationEnabledToggleChange(){
+  applyNotifGroupVisibility();
+  if(document.getElementById('vibrationEnabledToggle').checked){
+    const checked=document.querySelector('input[name="vibrationChoice"]:checked');
+    fireVibration(checked?checked.value:'medium_buzz');
   }
 }
 
@@ -4270,6 +4393,22 @@ function handleVolumeSliderChange(){
 
 function handleSoundChoiceChange(){
   // when picking a builtin radio, clear any selected custom upload visual (kept in storage until saved)
+}
+
+/* Fires a vibration pattern by id. Guarded so it's always safe to call — including on iOS
+   Safari and low-end/older Android WebViews where navigator.vibrate may be missing, throttled,
+   or throw. Cancels any in-progress vibration first so repeated taps on "Test" feel snappy
+   instead of queuing up. */
+function fireVibration(id){
+  if(!('vibrate' in navigator))return;
+  const v=VIBRATION_PATTERNS.find(p=>p.id===id)||VIBRATION_PATTERNS[2];
+  try{navigator.vibrate(0)}catch(e){}
+  try{navigator.vibrate(v.pattern)}catch(e){}
+}
+
+function previewVibrationPattern(id){
+  const radio=document.getElementById('vib_'+id);if(radio)radio.checked=true;
+  fireVibration(id);
 }
 
 let _customSoundDataUrl=null,_customSoundName=null;
@@ -4315,33 +4454,55 @@ function playBuiltinSound(id){
 }
 
 function saveNotificationSoundSettings(){
-  const volume=parseInt(document.getElementById('notifVolumeSlider').value)||80;
-  let payload;
-  if(_customSoundDataUrl){
-    payload={type:'custom',customData:_customSoundDataUrl,customName:_customSoundName,volume};
+  const soundEnabled=document.getElementById('soundEnabledToggle').checked;
+  const vibrationEnabled=document.getElementById('vibrationEnabledToggle').checked;
+  const prevCfg=getNotifSettings();
+
+  let sound;
+  if(soundEnabled){
+    const volume=parseInt(document.getElementById('notifVolumeSlider').value)||80;
+    if(_customSoundDataUrl){
+      sound={type:'custom',customData:_customSoundDataUrl,customName:_customSoundName,volume};
+    } else {
+      const checked=document.querySelector('input[name="notifSoundChoice"]:checked');
+      if(!checked){alert('Please select a notification sound, or turn Sound Notification off.');return}
+      sound={type:'builtin',id:checked.value,volume};
+    }
   } else {
-    const checked=document.querySelector('input[name="notifSoundChoice"]:checked');
-    if(!checked){alert('Please select a notification sound.');return}
-    payload={type:'builtin',id:checked.value,volume};
+    sound=prevCfg.sound; // keep the last chosen sound saved so it's restored if re-enabled later
   }
+
+  let vibrationId=prevCfg.vibrationId||'medium_buzz';
+  if(vibrationEnabled){
+    const checkedVib=document.querySelector('input[name="vibrationChoice"]:checked');
+    if(!checkedVib){alert('Please select a vibration pattern, or turn Vibration Alert off.');return}
+    vibrationId=checkedVib.value;
+  }
+
+  const payload={soundEnabled,sound,vibrationEnabled,vibrationId};
   try{
     localStorage.setItem('gymbro_notif_sound_'+settingsUid(),JSON.stringify(payload));
   }catch(e){
-    alert('Could not save custom sound (file may be too large). Try a smaller audio file.');return;
+    alert('Could not save notification settings (custom audio file may be too large). Try a smaller audio file.');return;
   }
-  showToast('✅ Notification sound saved!');
+  showToast('✅ Notification settings saved!');
 }
 
-/* Plays whichever sound the user configured in Settings — used by the live break timer */
+/* Plays the configured break-end sound and/or vibration — used by the live break timer.
+   Vibration fires first and independently of sound so it still works if audio is muted,
+   the tab is backgrounded, or WebAudio is blocked — all common on low-end mobile browsers. */
 function playConfiguredBreakSound(){
-  let saved;
-  try{saved=JSON.parse(localStorage.getItem('gymbro_notif_sound_'+settingsUid())||'null')}catch(e){saved=null}
-  if(!saved){playBreakAlertSound();return} // fallback to original default tone
-  const vol=(saved.volume!==undefined?saved.volume:80)/100;
-  if(saved.type==='custom'&&saved.customData){
-    try{const audio=new Audio(saved.customData);audio.volume=vol;audio.play().catch(()=>{});return}catch(e){}
+  const cfg=getNotifSettings();
+
+  if(cfg.vibrationEnabled)fireVibration(cfg.vibrationId);
+
+  if(!cfg.soundEnabled)return;
+  const s=cfg.sound||{};
+  const vol=(s.volume!==undefined?s.volume:80)/100;
+  if(s.type==='custom'&&s.customData){
+    try{const audio=new Audio(s.customData);audio.volume=vol;audio.play().catch(()=>{});return}catch(e){}
   }
-  const sound=NOTIF_SOUNDS.find(s=>s.id===saved.id)||NOTIF_SOUNDS[0];
+  const sound=NOTIF_SOUNDS.find(x=>x.id===s.id)||NOTIF_SOUNDS[0];
   try{
     const ctx=new(window.AudioContext||window.webkitAudioContext)();
     sound.tones.forEach((freq,i)=>{
@@ -4353,7 +4514,7 @@ function playConfiguredBreakSound(){
       gain.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+delay+0.35);
       osc.start(ctx.currentTime+delay);osc.stop(ctx.currentTime+delay+0.35);
     });
-  }catch(e){}
+  }catch(e){playBreakAlertSound()}
 }
 
 /* ===================== TODAY'S WORKOUT BANNER (order-following, check-in based) ===================== */
