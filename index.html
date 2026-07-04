@@ -2493,6 +2493,13 @@ body.theme-godmode .levelup-toast{background:linear-gradient(135deg,#7a0006,#c00
             <div id="vibrationSettingsGroup">
               <p style="font-size:12px;color:var(--text-muted);font-family:var(--font-alt);margin:14px 0 4px;letter-spacing:0.3px">Pick how strong the vibration feels. Tap "Test" to feel it on your device.</p>
               <div id="vibrationOptionsList"></div>
+              <div id="notifPermissionRow" style="margin-top:14px;padding:12px;border-radius:10px;background:var(--accent-soft);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
+                <div style="font-size:11px;color:var(--text-secondary);font-family:var(--font-alt);flex:1;min-width:180px;line-height:1.5">
+                  <strong style="color:var(--text-primary)">📱 Phone locked or in your pocket?</strong> Browsers only allow direct vibration while the screen is on and GymBro is in front of you. Allow notifications below so a lock-screen alert — which vibrates using your phone's own settings — still gets through when the screen is off.
+                </div>
+                <button class="sound-preview-btn" type="button" onclick="requestNotificationPermission()" id="enableNotifPermBtn">🔔 Enable</button>
+              </div>
+              <div class="custom-sound-name" id="notifPermStatus" style="margin-top:6px"></div>
             </div>
 
             <button class="settings-save-btn" onclick="saveNotificationSoundSettings()">💾 SAVE NOTIFICATION SETTINGS</button>
@@ -4356,6 +4363,7 @@ function renderSoundOptions(){
 
   renderVibrationOptions(cfg.vibrationId);
   applyNotifGroupVisibility();
+  updateNotifPermStatus();
 }
 
 function renderVibrationOptions(selectedId){
@@ -4383,7 +4391,48 @@ function handleVibrationEnabledToggleChange(){
   if(document.getElementById('vibrationEnabledToggle').checked){
     const checked=document.querySelector('input[name="vibrationChoice"]:checked');
     fireVibration(checked?checked.value:'medium_buzz');
+    if('Notification' in window&&Notification.permission==='default'){
+      Notification.requestPermission().then(()=>updateNotifPermStatus());
+    }
   }
+}
+
+/* ===================== SYSTEM NOTIFICATION FOR LOCKED-SCREEN VIBRATION =====================
+   navigator.vibrate() is deliberately restricted by Chrome/Android to pages that are visible
+   and focused — it will not fire once the screen is locked or GymBro is backgrounded, no matter
+   what code runs. That's a browser policy, not something fixable from JS. A system notification,
+   however, IS designed to reach the user while locked/backgrounded, and the phone will vibrate
+   for it according to the device's own notification settings — so this is the practical way to
+   still get a physical vibration cue through when the screen is off. It requires the user to
+   grant notification permission once. */
+function requestNotificationPermission(){
+  if(!('Notification' in window)){
+    updateNotifPermStatus();
+    alert("This browser doesn't support system notifications, so vibration can only work while the screen is on and GymBro is open.");
+    return;
+  }
+  Notification.requestPermission().then(()=>updateNotifPermStatus());
+}
+
+function updateNotifPermStatus(){
+  const statusEl=document.getElementById('notifPermStatus'),btn=document.getElementById('enableNotifPermBtn');
+  if(!statusEl||!btn)return;
+  if(!('Notification' in window)){
+    statusEl.textContent='⚠️ Not supported on this browser — vibration will only work while the screen is on and GymBro is open.';
+    btn.style.display='none';return;
+  }
+  const p=Notification.permission;
+  if(p==='granted'){statusEl.textContent="✅ Enabled — lock-screen alerts will vibrate using your phone's settings.";btn.style.display='none'}
+  else if(p==='denied'){statusEl.textContent='🚫 Blocked — enable notifications for this site in your phone/browser settings to fix locked-screen vibration.';btn.style.display='inline-block'}
+  else{statusEl.textContent='';btn.style.display='inline-block'}
+}
+
+/* Fires an OS-level notification when the break ends — the piece that actually gets a vibration
+   through while the phone is locked or the browser is backgrounded. Safe no-op if permission
+   hasn't been granted or the API isn't supported. */
+function fireBreakEndSystemNotification(){
+  if(!('Notification' in window)||Notification.permission!=='granted')return;
+  try{new Notification('⏱ Break Over!',{body:'Time to crush the next set! 💪',tag:'gymbro-break-end'})}catch(e){}
 }
 
 function handleVolumeSliderChange(){
@@ -4494,7 +4543,10 @@ function saveNotificationSoundSettings(){
 function playConfiguredBreakSound(){
   const cfg=getNotifSettings();
 
-  if(cfg.vibrationEnabled)fireVibration(cfg.vibrationId);
+  if(cfg.vibrationEnabled){
+    fireVibration(cfg.vibrationId);       // works while screen is on & GymBro is in front
+    fireBreakEndSystemNotification();     // works even when locked/backgrounded, if permission granted
+  }
 
   if(!cfg.soundEnabled)return;
   const s=cfg.sound||{};
@@ -7564,7 +7616,7 @@ function cancelLiveWorkout(){
   if(window._liveEditMode){cancelLiveEditWorkout();return;}
   stopAllLiveTimers();document.getElementById("liveWorkoutForm").style.display="none";document.getElementById("initialWorkoutBox").style.display="block";liveSetResults=[];liveSessionSlot=null;
 }
-function stopAllLiveTimers(){Object.values(liveSetTimers).forEach(t=>clearInterval(t));Object.values(liveBreakTimers).forEach(t=>clearInterval(t));liveSetTimers={};liveSetSeconds={};liveBreakTimers={};liveBreakSeconds={};liveBreakTotalSecs={}}
+function stopAllLiveTimers(){Object.values(liveSetTimers).forEach(t=>clearInterval(t));Object.values(liveBreakTimers).forEach(t=>clearInterval(t));liveSetTimers={};liveSetSeconds={};liveBreakTimers={};liveBreakSeconds={};liveBreakTotalSecs={};releaseBreakWakeLock()}
 let _prevPerfLiveTimer=null;
 function toggleLiveNameDropdown(e){
   if(e)e.stopPropagation();
@@ -7724,9 +7776,38 @@ async function saveLiveSet(idx){
   }else{finishLiveSession(name)}
   await loadWorkoutsForDate();await syncCoreDashboardMetrics();
 }
+/* ===================== SCREEN WAKE LOCK (keep screen on during a break) =====================
+   Best-effort helper: while a break is counting down, try to stop the screen from
+   auto-turning-off from inactivity timeout, so the timer keeps running full-speed and its
+   sound/vibration/notification all fire right on time.
+   IMPORTANT LIMITATION: this can only prevent an AUTOMATIC timeout-based screen-off. If the
+   user manually presses the power button to lock the phone (very common when it goes in a
+   pocket at the gym), no web API can override that — this is an OS-level lock, not something
+   any website can touch. The system notification (see fireBreakEndSystemNotification above)
+   is what still gets a vibration through in that manual-lock case. */
+let _gbWakeLock=null;
+async function acquireBreakWakeLock(){
+  if(!('wakeLock' in navigator))return;
+  try{
+    _gbWakeLock=await navigator.wakeLock.request('screen');
+    _gbWakeLock.addEventListener('release',()=>{_gbWakeLock=null});
+  }catch(e){_gbWakeLock=null} // e.g. low battery mode or unsupported — fail silently, sound/notification still work
+}
+function releaseBreakWakeLock(){
+  if(_gbWakeLock){try{_gbWakeLock.release()}catch(e){}_gbWakeLock=null}
+}
+/* Wake locks are auto-released by the browser whenever the tab loses visibility, and must be
+   re-requested once it's visible again — so grab it back if a break is still actively running. */
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='visible'&&(Object.keys(liveBreakTimers).length||Object.keys(liveEditBreakTimers||{}).length)){
+    acquireBreakWakeLock();
+  }
+});
+
 function skipLiveBreak(idx){
   if(liveBreakTimers[idx]){clearInterval(liveBreakTimers[idx]);delete liveBreakTimers[idx]}
   delete liveBreakTotalSecs[idx];
+  releaseBreakWakeLock();
   const autoSkipBtn=document.getElementById(`liveBreakAutoSkip_${idx}`);if(autoSkipBtn)autoSkipBtn.style.display="none";
   const editBtn=document.getElementById(`liveBreakEditBtn_${idx}`);if(editBtn)editBtn.style.display="none";
   const editPanel=document.getElementById(`liveBreakEditPanel_${idx}`);if(editPanel)editPanel.style.display="none";
@@ -7740,6 +7821,7 @@ function startLiveBreak(idx,forcedSecs){
   let startBtn=document.querySelector(`#liveBreakRow_${idx} .live-break-btn.start`),skipBtn=document.querySelectorAll(`#liveBreakRow_${idx} .live-break-btn`)[1];
   if(startBtn){startBtn.disabled=true;startBtn.style.opacity="0.5"}if(skipBtn){skipBtn.disabled=false;skipBtn.style.opacity="1"}
   liveBreakSeconds[idx]=0;liveBreakTotalSecs[idx]=totalSecs;
+  acquireBreakWakeLock();
   // The "Edit Break" override is only offered for genuine Auto Break sessions (forcedSecs set from the saved default).
   // Manual breaks are already entered by hand each time, so no per-set override is needed there.
   const editBtn=document.getElementById(`liveBreakEditBtn_${idx}`);
@@ -7757,7 +7839,7 @@ function runLiveBreakInterval(idx){
   if(liveBreakTimers[idx]){clearInterval(liveBreakTimers[idx])}
   liveBreakTimers[idx]=setInterval(()=>{
     liveBreakSeconds[idx]++;let rem=liveBreakTotalSecs[idx]-liveBreakSeconds[idx];
-    if(rem<=0){clearInterval(liveBreakTimers[idx]);delete liveBreakTimers[idx];delete liveBreakTotalSecs[idx];timerEl.textContent="00:00";msgEl.textContent="🔔 Break over! Time to crush the next set!";msgEl.style.display="block";timerEl.style.display="none";if(editBtn)editBtn.style.display="none";if(editPanel)editPanel.style.display="none";playConfiguredBreakSound();setTimeout(()=>{document.getElementById(`liveBreakRow_${idx}`).style.display="none";activateNextLiveSet(idx+1)},1500);return}
+    if(rem<=0){clearInterval(liveBreakTimers[idx]);delete liveBreakTimers[idx];delete liveBreakTotalSecs[idx];timerEl.textContent="00:00";msgEl.textContent="🔔 Break over! Time to crush the next set!";msgEl.style.display="block";timerEl.style.display="none";if(editBtn)editBtn.style.display="none";if(editPanel)editPanel.style.display="none";releaseBreakWakeLock();playConfiguredBreakSound();setTimeout(()=>{document.getElementById(`liveBreakRow_${idx}`).style.display="none";activateNextLiveSet(idx+1)},1500);return}
     let m=Math.floor(rem/60),s=rem%60;timerEl.textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
   },1000);
 }
@@ -8256,6 +8338,7 @@ async function saveLiveEditSet(idx){
 function skipLiveEditBreak(idx){
   if(liveEditBreakTimers[idx]){clearInterval(liveEditBreakTimers[idx]);delete liveEditBreakTimers[idx]}
   delete liveEditBreakTotalSecs[idx];
+  releaseBreakWakeLock();
   const autoSkipBtn=document.getElementById(`liveEditBreakAutoSkip_${idx}`);if(autoSkipBtn)autoSkipBtn.style.display="none";
   const editBtn=document.getElementById(`liveEditBreakEditBtn_${idx}`);if(editBtn)editBtn.style.display="none";
   const editPanel=document.getElementById(`liveEditBreakEditPanel_${idx}`);if(editPanel)editPanel.style.display="none";
@@ -8269,6 +8352,7 @@ function startLiveEditBreak(idx,forcedSecs){
   let timerEl=document.getElementById(`liveEditBreakTimer_${idx}`),msgEl=document.getElementById(`liveEditBreakMsg_${idx}`);
   timerEl.style.display="block";msgEl.style.display="none";
   liveEditBreakSeconds[idx]=0;liveEditBreakTotalSecs[idx]=totalSecs;
+  acquireBreakWakeLock();
   const editBtn=document.getElementById(`liveEditBreakEditBtn_${idx}`);
   if(editBtn)editBtn.style.display=forcedSecs!==undefined?"inline-flex":"none";
   const editPanel=document.getElementById(`liveEditBreakEditPanel_${idx}`);if(editPanel)editPanel.style.display="none";
@@ -8281,7 +8365,7 @@ function runLiveEditBreakInterval(idx){
   if(liveEditBreakTimers[idx]){clearInterval(liveEditBreakTimers[idx])}
   liveEditBreakTimers[idx]=setInterval(()=>{
     liveEditBreakSeconds[idx]++;let rem=liveEditBreakTotalSecs[idx]-liveEditBreakSeconds[idx];
-    if(rem<=0){clearInterval(liveEditBreakTimers[idx]);delete liveEditBreakTimers[idx];delete liveEditBreakTotalSecs[idx];timerEl.textContent="00:00";msgEl.textContent="🔔 Break over! Time to crush the next set!";msgEl.style.display="block";timerEl.style.display="none";if(editBtn)editBtn.style.display="none";if(editPanel)editPanel.style.display="none";playConfiguredBreakSound();setTimeout(()=>{document.getElementById(`liveEditBreakRow_${idx}`).style.display="none";activateNextLiveEditSet(idx+1)},1500);return}
+    if(rem<=0){clearInterval(liveEditBreakTimers[idx]);delete liveEditBreakTimers[idx];delete liveEditBreakTotalSecs[idx];timerEl.textContent="00:00";msgEl.textContent="🔔 Break over! Time to crush the next set!";msgEl.style.display="block";timerEl.style.display="none";if(editBtn)editBtn.style.display="none";if(editPanel)editPanel.style.display="none";releaseBreakWakeLock();playConfiguredBreakSound();setTimeout(()=>{document.getElementById(`liveEditBreakRow_${idx}`).style.display="none";activateNextLiveEditSet(idx+1)},1500);return}
     let m=Math.floor(rem/60),s=rem%60;timerEl.textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
   },1000);
 }
@@ -8331,6 +8415,7 @@ function cancelLiveEditWorkout(){
   Object.values(liveEditSetTimers).forEach(t=>clearInterval(t));
   Object.values(liveEditBreakTimers).forEach(t=>clearInterval(t));
   liveEditSetTimers={};liveEditSetSeconds={};liveEditBreakTimers={};liveEditBreakSeconds={};liveEditBreakTotalSecs={};
+  releaseBreakWakeLock();
   liveEditSlot=null;liveEditExistingResults=[];liveEditNewResults=[];liveEditTotalNewSets=0;liveEditValueOverrides={};
   window._liveEditMode=false;
   applyLiveSetsCountMinConstraint();
