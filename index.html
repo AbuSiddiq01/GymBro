@@ -4451,11 +4451,21 @@ function updateNotifPermStatus(){
 }
 
 /* Fires an OS-level notification when the break ends — the piece that actually gets a vibration
-   through while the phone is locked or the browser is backgrounded. Safe no-op if permission
-   hasn't been granted or the API isn't supported. */
-function fireBreakEndSystemNotification(){
+   AND a sound through even when the page itself has had zero interaction yet (e.g. right after an
+   auto-restored refresh). This is the one channel that bypasses the browser's "needs a tap first"
+   rule for audio/vibration, because the OS — not the page — is the one producing the sound/buzz.
+   Safe no-op if permission hasn't been granted or the API isn't supported. */
+function fireBreakEndSystemNotification(vibrationPattern){
   if(!('Notification' in window)||Notification.permission!=='granted')return;
-  try{new Notification('⏱ Break Over!',{body:'Time to crush the next set! 💪',tag:'gymbro-break-end'})}catch(e){}
+  try{
+    new Notification('⏱ Break Over!',{
+      body:'Time to crush the next set! 💪',
+      tag:'gymbro-break-end',
+      renotify:true,           // makes sure repeat break-end alerts re-buzz/re-sound instead of silently updating a stale one
+      silent:false,            // ask the OS to play its own notification sound — independent of the page's AudioContext
+      vibrate:vibrationPattern||[220,100,220]  // Android honors this at the OS level even with no page interaction; ignored elsewhere
+    })
+  }catch(e){}
 }
 
 function handleVolumeSliderChange(){
@@ -4512,7 +4522,9 @@ function playBuiltinSound(id){
   const sound=NOTIF_SOUNDS.find(s=>s.id===id);if(!sound)return;
   const vol=(parseInt(document.getElementById('notifVolumeSlider')?.value)||80)/100;
   try{
-    const ctx=new(window.AudioContext||window.webkitAudioContext)();
+    const ctx=getSharedBeepCtx();
+    if(!ctx)throw new Error('no audio context');
+    if(ctx.state==='suspended')ctx.resume().catch(()=>{});
     sound.tones.forEach((freq,i)=>{
       const delay=i*0.22;
       const osc=ctx.createOscillator(),gain=ctx.createGain();
@@ -4576,19 +4588,24 @@ function getSharedBeepCtx(){
   }
   return _sharedBeepCtx;
 }
-['pointerdown','touchstart','keydown'].forEach(evt=>{
-  document.addEventListener(evt,()=>{
-    const ctx=getSharedBeepCtx();
-    if(ctx&&ctx.state==='suspended')ctx.resume().catch(()=>{});
-  },{once:true,passive:true});
-});
+/* Primes/resumes the shared context — call this from spots that are already a genuine, sound-
+   relevant user gesture (starting a break, previewing a sound), never from a generic page-wide
+   listener. A generic "any tap anywhere" listener used to sit here, but it fired the AudioContext
+   resume attempt on totally unrelated taps (opening a menu, scrolling, switching tabs) and printed
+   Chrome's "AudioContext was not allowed to start" diagnostic on those unrelated clicks — confusing
+   and unnecessary, since those taps have nothing to do with sound. */
+function primeSharedBeepCtx(){
+  const ctx=getSharedBeepCtx();
+  if(ctx&&ctx.state==='suspended')ctx.resume().catch(()=>{});
+}
 
 function playConfiguredBreakSound(){
   const cfg=getNotifSettings();
 
   if(cfg.vibrationEnabled){
-    fireVibration(cfg.vibrationId);       // works while screen is on & GymBro is in front
-    fireBreakEndSystemNotification();     // works even when locked/backgrounded, if permission granted
+    fireVibration(cfg.vibrationId);       // works while screen is on & GymBro is in front, AND the page has had a tap since load
+    const pat=(VIBRATION_PATTERNS.find(p=>p.id===cfg.vibrationId)||VIBRATION_PATTERNS[2]).pattern;
+    fireBreakEndSystemNotification(pat);  // works even with zero page interaction yet, or when locked/backgrounded — if permission granted
   }
 
   if(!cfg.soundEnabled)return;
@@ -7463,6 +7480,11 @@ async function restoreInProgressWorkoutFormIfAny(wasRefresh){
     restoreLiveSessionUI(liveDraft);
     return;
   }
+  if(liveDraft&&liveDraft.mode==='setup'){
+    await switchMemberTab('workPage');
+    restoreLiveSetupUI(liveDraft);
+    return;
+  }
   const nlDraft=loadNonLiveDraft();
   if(nonLiveDraftHasContent(nlDraft)){
     await switchMemberTab('workPage');
@@ -7856,6 +7878,7 @@ function toggleLiveNameDropdown(e){
   }
 }
 function handleLiveSearchAuto(forceShow){
+  saveLiveDraft();
   let val=document.getElementById("liveWorkoutNameInput").value.toLowerCase();
   const muscleVal=document.getElementById("liveWorkoutMuscleFilter")?document.getElementById("liveWorkoutMuscleFilter").value:"";
   const equipVal=document.getElementById("liveWorkoutEquipmentFilter")?document.getElementById("liveWorkoutEquipmentFilter").value:"";
@@ -7915,7 +7938,18 @@ function getLiveDraftKey(){return `gymbro_live_draft_${getEffectiveUid()}`}
 function saveLiveDraft(){
   if(!_liveDraftSaveEnabled||!liveMode||window._liveEditMode)return;
   const name=(document.getElementById("liveWorkoutNameInput")?.value||'').trim();
-  if(!name||!liveTotalSets){clearLiveDraft();return}
+  if(!liveTotalSets){
+    // Session hasn't been started yet (still on the setup panel: name + sets structure). There's no
+    // session to resume, but the person's picks so far shouldn't vanish on an accidental refresh either.
+    const setsCountEl=document.getElementById("liveSetsCountSelect");
+    const muscle=document.getElementById("liveWorkoutMuscleFilter")?.value||'';
+    const equipment=document.getElementById("liveWorkoutEquipmentFilter")?.value||'';
+    const setsCount=setsCountEl?setsCountEl.value:"1";
+    if(!name&&!muscle&&!equipment&&setsCount==="1"){clearLiveDraft();return}
+    try{sessionStorage.setItem(getLiveDraftKey(),JSON.stringify({mode:'setup',name,setsCount,muscle,equipment}))}catch(e){}
+    return;
+  }
+  if(!name){clearLiveDraft();return}
   const sets={};
   for(let i=1;i<=liveTotalSets;i++){
     const kgEl=document.getElementById(`liveKg_${i}`);if(!kgEl)continue;
@@ -7956,6 +7990,34 @@ function clearLiveDraft(){
 
 /* Rebuilds the entire live session UI (set blocks, done/active states, in-progress Kg/Reps, running
    stopwatches, and any in-progress break) straight from a saved draft — used right after a refresh. */
+/* Brings back what was picked on the Live Mode setup panel (exercise name, muscle/equipment
+   filters, sets structure) if the person refreshed BEFORE pressing "Start Live Session" — there's
+   no running session to resume, but the selection they'd already made shouldn't be thrown away. */
+function restoreLiveSetupUI(draft){
+  _liveDraftSaveEnabled=false;
+  liveMode=true;
+  const tog=document.getElementById("liveModeToggle"),lbl=document.getElementById("liveModeLabel");
+  if(tog)tog.classList.add("on");if(lbl){lbl.textContent="ON";lbl.style.color="var(--accent)"}
+  currentEditingIndex=null;window._liveEditMode=false;editOriginalSetCount=0;
+  ctmInitMuscleEquipmentDropdowns();
+  document.getElementById("initialWorkoutBox").style.display="none";
+  document.getElementById("liveWorkoutForm").style.display="block";
+  document.getElementById("workoutFormStructure").style.display="none";
+  document.getElementById("liveSetupPanel").style.display="block";
+  document.getElementById("liveSessionTitle").style.display="none";
+  document.getElementById("liveSetsContainer").innerHTML="";
+  const muscleEl=document.getElementById("liveWorkoutMuscleFilter");if(muscleEl&&draft.muscle)muscleEl.value=draft.muscle;
+  const equipEl=document.getElementById("liveWorkoutEquipmentFilter");if(equipEl&&draft.equipment)equipEl.value=draft.equipment;
+  const nameEl=document.getElementById("liveWorkoutNameInput");if(nameEl){nameEl.readOnly=false;nameEl.style.opacity="1";nameEl.value=draft.name||"";}
+  const setsCountEl=document.getElementById("liveSetsCountSelect");if(setsCountEl)setsCountEl.value=draft.setsCount||"1";
+  liveCurrentSet=1;liveTotalSets=0;
+  applyLiveSetsCountMinConstraint();
+  handleLiveSearchAuto();
+  updateTrackWorkoutBtnVisibility('live');
+  _liveDraftSaveEnabled=true;
+  showToast('🔄 Restored your exercise selection after the refresh.');
+}
+
 function restoreLiveSessionUI(draft){
   _liveDraftSaveEnabled=false; // don't re-save while we're programmatically reconstructing it
   liveMode=true;
@@ -8068,6 +8130,7 @@ function restoreLiveSessionUI(draft){
       }
       runLiveBreakInterval(bIdx);
       acquireBreakWakeLock();
+      showResumeAlertsBanner(); // only relevant when a break is actually ticking right now
     }
   } else {
     const activeBlock=document.getElementById(`liveSetBlock_${nextActiveIdx}`);
@@ -8076,6 +8139,30 @@ function restoreLiveSessionUI(draft){
 
   _liveDraftSaveEnabled=true;
   showToast('🔄 Restored your in-progress live workout after the refresh — timers included.');
+}
+
+/* Browsers will never let JS fake a tap to unlock audio/vibration — a script-dispatched click or
+   touch event is always flagged isTrusted:false and is ignored for this purpose, by design (it's
+   exactly the loophole this policy exists to close). The only real fix is to make the one genuine
+   tap that IS required effortless to give. This banner appears right after a live session is
+   restored and turns that unavoidable tap into a single obvious button press — tapping it resumes
+   the shared beep AudioContext and does a harmless test buzz, so every break alert for the rest of
+   the session fires with sound + vibration exactly like it would if you'd never refreshed at all. */
+function showResumeAlertsBanner(){
+  if(document.getElementById('liveResumeAlertsBanner'))return;
+  const cfg=getNotifSettings();
+  if(!cfg.soundEnabled&&!cfg.vibrationEnabled)return; // nothing to unlock
+  const b=document.createElement('button');
+  b.id='liveResumeAlertsBanner';
+  b.textContent='🔔 Tap to enable break sound & vibration';
+  Object.assign(b.style,{position:'fixed',top:'calc(env(safe-area-inset-top,0px) + 10px)',left:'50%',transform:'translateX(-50%)',zIndex:'9999998',background:'var(--accent,#e63946)',color:'#fff',border:'none',padding:'12px 20px',borderRadius:'999px',fontFamily:'var(--font-alt)',fontSize:'13px',fontWeight:'800',letterSpacing:'0.3px',boxShadow:'0 8px 24px rgba(0,0,0,0.35)',maxWidth:'90vw',cursor:'pointer'});
+  b.onclick=()=>{
+    primeSharedBeepCtx();
+    try{navigator.vibrate&&navigator.vibrate(40)}catch(e){}
+    b.remove();
+  };
+  document.body.appendChild(b);
+  setTimeout(()=>{if(document.body.contains(b))b.remove()},15000);
 }
 
 function startLiveSession(){
@@ -8225,6 +8312,7 @@ function skipLiveBreak(idx){
   saveLiveDraft();
 }
 function startLiveBreak(idx,forcedSecs){
+  primeSharedBeepCtx();
   let totalSecs=forcedSecs!==undefined?forcedSecs:getPickerSeconds(`liveBreak_${idx}`);
   if(totalSecs<1){if(forcedSecs===undefined){alert("Set a break time (at least 1 second).");return}else{activateNextLiveSet(idx+1);return}}
   let timerEl=document.getElementById(`liveBreakTimer_${idx}`),msgEl=document.getElementById(`liveBreakMsg_${idx}`);
@@ -8553,6 +8641,7 @@ function renderLiveEditSetsUI(){
 }
 
 function handleLiveSetsCountSelectChange(){
+  saveLiveDraft();
   if(!window._liveEditMode)return;
   const sel=document.getElementById("liveSetsCountSelect");
   const committedCount=getLiveEditCommittedSegments().length;
