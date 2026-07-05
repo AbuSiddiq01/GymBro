@@ -585,6 +585,21 @@ body.theme-batman .set-new-timer-btn{color:#05050a}
 .set-delete-btn{background:rgba(220,38,38,0.12);border:none;width:32px;height:32px;border-radius:9px;cursor:pointer;font-size:13px;display:none;align-items:center;justify-content:center;flex-shrink:0;transition:background 0.2s ease}
 .set-delete-btn:hover{background:rgba(220,38,38,0.25)}
 .set-row.set-selected .set-delete-btn{display:flex}
+/* Per-set "copy previous set's values" icon + lock checkbox (non-live multi-set entry) */
+.set-copy-btn{background:var(--accent-soft);border:1px solid var(--accent);color:var(--accent);width:32px;height:32px;border-radius:9px;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background 0.2s ease}
+.set-copy-btn:hover{background:var(--accent);color:#fff}
+body.theme-batman .set-copy-btn:hover{color:#05050a}
+/* Cross-platform tick checkbox (SVG checkmark, not an emoji — renders identically on every OS/browser).
+   Also swipeable: swiping the whole set-row left-to-right ticks it too (see nlSetSwipeEnd in JS). */
+.set-lock-check{position:relative;display:flex;align-items:center;justify-content:center;width:32px;height:32px;flex-shrink:0}
+.set-lock-check input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer;z-index:2}
+.set-lock-box{width:22px;height:22px;border-radius:6px;border:2px solid var(--border-col);background:var(--bg-panel);display:flex;align-items:center;justify-content:center;transition:background 0.15s ease,border-color 0.15s ease;pointer-events:none}
+.set-lock-box svg{width:14px;height:14px;color:#fff;opacity:0;transform:scale(0.5);transition:opacity 0.15s ease,transform 0.15s ease}
+.set-lock-check input:checked~.set-lock-box{background:var(--accent);border-color:var(--accent)}
+.set-lock-check input:checked~.set-lock-box svg{opacity:1;transform:scale(1)}
+.set-row.set-row-locked{background:var(--accent-soft);border-color:var(--accent)}
+.set-row.set-row-locked input[type="number"]{opacity:0.75;cursor:not-allowed}
+.set-row{touch-action:pan-y} /* keep vertical page scroll working while we read horizontal swipes ourselves */
 .suggestion-box{position:relative;margin-bottom:8px}
 .suggestion-box input{padding-right:38px}
 .sugg-dropdown-icon{position:absolute;right:10px;top:0;bottom:0;width:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-muted);font-size:11px;user-select:none;transition:color 0.2s ease,transform 0.2s ease}
@@ -2097,7 +2112,7 @@ body.theme-godmode .levelup-toast{background:linear-gradient(135deg,#7a0006,#c00
           </div>
           <label style="font-size:12px;font-weight:700;color:var(--text-muted);font-family:var(--font-alt)">EXERCISE NAME:</label>
           <div class="suggestion-box">
-            <input type="text" id="workoutNameInput" placeholder="Type or Select (e.g. Bench Press)" oninput="handleWorkoutSearchAuto()" onfocus="handleWorkoutSearchAuto()" autocomplete="off">
+            <input type="text" id="workoutNameInput" placeholder="Type or Select (e.g. Bench Press)" oninput="handleWorkoutSearchAuto();saveNonLiveDraft()" onfocus="handleWorkoutSearchAuto()" autocomplete="off">
             <span class="sugg-dropdown-icon" id="workoutNameDropdownIcon" onclick="toggleWorkoutNameDropdown(event)">▼</span>
             <div id="autoSuggestions" class="suggestions-list"></div>
           </div>
@@ -2493,6 +2508,13 @@ body.theme-godmode .levelup-toast{background:linear-gradient(135deg,#7a0006,#c00
             <div id="vibrationSettingsGroup">
               <p style="font-size:12px;color:var(--text-muted);font-family:var(--font-alt);margin:14px 0 4px;letter-spacing:0.3px">Pick how strong the vibration feels. Tap "Test" to feel it on your device.</p>
               <div id="vibrationOptionsList"></div>
+              <div id="notifPermissionRow" style="margin-top:14px;padding:12px;border-radius:10px;background:var(--accent-soft);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
+                <div style="font-size:11px;color:var(--text-secondary);font-family:var(--font-alt);flex:1;min-width:180px;line-height:1.5">
+                  <strong style="color:var(--text-primary)">📱 Phone locked or in your pocket?</strong> Browsers only allow direct vibration while the screen is on and GymBro is in front of you. Allow notifications below so a lock-screen alert — which vibrates using your phone's own settings — still gets through when the screen is off.
+                </div>
+                <button class="sound-preview-btn" type="button" onclick="requestNotificationPermission()" id="enableNotifPermBtn">🔔 Enable</button>
+              </div>
+              <div class="custom-sound-name" id="notifPermStatus" style="margin-top:6px"></div>
             </div>
 
             <button class="settings-save-btn" onclick="saveNotificationSoundSettings()">💾 SAVE NOTIFICATION SETTINGS</button>
@@ -4040,8 +4062,10 @@ async function login(){
   await mountMemberDashboard(data);
 }
 
-/* ===================== MOUNT DASHBOARD (shared by login + auto-restore) ===================== */
-async function mountMemberDashboard(data){
+/* ===================== MOUNT DASHBOARD (shared by login + auto-restore) =====================
+   initialTab: which memberTab id to land on. Defaults to the dashboard (used for a fresh, explicit
+   login). Auto-restore-on-refresh passes the last tab the person was actually viewing instead. */
+async function mountMemberDashboard(data,initialTab){
   document.getElementById("memberWelcome").innerText="Welcome Back, "+data.name;
   document.getElementById("profileDisplayName").textContent=data.name;
   // Stored so "Enter Room ID" can identify this device's logged-in user automatically —
@@ -4065,7 +4089,8 @@ async function mountMemberDashboard(data){
     document.getElementById("profileBio").textContent=data.bio;
     localStorage.setItem("gymbro_bio",data.bio);
   }
-  await switchMemberTab('dashPage');
+  await switchMemberTab(initialTab||'dashPage');
+  await restoreInProgressWorkoutFormIfAny(!!initialTab);
   await resumeActiveSession(data.id);
   await renderTodayWorkoutBanner();
   // Resume an in-progress workout room (as host or joined member) if one is saved for this device —
@@ -4088,7 +4113,12 @@ window.addEventListener('load', async function(){
     // Validate user still exists in DB
     const{data,error}=await db.from("users").select("*").eq("id",uid).single();
     if(!error&&data){
-      await mountMemberDashboard(data);
+      // A refresh keeps sessionStorage, so this picks the page back up exactly where it was left.
+      // A genuinely new browser session (new tab, or after closing the browser) has no sessionStorage
+      // entry yet, so it falls back to the dashboard — matching "only show homepage on a fresh open".
+      let lastTab=null;
+      try{lastTab=sessionStorage.getItem('gymbro_last_tab')}catch(e){lastTab=null}
+      await mountMemberDashboard(data,lastTab);
     } else {
       // User no longer valid — clear only the session/auth keys, keep personalized settings intact
       localStorage.removeItem("user_id");
@@ -4356,6 +4386,7 @@ function renderSoundOptions(){
 
   renderVibrationOptions(cfg.vibrationId);
   applyNotifGroupVisibility();
+  updateNotifPermStatus();
 }
 
 function renderVibrationOptions(selectedId){
@@ -4383,7 +4414,48 @@ function handleVibrationEnabledToggleChange(){
   if(document.getElementById('vibrationEnabledToggle').checked){
     const checked=document.querySelector('input[name="vibrationChoice"]:checked');
     fireVibration(checked?checked.value:'medium_buzz');
+    if('Notification' in window&&Notification.permission==='default'){
+      Notification.requestPermission().then(()=>updateNotifPermStatus());
+    }
   }
+}
+
+/* ===================== SYSTEM NOTIFICATION FOR LOCKED-SCREEN VIBRATION =====================
+   navigator.vibrate() is deliberately restricted by Chrome/Android to pages that are visible
+   and focused — it will not fire once the screen is locked or GymBro is backgrounded, no matter
+   what code runs. That's a browser policy, not something fixable from JS. A system notification,
+   however, IS designed to reach the user while locked/backgrounded, and the phone will vibrate
+   for it according to the device's own notification settings — so this is the practical way to
+   still get a physical vibration cue through when the screen is off. It requires the user to
+   grant notification permission once. */
+function requestNotificationPermission(){
+  if(!('Notification' in window)){
+    updateNotifPermStatus();
+    alert("This browser doesn't support system notifications, so vibration can only work while the screen is on and GymBro is open.");
+    return;
+  }
+  Notification.requestPermission().then(()=>updateNotifPermStatus());
+}
+
+function updateNotifPermStatus(){
+  const statusEl=document.getElementById('notifPermStatus'),btn=document.getElementById('enableNotifPermBtn');
+  if(!statusEl||!btn)return;
+  if(!('Notification' in window)){
+    statusEl.textContent='⚠️ Not supported on this browser — vibration will only work while the screen is on and GymBro is open.';
+    btn.style.display='none';return;
+  }
+  const p=Notification.permission;
+  if(p==='granted'){statusEl.textContent="✅ Enabled — lock-screen alerts will vibrate using your phone's settings.";btn.style.display='none'}
+  else if(p==='denied'){statusEl.textContent='🚫 Blocked — enable notifications for this site in your phone/browser settings to fix locked-screen vibration.';btn.style.display='inline-block'}
+  else{statusEl.textContent='';btn.style.display='inline-block'}
+}
+
+/* Fires an OS-level notification when the break ends — the piece that actually gets a vibration
+   through while the phone is locked or the browser is backgrounded. Safe no-op if permission
+   hasn't been granted or the API isn't supported. */
+function fireBreakEndSystemNotification(){
+  if(!('Notification' in window)||Notification.permission!=='granted')return;
+  try{new Notification('⏱ Break Over!',{body:'Time to crush the next set! 💪',tag:'gymbro-break-end'})}catch(e){}
 }
 
 function handleVolumeSliderChange(){
@@ -4491,10 +4563,33 @@ function saveNotificationSoundSettings(){
 /* Plays the configured break-end sound and/or vibration — used by the live break timer.
    Vibration fires first and independently of sound so it still works if audio is muted,
    the tab is backgrounded, or WebAudio is blocked — all common on low-end mobile browsers. */
+/* Mobile/desktop browsers only allow audio to actually produce sound once the page has received
+   at least one real user interaction (tap/click/key) — an AudioContext created before that stays
+   "suspended" and plays nothing, with no error thrown. Since a restored live session can fire the
+   break-end sound automatically (no interaction yet on that fresh page load), we keep ONE shared
+   AudioContext instead of creating a new one per beep, and resume() it the instant the very first
+   tap/click/key happens anywhere on the page — well before any restored break is likely to finish. */
+let _sharedBeepCtx=null;
+function getSharedBeepCtx(){
+  if(!_sharedBeepCtx){
+    try{_sharedBeepCtx=new(window.AudioContext||window.webkitAudioContext)()}catch(e){return null}
+  }
+  return _sharedBeepCtx;
+}
+['pointerdown','touchstart','keydown'].forEach(evt=>{
+  document.addEventListener(evt,()=>{
+    const ctx=getSharedBeepCtx();
+    if(ctx&&ctx.state==='suspended')ctx.resume().catch(()=>{});
+  },{once:true,passive:true});
+});
+
 function playConfiguredBreakSound(){
   const cfg=getNotifSettings();
 
-  if(cfg.vibrationEnabled)fireVibration(cfg.vibrationId);
+  if(cfg.vibrationEnabled){
+    fireVibration(cfg.vibrationId);       // works while screen is on & GymBro is in front
+    fireBreakEndSystemNotification();     // works even when locked/backgrounded, if permission granted
+  }
 
   if(!cfg.soundEnabled)return;
   const s=cfg.sound||{};
@@ -4504,7 +4599,9 @@ function playConfiguredBreakSound(){
   }
   const sound=NOTIF_SOUNDS.find(x=>x.id===s.id)||NOTIF_SOUNDS[0];
   try{
-    const ctx=new(window.AudioContext||window.webkitAudioContext)();
+    const ctx=getSharedBeepCtx();
+    if(!ctx)throw new Error('no audio context');
+    if(ctx.state==='suspended')ctx.resume().catch(()=>{}); // no-op if it's not within a gesture; harmless either way
     sound.tones.forEach((freq,i)=>{
       const delay=i*0.22;
       const osc=ctx.createOscillator(),gain=ctx.createGain();
@@ -4611,7 +4708,7 @@ async function renderTodayWorkoutBanner(){
 function showToast(msg){
   let t=document.createElement('div');
   t.textContent=msg;
-  Object.assign(t.style,{position:'fixed',bottom:'80px',left:'50%',transform:'translateX(-50%)',background:'var(--toast-bg)',color:'#fff',padding:'12px 22px',borderRadius:'14px',fontFamily:'var(--font-alt)',fontSize:'13px',fontWeight:'700',letterSpacing:'0.5px',zIndex:'9999999',boxShadow:'0 8px 28px rgba(0,0,0,0.3)',animation:'fadeIn 0.3s ease',whiteSpace:'nowrap'});
+  Object.assign(t.style,{position:'fixed',bottom:'80px',left:'50%',transform:'translateX(-50%)',background:'var(--toast-bg)',color:'#fff',padding:'12px 22px',borderRadius:'14px',fontFamily:'var(--font-alt)',fontSize:'13px',fontWeight:'700',letterSpacing:'0.5px',zIndex:'9999999',boxShadow:'0 8px 28px rgba(0,0,0,0.3)',animation:'fadeIn 0.3s ease',whiteSpace:'normal',maxWidth:'88vw',width:'max-content',textAlign:'center',boxSizing:'border-box'});
   document.body.appendChild(t);setTimeout(()=>{t.style.opacity='0';t.style.transition='opacity 0.3s ease';setTimeout(()=>t.remove(),300)},2200);
 }
 
@@ -4687,6 +4784,10 @@ async function switchMemberTab(id){
   const menuBtn=document.getElementById('menu-'+id);if(menuBtn)menuBtn.classList.add('activeMenu');
   // sync bottom nav active state
   syncBottomNav(id);
+  // Remember this as the last-viewed page for THIS browser session only (sessionStorage, not
+  // localStorage) — a refresh restores it, but a fresh tab/browser open (or logout) starts fresh
+  // at the dashboard, since sessionStorage doesn't carry over to those.
+  try{sessionStorage.setItem('gymbro_last_tab',id)}catch(e){}
   if(id==='dashPage')await syncCoreDashboardMetrics();
   else if(id==='statsPage'){
     initStatsMonthDropdowns();
@@ -7204,36 +7305,180 @@ function toggleSetRowSelection(el){
 function buildSetsInputFields(){
   let cnt=parseInt(document.getElementById("setsCountSelect").value);
   let c=document.getElementById("dynamicSetsContainer");
-  // Capture existing values before rebuilding
-  let existingWeights={},existingReps={};
+  // Capture existing values (and lock state) before rebuilding
+  let existingWeights={},existingReps={},existingLocks={};
   c.querySelectorAll('[id^="weight_set_"]').forEach(el=>{const i=el.id.replace('weight_set_','');existingWeights[i]=el.value});
   c.querySelectorAll('[id^="reps_set_"]').forEach(el=>{const i=el.id.replace('reps_set_','');existingReps[i]=el.value});
-  let weights=[],reps=[];
-  for(let i=1;i<=cnt;i++){weights.push(existingWeights[i]||'');reps.push(existingReps[i]||'')}
-  renderNonLiveSetsRows(weights,reps);
+  c.querySelectorAll('[id^="lock_set_"]').forEach(el=>{const i=el.id.replace('lock_set_','');existingLocks[i]=el.checked});
+  let weights=[],reps=[],locks=[];
+  for(let i=1;i<=cnt;i++){weights.push(existingWeights[i]||'');reps.push(existingReps[i]||'');locks.push(!!existingLocks[i])}
+  renderNonLiveSetsRows(weights,reps,locks);
 }
 
-/* Renders the non-live "dynamicSetsContainer" rows from explicit weight/reps arrays (1 entry per set, in order).
+/* Renders the non-live "dynamicSetsContainer" rows from explicit weight/reps/lock arrays (1 entry per set, in order).
    Adds a delete icon on every set that is already saved to the DB (index <= editOriginalSetCount) so the
-   person can remove a specific saved set instead of having to shrink the sets-count dropdown. */
-function renderNonLiveSetsRows(weights,reps){
+   person can remove a specific saved set instead of having to shrink the sets-count dropdown.
+   From Set 2 onward, also adds a "copy previous set's values" icon. Every set gets a tick checkbox
+   (SVG checkmark, not an emoji, so it looks identical on every device/OS): ticking it — either by
+   tapping the box or by swiping the row left-to-right — makes that set's Kg/Reps read-only, auto-
+   advances focus to the next set, and persists the locked value in the draft so a browser refresh
+   mid-entry doesn't lose it (see saveNonLiveDraft below). */
+function renderNonLiveSetsRows(weights,reps,locks){
   const c=document.getElementById("dynamicSetsContainer");
   const n=weights.length;
+  locks=locks||[];
   c.innerHTML="";
   for(let i=1;i<=n;i++){
     const w=weights[i-1]||'',r=reps[i-1]||'';
-    const isLockedSet=currentEditingIndex!==null&&editOriginalDurations[i];
+    const locked=!!locks[i-1];
+    const isTimeLockedSet=currentEditingIndex!==null&&editOriginalDurations[i];
     let extraHtml='';
-    if(isLockedSet){
+    if(isTimeLockedSet){
       extraHtml=`<span class="set-time-locked" title="Original duration is preserved and cannot be changed">⏱ ${editOriginalDurations[i]}</span>`;
     }
     const showDelete=currentEditingIndex!==null&&i<=editOriginalSetCount;
     const delBtn=showDelete?`<button type="button" class="set-delete-btn" title="Delete this set" onclick="deleteNonLiveSavedSet(${i})">🗑</button>`:'';
     const labelHtml=showDelete?`<span onclick="toggleSetRowSelection(this)" style="cursor:pointer" title="Tap to show delete option">Set ${i}</span>`:`<span>Set ${i}</span>`;
-    c.innerHTML+=`<div class="set-row">${labelHtml}<input type="number" placeholder="Kgs" id="weight_set_${i}" min="0.5" step="0.5" value="${w}" style="margin-top:0;padding:9px;flex:1" oninput="checkQuickFillVisibility()"><input type="number" placeholder="Reps" id="reps_set_${i}" min="1" value="${r}" style="margin-top:0;padding:9px;flex:1" oninput="checkQuickFillVisibility()">${extraHtml}${delBtn}</div>`;
+    const copyBtn=i>=2?`<button type="button" class="set-copy-btn" title="Copy previous set's values" onclick="copyFromPrevNonLiveSet(${i})">📋</button>`:'';
+    const lockHtml=`<label class="set-lock-check" title="Tick to lock this set's values (or swipe the row →)"><input type="checkbox" id="lock_set_${i}" ${locked?'checked':''} onchange="handleSetLockToggle(${i})"><span class="set-lock-box"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span></label>`;
+    c.innerHTML+=`<div class="set-row${locked?' set-row-locked':''}" ontouchstart="nlSetSwipeStart(event)" ontouchend="nlSetSwipeEnd(event,${i})">${labelHtml}<input type="number" placeholder="Kgs" id="weight_set_${i}" min="0.5" step="0.5" value="${w}" ${locked?'readonly':''} style="margin-top:0;padding:9px;flex:1" oninput="handleNonLiveSetInputChange()"><input type="number" placeholder="Reps" id="reps_set_${i}" min="1" value="${r}" ${locked?'readonly':''} style="margin-top:0;padding:9px;flex:1" oninput="handleNonLiveSetInputChange()">${extraHtml}${copyBtn}${lockHtml}${delBtn}</div>`;
   }
   // Re-check Quick Fill visibility after rebuild
   checkQuickFillVisibility();
+}
+
+/* Combined handler for every Kg/Reps keystroke on a non-live set: keeps the Quick Fill button's
+   visibility in sync and keeps the refresh-proof draft (see saveNonLiveDraft) up to date. */
+function handleNonLiveSetInputChange(){
+  checkQuickFillVisibility();
+  saveNonLiveDraft();
+}
+
+/* Copies the immediately PRECEDING set's Kg/Reps into set `i` (not always Set 1). Available on
+   every set from Set 2 onward. Skips (leaves untouched) either field if that field is locked. */
+function copyFromPrevNonLiveSet(i){
+  const kgPrev=parseFloat(document.getElementById(`weight_set_${i-1}`)?.value)||0;
+  const repsPrev=parseInt(document.getElementById(`reps_set_${i-1}`)?.value)||0;
+  if(kgPrev<0.5||repsPrev<1){showToast(`⚠️ Set ${i-1} must have Kgs and Reps filled in first.`);return}
+  const wEl=document.getElementById(`weight_set_${i}`),rEl=document.getElementById(`reps_set_${i}`);
+  if(wEl&&!wEl.readOnly)wEl.value=kgPrev;
+  if(rEl&&!rEl.readOnly)rEl.value=repsPrev;
+  checkQuickFillVisibility();
+  saveNonLiveDraft();
+  showToast(`⚡ Set ${i-1} values copied to Set ${i}!`);
+}
+
+/* Ticking a set's checkbox — by tapping it OR by swiping the row left-to-right — locks its Kg/Reps
+   (read-only) and auto-advances focus to the next set's Kg box — a quick "fill, lock, next" flow.
+   Unticking (tap only) unlocks it again. Locked values are what survive an accidental browser
+   refresh mid-entry (see saveNonLiveDraft/loadNonLiveDraft). The checkmark itself is a plain SVG
+   path styled purely via CSS (:checked), so it renders identically on every device/OS — no emoji
+   involved, no JS needed to swap it. */
+function handleSetLockToggle(i){
+  const cb=document.getElementById(`lock_set_${i}`);if(!cb)return;
+  const wEl=document.getElementById(`weight_set_${i}`),rEl=document.getElementById(`reps_set_${i}`);
+  const locked=cb.checked;
+  if(locked){
+    const w=parseFloat(wEl?.value)||0,r=parseInt(rEl?.value)||0;
+    if(w<0.5||r<1){alert(`Set ${i}: enter Kgs and Reps before locking.`);cb.checked=false;return}
+  }
+  if(wEl)wEl.readOnly=locked;
+  if(rEl)rEl.readOnly=locked;
+  const row=cb.closest('.set-row');if(row)row.classList.toggle('set-row-locked',locked);
+  saveNonLiveDraft();
+  if(locked){
+    showToast(`🔒 Set ${i} locked`);
+    const nextW=document.getElementById(`weight_set_${i+1}`);
+    if(nextW)nextW.focus();
+  }
+}
+
+/* Swipe-to-lock: records the touch start point on a set-row... */
+function nlSetSwipeStart(evt){
+  const t=evt.touches[0];if(!t)return;
+  evt.currentTarget.dataset.swipeStartX=t.clientX;
+  evt.currentTarget.dataset.swipeStartY=t.clientY;
+}
+/* ...and on release, if it was a clear, mostly-horizontal left-to-right drag (not a tap or a
+   vertical scroll), ticks that set's lock checkbox exactly as if the person had tapped it.
+   Swiping an already-locked row does nothing (swipe only locks, never unlocks, to avoid
+   accidentally wiping a locked set with a stray sideways scroll gesture). */
+function nlSetSwipeEnd(evt,i){
+  const row=evt.currentTarget;
+  const startX=parseFloat(row.dataset.swipeStartX),startY=parseFloat(row.dataset.swipeStartY);
+  delete row.dataset.swipeStartX;delete row.dataset.swipeStartY;
+  if(isNaN(startX)||isNaN(startY))return;
+  const t=evt.changedTouches[0];if(!t)return;
+  const dx=t.clientX-startX,dy=t.clientY-startY;
+  if(dx<60||Math.abs(dy)>40)return; // not a clean enough left-to-right swipe
+  const cb=document.getElementById(`lock_set_${i}`);
+  if(cb&&!cb.checked){cb.checked=true;handleSetLockToggle(i)}
+}
+
+/* ===================== NON-LIVE DRAFT (survives an accidental browser refresh) =====================
+   Persists the ENTIRE in-progress "Log New Entry" form — exercise name, sets count, and every set's
+   Kg/Reps/lock state, whether locked or not — to sessionStorage as the person fills it in. Restored
+   automatically on page load if the browser was refreshed mid-entry (see restoreInProgressWorkoutFormIfAny
+   below), so nothing typed is lost. sessionStorage (not localStorage) is deliberate: it survives a
+   refresh but is cleared on logout or when the browser/tab is actually closed — a fresh session should
+   still start blank. Only applies to brand-new entries (not editing an already-saved entry) and is
+   cleared as soon as the entry is saved or the form is cancelled. */
+function getNonLiveDraftKey(){return `gymbro_nonlive_draft_${getEffectiveUid()}`}
+function saveNonLiveDraft(){
+  if(currentEditingIndex!==null)return; // edits of already-saved entries aren't draft-persisted
+  const name=document.getElementById("workoutNameInput")?.value||'';
+  const cnt=parseInt(document.getElementById("setsCountSelect")?.value)||1;
+  const sets=[];
+  for(let i=1;i<=cnt;i++){
+    sets.push({
+      w:document.getElementById(`weight_set_${i}`)?.value||'',
+      r:document.getElementById(`reps_set_${i}`)?.value||'',
+      locked:!!document.getElementById(`lock_set_${i}`)?.checked
+    });
+  }
+  const hasContent=!!name||sets.some(s=>s.w||s.r);
+  if(!hasContent){clearNonLiveDraft();return} // nothing worth keeping
+  try{sessionStorage.setItem(getNonLiveDraftKey(),JSON.stringify({name,setsCount:cnt,sets}))}catch(e){}
+}
+function loadNonLiveDraft(){
+  try{return JSON.parse(sessionStorage.getItem(getNonLiveDraftKey())||'null')}catch(e){return null}
+}
+function clearNonLiveDraft(){
+  try{sessionStorage.removeItem(getNonLiveDraftKey())}catch(e){}
+}
+function nonLiveDraftHasContent(d){
+  return!!(d&&d.sets&&d.sets.length&&(d.name||d.sets.some(s=>s.w||s.r)));
+}
+
+/* ===================== TOP-LEVEL RESTORE ORCHESTRATOR =====================
+   Called once right after landing on the last-viewed tab (mountMemberDashboard). Only reopens a
+   form on a genuine REFRESH (wasRefresh=true, i.e. sessionStorage had a last-tab entry) — never on
+   a fresh login, since a fresh session should start clean. Checks for a live-mode draft first (it's
+   the more time-sensitive one, with running timers), then a non-live draft. */
+async function restoreInProgressWorkoutFormIfAny(wasRefresh){
+  if(!wasRefresh)return;
+  const liveDraft=loadLiveDraft();
+  if(liveDraft&&liveDraft.mode==='live'&&liveDraft.name&&liveDraft.totalSets){
+    await switchMemberTab('workPage');
+    restoreLiveSessionUI(liveDraft);
+    return;
+  }
+  const nlDraft=loadNonLiveDraft();
+  if(nonLiveDraftHasContent(nlDraft)){
+    await switchMemberTab('workPage');
+    document.getElementById("formActionTitle").innerText="LOG NEW ENTRY";
+    document.getElementById("initialWorkoutBox").style.display="none";
+    document.getElementById("workoutFormStructure").style.display="block";
+    document.getElementById("liveWorkoutForm").style.display="none";
+    applySetsCountMinConstraint();
+    document.getElementById("workoutNameInput").value=nlDraft.name||"";
+    document.getElementById("setsCountSelect").value=String(nlDraft.setsCount||nlDraft.sets.length||1);
+    renderNonLiveSetsRows(nlDraft.sets.map(s=>s.w),nlDraft.sets.map(s=>s.r),nlDraft.sets.map(s=>s.locked));
+    document.getElementById("prevPerfBadgeNonLive").classList.remove("visible");
+    document.getElementById("quickFillCopyAllBtn").classList.remove("visible");
+    updateTrackWorkoutBtnVisibility('nonlive');
+    showToast('🔄 Restored your in-progress workout entry after the refresh.');
+  }
 }
 
 /* Guards the non-live sets-count dropdown: while editing a saved entry, it may only be increased
@@ -7430,35 +7675,48 @@ function quickFillCopyAll(){
     if(wEl&&!wEl.readOnly)wEl.value=kg1;
     if(rEl&&!rEl.readOnly)rEl.value=reps1;
   }
+  saveNonLiveDraft();
   showToast(`⚡ Set 1 values copied to all ${cnt} sets!`);
 }
 
 /* ===================== LIVE SET: COPY FROM PREVIOUS ===================== */
-/* Copies Kg and Reps from Set 1 into the target set (idx >= 2). Only fires if Set 1 has valid data. */
+/* Copies Kg and Reps from the immediately PRECEDING set (idx-1) into the target set (idx >= 2) —
+   not always Set 1. Only fires if that previous set has valid data. */
 function liveCopyFromPrevSet(idx){
-  const kg1=parseFloat(document.getElementById('liveKg_1')?.value)||0;
-  const reps1=parseInt(document.getElementById('liveReps_1')?.value)||0;
-  if(kg1<0.5||reps1<1){showToast('⚠️ Set 1 must have Kgs and Reps filled in first.');return}
+  const kgPrev=parseFloat(document.getElementById(`liveKg_${idx-1}`)?.value)||0;
+  const repsPrev=parseInt(document.getElementById(`liveReps_${idx-1}`)?.value)||0;
+  if(kgPrev<0.5||repsPrev<1){showToast(`⚠️ Set ${idx-1} must have Kgs and Reps filled in first.`);return}
   const kgEl=document.getElementById(`liveKg_${idx}`);
   const repsEl=document.getElementById(`liveReps_${idx}`);
-  if(kgEl)kgEl.value=kg1;
-  if(repsEl)repsEl.value=reps1;
-  showToast(`⚡ Set 1 values copied to Set ${idx}!`);
+  if(kgEl)kgEl.value=kgPrev;
+  if(repsEl)repsEl.value=repsPrev;
+  showToast(`⚡ Set ${idx-1} values copied to Set ${idx}!`);
 }
 
-/* Same "Copy from Set 1" convenience for NEW sets being added while live-editing a saved entry.
-   In edit mode, Set 1 is always one of the already-saved sets, so it lives in the "liveEditExistKg/Reps_1"
-   inputs rather than a fresh "liveKg_1" — pull from there instead. */
+/* Same "Copy from previous set" convenience for NEW sets being added while live-editing a saved entry.
+   For the first new set (idx===1), "previous" is the last already-saved set, which lives as a plain
+   string segment (e.g. "20Kg x 10 [30 sec]") rather than a live input — parsed via parseSetSegment.
+   For idx>=2, "previous" is the new set just before it (liveEditKg/Reps_${idx-1}). */
 function liveEditCopyFromPrevSet(idx){
-  const kg1=parseFloat(document.getElementById('liveEditExistKg_1')?.value)||0;
-  const reps1=parseInt(document.getElementById('liveEditExistReps_1')?.value)||0;
-  if(kg1<0.5||reps1<1){showToast('⚠️ Set 1 must have Kgs and Reps filled in first.');return}
+  const committedCount=liveEditExistingResults.length+liveEditNewResults.length;
+  let kgPrev,repsPrev,prevLabel;
+  if(idx===1){
+    const committed=getLiveEditCommittedSegments();
+    if(!committed.length){showToast('⚠️ No previous set to copy from.');return}
+    const seg=parseSetSegment(committed[committed.length-1]);
+    kgPrev=parseFloat(seg.w)||0;repsPrev=parseInt(seg.r)||0;
+    prevLabel=`Set ${committed.length}`;
+  } else {
+    kgPrev=parseFloat(document.getElementById(`liveEditKg_${idx-1}`)?.value)||0;
+    repsPrev=parseInt(document.getElementById(`liveEditReps_${idx-1}`)?.value)||0;
+    prevLabel=`Set ${committedCount+idx-1}`;
+  }
+  if(kgPrev<0.5||repsPrev<1){showToast(`⚠️ ${prevLabel} must have Kgs and Reps filled in first.`);return}
   const kgEl=document.getElementById(`liveEditKg_${idx}`);
   const repsEl=document.getElementById(`liveEditReps_${idx}`);
-  if(kgEl)kgEl.value=kg1;
-  if(repsEl)repsEl.value=reps1;
-  const committedCount=liveEditExistingResults.length+liveEditNewResults.length;
-  showToast(`⚡ Set 1 values copied to Set ${committedCount+idx}!`);
+  if(kgEl)kgEl.value=kgPrev;
+  if(repsEl)repsEl.value=repsPrev;
+  showToast(`⚡ ${prevLabel} values copied to Set ${committedCount+idx}!`);
 }
 
 /* ===================== LEVEL UP NOTIFICATION ===================== */
@@ -7524,6 +7782,12 @@ function showLevelUpNotification(prevKg,prevReps,curKg,curReps){
 
 /* ===================== LIVE MODE ===================== */
 let liveMode=false,liveSetTimers={},liveSetSeconds={},liveBreakTimers={},liveBreakSeconds={},liveBreakTotalSecs={},liveTotalSets=0,liveCurrentSet=1,liveSetResults=[],liveSessionSlot=null;
+/* Epoch-based timer tracking (live mode): lets a refresh recompute "how much time actually passed"
+   instead of losing progress. Only written when a timer STARTS (accumulated-so-far + start epoch) —
+   no need to write on every tick, since elapsed = accumulated + (now - startEpoch) can always be
+   recomputed on demand, including right after a page reload. */
+let liveSetTimerStartEpoch={},liveSetTimerAccumAtStart={},liveBreakStartEpoch={},liveBreakAccumAtStart={};
+let _liveDraftSaveEnabled=true; // guards against re-saving while we're programmatically rebuilding the UI from a draft
 window._liveEditMode=false;
 function toggleLiveMode(){
   liveMode=!liveMode;
@@ -7542,13 +7806,23 @@ function showAddWorkoutForm(){
     document.getElementById("liveSetupPanel").style.display="block";document.getElementById("liveSessionTitle").style.display="none";
     document.getElementById("prevPerfBadgeLive").classList.remove("visible");
     updateTrackWorkoutBtnVisibility('live');
-    liveCurrentSet=1;liveTotalSets=0;liveSetTimers={};liveSetSeconds={};liveBreakTimers={};liveBreakSeconds={};liveBreakTotalSecs={};liveSetResults=[];liveSessionSlot=null;
+    liveCurrentSet=1;liveTotalSets=0;liveSetTimers={};liveSetSeconds={};liveSetTimerStartEpoch={};liveSetTimerAccumAtStart={};liveBreakTimers={};liveBreakSeconds={};liveBreakTotalSecs={};liveBreakStartEpoch={};liveBreakAccumAtStart={};liveSetResults=[];liveSessionSlot=null;
+    clearLiveDraft();
     applyLiveSetsCountMinConstraint();
   } else {
     document.getElementById("formActionTitle").innerText="LOG NEW ENTRY";
     document.getElementById("initialWorkoutBox").style.display="none";document.getElementById("workoutFormStructure").style.display="block";document.getElementById("liveWorkoutForm").style.display="none";
     applySetsCountMinConstraint();
-    document.getElementById("setsCountSelect").value="1";buildSetsInputFields();
+    // Restore a refresh-proof draft if the person had anything typed before an accidental reload
+    const draft=loadNonLiveDraft();
+    if(nonLiveDraftHasContent(draft)){
+      document.getElementById("workoutNameInput").value=draft.name||"";
+      document.getElementById("setsCountSelect").value=String(draft.setsCount||draft.sets.length||1);
+      renderNonLiveSetsRows(draft.sets.map(s=>s.w),draft.sets.map(s=>s.r),draft.sets.map(s=>s.locked));
+      showToast('🔄 Restored your entry from before the refresh.');
+    } else {
+      document.getElementById("setsCountSelect").value="1";buildSetsInputFields();
+    }
     document.getElementById("prevPerfBadgeNonLive").classList.remove("visible");
     document.getElementById("quickFillCopyAllBtn").classList.remove("visible");
     updateTrackWorkoutBtnVisibility('nonlive');
@@ -7558,13 +7832,16 @@ function cancelWorkoutLogging(){
   currentEditingIndex=null;document.getElementById("workoutNameInput").value="";
   updateTrackWorkoutBtnVisibility('nonlive');
   editOriginalDurations={};editOriginalSetCount=0;applySetsCountMinConstraint();
+  document.getElementById("dynamicSetsContainer").innerHTML=""; // wipe old set rows so the next "Add Workout" starts blank, not pre-filled
+  clearNonLiveDraft();
   document.getElementById("workoutFormStructure").style.display="none";document.getElementById("liveWorkoutForm").style.display="none";document.getElementById("initialWorkoutBox").style.display="block";stopAllLiveTimers();
 }
 function cancelLiveWorkout(){
   if(window._liveEditMode){cancelLiveEditWorkout();return;}
   stopAllLiveTimers();document.getElementById("liveWorkoutForm").style.display="none";document.getElementById("initialWorkoutBox").style.display="block";liveSetResults=[];liveSessionSlot=null;
+  clearLiveDraft();
 }
-function stopAllLiveTimers(){Object.values(liveSetTimers).forEach(t=>clearInterval(t));Object.values(liveBreakTimers).forEach(t=>clearInterval(t));liveSetTimers={};liveSetSeconds={};liveBreakTimers={};liveBreakSeconds={};liveBreakTotalSecs={}}
+function stopAllLiveTimers(){Object.values(liveSetTimers).forEach(t=>clearInterval(t));Object.values(liveBreakTimers).forEach(t=>clearInterval(t));liveSetTimers={};liveSetSeconds={};liveSetTimerStartEpoch={};liveSetTimerAccumAtStart={};liveBreakTimers={};liveBreakSeconds={};liveBreakTotalSecs={};liveBreakStartEpoch={};liveBreakAccumAtStart={};releaseBreakWakeLock()}
 let _prevPerfLiveTimer=null;
 function toggleLiveNameDropdown(e){
   if(e)e.stopPropagation();
@@ -7625,6 +7902,182 @@ function handleLiveSearchAuto(forceShow){
     _updateInlineClassBtn('liveWorkoutNameInput','_inlineClassBtnLive','live');
   }
 }
+/* ===================== LIVE MODE DRAFT (survives an accidental browser refresh) =====================
+   Persists an in-progress FRESH live session — exercise name, set count, each set's typed Kg/Reps,
+   already-saved set results, and both the per-set stopwatch and the break countdown (including their
+   running/paused state via epoch timestamps so elapsed real time through the refresh is accounted
+   for correctly) — to sessionStorage. Restored automatically on page load after a refresh (see
+   restoreInProgressWorkoutFormIfAny), so a mid-set or mid-break refresh doesn't lose anything.
+   Scope note: this covers adding a brand-new live entry. Editing an already-saved live entry
+   (live-edit mode) is not draft-persisted — if that gets refreshed, it simply returns to a clean
+   state rather than restoring, since the already-saved sets are safe in the database either way. */
+function getLiveDraftKey(){return `gymbro_live_draft_${getEffectiveUid()}`}
+function saveLiveDraft(){
+  if(!_liveDraftSaveEnabled||!liveMode||window._liveEditMode)return;
+  const name=(document.getElementById("liveWorkoutNameInput")?.value||'').trim();
+  if(!name||!liveTotalSets){clearLiveDraft();return}
+  const sets={};
+  for(let i=1;i<=liveTotalSets;i++){
+    const kgEl=document.getElementById(`liveKg_${i}`);if(!kgEl)continue;
+    const repsEl=document.getElementById(`liveReps_${i}`);
+    const running=!!liveSetTimers[i];
+    sets[i]={
+      kg:kgEl.value||'',reps:repsEl?.value||'',
+      timerRunning:running,
+      timerAccumulated:running?(liveSetTimerAccumAtStart[i]||0):(liveSetSeconds[i]||0),
+      timerStartEpoch:running?(liveSetTimerStartEpoch[i]||Date.now()):null
+    };
+  }
+  let liveBreak=null;
+  const brIdx=Object.keys(liveBreakTotalSecs)[0];
+  if(brIdx!==undefined){
+    const running=!!liveBreakTimers[brIdx];
+    // Capture whether THIS break was an auto (default-driven) break by reading its own "Edit Break"
+    // button visibility rather than re-checking today's Settings default at restore time — the
+    // Settings default could change between now and a refresh, and we want the restored UI (Edit
+    // Break button, Skip-only controls) to match what was actually running, not today's setting.
+    const editBtnEl=document.getElementById(`liveBreakEditBtn_${brIdx}`);
+    const isAuto=!!(editBtnEl&&editBtnEl.style.display==="inline-flex");
+    liveBreak={
+      idx:parseInt(brIdx),total:liveBreakTotalSecs[brIdx],running,auto:isAuto,
+      accumulated:running?(liveBreakAccumAtStart[brIdx]||0):(liveBreakSeconds[brIdx]||0),
+      startEpoch:running?(liveBreakStartEpoch[brIdx]||Date.now()):null
+    };
+  }
+  const draft={mode:'live',name,totalSets:liveTotalSets,results:liveSetResults.slice(),sessionSlot:liveSessionSlot,sets,liveBreak};
+  try{sessionStorage.setItem(getLiveDraftKey(),JSON.stringify(draft))}catch(e){}
+}
+function loadLiveDraft(){
+  try{return JSON.parse(sessionStorage.getItem(getLiveDraftKey())||'null')}catch(e){return null}
+}
+function clearLiveDraft(){
+  try{sessionStorage.removeItem(getLiveDraftKey())}catch(e){}
+}
+
+/* Rebuilds the entire live session UI (set blocks, done/active states, in-progress Kg/Reps, running
+   stopwatches, and any in-progress break) straight from a saved draft — used right after a refresh. */
+function restoreLiveSessionUI(draft){
+  _liveDraftSaveEnabled=false; // don't re-save while we're programmatically reconstructing it
+  liveMode=true;
+  document.getElementById("initialWorkoutBox").style.display="none";
+  document.getElementById("workoutFormStructure").style.display="none";
+  document.getElementById("liveWorkoutForm").style.display="block";
+  const tog=document.getElementById("liveModeToggle"),lbl=document.getElementById("liveModeLabel");
+  if(tog)tog.classList.add("on");
+  if(lbl){lbl.textContent="ON";lbl.style.color="var(--accent)"}
+  const nameInput=document.getElementById("liveWorkoutNameInput");
+  nameInput.value=draft.name;nameInput.readOnly=false;nameInput.style.opacity="1";
+  document.getElementById("liveSetupPanel").style.display="none";
+  const titleEl=document.getElementById("liveSessionTitle");
+  titleEl.textContent="🏋 "+draft.name+" — "+draft.totalSets+" Set"+(draft.totalSets>1?"s":"");
+  titleEl.style.display="block";
+  updateTrackWorkoutBtnVisibility('live');
+
+  liveTotalSets=draft.totalSets;liveSetResults=(draft.results||[]).slice();liveSessionSlot=draft.sessionSlot||null;
+  liveCurrentSet=liveSetResults.length+1;
+  liveSetTimers={};liveSetSeconds={};liveSetTimerStartEpoch={};liveSetTimerAccumAtStart={};
+  liveBreakTimers={};liveBreakSeconds={};liveBreakTotalSecs={};liveBreakStartEpoch={};liveBreakAccumAtStart={};
+
+  const container=document.getElementById("liveSetsContainer");container.innerHTML="";
+  const nextActiveIdx=liveSetResults.length+1;
+  // Figure out up front whether a break is still genuinely counting down for the last completed
+  // set, so the NEXT set isn't rendered/unlocked as "active" while that break is still running —
+  // it should only unlock once the break actually finishes or is skipped, same as normal play.
+  let breakStillPending=false,breakElapsedNow=0;
+  if(draft.liveBreak){
+    breakElapsedNow=draft.liveBreak.running?((draft.liveBreak.accumulated||0)+Math.floor((Date.now()-draft.liveBreak.startEpoch)/1000)):(draft.liveBreak.accumulated||0);
+    breakStillPending=breakElapsedNow<draft.liveBreak.total;
+  }
+  const activeIdxForBuild=breakStillPending?-1:nextActiveIdx;
+  for(let i=1;i<=liveTotalSets;i++)container.innerHTML+=buildLiveSetHTML(i,i===activeIdxForBuild);
+  const hasDefault=getDefaultBreakSeconds()>0;
+  if(!hasDefault)for(let i=1;i<=liveTotalSets;i++)mountMinSecPicker(`liveBreakPickerMount_${i}`,`liveBreak_${i}`,0,0);
+
+  // Mark already-saved sets as done
+  for(let i=1;i<=liveSetResults.length;i++){
+    const resultStr=liveSetResults[i-1];
+    document.getElementById(`liveSetSaveBtn_${i}`).style.display="none";
+    document.getElementById(`liveTimerRow_${i}`).style.display="none";
+    document.getElementById(`liveSetInputs_${i}`).style.pointerEvents="none";
+    document.getElementById(`liveSetInputs_${i}`).style.opacity="0.6";
+    const resultEl=document.getElementById(`liveSetResult_${i}`);resultEl.textContent=`✓ ${resultStr}`;resultEl.style.display="block";
+    document.getElementById(`liveSetDoneBadge_${i}`).style.display="inline-block";
+    document.getElementById(`liveSetBlock_${i}`).classList.remove("set-active");document.getElementById(`liveSetBlock_${i}`).classList.add("set-done");
+    // Re-populate this done set's Kg/Reps inputs from its saved result string. The fresh
+    // buildLiveSetHTML() call above always renders empty inputs, so without this a refresh would
+    // silently wipe the values out of the DOM — breaking "Copy from previous set" on the next set
+    // (it reads liveKg_/liveReps_ of the set before it) even though the result line still shows fine.
+    const _m=resultStr.match(/([\d.]+)\s*[Kk][Gg]?\s*x\s*(\d+)/i);
+    if(_m){
+      const kgEl=document.getElementById(`liveKg_${i}`),repsEl=document.getElementById(`liveReps_${i}`);
+      if(kgEl)kgEl.value=_m[1];
+      if(repsEl)repsEl.value=_m[2];
+    }
+  }
+
+  // Restore in-progress typed Kg/Reps + stopwatch state for not-yet-saved sets
+  Object.keys(draft.sets||{}).forEach(k=>{
+    const i=parseInt(k);if(i<=liveSetResults.length)return;
+    const s=draft.sets[k];
+    const kgEl=document.getElementById(`liveKg_${i}`),repsEl=document.getElementById(`liveReps_${i}`);
+    if(kgEl)kgEl.value=s.kg||'';if(repsEl)repsEl.value=s.reps||'';
+    if(s.timerRunning){
+      const elapsed=(s.timerAccumulated||0)+Math.floor((Date.now()-s.timerStartEpoch)/1000);
+      liveSetSeconds[i]=elapsed;liveSetTimerAccumAtStart[i]=elapsed;liveSetTimerStartEpoch[i]=Date.now();
+      const m=Math.floor(elapsed/60),sec=elapsed%60;
+      const dispEl=document.getElementById(`liveTimerDisplay_${i}`);if(dispEl)dispEl.textContent=String(m).padStart(2,'0')+':'+String(sec).padStart(2,'0');
+      const btn=document.getElementById(`liveTimerBtn_${i}`);if(btn){btn.textContent="⏹";btn.className="live-timer-btn stop"}
+      const saveBtn=document.getElementById(`liveSetSaveBtn_${i}`);if(saveBtn)saveBtn.style.display="none";
+      liveSetTimers[i]=setInterval(()=>{liveSetSeconds[i]++;let mm=Math.floor(liveSetSeconds[i]/60),ss=liveSetSeconds[i]%60;document.getElementById(`liveTimerDisplay_${i}`).textContent=String(mm).padStart(2,'0')+':'+String(ss).padStart(2,'0');saveLiveDraft()},1000);
+    } else if(s.timerAccumulated){
+      liveSetSeconds[i]=s.timerAccumulated;
+      const m=Math.floor(s.timerAccumulated/60),sec=s.timerAccumulated%60;
+      const dispEl=document.getElementById(`liveTimerDisplay_${i}`);if(dispEl)dispEl.textContent=String(m).padStart(2,'0')+':'+String(sec).padStart(2,'0');
+    }
+  });
+
+  // Restore an in-progress break, if any, for the set right after the last saved one
+  if(draft.liveBreak){
+    const bIdx=draft.liveBreak.idx;
+    liveBreakTotalSecs[bIdx]=draft.liveBreak.total;
+    const row=document.getElementById(`liveBreakRow_${bIdx}`);
+    if(!breakStillPending){
+      // Break already finished while the page was refreshed — move straight on, no sound replay
+      delete liveBreakTotalSecs[bIdx];
+      if(row)row.style.display="none";
+      activateNextLiveSet(bIdx+1);
+    } else if(row){
+      row.style.display="block";
+      liveBreakSeconds[bIdx]=breakElapsedNow;
+      const isAuto=!!draft.liveBreak.auto;
+      const timerEl=document.getElementById(`liveBreakTimer_${bIdx}`);if(timerEl)timerEl.style.display="block";
+      if(isAuto){
+        const t=document.getElementById(`liveBreakTitle_${bIdx}`);if(t)t.textContent="⏸ BREAK TIME (auto)";
+        const inRow=document.getElementById(`liveBreakInputsRow_${bIdx}`);if(inRow)inRow.style.display="none";
+        const skip=document.getElementById(`liveBreakAutoSkip_${bIdx}`);if(skip)skip.style.display="inline-block";
+        // Auto breaks offer the per-set "Edit Break" override — restore that button too, or it
+        // silently stays hidden (its CSS default) after every refresh even though the break is live.
+        const editBtn=document.getElementById(`liveBreakEditBtn_${bIdx}`);if(editBtn)editBtn.style.display="inline-flex";
+      } else {
+        // Manual break: it was already started by hand before the refresh, so the Start button
+        // should stay disabled/greyed and Skip stay enabled, matching how startLiveBreak() leaves them.
+        const startBtn=document.querySelector(`#liveBreakRow_${bIdx} .live-break-btn.start`);
+        const skipBtn=document.querySelectorAll(`#liveBreakRow_${bIdx} .live-break-btn`)[1];
+        if(startBtn){startBtn.disabled=true;startBtn.style.opacity="0.5"}
+        if(skipBtn){skipBtn.disabled=false;skipBtn.style.opacity="1"}
+      }
+      runLiveBreakInterval(bIdx);
+      acquireBreakWakeLock();
+    }
+  } else {
+    const activeBlock=document.getElementById(`liveSetBlock_${nextActiveIdx}`);
+    if(activeBlock)activeBlock.scrollIntoView({behavior:"smooth",block:"center"});
+  }
+
+  _liveDraftSaveEnabled=true;
+  showToast('🔄 Restored your in-progress live workout after the refresh — timers included.');
+}
+
 function startLiveSession(){
   if(window._liveEditMode){startLiveEditNewSets();return;}
   let name=document.getElementById("liveWorkoutNameInput").value.trim();if(!name){alert("Please enter exercise name.");return}
@@ -7641,14 +8094,15 @@ function startLiveSession(){
       mountMinSecPicker(`liveBreakPickerMount_${i}`,`liveBreak_${i}`,0,0);
     }
   }
+  saveLiveDraft();
 }
 function buildLiveSetHTML(idx,active){
-  const copyBtn=idx>=2?`<button class="live-copy-prev-btn" id="liveCopyPrevBtn_${idx}" onclick="liveCopyFromPrevSet(${idx})" title="Auto-fill from Set 1 values">⚡ Copy from previous set</button>`:'';
+  const copyBtn=idx>=2?`<button class="live-copy-prev-btn" id="liveCopyPrevBtn_${idx}" onclick="liveCopyFromPrevSet(${idx})" title="Auto-fill from the previous set's values">⚡ Copy from previous set</button>`:'';
   return `<div class="live-set-block${active?' set-active':''}" id="liveSetBlock_${idx}">
     <div class="live-set-header"><span class="live-set-title">SET ${idx}</span><span class="live-set-done-badge" id="liveSetDoneBadge_${idx}" style="display:none">✓ DONE</span></div>
     <div class="live-set-inputs" id="liveSetInputs_${idx}" ${!active?'style="opacity:0.4;pointer-events:none"':''}>
-      <input type="number" id="liveKg_${idx}" placeholder="Kgs" min="0.5" step="0.5" style="margin-top:0;padding:9px">
-      <input type="number" id="liveReps_${idx}" placeholder="Reps" min="1" style="margin-top:0;padding:9px">
+      <input type="number" id="liveKg_${idx}" placeholder="Kgs" min="0.5" step="0.5" style="margin-top:0;padding:9px" oninput="saveLiveDraft()">
+      <input type="number" id="liveReps_${idx}" placeholder="Reps" min="1" style="margin-top:0;padding:9px" oninput="saveLiveDraft()">
       ${copyBtn}
     </div>
     <div class="live-timer-row" id="liveTimerRow_${idx}" ${!active?'style="display:none"':''}>
@@ -7683,16 +8137,23 @@ function buildLiveSetHTML(idx,active){
 }
 function toggleLiveSetTimer(idx){
   const btn=document.getElementById(`liveTimerBtn_${idx}`);
-  if(liveSetTimers[idx]){clearInterval(liveSetTimers[idx]);delete liveSetTimers[idx];btn.textContent="▶";btn.className="live-timer-btn start";document.getElementById(`liveSetSaveBtn_${idx}`).style.display="block"}
+  if(liveSetTimers[idx]){
+    clearInterval(liveSetTimers[idx]);delete liveSetTimers[idx];delete liveSetTimerStartEpoch[idx];
+    btn.textContent="▶";btn.className="live-timer-btn start";document.getElementById(`liveSetSaveBtn_${idx}`).style.display="block";
+  }
   else{
-    if(!liveSetSeconds[idx])liveSetSeconds[idx]=0;btn.textContent="⏹";btn.className="live-timer-btn stop";document.getElementById(`liveSetSaveBtn_${idx}`).style.display="none";
+    if(!liveSetSeconds[idx])liveSetSeconds[idx]=0;
+    liveSetTimerAccumAtStart[idx]=liveSetSeconds[idx];liveSetTimerStartEpoch[idx]=Date.now();
+    btn.textContent="⏹";btn.className="live-timer-btn stop";document.getElementById(`liveSetSaveBtn_${idx}`).style.display="none";
     liveSetTimers[idx]=setInterval(()=>{liveSetSeconds[idx]++;let m=Math.floor(liveSetSeconds[idx]/60),s=liveSetSeconds[idx]%60;document.getElementById(`liveTimerDisplay_${idx}`).textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0')},1000);
   }
+  saveLiveDraft();
 }
 async function saveLiveSet(idx){
   let kg=parseFloat(document.getElementById(`liveKg_${idx}`).value)||0,reps=parseInt(document.getElementById(`liveReps_${idx}`).value)||0;
   if(kg<0.5||reps<1){alert(`Set ${idx}: Please enter Kgs and Reps before saving.`);return}
   if(liveSetTimers[idx]){clearInterval(liveSetTimers[idx]);delete liveSetTimers[idx]}
+  delete liveSetTimerStartEpoch[idx];delete liveSetTimerAccumAtStart[idx];
   let secs=liveSetSeconds[idx]||0;let timeLabel=secs===0?"0 sec":secs<60?`${secs} sec`:secs%60>0?`${Math.floor(secs/60)} min ${secs%60} sec`:`${Math.floor(secs/60)} min`;
   let setStr=`${kg}Kg x ${reps} [${timeLabel}]`;liveSetResults.push(setStr);
   let name=document.getElementById("liveWorkoutNameInput").value.trim(),uid=getEffectiveUid(),td=document.getElementById("workoutCalendarFilter").value;
@@ -7706,6 +8167,7 @@ async function saveLiveSet(idx){
   let resultEl=document.getElementById(`liveSetResult_${idx}`);resultEl.textContent=`✓ ${setStr}`;resultEl.style.display="block";
   document.getElementById(`liveSetDoneBadge_${idx}`).style.display="inline-block";
   document.getElementById(`liveSetBlock_${idx}`).classList.remove("set-active");document.getElementById(`liveSetBlock_${idx}`).classList.add("set-done");
+  saveLiveDraft();
   if(idx<liveTotalSets){
     document.getElementById(`liveBreakRow_${idx}`).style.display="block";
     const defaultBreakSecs=getDefaultBreakSeconds();
@@ -7721,16 +8183,46 @@ async function saveLiveSet(idx){
       document.getElementById(`liveBreakInputsRow_${idx}`).style.display="flex";
       document.getElementById(`liveBreakAutoSkip_${idx}`).style.display="none";
     }
-  }else{finishLiveSession(name)}
+  }else{finishLiveSession(name);clearLiveDraft()}
   await loadWorkoutsForDate();await syncCoreDashboardMetrics();
 }
+/* ===================== SCREEN WAKE LOCK (keep screen on during a break) =====================
+   Best-effort helper: while a break is counting down, try to stop the screen from
+   auto-turning-off from inactivity timeout, so the timer keeps running full-speed and its
+   sound/vibration/notification all fire right on time.
+   IMPORTANT LIMITATION: this can only prevent an AUTOMATIC timeout-based screen-off. If the
+   user manually presses the power button to lock the phone (very common when it goes in a
+   pocket at the gym), no web API can override that — this is an OS-level lock, not something
+   any website can touch. The system notification (see fireBreakEndSystemNotification above)
+   is what still gets a vibration through in that manual-lock case. */
+let _gbWakeLock=null;
+async function acquireBreakWakeLock(){
+  if(!('wakeLock' in navigator))return;
+  try{
+    _gbWakeLock=await navigator.wakeLock.request('screen');
+    _gbWakeLock.addEventListener('release',()=>{_gbWakeLock=null});
+  }catch(e){_gbWakeLock=null} // e.g. low battery mode or unsupported — fail silently, sound/notification still work
+}
+function releaseBreakWakeLock(){
+  if(_gbWakeLock){try{_gbWakeLock.release()}catch(e){}_gbWakeLock=null}
+}
+/* Wake locks are auto-released by the browser whenever the tab loses visibility, and must be
+   re-requested once it's visible again — so grab it back if a break is still actively running. */
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='visible'&&(Object.keys(liveBreakTimers).length||Object.keys(liveEditBreakTimers||{}).length)){
+    acquireBreakWakeLock();
+  }
+});
+
 function skipLiveBreak(idx){
   if(liveBreakTimers[idx]){clearInterval(liveBreakTimers[idx]);delete liveBreakTimers[idx]}
-  delete liveBreakTotalSecs[idx];
+  delete liveBreakTotalSecs[idx];delete liveBreakStartEpoch[idx];delete liveBreakAccumAtStart[idx];
+  releaseBreakWakeLock();
   const autoSkipBtn=document.getElementById(`liveBreakAutoSkip_${idx}`);if(autoSkipBtn)autoSkipBtn.style.display="none";
   const editBtn=document.getElementById(`liveBreakEditBtn_${idx}`);if(editBtn)editBtn.style.display="none";
   const editPanel=document.getElementById(`liveBreakEditPanel_${idx}`);if(editPanel)editPanel.style.display="none";
   document.getElementById(`liveBreakRow_${idx}`).style.display="none";activateNextLiveSet(idx+1);
+  saveLiveDraft();
 }
 function startLiveBreak(idx,forcedSecs){
   let totalSecs=forcedSecs!==undefined?forcedSecs:getPickerSeconds(`liveBreak_${idx}`);
@@ -7740,6 +8232,7 @@ function startLiveBreak(idx,forcedSecs){
   let startBtn=document.querySelector(`#liveBreakRow_${idx} .live-break-btn.start`),skipBtn=document.querySelectorAll(`#liveBreakRow_${idx} .live-break-btn`)[1];
   if(startBtn){startBtn.disabled=true;startBtn.style.opacity="0.5"}if(skipBtn){skipBtn.disabled=false;skipBtn.style.opacity="1"}
   liveBreakSeconds[idx]=0;liveBreakTotalSecs[idx]=totalSecs;
+  acquireBreakWakeLock();
   // The "Edit Break" override is only offered for genuine Auto Break sessions (forcedSecs set from the saved default).
   // Manual breaks are already entered by hand each time, so no per-set override is needed there.
   const editBtn=document.getElementById(`liveBreakEditBtn_${idx}`);
@@ -7749,17 +8242,27 @@ function startLiveBreak(idx,forcedSecs){
 }
 /* Starts/resumes the actual 1-second countdown loop for a break, based on whatever is
    currently in liveBreakSeconds[idx] (elapsed) and liveBreakTotalSecs[idx] (total for THIS set).
-   Shared by startLiveBreak, the "Cancel" resume path, and the "Edit Break" override apply path
-   so there's a single source of truth for how a break actually counts down and finishes. */
+   Shared by startLiveBreak, the "Cancel" resume path, the "Edit Break" override apply path, and
+   restoreLiveSessionUI (resuming after a refresh) — so there's a single source of truth for how
+   a break actually counts down and finishes, and for the epoch bookkeeping that makes it
+   refresh-proof (see saveLiveDraft). */
 function runLiveBreakInterval(idx){
   const timerEl=document.getElementById(`liveBreakTimer_${idx}`),msgEl=document.getElementById(`liveBreakMsg_${idx}`);
   const editBtn=document.getElementById(`liveBreakEditBtn_${idx}`),editPanel=document.getElementById(`liveBreakEditPanel_${idx}`);
-  if(liveBreakTimers[idx]){clearInterval(liveBreakTimers[idx])}
+  if(liveBreakTimers[idx]){clearInterval(liveBreakTimers[idx]);delete liveBreakTimers[idx]}
+  liveBreakAccumAtStart[idx]=liveBreakSeconds[idx]||0;liveBreakStartEpoch[idx]=Date.now();
   liveBreakTimers[idx]=setInterval(()=>{
     liveBreakSeconds[idx]++;let rem=liveBreakTotalSecs[idx]-liveBreakSeconds[idx];
-    if(rem<=0){clearInterval(liveBreakTimers[idx]);delete liveBreakTimers[idx];delete liveBreakTotalSecs[idx];timerEl.textContent="00:00";msgEl.textContent="🔔 Break over! Time to crush the next set!";msgEl.style.display="block";timerEl.style.display="none";if(editBtn)editBtn.style.display="none";if(editPanel)editPanel.style.display="none";playConfiguredBreakSound();setTimeout(()=>{document.getElementById(`liveBreakRow_${idx}`).style.display="none";activateNextLiveSet(idx+1)},1500);return}
+    if(rem<=0){clearInterval(liveBreakTimers[idx]);delete liveBreakTimers[idx];delete liveBreakTotalSecs[idx];delete liveBreakStartEpoch[idx];delete liveBreakAccumAtStart[idx];timerEl.textContent="00:00";msgEl.textContent="🔔 Break over! Time to crush the next set!";msgEl.style.display="block";timerEl.style.display="none";if(editBtn)editBtn.style.display="none";if(editPanel)editPanel.style.display="none";releaseBreakWakeLock();playConfiguredBreakSound();saveLiveDraft();setTimeout(()=>{document.getElementById(`liveBreakRow_${idx}`).style.display="none";activateNextLiveSet(idx+1)},1500);return}
     let m=Math.floor(rem/60),s=rem%60;timerEl.textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
   },1000);
+  // IMPORTANT: save the draft only AFTER liveBreakTimers[idx] is actually assigned above. saveLiveDraft()
+  // reads `running=!!liveBreakTimers[idx]` to decide whether to persist an epoch (running) or a frozen
+  // accumulated total (paused). Saving before the assignment meant the very first snapshot of every
+  // fresh break was wrongly recorded as "not running" (accumulated:0, startEpoch:null) — so any refresh
+  // taken before the next save-triggering action resumed the countdown from 0 instead of from where it
+  // actually was, i.e. the break appeared to "reset to the start" after a refresh.
+  saveLiveDraft();
 }
 /* ===== Per-set "Edit Break" override (Auto Break only) =====
    Clicking "Edit Break" instantly PAUSES the running Auto Break countdown (the displayed time freezes)
@@ -7775,6 +8278,8 @@ function toggleEditBreakPanel(idx){
   if(opening){
     // Instantly stop the countdown while the user picks a new time — nothing ticks away unseen
     if(liveBreakTimers[idx]){clearInterval(liveBreakTimers[idx]);delete liveBreakTimers[idx]}
+    delete liveBreakStartEpoch[idx];delete liveBreakAccumAtStart[idx];
+    saveLiveDraft();
     const baseSecs=getDefaultBreakSeconds();
     mountMinSecPicker(`liveBreakEditPickerMount_${idx}`,`liveBreakEdit_${idx}`,Math.floor(baseSecs/60),baseSecs%60);
     if(msgEl){msgEl.textContent="⏸ Break paused";msgEl.style.display="block"}
@@ -7798,7 +8303,7 @@ function applyBreakTimeEdit(idx){
   runLiveBreakInterval(idx);
 }
 function playBreakAlertSound(){
-  try{const ctx=new(window.AudioContext||window.webkitAudioContext)();[0,0.25,0.5].forEach(delay=>{const osc=ctx.createOscillator(),gain=ctx.createGain();osc.connect(gain);gain.connect(ctx.destination);osc.type='triangle';osc.frequency.setValueAtTime(880,ctx.currentTime+delay);gain.gain.setValueAtTime(0.4,ctx.currentTime+delay);gain.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+delay+0.35);osc.start(ctx.currentTime+delay);osc.stop(ctx.currentTime+delay+0.35)})}catch(e){}
+  try{const ctx=getSharedBeepCtx();if(!ctx)return;if(ctx.state==='suspended')ctx.resume().catch(()=>{});[0,0.25,0.5].forEach(delay=>{const osc=ctx.createOscillator(),gain=ctx.createGain();osc.connect(gain);gain.connect(ctx.destination);osc.type='triangle';osc.frequency.setValueAtTime(880,ctx.currentTime+delay);gain.gain.setValueAtTime(0.4,ctx.currentTime+delay);gain.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+delay+0.35);osc.start(ctx.currentTime+delay);osc.stop(ctx.currentTime+delay+0.35)})}catch(e){}
 }
 function activateNextLiveSet(idx){
   if(idx>liveTotalSets)return;const block=document.getElementById(`liveSetBlock_${idx}`);if(!block)return;
@@ -8155,9 +8660,9 @@ function startLiveEditNewSets(){
 function buildLiveEditSetHTML(idx,active){
   const committedCount=liveEditExistingResults.length+liveEditNewResults.length;
   const displayIdx=committedCount+idx;
-  // Set 1 is always one of the already-saved sets in edit mode, so (unlike a fresh session) every
-  // new set being added here — including the very first one — has a real Set 1 to copy from.
-  const copyBtn=`<button class="live-copy-prev-btn" id="liveEditCopyPrevBtn_${idx}" onclick="liveEditCopyFromPrevSet(${idx})" title="Auto-fill from Set 1 values">⚡ Copy from previous set</button>`;
+  // In edit mode there's always at least one already-saved set before any new set being added here,
+  // so "copy from previous" always has something to pull from — see liveEditCopyFromPrevSet above.
+  const copyBtn=`<button class="live-copy-prev-btn" id="liveEditCopyPrevBtn_${idx}" onclick="liveEditCopyFromPrevSet(${idx})" title="Auto-fill from the previous set's values">⚡ Copy from previous set</button>`;
   return `<div class="live-set-block${active?' set-active':''}" id="liveEditSetBlock_${idx}">
     <div class="live-set-header"><span class="live-set-title">NEW SET ${displayIdx}</span><span class="live-set-done-badge" id="liveEditSetDoneBadge_${idx}" style="display:none">✓ DONE</span></div>
     <div class="live-set-inputs" id="liveEditSetInputs_${idx}" ${!active?'style="opacity:0.4;pointer-events:none"':''}>
@@ -8256,6 +8761,7 @@ async function saveLiveEditSet(idx){
 function skipLiveEditBreak(idx){
   if(liveEditBreakTimers[idx]){clearInterval(liveEditBreakTimers[idx]);delete liveEditBreakTimers[idx]}
   delete liveEditBreakTotalSecs[idx];
+  releaseBreakWakeLock();
   const autoSkipBtn=document.getElementById(`liveEditBreakAutoSkip_${idx}`);if(autoSkipBtn)autoSkipBtn.style.display="none";
   const editBtn=document.getElementById(`liveEditBreakEditBtn_${idx}`);if(editBtn)editBtn.style.display="none";
   const editPanel=document.getElementById(`liveEditBreakEditPanel_${idx}`);if(editPanel)editPanel.style.display="none";
@@ -8269,6 +8775,7 @@ function startLiveEditBreak(idx,forcedSecs){
   let timerEl=document.getElementById(`liveEditBreakTimer_${idx}`),msgEl=document.getElementById(`liveEditBreakMsg_${idx}`);
   timerEl.style.display="block";msgEl.style.display="none";
   liveEditBreakSeconds[idx]=0;liveEditBreakTotalSecs[idx]=totalSecs;
+  acquireBreakWakeLock();
   const editBtn=document.getElementById(`liveEditBreakEditBtn_${idx}`);
   if(editBtn)editBtn.style.display=forcedSecs!==undefined?"inline-flex":"none";
   const editPanel=document.getElementById(`liveEditBreakEditPanel_${idx}`);if(editPanel)editPanel.style.display="none";
@@ -8281,7 +8788,7 @@ function runLiveEditBreakInterval(idx){
   if(liveEditBreakTimers[idx]){clearInterval(liveEditBreakTimers[idx])}
   liveEditBreakTimers[idx]=setInterval(()=>{
     liveEditBreakSeconds[idx]++;let rem=liveEditBreakTotalSecs[idx]-liveEditBreakSeconds[idx];
-    if(rem<=0){clearInterval(liveEditBreakTimers[idx]);delete liveEditBreakTimers[idx];delete liveEditBreakTotalSecs[idx];timerEl.textContent="00:00";msgEl.textContent="🔔 Break over! Time to crush the next set!";msgEl.style.display="block";timerEl.style.display="none";if(editBtn)editBtn.style.display="none";if(editPanel)editPanel.style.display="none";playConfiguredBreakSound();setTimeout(()=>{document.getElementById(`liveEditBreakRow_${idx}`).style.display="none";activateNextLiveEditSet(idx+1)},1500);return}
+    if(rem<=0){clearInterval(liveEditBreakTimers[idx]);delete liveEditBreakTimers[idx];delete liveEditBreakTotalSecs[idx];timerEl.textContent="00:00";msgEl.textContent="🔔 Break over! Time to crush the next set!";msgEl.style.display="block";timerEl.style.display="none";if(editBtn)editBtn.style.display="none";if(editPanel)editPanel.style.display="none";releaseBreakWakeLock();playConfiguredBreakSound();setTimeout(()=>{document.getElementById(`liveEditBreakRow_${idx}`).style.display="none";activateNextLiveEditSet(idx+1)},1500);return}
     let m=Math.floor(rem/60),s=rem%60;timerEl.textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
   },1000);
 }
@@ -8331,6 +8838,7 @@ function cancelLiveEditWorkout(){
   Object.values(liveEditSetTimers).forEach(t=>clearInterval(t));
   Object.values(liveEditBreakTimers).forEach(t=>clearInterval(t));
   liveEditSetTimers={};liveEditSetSeconds={};liveEditBreakTimers={};liveEditBreakSeconds={};liveEditBreakTotalSecs={};
+  releaseBreakWakeLock();
   liveEditSlot=null;liveEditExistingResults=[];liveEditNewResults=[];liveEditTotalNewSets=0;liveEditValueOverrides={};
   window._liveEditMode=false;
   applyLiveSetsCountMinConstraint();
