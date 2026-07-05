@@ -4451,11 +4451,21 @@ function updateNotifPermStatus(){
 }
 
 /* Fires an OS-level notification when the break ends — the piece that actually gets a vibration
-   through while the phone is locked or the browser is backgrounded. Safe no-op if permission
-   hasn't been granted or the API isn't supported. */
-function fireBreakEndSystemNotification(){
+   AND a sound through even when the page itself has had zero interaction yet (e.g. right after an
+   auto-restored refresh). This is the one channel that bypasses the browser's "needs a tap first"
+   rule for audio/vibration, because the OS — not the page — is the one producing the sound/buzz.
+   Safe no-op if permission hasn't been granted or the API isn't supported. */
+function fireBreakEndSystemNotification(vibrationPattern){
   if(!('Notification' in window)||Notification.permission!=='granted')return;
-  try{new Notification('⏱ Break Over!',{body:'Time to crush the next set! 💪',tag:'gymbro-break-end'})}catch(e){}
+  try{
+    new Notification('⏱ Break Over!',{
+      body:'Time to crush the next set! 💪',
+      tag:'gymbro-break-end',
+      renotify:true,           // makes sure repeat break-end alerts re-buzz/re-sound instead of silently updating a stale one
+      silent:false,            // ask the OS to play its own notification sound — independent of the page's AudioContext
+      vibrate:vibrationPattern||[220,100,220]  // Android honors this at the OS level even with no page interaction; ignored elsewhere
+    })
+  }catch(e){}
 }
 
 function handleVolumeSliderChange(){
@@ -4587,8 +4597,9 @@ function playConfiguredBreakSound(){
   const cfg=getNotifSettings();
 
   if(cfg.vibrationEnabled){
-    fireVibration(cfg.vibrationId);       // works while screen is on & GymBro is in front
-    fireBreakEndSystemNotification();     // works even when locked/backgrounded, if permission granted
+    fireVibration(cfg.vibrationId);       // works while screen is on & GymBro is in front, AND the page has had a tap since load
+    const pat=(VIBRATION_PATTERNS.find(p=>p.id===cfg.vibrationId)||VIBRATION_PATTERNS[2]).pattern;
+    fireBreakEndSystemNotification(pat);  // works even with zero page interaction yet, or when locked/backgrounded — if permission granted
   }
 
   if(!cfg.soundEnabled)return;
