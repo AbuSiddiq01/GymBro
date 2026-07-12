@@ -1246,9 +1246,21 @@ body.theme-batman .learn-muscle-badge{color:#05050a}
 .learn-gif-fallback .gif-emoji{font-size:72px;display:block;margin-bottom:10px;animation:gifBounce 1.5s ease-in-out infinite}
 @keyframes gifBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
 .learn-gif-fallback .gif-label{font-family:var(--font-alt);font-size:14px;font-weight:700;color:var(--accent);letter-spacing:0.5px}
-.learn-yt-link{margin-top:12px;display:flex;align-items:center;gap:10px;background:linear-gradient(135deg,#ff0000,#cc0000);color:#fff;border-radius:13px;padding:12px 16px;text-decoration:none;font-family:var(--font-alt);font-size:14px;font-weight:700;letter-spacing:0.5px;transition:all 0.3s ease;box-shadow:0 4px 14px rgba(220,38,38,0.35)}
+.learn-yt-link{margin-top:12px;display:flex;align-items:center;gap:10px;background:linear-gradient(135deg,#ff0000,#cc0000);color:#fff;border-radius:13px;padding:12px 16px;text-decoration:none;font-family:var(--font-alt);font-size:14px;font-weight:700;letter-spacing:0.5px;transition:all 0.3s ease;box-shadow:0 4px 14px rgba(220,38,38,0.35);border:none;cursor:pointer;width:100%;text-align:left}
 .learn-yt-link:hover{transform:translateY(-2px);box-shadow:0 8px 22px rgba(220,38,38,0.45)}
 .learn-yt-icon{font-size:20px;flex-shrink:0}
+.learn-video-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px;animation:fadeIn 0.25s ease}
+.learn-video-modal-box{background:#0b0b0b;border-radius:16px;overflow:hidden;width:100%;max-width:860px;box-shadow:0 20px 60px rgba(0,0,0,0.55);position:relative}
+.learn-video-modal-title{color:#fff;font-family:var(--font-alt);font-size:13px;font-weight:700;letter-spacing:0.3px;padding:12px 50px 12px 16px;background:#151515;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.learn-video-modal-frame-wrap{position:relative;width:100%;aspect-ratio:16/9;background:#000}
+.learn-video-modal-frame-wrap iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.learn-video-modal-close{position:absolute;top:8px;right:10px;background:rgba(255,255,255,0.15);color:#fff;border:none;width:32px;height:32px;border-radius:50%;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background 0.2s;z-index:2}
+.learn-video-modal-close:hover{background:rgba(255,255,255,0.3)}
+.learn-video-fallback{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;gap:14px;background:#0b0b0b}
+.learn-video-fallback-icon{font-size:38px}
+.learn-video-fallback-text{color:#e5e5e5;font-family:var(--font-alt);font-size:13px;line-height:1.6;max-width:420px}
+.learn-video-fallback-btn{background:linear-gradient(135deg,#ff0000,#cc0000);color:#fff;text-decoration:none;padding:10px 18px;border-radius:10px;font-family:var(--font-alt);font-size:13px;font-weight:700;letter-spacing:0.3px}
+@media(max-width:600px){.learn-video-modal-overlay{padding:0}.learn-video-modal-box{border-radius:0;max-width:100%}}
 .learn-section-block{margin-bottom:18px;padding:16px;background:var(--accent-soft);border-radius:14px;border:1px solid var(--border-col)}
 .learn-block-title{font-family:var(--font-alt);font-size:15px;font-weight:700;color:var(--section-title-col);letter-spacing:0.5px;margin-bottom:12px;display:flex;align-items:center;gap:7px}
 .learn-steps-list{list-style:none;padding:0}
@@ -1664,13 +1676,14 @@ body.theme-godmode .levelup-toast{background:linear-gradient(135deg,#7a0006,#c00
           </div>
           <button class="btn" id="submitCheckinBtn" onclick="processCheckIn()">⚡ SUBMIT CHECK-IN (+50 XP)</button>
           <!-- Today's scheduled workout banner -->
-          <div id="todayWorkoutBanner" style="display:none" class="today-workout-banner">
+          <div id="todayWorkoutBanner" style="display:none;position:relative" class="today-workout-banner">
             <span class="today-workout-icon">💪</span>
             <div class="today-workout-text">
               <div class="today-workout-label">Today's Schedule</div>
               <div class="today-workout-value" id="todayWorkoutValue">—</div>
               <div class="today-workout-sub" id="todayWorkoutSub"></div>
             </div>
+            <span id="todayWorkoutCloseBtn" onclick="closeTodayWorkoutBanner()" title="Close" style="position:absolute;top:8px;right:10px;cursor:pointer;font-size:15px;line-height:1;color:var(--text-muted);padding:4px;user-select:none">✕</span>
           </div>
         </div>
         <div class="stopwatch-container" id="clockBox">
@@ -1697,32 +1710,86 @@ body.theme-godmode .levelup-toast{background:linear-gradient(135deg,#7a0006,#c00
               <div class="checkin-right-body">
                 <div class="bodyWrapper">
                   <svg id="frontBody" viewBox="0 0 200 500">
-                    <text x="10" y="20" fill="var(--text-muted)" font-size="12" font-weight="bold" font-family="Rajdhani">FRONT</text>
-                    <circle cx="100" cy="50" r="18" fill="var(--muscle-idle)" stroke="var(--border-col)" stroke-width="2"/>
-                    <rect x="94" y="68" width="12" height="15" fill="var(--muscle-idle)" stroke="var(--border-col)" stroke-width="1"/>
-                    <path id="Chest_Left" class="muscle-group" d="M62 85h36v30H68z" rx="4" stroke="var(--border-col)"/>
-                    <path id="Chest_Right" class="muscle-group" d="M102 85h36v30h-30z" rx="4" stroke="var(--border-col)"/>
-                    <path id="Shoulders_Left" class="muscle-group" d="M35 85c5-10 20-10 25 0v20h-25z" stroke="var(--border-col)"/>
-                    <path id="Shoulders_Right" class="muscle-group" d="M140 85c5-10 20-10 25 0v20h-25z" stroke="var(--border-col)"/>
-                    <path id="Biceps_Left" class="muscle-group" d="M38 108c0 10 5 35 5 45h15v-45z" stroke="var(--border-col)"/>
-                    <path id="Biceps_Right" class="muscle-group" d="M142 108c0 10-5 35-5 45h-15v-45z" stroke="var(--border-col)"/>
-                    <rect id="Abs" class="muscle-group" x="72" y="120" width="56" height="75" rx="6" stroke="var(--border-col)"/>
-                    <path fill="var(--muscle-idle)" d="M43 156l5 45h12l-2-45z" stroke="var(--border-col)"/>
-                    <path fill="var(--muscle-idle)" d="M151 156l-5 45h-12l2-45z" stroke="var(--border-col)"/>
-                    <path id="Legs_Front_L" class="muscle-group" d="M68 205h28v110H64z" rx="5" stroke="var(--border-col)"/>
-                    <path id="Legs_Front_R" class="muscle-group" d="M104 205h28v110h-28z" rx="5" stroke="var(--border-col)"/>
+                    <text x="100" y="11" fill="var(--text-muted)" font-size="9" font-weight="700" font-family="Rajdhani" letter-spacing="1.5" text-anchor="middle">FRONT</text>
+                    <path d="M100,17 C109,17 115,24 115,33 C115,41 112,47 107,50 L107,55 C113,56 117,59 117,59 L83,59 C83,59 87,56 93,55 L93,50 C88,47 85,41 85,33 C85,24 91,17 100,17 Z" fill="none" stroke="var(--border-col)" stroke-width="1.3"/>
+                    <path d="M88,55 C92,59 108,59 112,55 L116,67 C110,73 90,73 84,67 Z" fill="var(--muscle-idle)" opacity="0.32" stroke="var(--border-col)" stroke-width="0.8"/>
+                    <path d="M84,67 C74,65 63,67 57,73 L65,81 C73,75 83,73 90,73 Z" fill="var(--muscle-idle)" opacity="0.55" stroke="var(--border-col)" stroke-width="0.7"/>
+                    <path d="M116,67 C126,65 137,67 143,73 L135,81 C127,75 117,73 110,73 Z" fill="var(--muscle-idle)" opacity="0.55" stroke="var(--border-col)" stroke-width="0.7"/>
+                    <path id="Shoulders_Left" class="muscle-group" onclick="toggleMuscleFromBody('Shoulders_Left')" fill="var(--muscle-idle)" stroke="var(--border-col)" stroke-width="1.1" d="M57,73 C41,69 23,76 18,94 C14,110 19,127 35,132 C48,136 61,128 62,112 C63,98 62,81 57,73 Z"/>
+                    <path id="Shoulders_Right" class="muscle-group" onclick="toggleMuscleFromBody('Shoulders_Right')" fill="var(--muscle-idle)" stroke="var(--border-col)" stroke-width="1.1" d="M143,73 C159,69 177,76 182,94 C186,110 181,127 165,132 C152,136 139,128 138,112 C137,98 138,81 143,73 Z"/>
+                    <path id="Chest_Left" class="muscle-group" onclick="toggleMuscleFromBody('Chest_Left')" fill="var(--muscle-idle)" stroke="var(--border-col)" stroke-width="1.1" d="M63,77 C50,73 40,81 39,97 C38,114 46,128 62,133 C75,137 90,133 97,123 C101,115 100,101 97,89 C93,78 78,72 68,74 C66,74.5 64,76 63,77 Z"/>
+                    <path id="Chest_Right" class="muscle-group" onclick="toggleMuscleFromBody('Chest_Right')" fill="var(--muscle-idle)" stroke="var(--border-col)" stroke-width="1.1" d="M137,77 C150,73 160,81 161,97 C162,114 154,128 138,133 C125,137 110,133 103,123 C99,115 100,101 103,89 C107,78 122,72 132,74 C134,74.5 136,76 137,77 Z"/>
+                    <path d="M55,113 C66,119 81,122 96,117" fill="none" stroke="var(--border-col)" stroke-width="0.7" opacity="0.4"/>
+                    <path d="M145,113 C134,119 119,122 104,117" fill="none" stroke="var(--border-col)" stroke-width="0.7" opacity="0.4"/>
+                    <line x1="100" y1="75" x2="100" y2="133" stroke="var(--border-col)" stroke-width="0.7" opacity="0.4"/>
+                    <path id="Biceps_Left" class="muscle-group" onclick="toggleMuscleFromBody('Biceps_Left')" fill="var(--muscle-idle)" stroke="var(--border-col)" stroke-width="1.1" d="M28,129 C20,134 16,147 18,165 C20,182 26,196 35,204 C42,210 51,207 52,194 C53,178 49,156 45,139 C43,130 36,125 28,129 Z"/>
+                    <path id="Biceps_Right" class="muscle-group" onclick="toggleMuscleFromBody('Biceps_Right')" fill="var(--muscle-idle)" stroke="var(--border-col)" stroke-width="1.1" d="M172,129 C180,134 184,147 182,165 C180,182 174,196 165,204 C158,210 149,207 148,194 C147,178 151,156 155,139 C157,130 164,125 172,129 Z"/>
+                    <path d="M33,145 C31,161 32,177 38,191" fill="none" stroke="var(--border-col)" stroke-width="0.6" opacity="0.35"/>
+                    <path d="M167,145 C169,161 168,177 162,191" fill="none" stroke="var(--border-col)" stroke-width="0.6" opacity="0.35"/>
+                    <path id="Triceps_Front_Left" class="muscle-group" onclick="toggleMuscleFromBody('Triceps_Front_Left')" fill="var(--muscle-idle)" opacity="0.85" stroke="var(--border-col)" stroke-width="1" d="M15,133 C9,141 7,155 10,173 C13,189 19,202 27,208 C31,210 35,208 34,201 C31,185 25,161 20,143 C19,137 17,133 15,133 Z"/>
+                    <path id="Triceps_Front_Right" class="muscle-group" onclick="toggleMuscleFromBody('Triceps_Front_Right')" fill="var(--muscle-idle)" opacity="0.85" stroke="var(--border-col)" stroke-width="1" d="M185,133 C191,141 193,155 190,173 C187,189 181,202 173,208 C169,210 165,208 166,201 C169,185 175,161 180,143 C181,137 183,133 185,133 Z"/>
+                    <path fill="var(--muscle-idle)" opacity="0.4" stroke="var(--border-col)" stroke-width="0.9" d="M17,206 C13,221 13,239 19,254 L33,250 C29,235 28,219 30,204 Z"/>
+                    <path fill="var(--muscle-idle)" opacity="0.4" stroke="var(--border-col)" stroke-width="0.9" d="M183,206 C187,221 187,239 181,254 L167,250 C171,235 172,219 170,204 Z"/>
+                    <ellipse cx="24" cy="263" rx="9" ry="13" fill="none" stroke="var(--border-col)" stroke-width="1.1"/>
+                    <ellipse cx="176" cy="263" rx="9" ry="13" fill="none" stroke="var(--border-col)" stroke-width="1.1"/>
+                    <path id="Abs" class="muscle-group" onclick="toggleMuscleFromBody('Abs')" fill="var(--muscle-idle)" stroke="var(--border-col)" stroke-width="1.1" d="M76,125 L124,125 C126,147 126,173 122,196 C120,212 114,227 106,235 C102,239 98,239 94,235 C86,227 80,212 78,196 C74,173 74,147 76,125 Z"/>
+                    <line x1="100" y1="125" x2="100" y2="236" stroke="var(--border-col)" stroke-width="0.7" opacity="0.5"/>
+                    <path d="M77,144 C87,149 113,149 123,144" fill="none" stroke="var(--border-col)" stroke-width="0.7" opacity="0.45"/>
+                    <path d="M76,166 C87,171 113,171 124,166" fill="none" stroke="var(--border-col)" stroke-width="0.7" opacity="0.45"/>
+                    <path d="M77,188 C88,193 112,193 123,188" fill="none" stroke="var(--border-col)" stroke-width="0.7" opacity="0.45"/>
+                    <path d="M84,211 C91,216 109,216 116,211" fill="none" stroke="var(--border-col)" stroke-width="0.6" opacity="0.4"/>
+                    <path fill="var(--muscle-idle)" opacity="0.55" stroke="var(--border-col)" stroke-width="0.8" d="M58,129 C51,141 49,159 54,177 C58,191 65,201 73,204 L74,184 C69,168 66,149 68,132 Z"/>
+                    <path fill="var(--muscle-idle)" opacity="0.55" stroke="var(--border-col)" stroke-width="0.8" d="M142,129 C149,141 151,159 146,177 C142,191 135,201 127,204 L126,184 C131,168 134,149 132,132 Z"/>
+                    <path fill="var(--muscle-idle)" opacity="0.3" stroke="var(--border-col)" stroke-width="0.7" d="M78,233 C86,243 114,243 122,233 C120,249 112,259 100,259 C88,259 80,249 78,233 Z"/>
+                    <path id="Legs_Front_L" class="muscle-group" onclick="toggleMuscleFromBody('Legs_Front_L')" fill="var(--muscle-idle)" stroke="var(--border-col)" stroke-width="1.1" d="M70,247 C58,253 51,273 53,309 C55,350 59,389 65,413 C68,423 79,426 85,416 C91,405 93,361 91,309 C89,276 84,256 78,249 C76,247 73,246 70,247 Z"/>
+                    <path d="M71,263 C67,301 68,349 72,406" fill="none" stroke="var(--border-col)" stroke-width="0.6" opacity="0.4"/>
+                    <path id="Legs_Front_R" class="muscle-group" onclick="toggleMuscleFromBody('Legs_Front_R')" fill="var(--muscle-idle)" stroke="var(--border-col)" stroke-width="1.1" d="M130,247 C142,253 149,273 147,309 C145,350 141,389 135,413 C132,423 121,426 115,416 C109,405 107,361 109,309 C111,276 116,256 122,249 C124,247 127,246 130,247 Z"/>
+                    <path d="M129,263 C133,301 132,349 128,406" fill="none" stroke="var(--border-col)" stroke-width="0.6" opacity="0.4"/>
+                    <ellipse cx="74" cy="419" rx="11" ry="7" fill="var(--muscle-idle)" opacity="0.4" stroke="var(--border-col)" stroke-width="0.7"/>
+                    <ellipse cx="126" cy="419" rx="11" ry="7" fill="var(--muscle-idle)" opacity="0.4" stroke="var(--border-col)" stroke-width="0.7"/>
+                    <path fill="var(--muscle-idle)" opacity="0.35" stroke="var(--border-col)" stroke-width="0.9" d="M65,425 C61,441 61,459 66,473 L83,470 C79,456 79,440 80,423 Z"/>
+                    <path fill="var(--muscle-idle)" opacity="0.35" stroke="var(--border-col)" stroke-width="0.9" d="M135,425 C139,441 139,459 134,473 L117,470 C121,456 121,440 120,423 Z"/>
+                    <path fill="none" stroke="var(--border-col)" stroke-width="1.2" d="M60,473 C57,480 58,487 65,490 C74,493 84,492 86,487 C87,483 84,479 80,477 L80,471 Z"/>
+                    <path fill="none" stroke="var(--border-col)" stroke-width="1.2" d="M140,473 C143,480 142,487 135,490 C126,493 116,492 114,487 C113,483 116,479 120,477 L120,471 Z"/>
                   </svg>
                   <svg id="backBody" viewBox="0 0 200 500">
-                    <text x="10" y="20" fill="var(--text-muted)" font-size="12" font-weight="bold" font-family="Rajdhani">BACK</text>
-                    <circle cx="100" cy="50" r="18" fill="var(--muscle-idle)" stroke="var(--border-col)" stroke-width="2"/>
-                    <rect x="94" y="68" width="12" height="15" fill="var(--muscle-idle)" stroke="var(--border-col)" stroke-width="1"/>
-                    <path id="Lats_Left" class="muscle-group" d="M55 88c15 0 20 15 42 35v45H60z" rx="4" stroke="var(--border-col)"/>
-                    <path id="Lats_Right" class="muscle-group" d="M145 88c-15 0-20 15-42 35v45h37z" rx="4" stroke="var(--border-col)"/>
-                    <path id="Triceps_Left" class="muscle-group" d="M36 108h16v45H42z" stroke="var(--border-col)"/>
-                    <path id="Triceps_Right" class="muscle-group" d="M148 108h-16v45h10z" stroke="var(--border-col)"/>
-                    <rect id="Lower_Back" fill="var(--muscle-idle)" x="72" y="170" width="56" height="32" rx="4" stroke="var(--border-col)"/>
-                    <path id="Legs_Back_L" class="muscle-group" d="M66 205h30v110H62z" rx="5" stroke="var(--border-col)"/>
-                    <path id="Legs_Back_R" class="muscle-group" d="M104 205h30v110h-30z" rx="5" stroke="var(--border-col)"/>
+                    <text x="100" y="11" fill="var(--text-muted)" font-size="9" font-weight="700" font-family="Rajdhani" letter-spacing="1.5" text-anchor="middle">BACK</text>
+                    <path d="M100,17 C109,17 115,24 115,33 C115,41 112,47 107,50 L107,55 C113,56 117,59 117,59 L83,59 C83,59 87,56 93,55 L93,50 C88,47 85,41 85,33 C85,24 91,17 100,17 Z" fill="none" stroke="var(--border-col)" stroke-width="1.3"/>
+                    <path fill="var(--muscle-idle)" stroke="var(--border-col)" stroke-width="1" opacity="0.9" d="M100,57 C84,65 70,77 60,91 C67,100 76,107 85,111 C90,97 95,83 100,71 C105,83 110,97 115,111 C124,107 133,100 140,91 C130,77 116,65 100,57 Z M85,111 C89,133 93,157 98,178 L102,178 C107,157 111,133 115,111 L100,121 Z"/>
+                    <path d="M100,66 L100,116" fill="none" stroke="var(--border-col)" stroke-width="0.6" opacity="0.3"/>
+                    <path id="Shoulders_Back_Left" class="muscle-group" onclick="toggleMuscleFromBody('Shoulders_Back_Left')" fill="var(--muscle-idle)" stroke="var(--border-col)" stroke-width="1.1" d="M60,90 C46,85 28,90 22,105 C17,119 23,133 37,138 C49,142 61,135 62,121 C63,108 62,97 60,90 Z"/>
+                    <path id="Shoulders_Back_Right" class="muscle-group" onclick="toggleMuscleFromBody('Shoulders_Back_Right')" fill="var(--muscle-idle)" stroke="var(--border-col)" stroke-width="1.1" d="M140,90 C154,85 172,90 178,105 C183,119 177,133 163,138 C151,142 139,135 138,121 C137,108 138,97 140,90 Z"/>
+                    <path id="Lats_Left" class="muscle-group" onclick="toggleMuscleFromBody('Lats_Left')" fill="var(--muscle-idle)" stroke="var(--border-col)" stroke-width="1.1" d="M52,109 C39,117 33,139 38,167 C43,193 54,213 71,220 C82,224 88,214 84,196 C79,171 71,141 61,117 C59,113 56,108 52,109 Z"/>
+                    <path d="M47,126 C43,147 46,172 56,193" fill="none" stroke="var(--border-col)" stroke-width="0.7" opacity="0.4"/>
+                    <path id="Lats_Right" class="muscle-group" onclick="toggleMuscleFromBody('Lats_Right')" fill="var(--muscle-idle)" stroke="var(--border-col)" stroke-width="1.1" d="M148,109 C161,117 167,139 162,167 C157,193 146,213 129,220 C118,224 112,214 116,196 C121,171 129,141 139,117 C141,113 144,108 148,109 Z"/>
+                    <path d="M153,126 C157,147 154,172 144,193" fill="none" stroke="var(--border-col)" stroke-width="0.7" opacity="0.4"/>
+                    <path id="Triceps_Left" class="muscle-group" onclick="toggleMuscleFromBody('Triceps_Left')" fill="var(--muscle-idle)" stroke="var(--border-col)" stroke-width="1.1" d="M22,136 C14,142 12,155 14,174 C16,191 23,205 31,211 C38,216 45,212 45,201 C46,185 42,163 39,146 C37,138 29,132 22,136 Z"/>
+                    <path d="M25,155 C23,171 25,187 32,202" fill="none" stroke="var(--border-col)" stroke-width="0.7" opacity="0.4"/>
+                    <path id="Triceps_Right" class="muscle-group" onclick="toggleMuscleFromBody('Triceps_Right')" fill="var(--muscle-idle)" stroke="var(--border-col)" stroke-width="1.1" d="M178,136 C186,142 188,155 186,174 C184,191 177,205 169,211 C162,216 155,212 155,201 C154,185 158,163 161,146 C163,138 171,132 178,136 Z"/>
+                    <path d="M175,155 C177,171 175,187 168,202" fill="none" stroke="var(--border-col)" stroke-width="0.7" opacity="0.4"/>
+                    <path fill="var(--muscle-idle)" opacity="0.4" stroke="var(--border-col)" stroke-width="0.9" d="M14,213 C11,227 12,242 18,255 L31,252 C27,238 27,224 28,212 Z"/>
+                    <path fill="var(--muscle-idle)" opacity="0.4" stroke="var(--border-col)" stroke-width="0.9" d="M186,213 C189,227 188,242 182,255 L169,252 C173,238 173,224 172,212 Z"/>
+                    <ellipse cx="24" cy="263" rx="9" ry="13" fill="none" stroke="var(--border-col)" stroke-width="1.1"/>
+                    <ellipse cx="176" cy="263" rx="9" ry="13" fill="none" stroke="var(--border-col)" stroke-width="1.1"/>
+                    <path fill="var(--muscle-idle)" opacity="0.65" stroke="var(--border-col)" stroke-width="0.7" d="M92,119 C90,140 90,163 93,180 L98,180 C97,159 96,138 97,117 Z"/>
+                    <path fill="var(--muscle-idle)" opacity="0.65" stroke="var(--border-col)" stroke-width="0.7" d="M108,119 C110,140 110,163 107,180 L102,180 C103,159 104,138 103,117 Z"/>
+                    <path id="Lower_Back" class="muscle-group" onclick="toggleMuscleFromBody('Lower_Back')" fill="var(--muscle-idle)" stroke="var(--border-col)" stroke-width="1.1" d="M84,183 C79,191 77,205 81,218 C85,230 92,236 100,236 C108,236 115,230 119,218 C123,205 121,191 116,183 C109,177 91,177 84,183 Z"/>
+                    <path id="Glutes_Left" class="muscle-group" onclick="toggleMuscleFromBody('Glutes_Left')" fill="var(--muscle-idle)" stroke="var(--border-col)" stroke-width="1.1" d="M69,229 C56,233 50,251 56,269 C61,285 75,294 89,289 C97,286 99,274 95,260 C91,246 83,234 74,229 C72,228 71,228 69,229 Z"/>
+                    <path d="M59,257 C67,266 79,269 91,265" fill="none" stroke="var(--border-col)" stroke-width="0.6" opacity="0.35"/>
+                    <path id="Glutes_Right" class="muscle-group" onclick="toggleMuscleFromBody('Glutes_Right')" fill="var(--muscle-idle)" stroke="var(--border-col)" stroke-width="1.1" d="M131,229 C144,233 150,251 144,269 C139,285 125,294 111,289 C103,286 101,274 105,260 C109,246 117,234 126,229 C128,228 129,228 131,229 Z"/>
+                    <path d="M141,257 C133,266 121,269 109,265" fill="none" stroke="var(--border-col)" stroke-width="0.6" opacity="0.35"/>
+                    <path id="Legs_Back_L" class="muscle-group" onclick="toggleMuscleFromBody('Legs_Back_L')" fill="var(--muscle-idle)" stroke="var(--border-col)" stroke-width="1.1" d="M69,271 C59,278 55,297 58,327 C61,361 65,392 70,414 C72,423 81,427 86,419 C91,410 93,376 90,332 C89,303 86,282 80,274 C77,270 73,269 69,271 Z"/>
+                    <path d="M72,286 C69,323 71,364 76,411" fill="none" stroke="var(--border-col)" stroke-width="0.6" opacity="0.35"/>
+                    <path id="Legs_Back_R" class="muscle-group" onclick="toggleMuscleFromBody('Legs_Back_R')" fill="var(--muscle-idle)" stroke="var(--border-col)" stroke-width="1.1" d="M131,271 C141,278 145,297 142,327 C139,361 135,392 130,414 C128,423 119,427 114,419 C109,410 107,376 110,332 C111,303 114,282 120,274 C123,270 127,269 131,271 Z"/>
+                    <path d="M128,286 C131,323 129,364 124,411" fill="none" stroke="var(--border-col)" stroke-width="0.6" opacity="0.35"/>
+                    <ellipse cx="74" cy="419" rx="11" ry="7" fill="var(--muscle-idle)" opacity="0.4" stroke="var(--border-col)" stroke-width="0.7"/>
+                    <ellipse cx="126" cy="419" rx="11" ry="7" fill="var(--muscle-idle)" opacity="0.4" stroke="var(--border-col)" stroke-width="0.7"/>
+                    <path id="Calves_Left" class="muscle-group" onclick="toggleMuscleFromBody('Calves_Left')" fill="var(--muscle-idle)" stroke="var(--border-col)" stroke-width="1.1" d="M65,424 C58,435 57,453 62,469 C65,481 74,487 80,483 C87,478 89,463 87,446 C85,431 80,421 74,417 C71,416 67,420 65,424 Z"/>
+                    <path d="M74,425 L74,479" fill="none" stroke="var(--border-col)" stroke-width="0.6" opacity="0.35"/>
+                    <path id="Calves_Right" class="muscle-group" onclick="toggleMuscleFromBody('Calves_Right')" fill="var(--muscle-idle)" stroke="var(--border-col)" stroke-width="1.1" d="M135,424 C142,435 143,453 138,469 C135,481 126,487 120,483 C113,478 111,463 113,446 C115,431 120,421 126,417 C129,416 133,420 135,424 Z"/>
+                    <path d="M126,425 L126,479" fill="none" stroke="var(--border-col)" stroke-width="0.6" opacity="0.35"/>
+                    <path fill="none" stroke="var(--border-col)" stroke-width="1.2" d="M62,480 C59,486 60,491 66,493 C74,495 82,495 84,491 C85,488 83,485 79,483 L79,478 Z"/>
+                    <path fill="none" stroke="var(--border-col)" stroke-width="1.2" d="M138,480 C141,486 140,491 134,493 C126,495 118,495 116,491 C115,488 117,485 121,483 L121,478 Z"/>
                   </svg>
                 </div>
               </div>
@@ -2006,18 +2073,22 @@ body.theme-godmode .levelup-toast{background:linear-gradient(135deg,#7a0006,#c00
       <div class="section glass" style="margin-top:0">
         <div class="section-title" style="justify-content:space-between">
           <span>📋 Attendance History</span>
-          <select id="weekFilter" style="width:140px;margin-top:0;padding:6px;font-size:12px" onchange="renderAttendanceHistory()">
-            <option value="all">All Records</option>
-            <option value="week1">Week 1 (1–7)</option>
-            <option value="week2">Week 2 (8–14)</option>
-            <option value="week3">Week 3 (15–21)</option>
-            <option value="week4">Week 4 (22–28)</option>
-            <option value="thisMonth">This Month</option>
-          </select>
+          <div style="display:flex;gap:6px">
+            <select id="monthFilter" style="width:130px;margin-top:0;padding:6px;font-size:12px" onchange="renderAttendanceHistory()"></select>
+            <select id="weekFilter" style="width:120px;margin-top:0;padding:6px;font-size:12px" onchange="renderAttendanceHistory()">
+              <option value="all">All Weeks</option>
+              <option value="thisWeek" selected>This Week</option>
+              <option value="week1">Week 1 (1–7)</option>
+              <option value="week2">Week 2 (8–14)</option>
+              <option value="week3">Week 3 (15–21)</option>
+              <option value="week4">Week 4 (22–28)</option>
+              <option value="week5">Week 5 (29–31)</option>
+            </select>
+          </div>
         </div>
         <div style="overflow-x:auto">
           <table class="table">
-            <thead><tr><th>Date</th><th>Session</th><th>Muscles</th><th>Status</th><th>Duration</th></tr></thead>
+            <thead><tr><th>Date</th><th>Check-in</th><th>Session</th><th>Muscles</th><th>Status</th><th>Duration</th></tr></thead>
             <tbody id="historyTable"></tbody>
           </table>
         </div>
@@ -3570,6 +3641,33 @@ function getLocalDateStringFor(dateObj){
   const d=String(dateObj.getDate()).padStart(2,'0');
   return `${y}-${m}-${d}`;
 }
+/* Returns the CURRENT DEVICE's local wall-clock time as "YYYY-MM-DDTHH:mm:ss" (no
+   timezone suffix). Since attendance.created_at is `timestamp without time zone`,
+   Postgres stores exactly these literal numbers with no UTC conversion — so whatever
+   time the device clock shows (IST for Indian users) is exactly what gets saved and
+   later displayed back. */
+function getLocalTimestampString(){
+  const now=new Date();
+  const y=now.getFullYear();
+  const mo=String(now.getMonth()+1).padStart(2,'0');
+  const d=String(now.getDate()).padStart(2,'0');
+  const h=String(now.getHours()).padStart(2,'0');
+  const mi=String(now.getMinutes()).padStart(2,'0');
+  const s=String(now.getSeconds()).padStart(2,'0');
+  return `${y}-${mo}-${d}T${h}:${mi}:${s}`;
+}
+/* Formats a "YYYY-MM-DDTHH:mm:ss" (no-timezone) string into a human check-in time like
+   "6:45 AM". Parsed manually via regex (not `new Date(str)`) so it can never be shifted
+   by the browser's own timezone assumptions. */
+function formatCheckInTime(tsStr){
+  if(!tsStr)return'-';
+  const m=String(tsStr).match(/T(\d{2}):(\d{2})/);
+  if(!m)return'-';
+  let h=parseInt(m[1],10),mi=m[2];
+  const ampm=h>=12?'PM':'AM';
+  h=h%12;if(h===0)h=12;
+  return `${h}:${mi} ${ampm}`;
+}
 
 /* ===================== SUPABASE + APP CORE ===================== */
 const SUPABASE_URL="https://zyoxwguvpcvqplucserh.supabase.co";
@@ -4642,14 +4740,26 @@ function getScheduleDayForDate(dateObj,startDateStr){
   return SCHEDULE_DAY_KEYS[idx];
 }
 
-/* Flattens the saved schedule into one ordered list of TRAINING classes only (Rest/None slots skipped),
-   in Day 1 → Day 7, Slot 1 → Slot 3 order — this is "the order" the user defined, used as a repeating cycle. */
-function _buildScheduleOrderList(schedule){
-  const order=[];
+/* Flattens the saved schedule into ordered TRAINING day-groups only (Rest/empty days skipped),
+   in Day 1 → Day 7 order — each group keeps ALL classes assigned to that day together, so
+   advancing the cycle always moves a whole day at a time (fixes the old flat-list bug where a
+   2nd class added to "yesterday" was being shown as "today's" class instead of the next day's). */
+function _buildScheduleDayGroups(schedule){
+  const groups=[];
   SCHEDULE_DAY_KEYS.forEach(day=>{
-    (schedule[day]||[]).forEach(cls=>{if(cls&&cls!==REST_VALUE)order.push(cls)});
+    const classes=(schedule[day]||[]).filter(c=>c&&c!==REST_VALUE);
+    if(classes.length)groups.push({day,classes});
   });
-  return order;
+  return groups;
+}
+
+/* Formats a 'YYYY-MM-DD' date string as "11Jul-Mon" for the schedule notify box. */
+function _fmtDateDay(dateStr){
+  const d=new Date(dateStr+'T00:00:00');
+  const day=d.getDate();
+  const mon=d.toLocaleDateString('en-US',{month:'short'});
+  const wd=d.toLocaleDateString('en-US',{weekday:'short'});
+  return `${day}${mon}-${wd}`;
 }
 
 async function renderTodayWorkoutBanner(){
@@ -4661,45 +4771,92 @@ async function renderTodayWorkoutBanner(){
   const startDate=localStorage.getItem('gymbro_schedule_start_'+settingsUid());
   if(!schedule||!startDate){banner.style.display='none';return}
 
+  // If the user already closed today's notify box (or already checked out today), keep it closed
+  // until something actually changes (a new day, or a fresh check-in).
+  const closedFlag=localStorage.getItem('gymbro_schedule_notify_closed_'+settingsUid());
+  if(closedFlag===getLocalDateString()){banner.style.display='none';return}
+
   const uid=localStorage.getItem('user_id');
-  const orderList=_buildScheduleOrderList(schedule);
-  if(!orderList.length){banner.style.display='none';return}
+  const dayGroups=_buildScheduleDayGroups(schedule);
+  if(!dayGroups.length){banner.style.display='none';return}
+  const allClasses=dayGroups.flatMap(g=>g.classes);
 
   // Step 1: check the database for the most recent day the user actually checked in with a logged
   // class. Start at YESTERDAY and walk backward day by day (not just yesterday) until a checked-in
   // class is found — covers the "missed 2-3 days" case the same way as a single missed day.
-  let lastClass=null,lastClassDate=null;
+  let lastGroupIdx=-1,lastClassDate=null,doneInGroup=new Set();
   if(uid){
     const{data}=await db.from('attendance').select('attendance_date,workout').eq('user_id',uid).eq('status','Present').order('attendance_date',{ascending:false}).limit(60);
     if(data&&data.length){
       const todayStr=getLocalDateString();
-      // Most recent Present row that (a) isn't today and (b) actually logged at least one class
-      // from the order — this becomes "yesterday's class" per spec, even if it was several days ago.
       for(const row of data){
         if(row.attendance_date>=todayStr)continue; // skip today itself — we only look at PAST check-ins
         if(!row.workout||!row.workout.trim())continue;
         const loggedClasses=row.workout.split(',').map(s=>s.trim()).filter(Boolean);
-        const matched=loggedClasses.find(c=>orderList.includes(c));
-        if(matched){lastClass=matched;lastClassDate=row.attendance_date;break}
+        const matched=loggedClasses.filter(c=>allClasses.includes(c));
+        if(!matched.length)continue;
+        // Which scheduled day-group do these logged classes belong to? Use the group with the
+        // most overlap — this groups "Legs" + "Shoulders" (same day) together instead of only
+        // grabbing a single class like the old flat-list logic did.
+        let bestIdx=-1,bestCount=-1;
+        dayGroups.forEach((g,gi)=>{
+          const cnt=matched.filter(c=>g.classes.includes(c)).length;
+          if(cnt>bestCount){bestCount=cnt;bestIdx=gi}
+        });
+        lastGroupIdx=bestIdx;
+        lastClassDate=row.attendance_date;
+        doneInGroup=new Set(matched.filter(c=>dayGroups[bestIdx].classes.includes(c)));
+        break;
+      }
+      // If that day's group wasn't fully completed on that single date, look further back for
+      // classes of the SAME group logged on earlier dates (e.g. Chest done Monday, Triceps done
+      // Tuesday — still one training day). Stop as soon as an earlier date belongs to a different
+      // group — that means the group was already closed out before that.
+      if(lastGroupIdx>=0){
+        const group=dayGroups[lastGroupIdx];
+        if(doneInGroup.size<group.classes.length){
+          for(const row of data){
+            if(row.attendance_date>=lastClassDate)continue;
+            if(!row.workout||!row.workout.trim())continue;
+            const logged=row.workout.split(',').map(s=>s.trim()).filter(Boolean);
+            const matched=logged.filter(c=>allClasses.includes(c));
+            if(!matched.length)continue;
+            const belongsToSameGroup=matched.some(c=>group.classes.includes(c));
+            const belongsToOtherGroup=matched.some(c=>!group.classes.includes(c));
+            if(belongsToSameGroup&&!belongsToOtherGroup){
+              matched.forEach(c=>doneInGroup.add(c));
+              if(doneInGroup.size>=group.classes.length)break;
+            } else break; // hit a different training day — stop merging further back
+          }
+        }
       }
     }
   }
 
-  let todayClasses,todayIsRest=false,subText;
+  let todayClasses,todayIsRest=false,subText='';
 
-  if(lastClass){
-    // Step 2: find that class's position in the saved order, advance to the NEXT entry (wrapping
-    // around to the start of the order if the last class was the final one in the list).
-    const idx=orderList.indexOf(lastClass);
-    const nextClass=orderList[(idx+1)%orderList.length];
-    todayClasses=[nextClass];
-    const lastDateObj=new Date(lastClassDate+'T00:00:00');
+  if(lastGroupIdx>=0){
+    const group=dayGroups[lastGroupIdx];
+    const remaining=group.classes.filter(c=>!doneInGroup.has(c));
+    const doneLabel=[...doneInGroup].join(' & ')||'—';
+    const dateLabel=_fmtDateDay(lastClassDate); // e.g. "11Jul-Sat"
+    const todayLabel=_fmtDateDay(getLocalDateString()); // e.g. "12Jul-Sun"
+    const nextIdx=(lastGroupIdx+1)%dayGroups.length;
+    todayClasses=dayGroups[nextIdx].classes; // always continue forward from the last completed/skipped day
+
+    // Absence only counts days that have FULLY passed (crossed 11:59 PM) — today itself is still
+    // in progress, so it's never counted as missed even before checking in.
     const todayDateOnly=new Date(getLocalDateString()+'T00:00:00');
-    const gapDays=Math.floor((todayDateOnly-lastDateObj)/86400000);
-    const lastDateLabel=lastDateObj.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
-    subText=gapDays<=1
-      ?`Your previous class was <strong>${lastClass}</strong>, so today's class is <strong>${nextClass}</strong>`
-      :`⚠️ Your last check-in was <strong>${lastClass}</strong> on ${lastDateLabel} (${gapDays} days ago) — pick up where you left off: today's class is <strong>${nextClass}</strong>`;
+    const lastDateObj=new Date(lastClassDate+'T00:00:00');
+    const daysSince=Math.floor((todayDateOnly-lastDateObj)/86400000);
+    const absentDays=Math.max(0,daysSince-1);
+
+    const notes=[];
+    if(absentDays>0)notes.push(`${absentDays} day${absentDays>1?'s':''} absence`);
+    if(remaining.length)notes.push(`Left ${remaining.join(' & ')}`);
+    const noteStr=notes.length?` (${notes.join(', ')})`:'';
+
+    subText=`${dateLabel}: ${doneLabel} done${noteStr}<br>Today ${todayLabel} Class is : ${todayClasses.join(' & ')}`;
   } else {
     // No usable check-in history yet — fall back to the pure calendar-cycle day so new users still see something.
     const todayDay=getScheduleDayForDate(new Date(),startDate);
@@ -4711,15 +4868,22 @@ async function renderTodayWorkoutBanner(){
 
   if(todayIsRest){
     valueEl.textContent='😴 Rest Day';
-    subEl.textContent=subText;
+    subEl.innerHTML=subText;
     banner.style.display='flex';
     return;
   }
   if(!todayClasses.length){banner.style.display='none';return}
 
-  valueEl.textContent=todayClasses.join(' + ')+' Day';
+  valueEl.textContent=todayClasses.join(' & ')+' Day';
   subEl.innerHTML=subText;
   banner.style.display='flex';
+}
+
+/* Manual close (✕ icon) — hides the notify box for the rest of today. */
+function closeTodayWorkoutBanner(){
+  const banner=document.getElementById('todayWorkoutBanner');
+  if(banner)banner.style.display='none';
+  localStorage.setItem('gymbro_schedule_notify_closed_'+settingsUid(),getLocalDateString());
 }
 
 function showToast(msg){
@@ -4870,7 +5034,10 @@ async function syncCoreDashboardMetrics(){
   renderTodayWorkoutBanner();
 }
 
-/* ===================== MUSCLE HIGHLIGHT ===================== */
+/* ===================== MUSCLE HIGHLIGHT =====================
+   Simple, reliable id-based fill on a hand-drawn inline SVG body (no external image,
+   no canvas, nothing to fail to load). Reuses the app's existing CLASS_COLORS map. */
+const MUSCLE_CLASS_MAP={Chest:["Chest_Left","Chest_Right"],Biceps:["Biceps_Left","Biceps_Right"],Triceps:["Triceps_Left","Triceps_Right","Triceps_Front_Left","Triceps_Front_Right"],Shoulders:["Shoulders_Left","Shoulders_Right","Shoulders_Back_Left","Shoulders_Back_Right"],"Lat/Back":["Lats_Left","Lats_Right","Lower_Back"],Legs:["Legs_Front_L","Legs_Front_R","Legs_Back_L","Legs_Back_R","Glutes_Left","Glutes_Right","Calves_Left","Calves_Right"],Abs:["Abs"]};
 function handleClassSelection(){
   document.querySelectorAll(".muscle-group").forEach(el=>el.style.fill="var(--muscle-idle)");
   let sel=document.getElementById("workout");
@@ -4880,9 +5047,24 @@ function handleClassSelection(){
     for(let i=sel.options.length-1;i>=0;i--){if(sel.options[i].selected){sel.options[i].selected=false;break}}
     return handleClassSelection();
   }
-  const cm={Chest:["Chest_Left","Chest_Right"],Biceps:["Biceps_Left","Biceps_Right"],Triceps:["Triceps_Left","Triceps_Right"],Shoulders:["Shoulders_Left","Shoulders_Right"],"Lat/Back":["Lats_Left","Lats_Right"],Legs:["Legs_Front_L","Legs_Front_R","Legs_Back_L","Legs_Back_R"],Abs:["Abs"]};
-  const cc={Chest:"#3b82f6",Biceps:"#f97316",Triceps:"#8b5cf6",Shoulders:"#a855f7",Lats:"#06b6d4",Legs:"#10b981",Abs:"#ec4899"};
-  selected.forEach(val=>{if(cm[val])cm[val].forEach(id=>{let el=document.getElementById(id);if(el)el.style.fill=cc[val]||"#2563eb"})});
+  selected.forEach(val=>{if(MUSCLE_CLASS_MAP[val])MUSCLE_CLASS_MAP[val].forEach(id=>{let el=document.getElementById(id);if(el)el.style.fill=CLASS_COLORS[val]||"#2563eb"})});
+}
+/* Lets the user tap/click directly on a muscle in the body diagram instead of only using the dropdown. */
+function toggleMuscleFromBody(regionId){
+  let targetClass=null;
+  for(const cls in MUSCLE_CLASS_MAP){if(MUSCLE_CLASS_MAP[cls].includes(regionId)){targetClass=cls;break}}
+  if(!targetClass)return;
+  const sel=document.getElementById("workout");
+  const opt=Array.from(sel.options).find(o=>o.value===targetClass);
+  if(!opt)return;
+  if(opt.selected){
+    opt.selected=false;
+  }else{
+    const selectedCount=Array.from(sel.options).filter(o=>o.selected).length;
+    if(selectedCount>=3){alert("Maximum 3 classes at once.");return}
+    opt.selected=true;
+  }
+  handleClassSelection();
 }
 
 /* ===================== CHECK-IN ===================== */
@@ -4892,7 +5074,8 @@ async function processCheckIn(){
   const{data:ex}=await db.from("attendance").select("*").eq("user_id",uid).eq("attendance_date",today).eq("session",session);
   if(ex&&ex.length>0){alert(`Already checked in for ${session} today.`);return}
   const checkInISO=new Date().toISOString();activeSessionCheckInTimestamp=checkInISO;
-  const{error}=await db.from("attendance").insert([{user_id:uid,attendance_date:today,session,workout:"",status:"Present",duration:`In Progress|${checkInISO}`}]);
+  const localCreatedAt=getLocalTimestampString();
+  const{error}=await db.from("attendance").insert([{user_id:uid,attendance_date:today,session,workout:"",status:"Present",duration:`In Progress|${checkInISO}`,created_at:localCreatedAt}]);
   if(error){alert(error.message);return}
   const btn=document.getElementById("submitCheckinBtn");btn.disabled=true;btn.textContent="✅ CHECKED IN — WORKOUT IN PROGRESS";
   chronometerSeconds=0;document.getElementById("clockBox").classList.add("visible");
@@ -4929,35 +5112,66 @@ async function processCheckOut(){
   const btn=document.getElementById("submitCheckinBtn");btn.disabled=false;btn.textContent="⚡ SUBMIT CHECK-IN (+50 XP)";
   Array.from(sel.options).forEach(o=>o.selected=false);document.querySelectorAll(".muscle-group").forEach(el=>el.style.fill="var(--muscle-idle)");
   const banner=document.getElementById("resumedBanner");if(banner)banner.remove();
+  closeTodayWorkoutBanner(); // check-out done for today — no need to keep nudging about the schedule
   alert(`✅ Check-Out saved! Duration: ${fmt}`);
   await loadAttendanceHistoryRecords();await syncCoreDashboardMetrics();
 }
 
+function initHistoryMonthDropdown(){
+  const sel=document.getElementById('monthFilter');
+  if(!sel||sel.dataset.inited==='1')return;
+  const now=new Date();
+  sel.innerHTML='';
+  for(let i=0;i<12;i++){
+    const d=new Date(now.getFullYear(),now.getMonth()-i,1);
+    const val=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    const lbl=d.toLocaleDateString('en-US',{month:'long',year:'numeric'});
+    const opt=document.createElement('option');opt.value=val;opt.textContent=lbl;
+    if(i===0)opt.selected=true;
+    sel.appendChild(opt);
+  }
+  sel.dataset.inited='1';
+}
 async function loadAttendanceHistoryRecords(){
   let uid=localStorage.getItem("user_id");
   const{data,error}=await db.from("attendance").select("*").eq("user_id",uid).order("attendance_date",{ascending:false});
-  if(error)return;window.cachedAttendance=data;renderAttendanceHistory();
+  if(error)return;window.cachedAttendance=data;initHistoryMonthDropdown();renderAttendanceHistory();
 }
 function renderAttendanceHistory(){
-  let data=window.cachedAttendance||[],filter=document.getElementById("weekFilter").value;
-  let now=new Date(),month=now.getMonth(),year=now.getFullYear();
+  let data=window.cachedAttendance||[];
+  let weekSel=document.getElementById("weekFilter"),monthSel=document.getElementById("monthFilter");
+  let weekFilter=weekSel?weekSel.value:"all";
+  let monthVal=monthSel?monthSel.value:"";
+  let selYear=null,selMonth=null;
+  if(monthVal){const parts=monthVal.split('-');selYear=parseInt(parts[0],10);selMonth=parseInt(parts[1],10)-1;}
+  // current week range (Mon–Sun), based on today's real date — used only for the "This Week" filter
+  let today=new Date();
+  let dow=today.getDay();
+  let diffToMonday=(dow===0?-6:1-dow);
+  let monday=new Date(today.getFullYear(),today.getMonth(),today.getDate()+diffToMonday,0,0,0,0);
+  let sunday=new Date(monday.getFullYear(),monday.getMonth(),monday.getDate()+6,23,59,59,999);
   let tbody=document.getElementById("historyTable");tbody.innerHTML="";
   data.forEach(row=>{
-    let d=new Date(row.attendance_date),day=d.getDate(),pass=false;
-    if(filter==="all")pass=true;
-    else if(filter==="week1")pass=day>=1&&day<=7;
-    else if(filter==="week2")pass=day>=8&&day<=14;
-    else if(filter==="week3")pass=day>=15&&day<=21;
-    else if(filter==="week4")pass=day>=22&&day<=28;
-    else if(filter==="thisMonth")pass=d.getMonth()===month&&d.getFullYear()===year;
+    let d=new Date(row.attendance_date);
+    // month-wise scoping: a row must belong to the selected month, so no bleed-over from other months
+    if(monthVal!==""&&(d.getMonth()!==selMonth||d.getFullYear()!==selYear))return;
+    let day=d.getDate(),pass=false;
+    if(weekFilter==="all")pass=true;
+    else if(weekFilter==="thisWeek")pass=d>=monday&&d<=sunday;
+    else if(weekFilter==="week1")pass=day>=1&&day<=7;
+    else if(weekFilter==="week2")pass=day>=8&&day<=14;
+    else if(weekFilter==="week3")pass=day>=15&&day<=21;
+    else if(weekFilter==="week4")pass=day>=22&&day<=28;
+    else if(weekFilter==="week5")pass=day>=29;
     if(!pass)return;
     let dn=d.toLocaleDateString('en-US',{weekday:'short'}),ds=d.toLocaleDateString('en-US',{month:'short',day:'numeric'}),sc=row.status==="Present"?"present":"absent";
     let displayDuration=row.duration||'-';if(displayDuration.startsWith("In Progress|"))displayDuration="In Progress ⏱";
+    let checkInTime=formatCheckInTime(row.created_at);
     let tr=document.createElement("tr");
-    tr.innerHTML=`<td>${ds}, ${dn}</td><td>${row.session||'-'}</td><td style="font-size:11px;max-width:120px">${row.workout||'-'}</td><td><span class="badge ${sc}">${row.status||'Absent'}</span></td><td style="font-size:12px">${displayDuration}</td>`;
+    tr.innerHTML=`<td>${ds}, ${dn}</td><td style="font-size:12px">${checkInTime}</td><td>${row.session||'-'}</td><td style="font-size:11px;max-width:120px">${row.workout||'-'}</td><td><span class="badge ${sc}">${row.status||'Absent'}</span></td><td style="font-size:12px">${displayDuration}</td>`;
     tbody.appendChild(tr);
   });
-  if(tbody.children.length===0)tbody.innerHTML=`<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:20px;font-family:var(--font-alt)">No records for this filter.</td></tr>`;
+  if(tbody.children.length===0)tbody.innerHTML=`<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:20px;font-family:var(--font-alt)">No records for this filter.</td></tr>`;
 }
 
 /* ===================== STATS MONTH DROPDOWNS INIT ===================== */
@@ -10955,9 +11169,80 @@ function renderLearnCard(name,data){
   const stepsHtml=data.steps.map((s,i)=>`<li><span class="learn-step-num">${i+1}</span><span>${s}</span></li>`).join("");
   const mistakesHtml=data.mistakes.map(m=>`<li><span>❌</span><span>${m}</span></li>`).join("");
   const secondaryHtml=data.secondaryMuscles.map(m=>`<span class="learn-muscle-chip secondary">${m}</span>`).join("");
-  const html=`<div class="learn-info-card glass"><div class="learn-info-card-header"><div class="learn-exercise-title">${name}</div><span class="learn-muscle-badge">${data.class}</span></div><div class="learn-main-grid"><div class="learn-gif-col"><div class="learn-gif-container"><div class="learn-gif-fallback"><span class="gif-emoji">${data.gifEmoji}</span><div class="gif-label">${name}</div><div style="font-size:11px;color:var(--text-muted);font-family:var(--font-alt);margin-top:6px;letter-spacing:0.3px">3D DEMONSTRATION</div></div></div><a href="${data.youtubeUrl}" target="_blank" rel="noopener" class="learn-yt-link"><span class="learn-yt-icon">▶</span><span>${data.youtubeLabel}</span></a><div class="learn-section-block" style="margin-top:12px"><div class="learn-block-title">🎯 Target Muscles</div><div style="margin-bottom:10px"><div style="font-size:11px;font-weight:700;color:var(--text-muted);font-family:var(--font-alt);letter-spacing:0.5px;margin-bottom:6px;text-transform:uppercase">PRIMARY</div><span class="learn-muscle-chip primary">${data.primaryMuscle}</span></div><div><div style="font-size:11px;font-weight:700;color:var(--text-muted);font-family:var(--font-alt);letter-spacing:0.5px;margin-bottom:6px;text-transform:uppercase">SECONDARY</div><div class="learn-muscles-row">${secondaryHtml}</div></div></div></div><div class="learn-details-col"><div class="learn-section-block"><div class="learn-block-title">📋 How To Perform</div><ul class="learn-steps-list">${stepsHtml}</ul></div><div class="learn-section-block"><div class="learn-block-title">⚠️ Common Mistakes</div><ul class="learn-mistakes-list">${mistakesHtml}</ul></div></div></div></div>`;
+  const html=`<div class="learn-info-card glass"><div class="learn-info-card-header"><div class="learn-exercise-title">${name}</div><span class="learn-muscle-badge">${data.class}</span></div><div class="learn-main-grid"><div class="learn-gif-col"><div class="learn-gif-container"><div class="learn-gif-fallback"><span class="gif-emoji">${data.gifEmoji}</span><div class="gif-label">${name}</div><div style="font-size:11px;color:var(--text-muted);font-family:var(--font-alt);margin-top:6px;letter-spacing:0.3px">3D DEMONSTRATION</div></div></div><button type="button" class="learn-yt-link" id="learnYtBtn"><span class="learn-yt-icon">▶</span><span>${data.youtubeLabel}</span></button><div class="learn-section-block" style="margin-top:12px"><div class="learn-block-title">🎯 Target Muscles</div><div style="margin-bottom:10px"><div style="font-size:11px;font-weight:700;color:var(--text-muted);font-family:var(--font-alt);letter-spacing:0.5px;margin-bottom:6px;text-transform:uppercase">PRIMARY</div><span class="learn-muscle-chip primary">${data.primaryMuscle}</span></div><div><div style="font-size:11px;font-weight:700;color:var(--text-muted);font-family:var(--font-alt);letter-spacing:0.5px;margin-bottom:6px;text-transform:uppercase">SECONDARY</div><div class="learn-muscles-row">${secondaryHtml}</div></div></div></div><div class="learn-details-col"><div class="learn-section-block"><div class="learn-block-title">📋 How To Perform</div><ul class="learn-steps-list">${stepsHtml}</ul></div><div class="learn-section-block"><div class="learn-block-title">⚠️ Common Mistakes</div><ul class="learn-mistakes-list">${mistakesHtml}</ul></div></div></div></div>`;
   document.getElementById("learnInfoCard").innerHTML=html;document.getElementById("learnInfoCard").style.display="block";document.getElementById("learnEmptyState").style.display="none";
+  const ytBtn=document.getElementById("learnYtBtn");
+  if(ytBtn)ytBtn.onclick=()=>openLearnVideo(data.youtubeUrl,data.youtubeLabel);
   document.getElementById("learnInfoCard").scrollIntoView({behavior:"smooth",block:"start"});
+}
+
+/* ===================== LEARN — IN-PAGE YOUTUBE PLAYER (no external redirect) ===================== */
+function extractYouTubeVideoId(url){
+  if(!url)return null;
+  let m=url.match(/[?&]v=([^&]+)/);if(m)return m[1];
+  m=url.match(/youtu\.be\/([^?&]+)/);if(m)return m[1];
+  m=url.match(/shorts\/([^?&]+)/);if(m)return m[1];
+  m=url.match(/embed\/([^?&]+)/);if(m)return m[1];
+  return null;
+}
+function learnVideoEscHandler(e){if(e.key==="Escape")closeLearnVideo()}
+let learnYTPlayer=null;
+let learnYTApiLoadPromise=null;
+function loadYouTubeIframeApi(){
+  if(window.YT&&window.YT.Player)return Promise.resolve();
+  if(learnYTApiLoadPromise)return learnYTApiLoadPromise;
+  learnYTApiLoadPromise=new Promise(resolve=>{
+    const prevCb=window.onYouTubeIframeAPIReady;
+    window.onYouTubeIframeAPIReady=function(){if(typeof prevCb==="function")prevCb();resolve()};
+    const tag=document.createElement("script");tag.src="https://www.youtube.com/iframe_api";
+    document.head.appendChild(tag);
+  });
+  return learnYTApiLoadPromise;
+}
+function learnVideoShowFallback(box,url,reasonText){
+  const frameWrap=box.querySelector(".learn-video-modal-frame-wrap");
+  if(!frameWrap)return;
+  frameWrap.innerHTML=`<div class="learn-video-fallback"><div class="learn-video-fallback-icon">⚠️</div><div class="learn-video-fallback-text">${reasonText}</div><a href="${url}" target="_blank" rel="noopener" class="learn-video-fallback-btn">▶ Watch on YouTube instead</a></div>`;
+}
+function openLearnVideo(url,title){
+  const vid=extractYouTubeVideoId(url);
+  if(!vid){window.open(url,"_blank","noopener");return}
+  closeLearnVideo();
+  const overlay=document.createElement("div");
+  overlay.className="learn-video-modal-overlay";overlay.id="learnVideoModalOverlay";
+  overlay.onclick=function(e){if(e.target===overlay)closeLearnVideo()};
+  const safeTitle=(title||"Exercise Video").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  overlay.innerHTML=`<div class="learn-video-modal-box"><button type="button" class="learn-video-modal-close" onclick="closeLearnVideo()">✕</button><div class="learn-video-modal-title">▶ ${safeTitle}</div><div class="learn-video-modal-frame-wrap"><div id="learnYtPlayerTarget" style="position:absolute;inset:0;width:100%;height:100%"></div></div></div>`;
+  document.body.appendChild(overlay);
+  document.addEventListener("keydown",learnVideoEscHandler);
+  const box=overlay.querySelector(".learn-video-modal-box");
+  // file:// pages have no valid origin, and YouTube's embed player refuses to play
+  // under that origin — that's a browser/YouTube restriction, not something JS can fix.
+  if(location.protocol==="file:"){
+    learnVideoShowFallback(box,url,"In-app playback needs the app to be served over http/https (not opened as a local file). Please host or run this page on a server, then this frame will play the video directly.");
+    return;
+  }
+  loadYouTubeIframeApi().then(()=>{
+    if(!document.getElementById("learnYtPlayerTarget"))return; // modal already closed
+    learnYTPlayer=new YT.Player("learnYtPlayerTarget",{
+      videoId:vid,
+      playerVars:{autoplay:1,rel:0,modestbranding:1,playsinline:1,origin:location.origin},
+      events:{
+        onError:function(e){
+          const codeMsgs={2:"Invalid video link.",5:"This video can't be played in this browser.",100:"This video was not found or was removed.",101:"The video owner has disabled playback on outside sites/apps.",150:"The video owner has disabled playback on outside sites/apps."};
+          const msg=codeMsgs[e.data]||"This video can't be played in-app right now.";
+          if(box)learnVideoShowFallback(box,url,msg);
+        }
+      }
+    });
+  });
+}
+function closeLearnVideo(){
+  const overlay=document.getElementById("learnVideoModalOverlay");
+  if(overlay)overlay.remove();
+  document.removeEventListener("keydown",learnVideoEscHandler);
+  if(learnYTPlayer&&typeof learnYTPlayer.destroy==="function"){try{learnYTPlayer.destroy()}catch(e){}}
+  learnYTPlayer=null;
 }
 </script>
 </body>
