@@ -569,27 +569,38 @@ body.theme-godmode .duration-display{color:#d43030}
 .table td{padding:13px 11px;text-align:center;background:var(--bg-card);border-top:1px solid var(--border-col);border-bottom:1px solid var(--border-col);color:var(--text-primary);font-size:13px}
 .table td:first-child{border-left:1px solid var(--border-col);border-radius:11px 0 0 11px}
 .table td:last-child{border-right:1px solid var(--border-col);border-radius:0 11px 11px 0}
-.badge{padding:4px 10px;border-radius:8px;font-size:11px;color:white;font-weight:700;font-family:var(--font-alt);letter-spacing:0.5px}
-.present{background:#16a34a}.absent{background:#dc2626}.rest{background:#2563eb}
+.badge{padding:4px 10px;border-radius:8px;font-size:11px;color:white;font-weight:700;font-family:var(--font-alt);letter-spacing:0.5px;white-space:nowrap;display:inline-block}
+.present{background:#16a34a}.absent{background:#dc2626}.rest{background:#2563eb}.pending{background:#f59e0b}
 .hist-edit-btn{background:none;border:none;cursor:pointer;font-size:12px;padding:2px 4px;vertical-align:middle;opacity:0.85;line-height:1}
 .hist-edit-btn:active{transform:scale(0.88)}
-.hist-month-summary{display:flex;gap:8px;margin-bottom:14px}
-.hist-summary-pill{flex:1;min-width:0;border-radius:12px;padding:9px 4px;text-align:center;background:var(--bg-card);border:1px solid var(--border-col);display:flex;flex-direction:column;align-items:center;justify-content:center}
-.hist-summary-pill.present{border-color:#16a34a55}
-.hist-summary-pill.rest{border-color:#2563eb55}
-.hist-summary-pill.absent{border-color:#dc262655}
-.hist-summary-count{display:block;font-family:var(--font-alt);font-weight:800;font-size:18px;line-height:1.2}
-.hist-summary-pill.present .hist-summary-count{color:#16a34a}
-.hist-summary-pill.rest .hist-summary-count{color:#2563eb}
-.hist-summary-pill.absent .hist-summary-count{color:#dc2626}
-.hist-summary-label{display:block;font-size:10px;color:var(--text-muted);font-family:var(--font-alt);letter-spacing:0.3px;margin-top:1px;white-space:nowrap}
+.hist-summary-cards{grid-template-columns:repeat(3,1fr);margin-top:0;margin-bottom:14px;gap:6px}
+#histMonthSummary.hist-summary-cards{grid-template-columns:repeat(3,1fr)!important}
+.hist-summary-cards .card{padding:10px 2px;min-width:0}
+.hist-summary-cards .card-label{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:10px}
+.hist-summary-cards h3{font-size:20px;margin-top:3px}
+.hist-summary-cards .card{cursor:pointer;position:relative}
+.hist-view-btn{margin-top:6px;display:none;background:var(--accent-soft);color:var(--accent);border:1px solid var(--accent);border-radius:8px;padding:3px 10px;font-size:10px;font-weight:700;font-family:var(--font-alt);cursor:pointer}
+.hist-status-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;animation:fadeIn 0.2s ease}
+.hist-status-modal-box{background:var(--bg-card);border:1px solid var(--border-col);border-radius:18px;box-shadow:var(--card-shadow);width:100%;max-width:420px;max-height:80vh;overflow:hidden;position:relative;display:flex;flex-direction:column;padding:20px}
+.hist-status-modal-close{position:absolute;top:12px;right:12px;background:none;border:none;color:var(--text-muted);font-size:18px;cursor:pointer;line-height:1}
+.hist-status-modal-title{font-family:var(--font-alt);font-weight:800;font-size:16px;padding-right:24px}
+.hist-status-modal-count{font-size:11px;color:var(--text-muted);font-family:var(--font-alt);margin-top:2px;margin-bottom:10px}
+.hist-status-modal-list{overflow-y:auto;display:flex;flex-direction:column;gap:8px}
+.hist-status-modal-item{background:var(--bg-panel);border:1px solid var(--border-col);border-radius:12px;padding:8px 10px}
+.hist-status-modal-date{font-family:var(--font-alt);font-weight:700;font-size:12.5px;color:var(--text-primary)}
+.hist-status-modal-subrow{display:flex;justify-content:space-between;gap:6px;font-size:11px;color:var(--text-secondary);margin-top:3px}
+.hist-status-modal-muscle{font-size:10.5px;color:var(--text-muted);margin-top:2px;font-family:var(--font-alt)}
+.hist-status-modal-empty{font-size:12px;color:var(--text-muted);text-align:center;padding:20px 0;font-family:var(--font-alt)}
 @media(max-width:480px){
-  .hist-month-summary{gap:5px}
-  .hist-summary-pill{padding:7px 2px;border-radius:10px}
-  .hist-summary-count{font-size:15px}
-  .hist-summary-label{font-size:8.5px;letter-spacing:0.1px}
+  .hist-summary-cards{gap:5px}
+  .hist-summary-cards .card{padding:7px 1px;border-radius:11px}
+  .hist-summary-cards .card-label{font-size:8px;letter-spacing:0}
+  .hist-summary-cards h3{font-size:16px;margin-top:2px}
   .badge{padding:3px 7px;font-size:9.5px;letter-spacing:0.2px}
   .hist-edit-btn{font-size:11px;padding:1px 3px}
+  .hist-view-btn{padding:2px 7px;font-size:9px;margin-top:4px}
+  .hist-status-modal-box{padding:16px;max-width:100%}
+  .hist-status-modal-title{font-size:14px}
 }
 
 /* ===================== WORKOUT CARDS ===================== */
@@ -2106,10 +2117,11 @@ body.theme-godmode .levelup-toast{background:linear-gradient(135deg,#7a0006,#c00
           <span id="histWeekLabel" class="week-range-label" style="min-width:150px;font-size:11px"></span>
           <button type="button" class="week-nav-btn" id="histWeekNext" onclick="histWeekNav(1)" title="Next week" style="width:30px;height:30px;font-size:16px">&#8250;</button>
         </div>
-        <div id="histMonthSummary" class="hist-month-summary">
-          <div class="hist-summary-pill present"><span class="hist-summary-count" id="histCountPresent">0</span><span class="hist-summary-label">Present</span></div>
-          <div class="hist-summary-pill rest"><span class="hist-summary-count" id="histCountRest">0</span><span class="hist-summary-label">Rest Day</span></div>
-          <div class="hist-summary-pill absent"><span class="hist-summary-count" id="histCountAbsent">0</span><span class="hist-summary-label">Absent</span></div>
+        <div style="font-size:11px;color:var(--text-muted);font-family:var(--font-alt);font-weight:700;letter-spacing:0.5px;text-transform:uppercase;margin-bottom:6px">This Month</div>
+        <div id="histMonthSummary" class="cards hist-summary-cards">
+          <div class="card" onclick="const b=this.querySelector('.hist-view-btn');b.style.display=(b.style.display==='inline-block'?'none':'inline-block')"><div class="card-label">✅ Present</div><h3 id="histCountPresent" style="color:#16a34a">0</h3><button type="button" class="hist-view-btn" onclick="event.stopPropagation();openHistStatusModal('present')">View</button></div>
+          <div class="card" onclick="const b=this.querySelector('.hist-view-btn');b.style.display=(b.style.display==='inline-block'?'none':'inline-block')"><div class="card-label">😴 Rest Day</div><h3 id="histCountRest" style="color:#2563eb">0</h3><button type="button" class="hist-view-btn" onclick="event.stopPropagation();openHistStatusModal('rest')">View</button></div>
+          <div class="card" onclick="const b=this.querySelector('.hist-view-btn');b.style.display=(b.style.display==='inline-block'?'none':'inline-block')"><div class="card-label">❌ Absent</div><h3 id="histCountAbsent" style="color:#dc2626">0</h3><button type="button" class="hist-view-btn" onclick="event.stopPropagation();openHistStatusModal('absent')">View</button></div>
         </div>
         <div style="overflow-x:auto">
           <table class="table">
@@ -5341,9 +5353,82 @@ function renderMonthCounts(year,month){
   for(let day=1;day<=lastDay;day++){
     const dt=new Date(year,month,day);
     if(dt.getTime()>todayMid.getTime())continue; // future day hasn't happened yet
-    counts[_resolveDayStatus(dt,presentSet,overrides,restSettings)]++;
+    const status=_resolveDayStatus(dt,presentSet,overrides,restSettings);
+    if(dt.getTime()===todayMid.getTime()&&status==='absent')continue; // today, not checked in yet — pending, not Absent until the day ends
+    counts[status]++;
   }
   pEl.textContent=counts.present;rEl.textContent=counts.rest;aEl.textContent=counts.absent;
+}
+
+/* Builds the list of dates in the currently-selected Month (via #monthFilter) that resolve to the
+   given status ('present'|'rest'|'absent') — same day-by-day logic as renderMonthCounts, so the
+   "View" list always matches the number shown on the card, for any month (not just the current one). */
+function _monthDayList(status){
+  const{year,month}=_selectedMonthYM(document.getElementById('monthFilter'));
+  const uid=settingsUid();
+  const overrides=_getRestOverrides(uid);
+  const restSettings=_getRestSettings(uid);
+  const data=window.cachedAttendance||[];
+  const presentSet=new Set(data.filter(r=>r.status==='Present').map(r=>r.attendance_date));
+  const rowsByDate={};
+  data.forEach(r=>{if(r.status==='Present'){(rowsByDate[r.attendance_date]=rowsByDate[r.attendance_date]||[]).push(r)}});
+  const lastDay=new Date(year,month+1,0).getDate();
+  const todayMid=new Date();todayMid.setHours(0,0,0,0);
+  let list=[];
+  for(let day=1;day<=lastDay;day++){
+    const dt=new Date(year,month,day);
+    if(dt.getTime()>todayMid.getTime())continue; // future day hasn't happened yet
+    const resolved=_resolveDayStatus(dt,presentSet,overrides,restSettings);
+    if(dt.getTime()===todayMid.getTime()&&resolved==='absent')continue; // today, still pending — not final yet
+    if(resolved!==status)continue;
+    list.push({dt,rows:rowsByDate[_fmtISODate(dt)]||[]});
+  }
+  list.sort((a,b)=>b.dt-a.dt); // newest first, same convention as the History table
+  return{year,month,list};
+}
+
+function _histStatusModalEscHandler(e){if(e.key==='Escape')closeHistStatusModal()}
+function closeHistStatusModal(){
+  const overlay=document.getElementById('histStatusModalOverlay');
+  if(overlay)overlay.remove();
+  document.removeEventListener('keydown',_histStatusModalEscHandler);
+  document.querySelectorAll('.hist-view-btn').forEach(b=>{b.style.display='none'});
+}
+function openHistStatusModal(status){
+  closeHistStatusModal();
+  const{year,month,list}=_monthDayList(status);
+  const monNames=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const meta={present:{title:'✅ Present Days',color:'#16a34a'},rest:{title:'😴 Rest Days',color:'#2563eb'},absent:{title:'❌ Absent Days',color:'#dc2626'}}[status];
+  const overlay=document.createElement('div');
+  overlay.className='hist-status-modal-overlay';overlay.id='histStatusModalOverlay';
+  overlay.onclick=function(e){if(e.target===overlay)closeHistStatusModal()};
+  let itemsHtml;
+  if(list.length===0){
+    itemsHtml=`<div class="hist-status-modal-empty">No ${status==='present'?'present':status==='rest'?'rest':'absent'} days recorded yet for this month.</div>`;
+  } else {
+    itemsHtml=list.map(item=>{
+      const dn=item.dt.toLocaleDateString('en-US',{weekday:'short'});
+      const ds=item.dt.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+      if(status==='present'&&item.rows.length){
+        const rowsHtml=item.rows.map(r=>{
+          const t=formatCheckInTime(r.created_at);
+          let dur=r.duration||'-';if(dur.startsWith('In Progress|'))dur='In Progress ⏱';
+          const muscleHtml=r.workout?`<div class="hist-status-modal-muscle">💪 ${r.workout}</div>`:'';
+          return `<div class="hist-status-modal-subrow"><span>${t}</span><span>${r.session||'-'}</span><span>${dur}</span></div>${muscleHtml}`;
+        }).join('');
+        return `<div class="hist-status-modal-item"><div class="hist-status-modal-date">${ds}, ${dn}</div>${rowsHtml}</div>`;
+      }
+      return `<div class="hist-status-modal-item"><div class="hist-status-modal-date">${ds}, ${dn}</div></div>`;
+    }).join('');
+  }
+  overlay.innerHTML=`<div class="hist-status-modal-box">
+    <button type="button" class="hist-status-modal-close" onclick="closeHistStatusModal()">✕</button>
+    <div class="hist-status-modal-title" style="color:${meta.color}">${meta.title} — ${monNames[month]} ${year}</div>
+    <div class="hist-status-modal-count">${list.length} day${list.length===1?'':'s'}</div>
+    <div class="hist-status-modal-list">${itemsHtml}</div>
+  </div>`;
+  document.body.appendChild(overlay);
+  document.addEventListener('keydown',_histStatusModalEscHandler);
 }
 
 async function loadAttendanceHistoryRecords(){
@@ -5380,7 +5465,8 @@ function renderAttendanceHistory(){
     const key=_fmtISODate(dt);
     if(datesWithEntry.has(key))return;
     const status=_resolveDayStatus(dt,presentSet,overrides,restSettings); // 'rest' | 'absent'
-    weekRows.push({attendance_date:key,_placeholderStatus:status});
+    const isPending=dt.getTime()===todayMid.getTime()&&status==='absent'; // today, not checked in yet — not final until the day ends (doesn't apply to default Rest Days)
+    weekRows.push({attendance_date:key,_placeholderStatus:status,_pending:isPending});
   });
   // Keep newest-first order, matching the original query sort
   weekRows.sort((a,b)=>new Date(b.attendance_date)-new Date(a.attendance_date));
@@ -5389,6 +5475,11 @@ function renderAttendanceHistory(){
     let dn=d.toLocaleDateString('en-US',{weekday:'short'}),ds=d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
     let tr=document.createElement("tr");
     if(row._placeholderStatus){
+      if(row._pending){
+        tr.innerHTML=`<td>${ds}, ${dn}</td><td><span class="badge pending">Not Checked In</span></td><td style="font-size:12px">-</td><td>-</td><td style="font-size:11px;max-width:120px">-</td><td style="font-size:12px">-</td>`;
+        tbody.appendChild(tr);
+        return;
+      }
       const isRest=row._placeholderStatus==='rest';
       const badgeCls=isRest?'rest':'absent',badgeTxt=isRest?'Rest Day':'Absent';
       const editTitle=isRest?'Change to Absent':'Change to Rest Day';
