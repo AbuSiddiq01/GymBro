@@ -570,7 +570,27 @@ body.theme-godmode .duration-display{color:#d43030}
 .table td:first-child{border-left:1px solid var(--border-col);border-radius:11px 0 0 11px}
 .table td:last-child{border-right:1px solid var(--border-col);border-radius:0 11px 11px 0}
 .badge{padding:4px 10px;border-radius:8px;font-size:11px;color:white;font-weight:700;font-family:var(--font-alt);letter-spacing:0.5px}
-.present{background:#16a34a}.absent{background:#dc2626}
+.present{background:#16a34a}.absent{background:#dc2626}.rest{background:#2563eb}
+.hist-edit-btn{background:none;border:none;cursor:pointer;font-size:12px;padding:2px 4px;vertical-align:middle;opacity:0.85;line-height:1}
+.hist-edit-btn:active{transform:scale(0.88)}
+.hist-month-summary{display:flex;gap:8px;margin-bottom:14px}
+.hist-summary-pill{flex:1;min-width:0;border-radius:12px;padding:9px 4px;text-align:center;background:var(--bg-card);border:1px solid var(--border-col);display:flex;flex-direction:column;align-items:center;justify-content:center}
+.hist-summary-pill.present{border-color:#16a34a55}
+.hist-summary-pill.rest{border-color:#2563eb55}
+.hist-summary-pill.absent{border-color:#dc262655}
+.hist-summary-count{display:block;font-family:var(--font-alt);font-weight:800;font-size:18px;line-height:1.2}
+.hist-summary-pill.present .hist-summary-count{color:#16a34a}
+.hist-summary-pill.rest .hist-summary-count{color:#2563eb}
+.hist-summary-pill.absent .hist-summary-count{color:#dc2626}
+.hist-summary-label{display:block;font-size:10px;color:var(--text-muted);font-family:var(--font-alt);letter-spacing:0.3px;margin-top:1px;white-space:nowrap}
+@media(max-width:480px){
+  .hist-month-summary{gap:5px}
+  .hist-summary-pill{padding:7px 2px;border-radius:10px}
+  .hist-summary-count{font-size:15px}
+  .hist-summary-label{font-size:8.5px;letter-spacing:0.1px}
+  .badge{padding:3px 7px;font-size:9.5px;letter-spacing:0.2px}
+  .hist-edit-btn{font-size:11px;padding:1px 3px}
+}
 
 /* ===================== WORKOUT CARDS ===================== */
 .set-row{display:flex;gap:10px;align-items:center;margin-top:10px;background:var(--set-row-bg);padding:10px;border-radius:11px;border:1px solid var(--border-col);animation:fadeIn 0.3s ease;flex-wrap:wrap}
@@ -643,6 +663,15 @@ body.theme-batman .stats-subnav-btn.active{color:#05050a}
 .ctm-muscle-eq-row label{font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.6px;font-family:var(--font-alt);display:block;margin-bottom:4px}
 .ctm-muscle-eq-row select{margin-top:0;padding:10px 12px;font-size:13px}
 .stats-period-row select{margin-top:0;padding:10px;flex:1;min-width:130px}
+.week-nav-group{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.week-nav-btn{background:var(--bg-card);border:1px solid var(--border-col);border-radius:10px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;font-size:20px;line-height:1;color:var(--accent);cursor:pointer;transition:background 0.15s,transform 0.1s;padding:0;font-family:sans-serif;-webkit-tap-highlight-color:transparent;flex-shrink:0}
+.week-nav-btn:active{transform:scale(0.88)}
+.week-range-label{font-family:var(--font-alt);font-size:12px;font-weight:700;color:var(--text-muted);white-space:nowrap;min-width:150px;text-align:center}
+@media(max-width:480px){
+  #histWeekNavGroup{gap:6px}
+  #histWeekNavGroup .week-nav-btn{width:26px;height:26px;font-size:14px}
+  #histWeekLabel{min-width:0;font-size:10px}
+}
 
 /* Volume bar glossy hover */
 .volume-chart-wrap{position:relative;height:320px;background:var(--accent-soft);border-radius:18px;padding:14px;border:1px solid var(--border-col)}
@@ -1223,7 +1252,7 @@ body.theme-batman .tracker-page-btn.active{color:#05050a}
 .learn-page-header::before{content:'';position:absolute;top:-40%;right:-5%;width:220px;height:220px;border-radius:50%;background:rgba(255,255,255,0.04);pointer-events:none}
 .learn-page-header h1{font-family:var(--font-display);font-size:32px;color:var(--header-text);letter-spacing:2px;margin-bottom:6px}
 .learn-page-header p{font-size:13px;color:rgba(255,255,255,0.75);font-family:var(--font-alt);letter-spacing:0.5px;line-height:1.5;max-width:600px}
-.learn-search-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px}
+.learn-search-row{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:14px;margin-bottom:18px}
 .learn-search-box{position:relative}
 .learn-search-box input{margin-top:0;padding-left:40px}
 .learn-search-icon{position:absolute;left:13px;top:50%;transform:translateY(-50%);font-size:16px;pointer-events:none;z-index:1}
@@ -1332,6 +1361,7 @@ body.theme-godmode .session-resumed-banner .resume-dot{background:#c0000a}
 
 @media(max-width:900px){.learn-main-grid{grid-template-columns:1fr}.learn-gif-container{min-height:220px;aspect-ratio:4/3}}
 @media(max-width:600px){.learn-search-row{grid-template-columns:1fr}.learn-info-card-header{flex-wrap:wrap}}
+@media(min-width:601px) and (max-width:860px){.learn-search-row{grid-template-columns:1fr 1fr}}
 @media(max-width:768px){
   .compact-checkin-wrapper{flex-direction:column}
   .checkin-left-controls,.checkin-right-body{width:100%}
@@ -1814,14 +1844,12 @@ body.theme-godmode .levelup-toast{background:linear-gradient(135deg,#7a0006,#c00
         <!-- ── DURATION VIEW ── -->
         <div class="duration-view" id="durationView">
           <div class="stats-period-row" id="durWeekRow">
-            <select id="statsTimeframe" style="margin-top:0;padding:10px" onchange="updateStatsChart()">
-              <option value="w1">Week 1 (1st – 7th)</option>
-              <option value="w2">Week 2 (8th – 14th)</option>
-              <option value="w3">Week 3 (15th – 21st)</option>
-              <option value="w4">Week 4 (22nd – 28th)</option>
-              <option value="w5">Remaining (29th – End)</option>
-            </select>
-            <select id="statsMonth" style="margin-top:0;padding:10px;flex:1;min-width:130px" onchange="updateStatsChart()"></select>
+            <div id="statsTimeframe" class="week-nav-group">
+              <button type="button" class="week-nav-btn" id="durWeekPrev" onclick="durWeekNav(-1)" title="Previous week">&#8249;</button>
+              <span id="durWeekLabel" class="week-range-label"></span>
+              <button type="button" class="week-nav-btn" id="durWeekNext" onclick="durWeekNav(1)" title="Next week" style="visibility:hidden">&#8250;</button>
+            </div>
+            <select id="statsMonth" style="margin-top:0;padding:10px;flex:1;min-width:130px" onchange="statsMonthChanged()"></select>
           </div>
           <div class="vol-range-label" id="durRangeLabel"></div>
           <div class="analytics-box">
@@ -1889,14 +1917,12 @@ body.theme-godmode .levelup-toast{background:linear-gradient(135deg,#7a0006,#c00
           <!-- SINGLE VIEW (default) -->
           <div class="vol-single-view" id="volSingleView">
             <div class="stats-period-row" style="margin-top:14px" id="volWeekRow">
-              <select id="volTimeframe" class="vol-week-select" style="margin-top:0;padding:10px" onchange="updateVolumeChart('main')">
-                <option value="w1">Week 1 (1st – 7th)</option>
-                <option value="w2">Week 2 (8th – 14th)</option>
-                <option value="w3">Week 3 (15th – 21st)</option>
-                <option value="w4">Week 4 (22nd – 28th)</option>
-                <option value="w5">Remaining (29th – End)</option>
-              </select>
-              <select id="volMonth" style="margin-top:0;padding:10px;flex:1;min-width:130px" onchange="updateVolumeChart('main')"></select>
+              <div id="volTimeframe" class="week-nav-group">
+                <button type="button" class="week-nav-btn" id="volWeekPrev" onclick="volWeekNav(-1)" title="Previous week">&#8249;</button>
+                <span id="volWeekLabel" class="week-range-label"></span>
+                <button type="button" class="week-nav-btn" id="volWeekNext" onclick="volWeekNav(1)" title="Next week" style="visibility:hidden">&#8250;</button>
+              </div>
+              <select id="volMonth" style="margin-top:0;padding:10px;flex:1;min-width:130px" onchange="volMonthChanged()"></select>
             </div>
             <div class="vol-range-label" id="volRangeLabel"></div>
 
@@ -2073,22 +2099,21 @@ body.theme-godmode .levelup-toast{background:linear-gradient(135deg,#7a0006,#c00
       <div class="section glass" style="margin-top:0">
         <div class="section-title" style="justify-content:space-between">
           <span>📋 Attendance History</span>
-          <div style="display:flex;gap:6px">
-            <select id="monthFilter" style="width:130px;margin-top:0;padding:6px;font-size:12px" onchange="renderAttendanceHistory()"></select>
-            <select id="weekFilter" style="width:120px;margin-top:0;padding:6px;font-size:12px" onchange="renderAttendanceHistory()">
-              <option value="all">All Weeks</option>
-              <option value="thisWeek" selected>This Week</option>
-              <option value="week1">Week 1 (1–7)</option>
-              <option value="week2">Week 2 (8–14)</option>
-              <option value="week3">Week 3 (15–21)</option>
-              <option value="week4">Week 4 (22–28)</option>
-              <option value="week5">Week 5 (29–31)</option>
-            </select>
-          </div>
+          <select id="monthFilter" style="width:130px;margin-top:0;padding:6px;font-size:12px" onchange="histMonthChanged()"></select>
+        </div>
+        <div id="histWeekNavGroup" class="week-nav-group" style="justify-content:center;margin-bottom:14px;flex-wrap:wrap">
+          <button type="button" class="week-nav-btn" id="histWeekPrev" onclick="histWeekNav(-1)" title="Previous week" style="width:30px;height:30px;font-size:16px">&#8249;</button>
+          <span id="histWeekLabel" class="week-range-label" style="min-width:150px;font-size:11px"></span>
+          <button type="button" class="week-nav-btn" id="histWeekNext" onclick="histWeekNav(1)" title="Next week" style="width:30px;height:30px;font-size:16px">&#8250;</button>
+        </div>
+        <div id="histMonthSummary" class="hist-month-summary">
+          <div class="hist-summary-pill present"><span class="hist-summary-count" id="histCountPresent">0</span><span class="hist-summary-label">Present</span></div>
+          <div class="hist-summary-pill rest"><span class="hist-summary-count" id="histCountRest">0</span><span class="hist-summary-label">Rest Day</span></div>
+          <div class="hist-summary-pill absent"><span class="hist-summary-count" id="histCountAbsent">0</span><span class="hist-summary-label">Absent</span></div>
         </div>
         <div style="overflow-x:auto">
           <table class="table">
-            <thead><tr><th>Date</th><th>Check-in</th><th>Session</th><th>Muscles</th><th>Status</th><th>Duration</th></tr></thead>
+            <thead><tr><th>Date</th><th>Status</th><th>Check-in</th><th>Session</th><th>Muscles</th><th>Duration</th></tr></thead>
             <tbody id="historyTable"></tbody>
           </table>
         </div>
@@ -2339,19 +2364,12 @@ body.theme-godmode .levelup-toast{background:linear-gradient(135deg,#7a0006,#c00
             <label>Choose Muscle Group</label>
             <select id="learnClassFilter" onchange="handleLearnClassFilter()" style="margin-top:0">
               <option value="">— Select Muscle Group —</option>
-              <option value="Chest">Chest</option>
-              <option value="Biceps">Biceps</option>
-              <option value="Triceps">Triceps</option>
-              <option value="Shoulders">Shoulders</option>
-              <option value="Lats">Lats</option>
-              <option value="Back">Back</option>
-              <option value="Legs">Legs</option>
-              <option value="Abs">Abs</option>
-              <option value="Forearms">Forearms</option>
-              <option value="Calves">Calves</option>
-              <option value="Glutes">Glutes</option>
-              <option value="Cardio">Cardio</option>
-              <option value="Full Body">Full Body</option>
+            </select>
+          </div>
+          <div class="learn-filter-group">
+            <label>Choose Equipment</label>
+            <select id="learnEquipmentFilter" onchange="handleLearnEquipmentFilter()" style="margin-top:0">
+              <option value="">All Equipment</option>
             </select>
           </div>
         </div>
@@ -2589,6 +2607,63 @@ body.theme-godmode .levelup-toast{background:linear-gradient(135deg,#7a0006,#c00
             </div>
 
             <button class="settings-save-btn" onclick="saveNotificationSoundSettings()">💾 SAVE NOTIFICATION SETTINGS</button>
+          </div>
+        </div>
+
+        <!-- Default Rest Days Accordion -->
+        <div class="settings-accordion" id="accordion-restdays">
+          <div class="settings-accordion-header" onclick="toggleSettingsAccordion('restdays')">
+            <div class="settings-accordion-title-wrap">
+              <span class="settings-accordion-icon">😴</span>
+              <div>
+                <div class="settings-accordion-title">Default Rest Days</div>
+                <div class="settings-accordion-sub">Auto-mark weekdays as Rest instead of Absent</div>
+              </div>
+            </div>
+            <span class="settings-accordion-chevron">▼</span>
+          </div>
+          <div class="settings-accordion-body">
+            <p style="font-size:12px;color:var(--text-muted);font-family:var(--font-alt);margin:14px 0;letter-spacing:0.3px">On Attendance History, a day with no check-in shows as Absent. Pick up to 2 weekly default rest weekdays and those days will show as Rest Day automatically instead — you can still change any individual day manually on the History page.</p>
+            <div class="settings-row">
+              <div>
+                <div class="settings-row-label">Rest Day Count</div>
+                <div class="settings-row-sub">How many default rest days per week (max 2).</div>
+              </div>
+              <div class="settings-row-ctrl">
+                <select id="restDayCountSelect" onchange="handleRestDayCountChange()" style="margin-top:0;padding:8px 10px;font-size:13px;width:110px">
+                  <option value="0">None</option>
+                  <option value="1">1 day</option>
+                  <option value="2">2 days</option>
+                </select>
+              </div>
+            </div>
+            <div class="settings-row" id="restDay1Row">
+              <div>
+                <div class="settings-row-label">Rest Day 1</div>
+                <div class="settings-row-sub">First weekly default rest day.</div>
+              </div>
+              <div class="settings-row-ctrl">
+                <select id="restDay1Select" style="margin-top:0;padding:8px 10px;font-size:13px;width:120px">
+                  <option value="1">Monday</option><option value="2">Tuesday</option><option value="3">Wednesday</option>
+                  <option value="4">Thursday</option><option value="5">Friday</option><option value="6">Saturday</option>
+                  <option value="0">Sunday</option>
+                </select>
+              </div>
+            </div>
+            <div class="settings-row" id="restDay2Row">
+              <div>
+                <div class="settings-row-label">Rest Day 2</div>
+                <div class="settings-row-sub">Second weekly default rest day.</div>
+              </div>
+              <div class="settings-row-ctrl">
+                <select id="restDay2Select" style="margin-top:0;padding:8px 10px;font-size:13px;width:120px">
+                  <option value="1">Monday</option><option value="2">Tuesday</option><option value="3">Wednesday</option>
+                  <option value="4">Thursday</option><option value="5">Friday</option><option value="6" selected>Saturday</option>
+                  <option value="0">Sunday</option>
+                </select>
+              </div>
+            </div>
+            <button class="settings-save-btn" onclick="saveRestDaySettings()">💾 SAVE REST DAY SETTINGS</button>
           </div>
         </div>
 
@@ -4310,6 +4385,42 @@ function initSettingsPage(){
   const startDate=localStorage.getItem('gymbro_schedule_start_'+settingsUid())||getLocalDateString();
   document.getElementById('schedStartDateInput').value=startDate;
   renderSoundOptions();
+  loadRestDaySettings();
+}
+
+/* ===================== DEFAULT REST DAYS (client-side only, localStorage) ===================== */
+function _getRestSettings(uid){
+  try{return JSON.parse(localStorage.getItem('gymbro_restdaySettings_'+uid)||'null')||{count:0,days:[]}}catch(e){return{count:0,days:[]}}
+}
+function _saveRestSettings(uid,obj){try{localStorage.setItem('gymbro_restdaySettings_'+uid,JSON.stringify(obj))}catch(e){}}
+
+function handleRestDayCountChange(){
+  const count=parseInt(document.getElementById('restDayCountSelect').value,10)||0;
+  const r1=document.getElementById('restDay1Row'),r2=document.getElementById('restDay2Row');
+  if(r1)r1.style.display=count>=1?'flex':'none';
+  if(r2)r2.style.display=count>=2?'flex':'none';
+}
+function loadRestDaySettings(){
+  const countSel=document.getElementById('restDayCountSelect');
+  if(!countSel)return;
+  const s=_getRestSettings(settingsUid());
+  countSel.value=String(s.count||0);
+  const d1=document.getElementById('restDay1Select'),d2=document.getElementById('restDay2Select');
+  if(s.days&&s.days[0]!==undefined&&d1)d1.value=String(s.days[0]);
+  if(s.days&&s.days[1]!==undefined&&d2)d2.value=String(s.days[1]);
+  handleRestDayCountChange();
+}
+function saveRestDaySettings(){
+  const count=parseInt(document.getElementById('restDayCountSelect').value,10)||0;
+  let days=[];
+  if(count>=1)days.push(parseInt(document.getElementById('restDay1Select').value,10));
+  if(count>=2){
+    const d2=parseInt(document.getElementById('restDay2Select').value,10);
+    if(days.includes(d2)){alert('Please pick two different weekdays for your default rest days.');return}
+    days.push(d2);
+  }
+  _saveRestSettings(settingsUid(),{count,days});
+  alert('✅ Default rest day settings saved!');
 }
 
 function renderScheduleEditor(){
@@ -4972,9 +5083,9 @@ async function switchMemberTab(id){
   if(id==='dashPage')await syncCoreDashboardMetrics();
   else if(id==='statsPage'){
     initStatsMonthDropdowns();
-    const cwk=getCurrentWeekOption();
-    const tfSel=document.getElementById('statsTimeframe');if(tfSel)tfSel.value=cwk;
-    const vfSel=document.getElementById('volTimeframe');if(vfSel)vfSel.value=cwk;
+    durWeekAnchor=getMonday(new Date());
+    volWeekAnchor=getMonday(new Date());
+    {const n=new Date();_durLastMonthYM={year:n.getFullYear(),month:n.getMonth()};_volLastMonthYM={year:n.getFullYear(),month:n.getMonth()};}
     await updateStatsChart();
     if(document.getElementById('subnavVolume')&&document.getElementById('subnavVolume').classList.contains('active'))
       await updateVolumeChart('main');
@@ -5132,47 +5243,179 @@ function initHistoryMonthDropdown(){
   }
   sel.dataset.inited='1';
 }
+let histWeekAnchor=getMonday(new Date()); // Monday of the currently displayed Attendance History week
+let _histLastMonthYM=null; // {year,month} the History Month dropdown was last resolved to (for direction detection)
+/* Prev/Next week nav — identical Mon–Sun, month-bounded concept as the Duration/Volume weekly graphs */
+function histWeekNav(dir){
+  const{year,month}=_selectedMonthYM(document.getElementById('monthFilter'));
+  const{min,max}=_monthWeekBounds(year,month);
+  const cur=getMonday(histWeekAnchor);
+  if(dir>0&&cur.getTime()>=max.getTime())return;
+  if(dir<0&&cur.getTime()<=min.getTime())return;
+  let next=addDays(cur,dir*7);
+  if(next.getTime()<min.getTime())next=min;
+  if(next.getTime()>max.getTime())next=max;
+  histWeekAnchor=next;
+  renderAttendanceHistory();
+}
+/* Fired by the Month dropdown — same direction-aware landing week as Duration/Volume: an earlier
+   month lands on its last navigable week, a later (or the same) month lands on its first week. */
+function histMonthChanged(){
+  const val=document.getElementById('monthFilter')?.value;
+  if(val){
+    const[y,m]=val.split('-').map(Number);
+    const newYM={year:y,month:m-1};
+    const{min,max}=_monthWeekBounds(newYM.year,newYM.month);
+    const goingBackward=_histLastMonthYM&&(newYM.year<_histLastMonthYM.year||(newYM.year===_histLastMonthYM.year&&newYM.month<_histLastMonthYM.month));
+    histWeekAnchor=goingBackward?max:min;
+    _histLastMonthYM=newYM;
+  }
+  renderAttendanceHistory();
+}
+/* ===================== ATTENDANCE HISTORY: PRESENT / REST / ABSENT TRACKING ===================== */
+/* Rest Day is a client-side-only concept (no Supabase schema change): a day with no check-in can be
+   classified as either "Rest Day" or "Absent". Manual per-date choices are stored in localStorage,
+   layered on top of an optional default weekly rest-weekday configuration from Settings. Max 2 Rest
+   Days per Mon–Sun week — enforced whenever a day is (re)marked as Rest. */
+function _getRestOverrides(uid){
+  try{return JSON.parse(localStorage.getItem('gymbro_restdayOverrides_'+uid)||'{}')}catch(e){return{}}
+}
+function _saveRestOverrides(uid,obj){try{localStorage.setItem('gymbro_restdayOverrides_'+uid,JSON.stringify(obj))}catch(e){}}
+
+/* Resolves a single date's status: 'present' | 'rest' | 'absent'. `presentSet` is a Set of
+   'YYYY-MM-DD' strings that have a real Present check-in. */
+function _resolveDayStatus(dt,presentSet,overrides,restSettings){
+  const key=_fmtISODate(dt);
+  if(presentSet.has(key))return'present';
+  if(overrides[key]==='rest')return'rest';
+  if(overrides[key]==='absent')return'absent';
+  if(restSettings.days&&restSettings.days.includes(dt.getDay()))return'rest';
+  return'absent';
+}
+
+/* Toggles a no-checkin date between Rest Day and Absent, enforcing the 2-per-Mon–Sun-week Rest cap. */
+function toggleRestDayForDate(dateKey){
+  const uid=settingsUid();
+  const overrides=_getRestOverrides(uid);
+  const restSettings=_getRestSettings(uid);
+  const data=window.cachedAttendance||[];
+  const presentSet=new Set(data.filter(r=>r.status==='Present').map(r=>r.attendance_date));
+  const dt=new Date(dateKey+'T00:00:00');
+  const current=_resolveDayStatus(dt,presentSet,overrides,restSettings);
+  if(current==='present')return;
+  if(current==='rest'){
+    overrides[dateKey]='absent';
+    _saveRestOverrides(uid,overrides);
+    renderAttendanceHistory();
+    return;
+  }
+  // current === 'absent' — trying to mark as Rest Day, so enforce the weekly cap of 2
+  const weekStart=getMonday(dt);
+  let restCount=0;
+  for(let i=0;i<7;i++){
+    const d=addDays(weekStart,i);
+    if(_fmtISODate(d)===dateKey)continue;
+    if(_resolveDayStatus(d,presentSet,overrides,restSettings)==='rest')restCount++;
+  }
+  if(restCount>=2){
+    alert('⚠️ Max 2 Rest Days allowed per week (Mon–Sun). Change an existing Rest Day back to Absent first if you want to swap.');
+    return;
+  }
+  overrides[dateKey]='rest';
+  _saveRestOverrides(uid,overrides);
+  renderAttendanceHistory();
+}
+
+/* Present / Rest / Absent totals for an entire calendar month (up to today, for the current month). */
+function renderMonthCounts(year,month){
+  const pEl=document.getElementById('histCountPresent'),rEl=document.getElementById('histCountRest'),aEl=document.getElementById('histCountAbsent');
+  if(!pEl||!rEl||!aEl)return;
+  const uid=settingsUid();
+  const overrides=_getRestOverrides(uid);
+  const restSettings=_getRestSettings(uid);
+  const data=window.cachedAttendance||[];
+  const presentSet=new Set(data.filter(r=>r.status==='Present').map(r=>r.attendance_date));
+  const lastDay=new Date(year,month+1,0).getDate();
+  const todayMid=new Date();todayMid.setHours(0,0,0,0);
+  let counts={present:0,rest:0,absent:0};
+  for(let day=1;day<=lastDay;day++){
+    const dt=new Date(year,month,day);
+    if(dt.getTime()>todayMid.getTime())continue; // future day hasn't happened yet
+    counts[_resolveDayStatus(dt,presentSet,overrides,restSettings)]++;
+  }
+  pEl.textContent=counts.present;rEl.textContent=counts.rest;aEl.textContent=counts.absent;
+}
+
 async function loadAttendanceHistoryRecords(){
   let uid=localStorage.getItem("user_id");
   const{data,error}=await db.from("attendance").select("*").eq("user_id",uid).order("attendance_date",{ascending:false});
-  if(error)return;window.cachedAttendance=data;initHistoryMonthDropdown();renderAttendanceHistory();
+  if(error)return;window.cachedAttendance=data;initHistoryMonthDropdown();
+  histWeekAnchor=getMonday(new Date());
+  {const n=new Date();_histLastMonthYM={year:n.getFullYear(),month:n.getMonth()};}
+  renderAttendanceHistory();
 }
 function renderAttendanceHistory(){
   let data=window.cachedAttendance||[];
-  let weekSel=document.getElementById("weekFilter"),monthSel=document.getElementById("monthFilter");
-  let weekFilter=weekSel?weekSel.value:"all";
-  let monthVal=monthSel?monthSel.value:"";
-  let selYear=null,selMonth=null;
-  if(monthVal){const parts=monthVal.split('-');selYear=parseInt(parts[0],10);selMonth=parseInt(parts[1],10)-1;}
-  // current week range (Mon–Sun), based on today's real date — used only for the "This Week" filter
-  let today=new Date();
-  let dow=today.getDay();
-  let diffToMonday=(dow===0?-6:1-dow);
-  let monday=new Date(today.getFullYear(),today.getMonth(),today.getDate()+diffToMonday,0,0,0,0);
-  let sunday=new Date(monday.getFullYear(),monday.getMonth(),monday.getDate()+6,23,59,59,999);
+  let monthSel=document.getElementById("monthFilter");
+  const{year:filterYear,month:filterMonth}=_selectedMonthYM(monthSel);
+  // Mon–Sun week window, anchored by histWeekAnchor (navigated via the < / > buttons)
+  const weekStart=getMonday(histWeekAnchor);
+  const weekDates=[];for(let i=0;i<7;i++)weekDates.push(addDays(weekStart,i));
+  const sameDay=(a,b)=>a.getFullYear()===b.getFullYear()&&a.getMonth()===b.getMonth()&&a.getDate()===b.getDate();
+
+  const uid=settingsUid();
+  const overrides=_getRestOverrides(uid);
+  const restSettings=_getRestSettings(uid);
+  const presentSet=new Set(data.filter(r=>r.status==='Present').map(r=>r.attendance_date));
+
   let tbody=document.getElementById("historyTable");tbody.innerHTML="";
-  data.forEach(row=>{
+  // Real attendance rows that fall inside the visible Mon–Sun week
+  let weekRows=data.filter(row=>{let d=new Date(row.attendance_date);return weekDates.some(wd=>sameDay(wd,d))});
+  const datesWithEntry=new Set(weekRows.map(row=>_fmtISODate(new Date(row.attendance_date))));
+  // Any past/today date in this week with NO attendance row at all is resolved to Rest Day or Absent
+  // (future dates are left blank — the day hasn't happened yet, so it isn't a missed check-in).
+  const todayMid=new Date();todayMid.setHours(0,0,0,0);
+  weekDates.forEach(dt=>{
+    if(dt.getTime()>todayMid.getTime())return;
+    const key=_fmtISODate(dt);
+    if(datesWithEntry.has(key))return;
+    const status=_resolveDayStatus(dt,presentSet,overrides,restSettings); // 'rest' | 'absent'
+    weekRows.push({attendance_date:key,_placeholderStatus:status});
+  });
+  // Keep newest-first order, matching the original query sort
+  weekRows.sort((a,b)=>new Date(b.attendance_date)-new Date(a.attendance_date));
+  weekRows.forEach(row=>{
     let d=new Date(row.attendance_date);
-    // month-wise scoping: a row must belong to the selected month, so no bleed-over from other months
-    if(monthVal!==""&&(d.getMonth()!==selMonth||d.getFullYear()!==selYear))return;
-    let day=d.getDate(),pass=false;
-    if(weekFilter==="all")pass=true;
-    else if(weekFilter==="thisWeek")pass=d>=monday&&d<=sunday;
-    else if(weekFilter==="week1")pass=day>=1&&day<=7;
-    else if(weekFilter==="week2")pass=day>=8&&day<=14;
-    else if(weekFilter==="week3")pass=day>=15&&day<=21;
-    else if(weekFilter==="week4")pass=day>=22&&day<=28;
-    else if(weekFilter==="week5")pass=day>=29;
-    if(!pass)return;
-    let dn=d.toLocaleDateString('en-US',{weekday:'short'}),ds=d.toLocaleDateString('en-US',{month:'short',day:'numeric'}),sc=row.status==="Present"?"present":"absent";
+    let dn=d.toLocaleDateString('en-US',{weekday:'short'}),ds=d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+    let tr=document.createElement("tr");
+    if(row._placeholderStatus){
+      const isRest=row._placeholderStatus==='rest';
+      const badgeCls=isRest?'rest':'absent',badgeTxt=isRest?'Rest Day':'Absent';
+      const editTitle=isRest?'Change to Absent':'Change to Rest Day';
+      tr.innerHTML=`<td>${ds}, ${dn}</td><td><span class="badge ${badgeCls}" style="cursor:pointer" onclick="this.nextElementSibling.style.display=(this.nextElementSibling.style.display==='inline-block'?'none':'inline-block')" title="Tap to edit">${badgeTxt}</span> <button class="hist-edit-btn" style="display:none" onclick="toggleRestDayForDate('${row.attendance_date}')" title="${editTitle}">✏️</button></td><td style="font-size:12px">-</td><td>-</td><td style="font-size:11px;max-width:120px">-</td><td style="font-size:12px">-</td>`;
+      tbody.appendChild(tr);
+      return;
+    }
+    let sc=row.status==="Present"?"present":"absent";
     let displayDuration=row.duration||'-';if(displayDuration.startsWith("In Progress|"))displayDuration="In Progress ⏱";
     let checkInTime=formatCheckInTime(row.created_at);
-    let tr=document.createElement("tr");
-    tr.innerHTML=`<td>${ds}, ${dn}</td><td style="font-size:12px">${checkInTime}</td><td>${row.session||'-'}</td><td style="font-size:11px;max-width:120px">${row.workout||'-'}</td><td><span class="badge ${sc}">${row.status||'Absent'}</span></td><td style="font-size:12px">${displayDuration}</td>`;
+    tr.innerHTML=`<td>${ds}, ${dn}</td><td><span class="badge ${sc}">${row.status||'Absent'}</span></td><td style="font-size:12px">${checkInTime}</td><td>${row.session||'-'}</td><td style="font-size:11px;max-width:120px">${row.workout||'-'}</td><td style="font-size:12px">${displayDuration}</td>`;
     tbody.appendChild(tr);
   });
   if(tbody.children.length===0)tbody.innerHTML=`<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:20px;font-family:var(--font-alt)">No records for this filter.</td></tr>`;
+
+  // Refresh the "Week N: <range>" label + show/hide the "<" / ">" nav buttons
+  const{min:_hMin,max:_hMax}=_monthWeekBounds(filterYear,filterMonth);
+  const histLbl=document.getElementById('histWeekLabel');
+  if(histLbl){const _hWkNum=Math.round((weekStart.getTime()-_hMin.getTime())/604800000)+1;histLbl.textContent=`Week ${_hWkNum}: ${_fmtWeekRangeLabel(weekStart)}`;}
+  const histPrevBtn=document.getElementById('histWeekPrev');
+  const histNextBtn=document.getElementById('histWeekNext');
+  if(histPrevBtn)histPrevBtn.style.visibility=(weekStart.getTime()<=_hMin.getTime())?'hidden':'visible';
+  if(histNextBtn)histNextBtn.style.visibility=(weekStart.getTime()>=_hMax.getTime())?'hidden':'visible';
+
+  renderMonthCounts(filterYear,filterMonth);
 }
+
 
 /* ===================== STATS MONTH DROPDOWNS INIT ===================== */
 function initStatsMonthDropdowns(){
@@ -5190,7 +5433,7 @@ function initStatsMonthDropdowns(){
   });
   // Right panel defaults to previous week / same month
   const rwk=document.getElementById('volTimeframeR');
-  if(rwk){const cur=document.getElementById('volTimeframe').value;const wks=['w1','w2','w3','w4','w5'];const idx=wks.indexOf(cur);rwk.value=wks[Math.max(0,idx-1)]||'w1';}
+  if(rwk){rwk.value='w1';}
 }
 
 /* ══ VOLUME SWIPE PANEL SYSTEM ══════════════════════════════════ */
@@ -5323,16 +5566,13 @@ function toggleCompareMode(){
   single.classList.toggle('hidden',_cmpModeOn);
   landscape.classList.toggle('active',_cmpModeOn);
   if(_cmpModeOn){
-    const tf=document.getElementById('volTimeframe').value;
     const mo=document.getElementById('volMonth').value;
     const tfL=document.getElementById('volTimeframeL');
     const moL=document.getElementById('volMonthL');
-    if(tfL)tfL.value=tf;
+    if(tfL)tfL.value='w1';
     if(moL)moL.value=mo;
-    const wks=['w1','w2','w3','w4','w5'];
-    const idx=wks.indexOf(tf);
     const tfR=document.getElementById('volTimeframeR');
-    if(tfR)tfR.value=wks[Math.max(0,idx-1)];
+    if(tfR)tfR.value='w2';
     const moR=document.getElementById('volMonthR');
     if(moR)moR.value=mo;
     updateVolumeChart('left');
@@ -5713,22 +5953,19 @@ async function updateStatsChart(){
   let uid=localStorage.getItem("user_id");if(!uid)return;
   const{data,error}=await db.from("attendance").select("*").eq("user_id",uid).order("attendance_date",{ascending:true});
   if(error||!data)return;
-  // resolve month
-  const monthSel=document.getElementById('statsMonth');
-  let selMonth=monthSel?monthSel.value:null;
-  let filterYear,filterMonth;
-  if(selMonth){[filterYear,filterMonth]=[parseInt(selMonth.split('-')[0]),parseInt(selMonth.split('-')[1])-1]}
-  else{const n=new Date();filterYear=n.getFullYear();filterMonth=n.getMonth()}
-  let tf=document.getElementById("statsTimeframe").value;
-  let ranges={w1:[1,7],w2:[8,14],w3:[15,21],w4:[22,28],w5:[29,31]};let[sd,ed]=ranges[tf]||[1,7];
-  let fd=data.filter(r=>{let d=new Date(r.attendance_date);return d.getFullYear()===filterYear&&d.getMonth()===filterMonth&&d.getDate()>=sd&&d.getDate()<=ed});
-  let dm={};for(let i=sd;i<=ed;i++){dm[i]={label:i.toString(),duration:0,workout:'',classes:[]}}
-  fd.forEach(r=>{let d=new Date(r.attendance_date),day=d.getDate();if(dm[day]){dm[day].duration+=parseDurationToMinutes(r.duration);if(r.workout&&r.workout.trim()!==""){if(dm[day].workout)dm[day].workout+=', '+r.workout;else dm[day].workout=r.workout}}});
+  // Mon–Sun week window, anchored by durWeekAnchor (navigated via the < / > buttons)
+  const{year:filterYear,month:filterMonth}=_selectedMonthYM(document.getElementById('statsMonth'));
+  const dayNames=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const weekStart=getMonday(durWeekAnchor);
+  const weekDates=[];for(let i=0;i<7;i++)weekDates.push(addDays(weekStart,i));
+  const sameDay=(a,b)=>a.getFullYear()===b.getFullYear()&&a.getMonth()===b.getMonth()&&a.getDate()===b.getDate();
+  let fd=data.filter(r=>{let d=new Date(r.attendance_date);return weekDates.some(wd=>sameDay(wd,d))});
+  let dm={};weekDates.forEach((dt,idx)=>{dm[idx]={label:dt.getDate().toString(),dateObj:dt,dateLabel:`${dayNames[dt.getDay()]}, ${['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][dt.getMonth()]} ${dt.getDate()}`,duration:0,workout:'',classes:[]}});
+  fd.forEach(r=>{let d=new Date(r.attendance_date);const idx=weekDates.findIndex(wd=>sameDay(wd,d));if(idx<0)return;if(dm[idx]){dm[idx].duration+=parseDurationToMinutes(r.duration);if(r.workout&&r.workout.trim()!==""){if(dm[idx].workout)dm[idx].workout+=', '+r.workout;else dm[idx].workout=r.workout}}});
   Object.values(dm).forEach(d=>{if(d.workout){let cls=[...new Set(d.workout.split(',').map(s=>s.trim()).filter(Boolean))].slice(0,3);d.classes=cls}});
   let days=Object.values(dm);statsChartDayData=days;
   // build day labels Mon-Sun style
-  const dayNames=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-  let labels=days.map(d=>{const dt=new Date(filterYear,filterMonth,parseInt(d.label));return `${d.label} ${dayNames[dt.getDay()]}`});
+  let labels=days.map(d=>`${d.label} ${dayNames[d.dateObj.getDay()]}`);
   let durations=days.map(d=>d.duration||0);
   let chartData=durations.map((v,i)=>{if(v===0&&days[i].classes.length>0)return 30;return v||0});
   let rawWorkouts=days.map(d=>d.classes.join(', '));
@@ -5763,7 +6000,7 @@ async function updateStatsChart(){
   function selectDurationBar(idx){
     const day=statsChartDayData[idx];if(!day)return;
     durCurrentIdx=idx;
-    _updateDurGraphDetailBox(day,filterYear,filterMonth,dayNames);
+    _updateDurGraphDetailBox(day);
     if(durDetailViewOn){
       _durHighlightBar(idx);
     } else {
@@ -5804,12 +6041,18 @@ async function updateStatsChart(){
   if(durBodyEl)durBodyEl.style.display='none';
 
   const todayD=new Date();
-  let defaultIdx=-1;
-  if(filterYear===todayD.getFullYear()&&filterMonth===todayD.getMonth()){
-    defaultIdx=days.findIndex(d=>parseInt(d.label)===todayD.getDate());
-  }
+  let defaultIdx=days.findIndex(d=>sameDay(d.dateObj,todayD));
   if(defaultIdx<0){for(let i=days.length-1;i>=0;i--){if(days[i].duration>0){defaultIdx=i;break}}}
-  if(defaultIdx>=0)_updateDurGraphDetailBox(days[defaultIdx],filterYear,filterMonth,dayNames);
+  if(defaultIdx>=0)_updateDurGraphDetailBox(days[defaultIdx]);
+
+  // Refresh the week range label + show/hide the "<" / ">" nav buttons
+  const{min:_dMin,max:_dMax}=_monthWeekBounds(filterYear,filterMonth);
+  const durLbl=document.getElementById('durWeekLabel');
+  if(durLbl){const _dWkNum=Math.round((weekStart.getTime()-_dMin.getTime())/604800000)+1;durLbl.textContent=`Week ${_dWkNum}: ${_fmtWeekRangeLabel(weekStart)}`;}
+  const durNextBtn=document.getElementById('durWeekNext');
+  const durPrevBtn=document.getElementById('durWeekPrev');
+  if(durNextBtn)durNextBtn.style.visibility=(weekStart.getTime()>=_dMax.getTime())?'hidden':'visible';
+  if(durPrevBtn)durPrevBtn.style.visibility=(weekStart.getTime()<=_dMin.getTime())?'hidden':'visible';
 
   let allClasses=[];days.forEach(d=>allClasses.push(...d.classes));
   // Frequency = number of UNIQUE DAYS each class appears in (d.classes is already Set-deduped per day).
@@ -6119,6 +6362,114 @@ let volChartInstance=null,volDayDataCache=[];
 let volChartInstanceL=null,volDayDataCacheL=[];
 let volChartInstanceR=null,volDayDataCacheR=[];
 
+/* ===================== MON–SUN WEEK HELPERS ===================== */
+/* Returns a NEW Date set to 00:00:00 of the Monday belonging to the same Mon–Sun week as `d`. */
+function getMonday(d){
+  const dt=new Date(d.getFullYear(),d.getMonth(),d.getDate());
+  const day=dt.getDay(); // 0=Sun..6=Sat
+  const diff=(day+6)%7; // days since Monday
+  dt.setDate(dt.getDate()-diff);
+  dt.setHours(0,0,0,0);
+  return dt;
+}
+function addDays(d,n){const dt=new Date(d);dt.setDate(dt.getDate()+n);return dt}
+function _isCurrentWeek(anchor){return getMonday(anchor).getTime()===getMonday(new Date()).getTime()}
+function _fmtISODate(dt){return `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`}
+function _fmtWeekRangeLabel(monday){
+  const monNamesShort=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const sunday=addDays(monday,6);
+  if(monday.getMonth()===sunday.getMonth()&&monday.getFullYear()===sunday.getFullYear())
+    return `${monNamesShort[monday.getMonth()]} ${monday.getDate()} – ${sunday.getDate()}`;
+  return `${monNamesShort[monday.getMonth()]} ${monday.getDate()} – ${monNamesShort[sunday.getMonth()]} ${sunday.getDate()}`;
+}
+/* Picks a sensible default Monday-anchor week for a given {year,month}: the real current week if
+   that month is the current real month, otherwise the week containing that month's 1st day. */
+function _weekAnchorForMonth(year,month){
+  const now=new Date();
+  if(year===now.getFullYear()&&month===now.getMonth())return getMonday(now);
+  return getMonday(new Date(year,month,1));
+}
+/* Reads a "YYYY-MM" month-select's value (or falls back to the real current month) as {year,month(0-based)}. */
+function _selectedMonthYM(sel){
+  const val=sel&&sel.value;
+  if(val){const[y,m]=val.split('-').map(Number);return{year:y,month:m-1}}
+  const n=new Date();return{year:n.getFullYear(),month:n.getMonth()};
+}
+/* The navigable Mon–Sun week range for a given {year,month}, so week navigation stays inside that
+   month — except the boundary weeks are still allowed to bleed a few days into the neighboring
+   month to complete their Mon–Sun row (that's just how those weeks render, not extra navigation).
+   min = the week containing the month's 1st day. max = the week containing the month's last day,
+   capped at the real current week if the month is the current month (can't view future weeks). */
+function _monthWeekBounds(year,month){
+  const now=new Date();
+  const min=getMonday(new Date(year,month,1));
+  let max=(year===now.getFullYear()&&month===now.getMonth())?getMonday(now):getMonday(new Date(year,month+1,0));
+  if(max.getTime()<min.getTime())max=min;
+  return{min,max};
+}
+let durWeekAnchor=getMonday(new Date()); // Monday of the currently displayed Duration weekly graph
+let volWeekAnchor=getMonday(new Date()); // Monday of the currently displayed Volume weekly graph (main)
+let _durLastMonthYM=null; // {year,month} the Duration Month dropdown was last resolved to (for direction detection)
+let _volLastMonthYM=null; // same, for the Volume Month dropdown
+
+function durWeekNav(dir){
+  const{year,month}=_selectedMonthYM(document.getElementById('statsMonth'));
+  const{min,max}=_monthWeekBounds(year,month);
+  const cur=getMonday(durWeekAnchor);
+  if(dir>0&&cur.getTime()>=max.getTime())return;
+  if(dir<0&&cur.getTime()<=min.getTime())return;
+  let next=addDays(cur,dir*7);
+  if(next.getTime()<min.getTime())next=min;
+  if(next.getTime()>max.getTime())next=max;
+  durWeekAnchor=next;
+  updateStatsChart();
+}
+function volWeekNav(dir){
+  const{year,month}=_selectedMonthYM(document.getElementById('volMonth'));
+  const{min,max}=_monthWeekBounds(year,month);
+  const cur=getMonday(volWeekAnchor);
+  if(dir>0&&cur.getTime()>=max.getTime())return;
+  if(dir<0&&cur.getTime()<=min.getTime())return;
+  let next=addDays(cur,dir*7);
+  if(next.getTime()<min.getTime())next=min;
+  if(next.getTime()>max.getTime())next=max;
+  volWeekAnchor=next;
+  updateVolumeChart('main');
+}
+/* Fired by the Month dropdowns — jumps the relevant weekly anchor into that month, only while in weekly
+   mode, choosing the landing week based on which direction the selection moved so browsing stays
+   continuous week-by-week: moving to an EARLIER month lands on that month's LAST navigable week
+   (right next to the week you came from); moving to a LATER (or the same) month lands on that
+   month's FIRST week. */
+function statsMonthChanged(){
+  if(durRangeMode==='weekly'){
+    const val=document.getElementById('statsMonth')?.value;
+    if(val){
+      const[y,m]=val.split('-').map(Number);
+      const newYM={year:y,month:m-1};
+      const{min,max}=_monthWeekBounds(newYM.year,newYM.month);
+      const goingBackward=_durLastMonthYM&&(newYM.year<_durLastMonthYM.year||(newYM.year===_durLastMonthYM.year&&newYM.month<_durLastMonthYM.month));
+      durWeekAnchor=goingBackward?max:min;
+      _durLastMonthYM=newYM;
+    }
+  }
+  updateStatsChart();
+}
+function volMonthChanged(){
+  if(volRangeMode==='weekly'){
+    const val=document.getElementById('volMonth')?.value;
+    if(val){
+      const[y,m]=val.split('-').map(Number);
+      const newYM={year:y,month:m-1};
+      const{min,max}=_monthWeekBounds(newYM.year,newYM.month);
+      const goingBackward=_volLastMonthYM&&(newYM.year<_volLastMonthYM.year||(newYM.year===_volLastMonthYM.year&&newYM.month<_volLastMonthYM.month));
+      volWeekAnchor=goingBackward?max:min;
+      _volLastMonthYM=newYM;
+    }
+  }
+  updateVolumeChart('main');
+}
+
 /* ── Volume Range Mode (Weekly / Monthly / 3-Month) — main single view only ── */
 let volRangeMode='weekly'; // 'weekly' | 'monthly' | '3month'
 let volLineDataCache=[]; // cache of {label,dateLabel,volume,workouts,attendanceWorkouts} for the active line view
@@ -6258,6 +6609,28 @@ async function fetchAttendanceWorkouts(uid,monthStr){
   return result;
 }
 
+/* Same as fetchAttendanceWorkouts but keyed by full ISO date (YYYY-MM-DD) instead of bare day-of-month,
+   and scoped to an explicit [startStr,endStr] date range — needed since a Mon–Sun week can span two
+   different months/years, where a bare day-of-month key would be ambiguous. */
+async function fetchAttendanceWorkoutsRange(uid,startStr,endStr){
+  const key=uid+'|range|'+startStr+'|'+endStr;
+  if(_attWorkoutCache[key])return _attWorkoutCache[key];
+  const{data}=await db.from('attendance').select('attendance_date,workout').eq('user_id',uid)
+    .gte('attendance_date',startStr).lte('attendance_date',endStr).eq('status','Present');
+  const map={};
+  if(data){
+    data.forEach(r=>{
+      if(!r.workout||!r.workout.trim())return;
+      const dkey=r.attendance_date;
+      if(!map[dkey])map[dkey]=new Set();
+      r.workout.split(',').map(s=>s.trim()).filter(Boolean).forEach(w=>map[dkey].add(w));
+    });
+  }
+  const result={};Object.keys(map).forEach(d=>{result[d]=[...map[d]]});
+  _attWorkoutCache[key]=result;
+  return result;
+}
+
 /* ── Single solid color by theme (Task 1: Volume graph uses ONE solid color tied to theme) ── */
 function getVolSolidColor(){
   // Pull the live --accent custom property so this always tracks the active theme automatically
@@ -6288,45 +6661,80 @@ async function updateVolumeChart(side='main'){
   const drillTitleId='volDrillTitle'+(sfx||'');
   const drillBodyId='volDrillBody'+(sfx||'');
 
-  const tf=document.getElementById(tfId)?document.getElementById(tfId).value:'w1';
-  const monthSel=document.getElementById(moId);
-  let selMonth=monthSel?monthSel.value:null;
-  let filterYear,filterMonth;
-  if(selMonth){[filterYear,filterMonth]=[parseInt(selMonth.split('-')[0]),parseInt(selMonth.split('-')[1])-1]}
-  else{const n=new Date();filterYear=n.getFullYear();filterMonth=n.getMonth()}
-  const ranges={w1:[1,7],w2:[8,14],w3:[15,21],w4:[22,28],w5:[29,31]};
-  const [sd,ed]=ranges[tf]||[1,7];
-  const monthStr=`${filterYear}-${String(filterMonth+1).padStart(2,'0')}`;
-  const lastDay=new Date(filterYear,filterMonth+1,0).getDate();
-
-  const{data,error}=await db.from('workouts').select('*').eq('user_id',uid).gte('date',`${monthStr}-01`).lte('date',`${monthStr}-${String(lastDay).padStart(2,'0')}`);
-  if(error){console.error(error);return}
-
-  // Fetch attendance workout names (for report box only — NOT drawn on bars)
-  const attWorkouts=await fetchAttendanceWorkouts(uid,monthStr);
-
   const dayNames=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-  let dm={};
-  for(let i=sd;i<=ed;i++){
-    const dt=new Date(filterYear,filterMonth,i);
-    const attNames=attWorkouts[i]||[];
-    dm[i]={day:i,label:`${i} ${dayNames[dt.getDay()]}`,volume:0,workouts:[],attendanceWorkouts:attNames};
-  }
-  if(data){
-    data.forEach(row=>{
-      const d=new Date(row.date);const day=d.getDate();if(!dm[day])return;
-      for(let i=1;i<=15;i++){
-        const w=row[`workout_${i}`];if(!w)continue;
-        const vol=parseWorkoutVolume(w);
-        dm[day].volume+=vol;
-        if(w.trim())dm[day].workouts.push({name:w,vol});
-      }
+  const monNamesShort=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  let filterYear,filterMonth,days;
+
+  if(side==='main'){
+    // Mon–Sun week window, anchored by volWeekAnchor (navigated via the < / > buttons).
+    // Can span two different months — fetched by explicit date range, not month bounds.
+    const weekStart=getMonday(volWeekAnchor);
+    const weekDates=[];for(let i=0;i<7;i++)weekDates.push(addDays(weekStart,i));
+    const startStr=_fmtISODate(weekStart),endStr=_fmtISODate(weekDates[6]);
+
+    const{data,error}=await db.from('workouts').select('*').eq('user_id',uid).gte('date',startStr).lte('date',endStr);
+    if(error){console.error(error);return}
+
+    const attWorkouts=await fetchAttendanceWorkoutsRange(uid,startStr,endStr);
+
+    let dm={};
+    weekDates.forEach((dt,idx)=>{
+      const key=_fmtISODate(dt);
+      const attNames=attWorkouts[key]||[];
+      dm[idx]={day:dt.getDate(),year:dt.getFullYear(),month:dt.getMonth(),dateObj:dt,label:`${dt.getDate()} ${dayNames[dt.getDay()]}`,volume:0,workouts:[],attendanceWorkouts:attNames};
     });
+    if(data){
+      data.forEach(row=>{
+        const d=new Date(row.date);const key=_fmtISODate(d);
+        const idx=weekDates.findIndex(wd=>_fmtISODate(wd)===key);
+        if(idx<0)return;
+        for(let i=1;i<=15;i++){
+          const w=row[`workout_${i}`];if(!w)continue;
+          const vol=parseWorkoutVolume(w);
+          dm[idx].volume+=vol;
+          if(w.trim())dm[idx].workouts.push({name:w,vol});
+        }
+      });
+    }
+    days=Object.values(dm);
+    volDayDataCache=days;
+  } else {
+    const tf=document.getElementById(tfId)?document.getElementById(tfId).value:'w1';
+    const monthSel=document.getElementById(moId);
+    let selMonth=monthSel?monthSel.value:null;
+    if(selMonth){[filterYear,filterMonth]=[parseInt(selMonth.split('-')[0]),parseInt(selMonth.split('-')[1])-1]}
+    else{const n=new Date();filterYear=n.getFullYear();filterMonth=n.getMonth()}
+    const ranges={w1:[1,7],w2:[8,14],w3:[15,21],w4:[22,28],w5:[29,31]};
+    const [sd,ed]=ranges[tf]||[1,7];
+    const monthStr=`${filterYear}-${String(filterMonth+1).padStart(2,'0')}`;
+    const lastDay=new Date(filterYear,filterMonth+1,0).getDate();
+
+    const{data,error}=await db.from('workouts').select('*').eq('user_id',uid).gte('date',`${monthStr}-01`).lte('date',`${monthStr}-${String(lastDay).padStart(2,'0')}`);
+    if(error){console.error(error);return}
+
+    const attWorkouts=await fetchAttendanceWorkouts(uid,monthStr);
+
+    let dm={};
+    for(let i=sd;i<=ed;i++){
+      const dt=new Date(filterYear,filterMonth,i);
+      const attNames=attWorkouts[i]||[];
+      dm[i]={day:i,label:`${i} ${dayNames[dt.getDay()]}`,volume:0,workouts:[],attendanceWorkouts:attNames};
+    }
+    if(data){
+      data.forEach(row=>{
+        const d=new Date(row.date);const day=d.getDate();if(!dm[day])return;
+        for(let i=1;i<=15;i++){
+          const w=row[`workout_${i}`];if(!w)continue;
+          const vol=parseWorkoutVolume(w);
+          dm[day].volume+=vol;
+          if(w.trim())dm[day].workouts.push({name:w,vol});
+        }
+      });
+    }
+    days=Object.values(dm);
+    if(side==='left')volDayDataCacheL=days;
+    else volDayDataCacheR=days;
   }
-  const days=Object.values(dm);
-  if(side==='left')volDayDataCacheL=days;
-  else if(side==='right')volDayDataCacheR=days;
-  else volDayDataCache=days;
 
   // High Volume / Low Volume (main panel only)
   // Weekly: find the single highest/lowest class volume on any single day (per-day max/min).
@@ -6480,13 +6888,28 @@ async function updateVolumeChart(side='main'){
   }
 
   const today=new Date();
-  if(filterYear===today.getFullYear()&&filterMonth===today.getMonth()){
+  if(isMain){
+    const td=days.find(d=>d.dateObj&&d.dateObj.getFullYear()===today.getFullYear()&&d.dateObj.getMonth()===today.getMonth()&&d.dateObj.getDate()===today.getDate());
+    if(td){
+      _lastDrillDay[side]=td;
+      renderVolDrilldownEnhanced(td,drillTitleId,drillBodyId,side);
+      _updateVolGraphDetailBox(td);
+    }
+    // Refresh the week range label + show/hide the "<" / ">" nav buttons
+    const{year:_vy,month:_vm}=_selectedMonthYM(document.getElementById('volMonth'));
+    const{min:_vMin,max:_vMax}=_monthWeekBounds(_vy,_vm);
+    const _volWeekStart=getMonday(volWeekAnchor);
+    const volLbl=document.getElementById('volWeekLabel');
+    if(volLbl){const _vWkNum=Math.round((_volWeekStart.getTime()-_vMin.getTime())/604800000)+1;volLbl.textContent=`Week ${_vWkNum}: ${_fmtWeekRangeLabel(_volWeekStart)}`;}
+    const volNextBtn=document.getElementById('volWeekNext');
+    const volPrevBtn=document.getElementById('volWeekPrev');
+    if(volNextBtn)volNextBtn.style.visibility=(_volWeekStart.getTime()>=_vMax.getTime())?'hidden':'visible';
+    if(volPrevBtn)volPrevBtn.style.visibility=(_volWeekStart.getTime()<=_vMin.getTime())?'hidden':'visible';
+  } else if(filterYear===today.getFullYear()&&filterMonth===today.getMonth()){
     const td=days.find(d=>d.day===today.getDate())||days[0];
     if(td){
       _lastDrillDay[side]=td;
-      if(isMain)renderVolDrilldownEnhanced(td,drillTitleId,drillBodyId,side);
-      else renderVolDrilldown(td,drillTitleId,drillBodyId,side);
-      if(isMain)_updateVolGraphDetailBox(td);
+      renderVolDrilldown(td,drillTitleId,drillBodyId,side);
     }
   }
 }
@@ -11139,40 +11562,525 @@ const LEARN_BY_CLASS={
   "Full Body":["Deadlift","Squats","Treadmill Sprint"]
 };
 
+const LEARN_VIDEO_URLS={
+  /* Each key below is the EXACT exercise name shown in Workout Entry / Learn (name + equipment).
+     Value is that exercise's YouTube video URL. Currently auto-filled with a YouTube SEARCH link
+     scoped to that exact exercise (so every one of the 423 is already distinct) — replace any line's
+     URL with your own uploaded video link once it's ready; nothing else needs to change. */
+  // Chest (49)
+  "Bench Press (Barbell)":"https://www.youtube.com/results?search_query=Bench%20Press%20(Barbell)%20exercise%20tutorial%20form",
+  "Bench Press (Dumbbell)":"https://www.youtube.com/results?search_query=Bench%20Press%20(Dumbbell)%20exercise%20tutorial%20form",
+  "Bench Press (Cable)":"https://www.youtube.com/results?search_query=Bench%20Press%20(Cable)%20exercise%20tutorial%20form",
+  "Bench Press (Smith Machine)":"https://www.youtube.com/results?search_query=Bench%20Press%20(Smith%20Machine)%20exercise%20tutorial%20form",
+  "Bench Press - Wide Grip (Barbell)":"https://www.youtube.com/results?search_query=Bench%20Press%20-%20Wide%20Grip%20(Barbell)%20exercise%20tutorial%20form",
+  "Decline Bench Press (Barbell)":"https://www.youtube.com/results?search_query=Decline%20Bench%20Press%20(Barbell)%20exercise%20tutorial%20form",
+  "Decline Bench Press (Dumbbell)":"https://www.youtube.com/results?search_query=Decline%20Bench%20Press%20(Dumbbell)%20exercise%20tutorial%20form",
+  "Decline Bench Press (Machine)":"https://www.youtube.com/results?search_query=Decline%20Bench%20Press%20(Machine)%20exercise%20tutorial%20form",
+  "Decline Bench Press (Smith Machine)":"https://www.youtube.com/results?search_query=Decline%20Bench%20Press%20(Smith%20Machine)%20exercise%20tutorial%20form",
+  "Feet Up Bench Press (Barbell)":"https://www.youtube.com/results?search_query=Feet%20Up%20Bench%20Press%20(Barbell)%20exercise%20tutorial%20form",
+  "Incline Bench Press (Barbell)":"https://www.youtube.com/results?search_query=Incline%20Bench%20Press%20(Barbell)%20exercise%20tutorial%20form",
+  "Incline Bench Press (Dumbbell)":"https://www.youtube.com/results?search_query=Incline%20Bench%20Press%20(Dumbbell)%20exercise%20tutorial%20form",
+  "Incline Bench Press (Smith Machine)":"https://www.youtube.com/results?search_query=Incline%20Bench%20Press%20(Smith%20Machine)%20exercise%20tutorial%20form",
+  "Chest Fly (Dumbbell)":"https://www.youtube.com/results?search_query=Chest%20Fly%20(Dumbbell)%20exercise%20tutorial%20form",
+  "Chest Fly (Machine)":"https://www.youtube.com/results?search_query=Chest%20Fly%20(Machine)%20exercise%20tutorial%20form",
+  "Chest Fly (Band)":"https://www.youtube.com/results?search_query=Chest%20Fly%20(Band)%20exercise%20tutorial%20form",
+  "Chest Fly (Suspension)":"https://www.youtube.com/results?search_query=Chest%20Fly%20(Suspension)%20exercise%20tutorial%20form",
+  "Decline Chest Fly (Dumbbell)":"https://www.youtube.com/results?search_query=Decline%20Chest%20Fly%20(Dumbbell)%20exercise%20tutorial%20form",
+  "Incline Chest Fly (Dumbbell)":"https://www.youtube.com/results?search_query=Incline%20Chest%20Fly%20(Dumbbell)%20exercise%20tutorial%20form",
+  "Seated Chest Flys (Cable)":"https://www.youtube.com/results?search_query=Seated%20Chest%20Flys%20(Cable)%20exercise%20tutorial%20form",
+  "Assisted Chest Dip (Machine)":"https://www.youtube.com/results?search_query=Assisted%20Chest%20Dip%20(Machine)%20exercise%20tutorial%20form",
+  "Chest Dip (Bodyweight)":"https://www.youtube.com/results?search_query=Chest%20Dip%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Weighted Chest Dip (Bodyweight)":"https://www.youtube.com/results?search_query=Weighted%20Chest%20Dip%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Chest Press (Machine)":"https://www.youtube.com/results?search_query=Chest%20Press%20(Machine)%20exercise%20tutorial%20form",
+  "Chest Press (Band)":"https://www.youtube.com/results?search_query=Chest%20Press%20(Band)%20exercise%20tutorial%20form",
+  "Incline Chest Press (Machine)":"https://www.youtube.com/results?search_query=Incline%20Chest%20Press%20(Machine)%20exercise%20tutorial%20form",
+  "Iso-Lateral Chest Press (Machine)":"https://www.youtube.com/results?search_query=Iso-Lateral%20Chest%20Press%20(Machine)%20exercise%20tutorial%20form",
+  "Pec Deck Butterfly (Machine)":"https://www.youtube.com/results?search_query=Pec%20Deck%20Butterfly%20(Machine)%20exercise%20tutorial%20form",
+  "Squeeze Press (Dumbbell)":"https://www.youtube.com/results?search_query=Squeeze%20Press%20(Dumbbell)%20exercise%20tutorial%20form",
+  "Hex Press (Dumbbell)":"https://www.youtube.com/results?search_query=Hex%20Press%20(Dumbbell)%20exercise%20tutorial%20form",
+  "Around The World (Dumbbell)":"https://www.youtube.com/results?search_query=Around%20The%20World%20(Dumbbell)%20exercise%20tutorial%20form",
+  "Floor Press (Barbell)":"https://www.youtube.com/results?search_query=Floor%20Press%20(Barbell)%20exercise%20tutorial%20form",
+  "Floor Press (Dumbbell)":"https://www.youtube.com/results?search_query=Floor%20Press%20(Dumbbell)%20exercise%20tutorial%20form",
+  "Fly Crossovers (Cable)":"https://www.youtube.com/results?search_query=Fly%20Crossovers%20(Cable)%20exercise%20tutorial%20form",
+  "Low Cable Fly Crossovers (Cable)":"https://www.youtube.com/results?search_query=Low%20Cable%20Fly%20Crossovers%20(Cable)%20exercise%20tutorial%20form",
+  "Plate Press (Machine)":"https://www.youtube.com/results?search_query=Plate%20Press%20(Machine)%20exercise%20tutorial%20form",
+  "Ring Dips (Bodyweight)":"https://www.youtube.com/results?search_query=Ring%20Dips%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Single Arm Cable Crossover (Cable)":"https://www.youtube.com/results?search_query=Single%20Arm%20Cable%20Crossover%20(Cable)%20exercise%20tutorial%20form",
+  "Svend Press Plate Squeeze (Dumbbell)":"https://www.youtube.com/results?search_query=Svend%20Press%20Plate%20Squeeze%20(Dumbbell)%20exercise%20tutorial%20form",
+  "Clap Push Ups (Bodyweight)":"https://www.youtube.com/results?search_query=Clap%20Push%20Ups%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Decline Push Up (Bodyweight)":"https://www.youtube.com/results?search_query=Decline%20Push%20Up%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Incline Push Ups (Bodyweight)":"https://www.youtube.com/results?search_query=Incline%20Push%20Ups%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Kneeling Push Up (Bodyweight)":"https://www.youtube.com/results?search_query=Kneeling%20Push%20Up%20(Bodyweight)%20exercise%20tutorial%20form",
+  "One Arm Push Up (Bodyweight)":"https://www.youtube.com/results?search_query=One%20Arm%20Push%20Up%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Plank Pushup (Bodyweight)":"https://www.youtube.com/results?search_query=Plank%20Pushup%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Push Up (Bodyweight)":"https://www.youtube.com/results?search_query=Push%20Up%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Push Up - Close Grip (Bodyweight)":"https://www.youtube.com/results?search_query=Push%20Up%20-%20Close%20Grip%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Ring Push Up (Bodyweight)":"https://www.youtube.com/results?search_query=Ring%20Push%20Up%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Weighted Push Up (Bodyweight)":"https://www.youtube.com/results?search_query=Weighted%20Push%20Up%20(Bodyweight)%20exercise%20tutorial%20form",
+  // Biceps (36)
+  "Preacher Curl (Barbell)":"https://www.youtube.com/results?search_query=Preacher%20Curl%20(Barbell)%20exercise%20tutorial%20form",
+  "Preacher Curl (Dumbbell)":"https://www.youtube.com/results?search_query=Preacher%20Curl%20(Dumbbell)%20exercise%20tutorial%20form",
+  "Preacher Curl (Machine)":"https://www.youtube.com/results?search_query=Preacher%20Curl%20(Machine)%20exercise%20tutorial%20form",
+  "21s Bicep Curl (Barbell)":"https://www.youtube.com/results?search_query=21s%20Bicep%20Curl%20(Barbell)%20exercise%20tutorial%20form",
+  "Bicep Curl (Barbell)":"https://www.youtube.com/results?search_query=Bicep%20Curl%20(Barbell)%20exercise%20tutorial%20form",
+  "Bicep Curl (Dumbbell)":"https://youtu.be/LrOIPiI7rU4?si=hm6xIJiq5DNsc57M",
+  "Bicep Curl (Cable)":"https://www.youtube.com/results?search_query=Bicep%20Curl%20(Cable)%20exercise%20tutorial%20form",
+  "Bicep Curl (Machine)":"https://youtu.be/jAqsnFDuJNQ?si=WLn0JTA_lpHfSj93",
+  "Bicep Curl (Suspension)":"https://www.youtube.com/results?search_query=Bicep%20Curl%20(Suspension)%20exercise%20tutorial%20form",
+  "Cross Body Hammer Curl (Dumbbell)":"https://www.youtube.com/results?search_query=Cross%20Body%20Hammer%20Curl%20(Dumbbell)%20exercise%20tutorial%20form",
+  "Hammer Curl (Dumbbell)":"https://www.youtube.com/results?search_query=Hammer%20Curl%20(Dumbbell)%20exercise%20tutorial%20form",
+  "Hammer Curl (Cable)":"https://www.youtube.com/results?search_query=Hammer%20Curl%20(Cable)%20exercise%20tutorial%20form",
+  "Hammer Curl (Band)":"https://www.youtube.com/results?search_query=Hammer%20Curl%20(Band)%20exercise%20tutorial%20form",
+  "Concentration Curl (Dumbbell)":"https://www.youtube.com/results?search_query=Concentration%20Curl%20(Dumbbell)%20exercise%20tutorial%20form",
+  "Reverse Grip Concentration Curl (Dumbbell)":"https://www.youtube.com/results?search_query=Reverse%20Grip%20Concentration%20Curl%20(Dumbbell)%20exercise%20tutorial%20form",
+  "Spider Curl (Barbell)":"https://www.youtube.com/results?search_query=Spider%20Curl%20(Barbell)%20exercise%20tutorial%20form",
+  "Spider Curl (Dumbbell)":"https://www.youtube.com/results?search_query=Spider%20Curl%20(Dumbbell)%20exercise%20tutorial%20form",
+  "Reverse Curl (Barbell)":"https://www.youtube.com/results?search_query=Reverse%20Curl%20(Barbell)%20exercise%20tutorial%20form",
+  "Reverse Curl (Dumbbell)":"https://www.youtube.com/results?search_query=Reverse%20Curl%20(Dumbbell)%20exercise%20tutorial%20form",
+  "Reverse Curl (Cable)":"https://www.youtube.com/results?search_query=Reverse%20Curl%20(Cable)%20exercise%20tutorial%20form",
+  "Biceps Curl (EZ Bar)":"https://www.youtube.com/results?search_query=Biceps%20Curl%20(EZ%20Bar)%20exercise%20tutorial%20form",
+  "Behind the Back Bicep Wrist Curl (Barbell)":"https://www.youtube.com/results?search_query=Behind%20the%20Back%20Bicep%20Wrist%20Curl%20(Barbell)%20exercise%20tutorial%20form",
+  "Behind the Back Curl (Cable)":"https://www.youtube.com/results?search_query=Behind%20the%20Back%20Curl%20(Cable)%20exercise%20tutorial%20form",
+  "Curl (Kettlebell)":"https://www.youtube.com/results?search_query=Curl%20(Kettlebell)%20exercise%20tutorial%20form",
+  "Drag Curl (Barbell)":"https://www.youtube.com/results?search_query=Drag%20Curl%20(Barbell)%20exercise%20tutorial%20form",
+  "Overhead Curl (Cable)":"https://www.youtube.com/results?search_query=Overhead%20Curl%20(Cable)%20exercise%20tutorial%20form",
+  "Pinwheel Curl (Dumbbell)":"https://www.youtube.com/results?search_query=Pinwheel%20Curl%20(Dumbbell)%20exercise%20tutorial%20form",
+  "Plate Curl (Machine)":"https://www.youtube.com/results?search_query=Plate%20Curl%20(Machine)%20exercise%20tutorial%20form",
+  "Rope Cable Curl (Cable)":"https://www.youtube.com/results?search_query=Rope%20Cable%20Curl%20(Cable)%20exercise%20tutorial%20form",
+  "Seated Incline Curl (Dumbbell)":"https://www.youtube.com/results?search_query=Seated%20Incline%20Curl%20(Dumbbell)%20exercise%20tutorial%20form",
+  "Seated Palms Up Wrist Curl (Barbell)":"https://www.youtube.com/results?search_query=Seated%20Palms%20Up%20Wrist%20Curl%20(Barbell)%20exercise%20tutorial%20form",
+  "Seated Wrist Extension (Barbell)":"https://www.youtube.com/results?search_query=Seated%20Wrist%20Extension%20(Barbell)%20exercise%20tutorial%20form",
+  "Single Arm Curl (Cable)":"https://www.youtube.com/results?search_query=Single%20Arm%20Curl%20(Cable)%20exercise%20tutorial%20form",
+  "Waiter Curl (Dumbbell)":"https://www.youtube.com/results?search_query=Waiter%20Curl%20(Dumbbell)%20exercise%20tutorial%20form",
+  "Wrist Roller (Machine)":"https://www.youtube.com/results?search_query=Wrist%20Roller%20(Machine)%20exercise%20tutorial%20form",
+  "Zottman Curl (Dumbbell)":"https://www.youtube.com/results?search_query=Zottman%20Curl%20(Dumbbell)%20exercise%20tutorial%20form",
+  // Triceps (26)
+  "Single Arm Triceps Pushdown (Cable)":"https://www.youtube.com/results?search_query=Single%20Arm%20Triceps%20Pushdown%20(Cable)%20exercise%20tutorial%20form",
+  "Triceps Pushdown (Cable)":"https://www.youtube.com/results?search_query=Triceps%20Pushdown%20(Cable)%20exercise%20tutorial%20form",
+  "Triceps Rope Pushdown (Cable)":"https://www.youtube.com/results?search_query=Triceps%20Rope%20Pushdown%20(Cable)%20exercise%20tutorial%20form",
+  "Triceps Pressdown (Cable)":"https://www.youtube.com/results?search_query=Triceps%20Pressdown%20(Cable)%20exercise%20tutorial%20form",
+  "Overhead Triceps Extension (Cable)":"https://www.youtube.com/results?search_query=Overhead%20Triceps%20Extension%20(Cable)%20exercise%20tutorial%20form",
+  "Triceps Extension (Barbell)":"https://www.youtube.com/results?search_query=Triceps%20Extension%20(Barbell)%20exercise%20tutorial%20form",
+  "Triceps Extension (Dumbbell)":"https://www.youtube.com/results?search_query=Triceps%20Extension%20(Dumbbell)%20exercise%20tutorial%20form",
+  "Triceps Extension (Cable)":"https://www.youtube.com/results?search_query=Triceps%20Extension%20(Cable)%20exercise%20tutorial%20form",
+  "Triceps Extension (Machine)":"https://www.youtube.com/results?search_query=Triceps%20Extension%20(Machine)%20exercise%20tutorial%20form",
+  "Triceps Extension (Suspension)":"https://www.youtube.com/results?search_query=Triceps%20Extension%20(Suspension)%20exercise%20tutorial%20form",
+  "Skullcrusher (Barbell)":"https://www.youtube.com/results?search_query=Skullcrusher%20(Barbell)%20exercise%20tutorial%20form",
+  "Skullcrusher (Dumbbell)":"https://www.youtube.com/results?search_query=Skullcrusher%20(Dumbbell)%20exercise%20tutorial%20form",
+  "Assisted Triceps Dip (Machine)":"https://www.youtube.com/results?search_query=Assisted%20Triceps%20Dip%20(Machine)%20exercise%20tutorial%20form",
+  "Floor Triceps Dip (Bodyweight)":"https://www.youtube.com/results?search_query=Floor%20Triceps%20Dip%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Triceps Dip (Bodyweight)":"https://www.youtube.com/results?search_query=Triceps%20Dip%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Weighted Triceps Dip (Bodyweight)":"https://www.youtube.com/results?search_query=Weighted%20Triceps%20Dip%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Bench Dip (Bodyweight)":"https://www.youtube.com/results?search_query=Bench%20Dip%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Triceps Kickback (Dumbbell)":"https://www.youtube.com/results?search_query=Triceps%20Kickback%20(Dumbbell)%20exercise%20tutorial%20form",
+  "Triceps Kickback (Cable)":"https://www.youtube.com/results?search_query=Triceps%20Kickback%20(Cable)%20exercise%20tutorial%20form",
+  "Bench Press - Close Grip (Barbell)":"https://www.youtube.com/results?search_query=Bench%20Press%20-%20Close%20Grip%20(Barbell)%20exercise%20tutorial%20form",
+  "Diamond Push Up (Bodyweight)":"https://www.youtube.com/results?search_query=Diamond%20Push%20Up%20(Bodyweight)%20exercise%20tutorial%20form",
+  "JM Press (Barbell)":"https://www.youtube.com/results?search_query=JM%20Press%20(Barbell)%20exercise%20tutorial%20form",
+  "Seated Dip Machine (Machine)":"https://www.youtube.com/results?search_query=Seated%20Dip%20Machine%20(Machine)%20exercise%20tutorial%20form",
+  "Seated Triceps Press (Machine)":"https://www.youtube.com/results?search_query=Seated%20Triceps%20Press%20(Machine)%20exercise%20tutorial%20form",
+  "Single Arm Tricep Extension (Dumbbell)":"https://www.youtube.com/results?search_query=Single%20Arm%20Tricep%20Extension%20(Dumbbell)%20exercise%20tutorial%20form",
+  "Wide-Elbow Triceps Press (Dumbbell)":"https://www.youtube.com/results?search_query=Wide-Elbow%20Triceps%20Press%20(Dumbbell)%20exercise%20tutorial%20form",
+  // Shoulders (47)
+  "Overhead Press (Barbell)":"https://www.youtube.com/results?search_query=Overhead%20Press%20(Barbell)%20exercise%20tutorial%20form",
+  "Overhead Press (Dumbbell)":"https://www.youtube.com/results?search_query=Overhead%20Press%20(Dumbbell)%20exercise%20tutorial%20form",
+  "Overhead Press (Smith Machine)":"https://www.youtube.com/results?search_query=Overhead%20Press%20(Smith%20Machine)%20exercise%20tutorial%20form",
+  "Seated Overhead Press (Barbell)":"https://www.youtube.com/results?search_query=Seated%20Overhead%20Press%20(Barbell)%20exercise%20tutorial%20form",
+  "Seated Overhead Press (Dumbbell)":"https://www.youtube.com/results?search_query=Seated%20Overhead%20Press%20(Dumbbell)%20exercise%20tutorial%20form",
+  "Standing Military Press (Barbell)":"https://www.youtube.com/results?search_query=Standing%20Military%20Press%20(Barbell)%20exercise%20tutorial%20form",
+  "Plates Shoulder Press (Machine)":"https://www.youtube.com/results?search_query=Plates%20Shoulder%20Press%20(Machine)%20exercise%20tutorial%20form",
+  "Seated Shoulder Press (Machine)":"https://www.youtube.com/results?search_query=Seated%20Shoulder%20Press%20(Machine)%20exercise%20tutorial%20form",
+  "Shoulder Press (Dumbbell)":"https://www.youtube.com/results?search_query=Shoulder%20Press%20(Dumbbell)%20exercise%20tutorial%20form",
+  "Shoulder Press (Kettlebell)":"https://www.youtube.com/results?search_query=Shoulder%20Press%20(Kettlebell)%20exercise%20tutorial%20form",
+  "Lateral Raise (Dumbbell)":"https://www.youtube.com/results?search_query=Lateral%20Raise%20(Dumbbell)%20exercise%20tutorial%20form",
+  "Lateral Raise (Cable)":"https://www.youtube.com/results?search_query=Lateral%20Raise%20(Cable)%20exercise%20tutorial%20form",
+  "Lateral Raise (Machine)":"https://www.youtube.com/results?search_query=Lateral%20Raise%20(Machine)%20exercise%20tutorial%20form",
+  "Lateral Raise (Band)":"https://www.youtube.com/results?search_query=Lateral%20Raise%20(Band)%20exercise%20tutorial%20form",
+  "Seated Lateral Raise (Dumbbell)":"https://www.youtube.com/results?search_query=Seated%20Lateral%20Raise%20(Dumbbell)%20exercise%20tutorial%20form",
+  "Single Arm Lateral Raise (Cable)":"https://www.youtube.com/results?search_query=Single%20Arm%20Lateral%20Raise%20(Cable)%20exercise%20tutorial%20form",
+  "Front Raise (Barbell)":"https://www.youtube.com/results?search_query=Front%20Raise%20(Barbell)%20exercise%20tutorial%20form",
+  "Front Raise (Dumbbell)":"https://www.youtube.com/results?search_query=Front%20Raise%20(Dumbbell)%20exercise%20tutorial%20form",
+  "Front Raise (Cable)":"https://www.youtube.com/results?search_query=Front%20Raise%20(Cable)%20exercise%20tutorial%20form",
+  "Front Raise (Band)":"https://www.youtube.com/results?search_query=Front%20Raise%20(Band)%20exercise%20tutorial%20form",
+  "Front Raise (Suspension)":"https://www.youtube.com/results?search_query=Front%20Raise%20(Suspension)%20exercise%20tutorial%20form",
+  "Plate Front Raise (Machine)":"https://www.youtube.com/results?search_query=Plate%20Front%20Raise%20(Machine)%20exercise%20tutorial%20form",
+  "Face Pull (Cable)":"https://www.youtube.com/results?search_query=Face%20Pull%20(Cable)%20exercise%20tutorial%20form",
+  "Shrug (Barbell)":"https://www.youtube.com/results?search_query=Shrug%20(Barbell)%20exercise%20tutorial%20form",
+  "Shrug (Dumbbell)":"https://www.youtube.com/results?search_query=Shrug%20(Dumbbell)%20exercise%20tutorial%20form",
+  "Shrug (Cable)":"https://www.youtube.com/results?search_query=Shrug%20(Cable)%20exercise%20tutorial%20form",
+  "Shrug (Machine)":"https://www.youtube.com/results?search_query=Shrug%20(Machine)%20exercise%20tutorial%20form",
+  "Shrug (Smith Machine)":"https://www.youtube.com/results?search_query=Shrug%20(Smith%20Machine)%20exercise%20tutorial%20form",
+  "Upright Row (Barbell)":"https://www.youtube.com/results?search_query=Upright%20Row%20(Barbell)%20exercise%20tutorial%20form",
+  "Upright Row (Dumbbell)":"https://www.youtube.com/results?search_query=Upright%20Row%20(Dumbbell)%20exercise%20tutorial%20form",
+  "Upright Row (Cable)":"https://www.youtube.com/results?search_query=Upright%20Row%20(Cable)%20exercise%20tutorial%20form",
+  "Rear Delt Reverse Fly (Dumbbell)":"https://www.youtube.com/results?search_query=Rear%20Delt%20Reverse%20Fly%20(Dumbbell)%20exercise%20tutorial%20form",
+  "Rear Delt Reverse Fly (Cable)":"https://www.youtube.com/results?search_query=Rear%20Delt%20Reverse%20Fly%20(Cable)%20exercise%20tutorial%20form",
+  "Rear Delt Reverse Fly (Machine)":"https://www.youtube.com/results?search_query=Rear%20Delt%20Reverse%20Fly%20(Machine)%20exercise%20tutorial%20form",
+  "Arnold Press (Dumbbell)":"https://www.youtube.com/results?search_query=Arnold%20Press%20(Dumbbell)%20exercise%20tutorial%20form",
+  "Around the World (Kettlebell)":"https://www.youtube.com/results?search_query=Around%20the%20World%20(Kettlebell)%20exercise%20tutorial%20form",
+  "Chest Supported Reverse Fly (Dumbbell)":"https://www.youtube.com/results?search_query=Chest%20Supported%20Reverse%20Fly%20(Dumbbell)%20exercise%20tutorial%20form",
+  "Chest Supported Y Raise (Dumbbell)":"https://www.youtube.com/results?search_query=Chest%20Supported%20Y%20Raise%20(Dumbbell)%20exercise%20tutorial%20form",
+  "Halo (Kettlebell)":"https://www.youtube.com/results?search_query=Halo%20(Kettlebell)%20exercise%20tutorial%20form",
+  "Handstand Push Up (Bodyweight)":"https://www.youtube.com/results?search_query=Handstand%20Push%20Up%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Overhead Plate Raise (Machine)":"https://www.youtube.com/results?search_query=Overhead%20Plate%20Raise%20(Machine)%20exercise%20tutorial%20form",
+  "Pike Pushup (Bodyweight)":"https://www.youtube.com/results?search_query=Pike%20Pushup%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Pullaparts (Band)":"https://www.youtube.com/results?search_query=Pullaparts%20(Band)%20exercise%20tutorial%20form",
+  "Push Press (Barbell)":"https://www.youtube.com/results?search_query=Push%20Press%20(Barbell)%20exercise%20tutorial%20form",
+  "Reverse Fly Single Arm (Cable)":"https://www.youtube.com/results?search_query=Reverse%20Fly%20Single%20Arm%20(Cable)%20exercise%20tutorial%20form",
+  "Shoulder Taps (Bodyweight)":"https://www.youtube.com/results?search_query=Shoulder%20Taps%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Single Arm Landmine Press (Barbell)":"https://www.youtube.com/results?search_query=Single%20Arm%20Landmine%20Press%20(Barbell)%20exercise%20tutorial%20form",
+  // Lat/Back (52)
+  "Assisted Pull Up (Machine)":"https://www.youtube.com/results?search_query=Assisted%20Pull%20Up%20(Machine)%20exercise%20tutorial%20form",
+  "Gironda Sternum Pull up (Bodyweight)":"https://www.youtube.com/results?search_query=Gironda%20Sternum%20Pull%20up%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Kipping Pull Up (Bodyweight)":"https://www.youtube.com/results?search_query=Kipping%20Pull%20Up%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Negative Pull Up (Bodyweight)":"https://www.youtube.com/results?search_query=Negative%20Pull%20Up%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Pull Up (Band)":"https://www.youtube.com/results?search_query=Pull%20Up%20(Band)%20exercise%20tutorial%20form",
+  "Pull Up (Bodyweight)":"https://www.youtube.com/results?search_query=Pull%20Up%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Ring Pull Up (Bodyweight)":"https://www.youtube.com/results?search_query=Ring%20Pull%20Up%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Scapular Pull Ups (Bodyweight)":"https://www.youtube.com/results?search_query=Scapular%20Pull%20Ups%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Weighted Pull Up (Bodyweight)":"https://www.youtube.com/results?search_query=Weighted%20Pull%20Up%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Wide Pull Up (Bodyweight)":"https://www.youtube.com/results?search_query=Wide%20Pull%20Up%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Lat Pulldown (Cable)":"https://www.youtube.com/results?search_query=Lat%20Pulldown%20(Cable)%20exercise%20tutorial%20form",
+  "Lat Pulldown (Machine)":"https://www.youtube.com/results?search_query=Lat%20Pulldown%20(Machine)%20exercise%20tutorial%20form",
+  "Lat Pulldown (Band)":"https://www.youtube.com/results?search_query=Lat%20Pulldown%20(Band)%20exercise%20tutorial%20form",
+  "Lat Pulldown - Close Grip (Cable)":"https://www.youtube.com/results?search_query=Lat%20Pulldown%20-%20Close%20Grip%20(Cable)%20exercise%20tutorial%20form",
+  "Reverse Grip Lat Pulldown (Cable)":"https://www.youtube.com/results?search_query=Reverse%20Grip%20Lat%20Pulldown%20(Cable)%20exercise%20tutorial%20form",
+  "Single Arm Lat Pulldown (Cable)":"https://www.youtube.com/results?search_query=Single%20Arm%20Lat%20Pulldown%20(Cable)%20exercise%20tutorial%20form",
+  "Straight Arm Lat Pulldown (Cable)":"https://www.youtube.com/results?search_query=Straight%20Arm%20Lat%20Pulldown%20(Cable)%20exercise%20tutorial%20form",
+  "Bent Over Row (Barbell)":"https://www.youtube.com/results?search_query=Bent%20Over%20Row%20(Barbell)%20exercise%20tutorial%20form",
+  "Bent Over Row (Dumbbell)":"https://www.youtube.com/results?search_query=Bent%20Over%20Row%20(Dumbbell)%20exercise%20tutorial%20form",
+  "Bent Over Row (Band)":"https://www.youtube.com/results?search_query=Bent%20Over%20Row%20(Band)%20exercise%20tutorial%20form",
+  "Seated Cable Row - Bar Grip (Cable)":"https://www.youtube.com/results?search_query=Seated%20Cable%20Row%20-%20Bar%20Grip%20(Cable)%20exercise%20tutorial%20form",
+  "Seated Cable Row - Bar Wide Grip (Cable)":"https://www.youtube.com/results?search_query=Seated%20Cable%20Row%20-%20Bar%20Wide%20Grip%20(Cable)%20exercise%20tutorial%20form",
+  "Seated Cable Row - V Grip (Cable)":"https://www.youtube.com/results?search_query=Seated%20Cable%20Row%20-%20V%20Grip%20(Cable)%20exercise%20tutorial%20form",
+  "Seated Row (Machine)":"https://www.youtube.com/results?search_query=Seated%20Row%20(Machine)%20exercise%20tutorial%20form",
+  "T Bar Row (Machine)":"https://www.youtube.com/results?search_query=T%20Bar%20Row%20(Machine)%20exercise%20tutorial%20form",
+  "Pendlay Row (Barbell)":"https://www.youtube.com/results?search_query=Pendlay%20Row%20(Barbell)%20exercise%20tutorial%20form",
+  "Rack Pull (Barbell)":"https://www.youtube.com/results?search_query=Rack%20Pull%20(Barbell)%20exercise%20tutorial%20form",
+  "Chest Supported Incline Row (Dumbbell)":"https://www.youtube.com/results?search_query=Chest%20Supported%20Incline%20Row%20(Dumbbell)%20exercise%20tutorial%20form",
+  "Gorilla Row (Kettlebell)":"https://www.youtube.com/results?search_query=Gorilla%20Row%20(Kettlebell)%20exercise%20tutorial%20form",
+  "Inverted Row (Bodyweight)":"https://www.youtube.com/results?search_query=Inverted%20Row%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Iso-Lateral High Row (Machine)":"https://www.youtube.com/results?search_query=Iso-Lateral%20High%20Row%20(Machine)%20exercise%20tutorial%20form",
+  "Iso-Lateral Low Row (Machine)":"https://www.youtube.com/results?search_query=Iso-Lateral%20Low%20Row%20(Machine)%20exercise%20tutorial%20form",
+  "Iso-Lateral Row (Machine)":"https://www.youtube.com/results?search_query=Iso-Lateral%20Row%20(Machine)%20exercise%20tutorial%20form",
+  "Landmine Row (Barbell)":"https://www.youtube.com/results?search_query=Landmine%20Row%20(Barbell)%20exercise%20tutorial%20form",
+  "Low Row (Suspension)":"https://www.youtube.com/results?search_query=Low%20Row%20(Suspension)%20exercise%20tutorial%20form",
+  "Meadows Rows (Barbell)":"https://www.youtube.com/results?search_query=Meadows%20Rows%20(Barbell)%20exercise%20tutorial%20form",
+  "Renegade Row (Dumbbell)":"https://www.youtube.com/results?search_query=Renegade%20Row%20(Dumbbell)%20exercise%20tutorial%20form",
+  "Row (Dumbbell)":"https://www.youtube.com/results?search_query=Row%20(Dumbbell)%20exercise%20tutorial%20form",
+  "Single Arm Cable Row (Cable)":"https://www.youtube.com/results?search_query=Single%20Arm%20Cable%20Row%20(Cable)%20exercise%20tutorial%20form",
+  "Assisted Chin Up (Machine)":"https://www.youtube.com/results?search_query=Assisted%20Chin%20Up%20(Machine)%20exercise%20tutorial%20form",
+  "Chin Up (Bodyweight)":"https://www.youtube.com/results?search_query=Chin%20Up%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Weighted Chin Up (Bodyweight)":"https://www.youtube.com/results?search_query=Weighted%20Chin%20Up%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Back Extension (Machine)":"https://www.youtube.com/results?search_query=Back%20Extension%20(Machine)%20exercise%20tutorial%20form",
+  "Dead Hang (Bodyweight)":"https://www.youtube.com/results?search_query=Dead%20Hang%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Hyperextension Back Extension (Bodyweight)":"https://www.youtube.com/results?search_query=Hyperextension%20Back%20Extension%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Kneeling Pulldown (Band)":"https://www.youtube.com/results?search_query=Kneeling%20Pulldown%20(Band)%20exercise%20tutorial%20form",
+  "Pullover (Dumbbell)":"https://www.youtube.com/results?search_query=Pullover%20(Dumbbell)%20exercise%20tutorial%20form",
+  "Pullover (Machine)":"https://www.youtube.com/results?search_query=Pullover%20(Machine)%20exercise%20tutorial%20form",
+  "Rope Straight Arm Pulldown (Cable)":"https://www.youtube.com/results?search_query=Rope%20Straight%20Arm%20Pulldown%20(Cable)%20exercise%20tutorial%20form",
+  "Superman (Bodyweight)":"https://www.youtube.com/results?search_query=Superman%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Vertical Traction (Machine)":"https://www.youtube.com/results?search_query=Vertical%20Traction%20(Machine)%20exercise%20tutorial%20form",
+  "Weighted Hyperextension Back Extension (Bodyweight)":"https://www.youtube.com/results?search_query=Weighted%20Hyperextension%20Back%20Extension%20(Bodyweight)%20exercise%20tutorial%20form",
+  // Legs (103)
+  "Assisted Pistol Squats (Machine)":"https://www.youtube.com/results?search_query=Assisted%20Pistol%20Squats%20(Machine)%20exercise%20tutorial%20form",
+  "Belt Squat (Machine)":"https://www.youtube.com/results?search_query=Belt%20Squat%20(Machine)%20exercise%20tutorial%20form",
+  "Box Squat (Barbell)":"https://www.youtube.com/results?search_query=Box%20Squat%20(Barbell)%20exercise%20tutorial%20form",
+  "Bulgarian Split Squat (Dumbbell)":"https://www.youtube.com/results?search_query=Bulgarian%20Split%20Squat%20(Dumbbell)%20exercise%20tutorial%20form",
+  "Front Squat (Barbell)":"https://www.youtube.com/results?search_query=Front%20Squat%20(Barbell)%20exercise%20tutorial%20form",
+  "Full Squat (Barbell)":"https://www.youtube.com/results?search_query=Full%20Squat%20(Barbell)%20exercise%20tutorial%20form",
+  "Goblet Squat (Dumbbell)":"https://www.youtube.com/results?search_query=Goblet%20Squat%20(Dumbbell)%20exercise%20tutorial%20form",
+  "Goblet Squat (Kettlebell)":"https://www.youtube.com/results?search_query=Goblet%20Squat%20(Kettlebell)%20exercise%20tutorial%20form",
+  "Hack Squat (Barbell)":"https://www.youtube.com/results?search_query=Hack%20Squat%20(Barbell)%20exercise%20tutorial%20form",
+  "Hack Squat (Machine)":"https://www.youtube.com/results?search_query=Hack%20Squat%20(Machine)%20exercise%20tutorial%20form",
+  "Jump Squat (Bodyweight)":"https://www.youtube.com/results?search_query=Jump%20Squat%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Lateral Squat (Bodyweight)":"https://www.youtube.com/results?search_query=Lateral%20Squat%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Pause Squat (Barbell)":"https://www.youtube.com/results?search_query=Pause%20Squat%20(Barbell)%20exercise%20tutorial%20form",
+  "Pendulum Squat (Machine)":"https://www.youtube.com/results?search_query=Pendulum%20Squat%20(Machine)%20exercise%20tutorial%20form",
+  "Pistol Squat (Bodyweight)":"https://www.youtube.com/results?search_query=Pistol%20Squat%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Split Squat (Dumbbell)":"https://www.youtube.com/results?search_query=Split%20Squat%20(Dumbbell)%20exercise%20tutorial%20form",
+  "Squat (Barbell)":"https://www.youtube.com/results?search_query=Squat%20(Barbell)%20exercise%20tutorial%20form",
+  "Squat (Dumbbell)":"https://www.youtube.com/results?search_query=Squat%20(Dumbbell)%20exercise%20tutorial%20form",
+  "Squat (Machine)":"https://www.youtube.com/results?search_query=Squat%20(Machine)%20exercise%20tutorial%20form",
+  "Squat (Smith Machine)":"https://www.youtube.com/results?search_query=Squat%20(Smith%20Machine)%20exercise%20tutorial%20form",
+  "Squat (Band)":"https://www.youtube.com/results?search_query=Squat%20(Band)%20exercise%20tutorial%20form",
+  "Squat (Bodyweight)":"https://www.youtube.com/results?search_query=Squat%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Squat (Suspension)":"https://www.youtube.com/results?search_query=Squat%20(Suspension)%20exercise%20tutorial%20form",
+  "Sumo Squat (Barbell)":"https://www.youtube.com/results?search_query=Sumo%20Squat%20(Barbell)%20exercise%20tutorial%20form",
+  "Sumo Squat (Dumbbell)":"https://www.youtube.com/results?search_query=Sumo%20Squat%20(Dumbbell)%20exercise%20tutorial%20form",
+  "Sumo Squat (Kettlebell)":"https://www.youtube.com/results?search_query=Sumo%20Squat%20(Kettlebell)%20exercise%20tutorial%20form",
+  "Sumo Squat (Bodyweight)":"https://www.youtube.com/results?search_query=Sumo%20Squat%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Weighted Sissy Squat (Bodyweight)":"https://www.youtube.com/results?search_query=Weighted%20Sissy%20Squat%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Zercher Squat (Barbell)":"https://www.youtube.com/results?search_query=Zercher%20Squat%20(Barbell)%20exercise%20tutorial%20form",
+  "Leg Press (Machine)":"https://www.youtube.com/results?search_query=Leg%20Press%20(Machine)%20exercise%20tutorial%20form",
+  "Leg Press Horizontal (Machine)":"https://www.youtube.com/results?search_query=Leg%20Press%20Horizontal%20(Machine)%20exercise%20tutorial%20form",
+  "Single Leg Press (Machine)":"https://www.youtube.com/results?search_query=Single%20Leg%20Press%20(Machine)%20exercise%20tutorial%20form",
+  "Romanian Deadlift (Barbell)":"https://www.youtube.com/results?search_query=Romanian%20Deadlift%20(Barbell)%20exercise%20tutorial%20form",
+  "Romanian Deadlift (Dumbbell)":"https://www.youtube.com/results?search_query=Romanian%20Deadlift%20(Dumbbell)%20exercise%20tutorial%20form",
+  "Single Leg Romanian Deadlift (Barbell)":"https://www.youtube.com/results?search_query=Single%20Leg%20Romanian%20Deadlift%20(Barbell)%20exercise%20tutorial%20form",
+  "Single Leg Romanian Deadlift (Dumbbell)":"https://www.youtube.com/results?search_query=Single%20Leg%20Romanian%20Deadlift%20(Dumbbell)%20exercise%20tutorial%20form",
+  "Deadlift (Barbell)":"https://www.youtube.com/results?search_query=Deadlift%20(Barbell)%20exercise%20tutorial%20form",
+  "Deadlift (Dumbbell)":"https://www.youtube.com/results?search_query=Deadlift%20(Dumbbell)%20exercise%20tutorial%20form",
+  "Deadlift (Smith Machine)":"https://www.youtube.com/results?search_query=Deadlift%20(Smith%20Machine)%20exercise%20tutorial%20form",
+  "Deadlift (Band)":"https://www.youtube.com/results?search_query=Deadlift%20(Band)%20exercise%20tutorial%20form",
+  "Straight Leg Deadlift (Barbell)":"https://www.youtube.com/results?search_query=Straight%20Leg%20Deadlift%20(Barbell)%20exercise%20tutorial%20form",
+  "Sumo Deadlift (Barbell)":"https://www.youtube.com/results?search_query=Sumo%20Deadlift%20(Barbell)%20exercise%20tutorial%20form",
+  "Trap bar Deadlift (Barbell)":"https://www.youtube.com/results?search_query=Trap%20bar%20Deadlift%20(Barbell)%20exercise%20tutorial%20form",
+  "Curtsy Lunge (Dumbbell)":"https://www.youtube.com/results?search_query=Curtsy%20Lunge%20(Dumbbell)%20exercise%20tutorial%20form",
+  "Jumping Lunge (Bodyweight)":"https://www.youtube.com/results?search_query=Jumping%20Lunge%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Lateral Lunge (Bodyweight)":"https://www.youtube.com/results?search_query=Lateral%20Lunge%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Lunge (Barbell)":"https://www.youtube.com/results?search_query=Lunge%20(Barbell)%20exercise%20tutorial%20form",
+  "Lunge (Dumbbell)":"https://www.youtube.com/results?search_query=Lunge%20(Dumbbell)%20exercise%20tutorial%20form",
+  "Lunge (Bodyweight)":"https://www.youtube.com/results?search_query=Lunge%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Overhead Dumbbell Lunge (Dumbbell)":"https://www.youtube.com/results?search_query=Overhead%20Dumbbell%20Lunge%20(Dumbbell)%20exercise%20tutorial%20form",
+  "Reverse Lunge (Barbell)":"https://www.youtube.com/results?search_query=Reverse%20Lunge%20(Barbell)%20exercise%20tutorial%20form",
+  "Reverse Lunge (Dumbbell)":"https://www.youtube.com/results?search_query=Reverse%20Lunge%20(Dumbbell)%20exercise%20tutorial%20form",
+  "Reverse Lunge (Bodyweight)":"https://www.youtube.com/results?search_query=Reverse%20Lunge%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Walking Lunge (Dumbbell)":"https://www.youtube.com/results?search_query=Walking%20Lunge%20(Dumbbell)%20exercise%20tutorial%20form",
+  "Walking Lunge (Bodyweight)":"https://www.youtube.com/results?search_query=Walking%20Lunge%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Leg Extension (Machine)":"https://www.youtube.com/results?search_query=Leg%20Extension%20(Machine)%20exercise%20tutorial%20form",
+  "Single Leg Extensions (Bodyweight)":"https://www.youtube.com/results?search_query=Single%20Leg%20Extensions%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Lying Leg Curl (Machine)":"https://www.youtube.com/results?search_query=Lying%20Leg%20Curl%20(Machine)%20exercise%20tutorial%20form",
+  "Seated Leg Curl (Machine)":"https://www.youtube.com/results?search_query=Seated%20Leg%20Curl%20(Machine)%20exercise%20tutorial%20form",
+  "Standing Leg Curls (Machine)":"https://www.youtube.com/results?search_query=Standing%20Leg%20Curls%20(Machine)%20exercise%20tutorial%20form",
+  "Hip Thrust (Barbell)":"https://www.youtube.com/results?search_query=Hip%20Thrust%20(Barbell)%20exercise%20tutorial%20form",
+  "Hip Thrust (Machine)":"https://www.youtube.com/results?search_query=Hip%20Thrust%20(Machine)%20exercise%20tutorial%20form",
+  "Hip Thrust (Smith Machine)":"https://www.youtube.com/results?search_query=Hip%20Thrust%20(Smith%20Machine)%20exercise%20tutorial%20form",
+  "Hip Thrust (Bodyweight)":"https://www.youtube.com/results?search_query=Hip%20Thrust%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Single Leg Hip Thrust (Dumbbell)":"https://www.youtube.com/results?search_query=Single%20Leg%20Hip%20Thrust%20(Dumbbell)%20exercise%20tutorial%20form",
+  "Single Leg Hip Thrust (Bodyweight)":"https://www.youtube.com/results?search_query=Single%20Leg%20Hip%20Thrust%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Seated Calf Raise (Machine)":"https://www.youtube.com/results?search_query=Seated%20Calf%20Raise%20(Machine)%20exercise%20tutorial%20form",
+  "Single Leg Standing Calf Raise (Barbell)":"https://www.youtube.com/results?search_query=Single%20Leg%20Standing%20Calf%20Raise%20(Barbell)%20exercise%20tutorial%20form",
+  "Single Leg Standing Calf Raise (Dumbbell)":"https://www.youtube.com/results?search_query=Single%20Leg%20Standing%20Calf%20Raise%20(Dumbbell)%20exercise%20tutorial%20form",
+  "Single Leg Standing Calf Raise (Machine)":"https://www.youtube.com/results?search_query=Single%20Leg%20Standing%20Calf%20Raise%20(Machine)%20exercise%20tutorial%20form",
+  "Single Leg Standing Calf Raise (Bodyweight)":"https://www.youtube.com/results?search_query=Single%20Leg%20Standing%20Calf%20Raise%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Standing Calf Raise (Barbell)":"https://www.youtube.com/results?search_query=Standing%20Calf%20Raise%20(Barbell)%20exercise%20tutorial%20form",
+  "Standing Calf Raise (Dumbbell)":"https://www.youtube.com/results?search_query=Standing%20Calf%20Raise%20(Dumbbell)%20exercise%20tutorial%20form",
+  "Standing Calf Raise (Machine)":"https://www.youtube.com/results?search_query=Standing%20Calf%20Raise%20(Machine)%20exercise%20tutorial%20form",
+  "Standing Calf Raise (Smith Machine)":"https://www.youtube.com/results?search_query=Standing%20Calf%20Raise%20(Smith%20Machine)%20exercise%20tutorial%20form",
+  "Bird Dog (Bodyweight)":"https://www.youtube.com/results?search_query=Bird%20Dog%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Box Jump (Bodyweight)":"https://www.youtube.com/results?search_query=Box%20Jump%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Calf Extension (Machine)":"https://www.youtube.com/results?search_query=Calf%20Extension%20(Machine)%20exercise%20tutorial%20form",
+  "Calf Press (Machine)":"https://www.youtube.com/results?search_query=Calf%20Press%20(Machine)%20exercise%20tutorial%20form",
+  "Clamshell (Bodyweight)":"https://www.youtube.com/results?search_query=Clamshell%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Fire Hydrants (Bodyweight)":"https://www.youtube.com/results?search_query=Fire%20Hydrants%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Frog Jumps (Bodyweight)":"https://www.youtube.com/results?search_query=Frog%20Jumps%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Frog Pumps (Dumbbell)":"https://www.youtube.com/results?search_query=Frog%20Pumps%20(Dumbbell)%20exercise%20tutorial%20form",
+  "Glute Bridge (Bodyweight)":"https://www.youtube.com/results?search_query=Glute%20Bridge%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Glute Ham Raise (Machine)":"https://www.youtube.com/results?search_query=Glute%20Ham%20Raise%20(Machine)%20exercise%20tutorial%20form",
+  "Glute Kickback (Machine)":"https://www.youtube.com/results?search_query=Glute%20Kickback%20(Machine)%20exercise%20tutorial%20form",
+  "Glute Kickback on Floor (Bodyweight)":"https://www.youtube.com/results?search_query=Glute%20Kickback%20on%20Floor%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Good Morning (Barbell)":"https://www.youtube.com/results?search_query=Good%20Morning%20(Barbell)%20exercise%20tutorial%20form",
+  "Hip Abduction (Machine)":"https://www.youtube.com/results?search_query=Hip%20Abduction%20(Machine)%20exercise%20tutorial%20form",
+  "Hip Adduction (Machine)":"https://www.youtube.com/results?search_query=Hip%20Adduction%20(Machine)%20exercise%20tutorial%20form",
+  "Lateral Band Walks (Band)":"https://www.youtube.com/results?search_query=Lateral%20Band%20Walks%20(Band)%20exercise%20tutorial%20form",
+  "Lateral Box Jump (Bodyweight)":"https://www.youtube.com/results?search_query=Lateral%20Box%20Jump%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Lateral Leg Raises (Bodyweight)":"https://www.youtube.com/results?search_query=Lateral%20Leg%20Raises%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Nordic Hamstrings Curls (Bodyweight)":"https://www.youtube.com/results?search_query=Nordic%20Hamstrings%20Curls%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Partial Glute Bridge (Barbell)":"https://www.youtube.com/results?search_query=Partial%20Glute%20Bridge%20(Barbell)%20exercise%20tutorial%20form",
+  "Pull Through (Cable)":"https://www.youtube.com/results?search_query=Pull%20Through%20(Cable)%20exercise%20tutorial%20form",
+  "Rear Kick (Machine)":"https://www.youtube.com/results?search_query=Rear%20Kick%20(Machine)%20exercise%20tutorial%20form",
+  "Reverse Hyperextension (Machine)":"https://www.youtube.com/results?search_query=Reverse%20Hyperextension%20(Machine)%20exercise%20tutorial%20form",
+  "Single Leg Glute Bridge (Bodyweight)":"https://www.youtube.com/results?search_query=Single%20Leg%20Glute%20Bridge%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Standing Cable Glute Kickbacks (Cable)":"https://www.youtube.com/results?search_query=Standing%20Cable%20Glute%20Kickbacks%20(Cable)%20exercise%20tutorial%20form",
+  "Step Up (Dumbbell)":"https://www.youtube.com/results?search_query=Step%20Up%20(Dumbbell)%20exercise%20tutorial%20form",
+  "Step Up (Bodyweight)":"https://www.youtube.com/results?search_query=Step%20Up%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Wall Sit (Bodyweight)":"https://www.youtube.com/results?search_query=Wall%20Sit%20(Bodyweight)%20exercise%20tutorial%20form",
+  // Abs (35)
+  "Plank (Bodyweight)":"https://www.youtube.com/results?search_query=Plank%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Reverse Plank (Bodyweight)":"https://www.youtube.com/results?search_query=Reverse%20Plank%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Side Plank (Bodyweight)":"https://www.youtube.com/results?search_query=Side%20Plank%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Hanging Leg Raise (Bodyweight)":"https://www.youtube.com/results?search_query=Hanging%20Leg%20Raise%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Leg Raise Parallel Bars (Bodyweight)":"https://www.youtube.com/results?search_query=Leg%20Raise%20Parallel%20Bars%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Lying Leg Raise (Bodyweight)":"https://www.youtube.com/results?search_query=Lying%20Leg%20Raise%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Jackknife Sit Up (Bodyweight)":"https://www.youtube.com/results?search_query=Jackknife%20Sit%20Up%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Sit Up (Bodyweight)":"https://www.youtube.com/results?search_query=Sit%20Up%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Weighted Sit Up (Bodyweight)":"https://www.youtube.com/results?search_query=Weighted%20Sit%20Up%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Decline Crunch (Bodyweight)":"https://www.youtube.com/results?search_query=Decline%20Crunch%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Oblique Crunch (Bodyweight)":"https://www.youtube.com/results?search_query=Oblique%20Crunch%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Reverse Crunch (Bodyweight)":"https://www.youtube.com/results?search_query=Reverse%20Crunch%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Weighted Decline Crunch (Bodyweight)":"https://www.youtube.com/results?search_query=Weighted%20Decline%20Crunch%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Russian Twist (Bodyweight)":"https://www.youtube.com/results?search_query=Russian%20Twist%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Weighted Russian Twist (Bodyweight)":"https://www.youtube.com/results?search_query=Weighted%20Russian%20Twist%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Toes to Bar (Bodyweight)":"https://www.youtube.com/results?search_query=Toes%20to%20Bar%20(Bodyweight)%20exercise%20tutorial%20form",
+  "V Up (Bodyweight)":"https://www.youtube.com/results?search_query=V%20Up%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Dead Bug (Bodyweight)":"https://www.youtube.com/results?search_query=Dead%20Bug%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Dragon Flag (Bodyweight)":"https://www.youtube.com/results?search_query=Dragon%20Flag%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Dragonfly (Bodyweight)":"https://www.youtube.com/results?search_query=Dragonfly%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Elbow to Knee (Bodyweight)":"https://www.youtube.com/results?search_query=Elbow%20to%20Knee%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Flutter Kicks (Bodyweight)":"https://www.youtube.com/results?search_query=Flutter%20Kicks%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Hanging Knee Raise (Bodyweight)":"https://www.youtube.com/results?search_query=Hanging%20Knee%20Raise%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Heel Taps (Bodyweight)":"https://www.youtube.com/results?search_query=Heel%20Taps%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Hollow Rock (Bodyweight)":"https://www.youtube.com/results?search_query=Hollow%20Rock%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Jack Knife (Suspension)":"https://www.youtube.com/results?search_query=Jack%20Knife%20(Suspension)%20exercise%20tutorial%20form",
+  "Knee Raise Parallel Bars (Bodyweight)":"https://www.youtube.com/results?search_query=Knee%20Raise%20Parallel%20Bars%20(Bodyweight)%20exercise%20tutorial%20form",
+  "L-Sit Hold (Bodyweight)":"https://www.youtube.com/results?search_query=L-Sit%20Hold%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Landmine 180 (Bodyweight)":"https://www.youtube.com/results?search_query=Landmine%20180%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Lying Knee Raise (Bodyweight)":"https://www.youtube.com/results?search_query=Lying%20Knee%20Raise%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Side Bend (Dumbbell)":"https://www.youtube.com/results?search_query=Side%20Bend%20(Dumbbell)%20exercise%20tutorial%20form",
+  "Side Bend (Bodyweight)":"https://www.youtube.com/results?search_query=Side%20Bend%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Spiderman (Bodyweight)":"https://www.youtube.com/results?search_query=Spiderman%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Toe Touch (Bodyweight)":"https://www.youtube.com/results?search_query=Toe%20Touch%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Torso Rotation (Bodyweight)":"https://www.youtube.com/results?search_query=Torso%20Rotation%20(Bodyweight)%20exercise%20tutorial%20form",
+  // Cardio (20)
+  "Treadmill Sprint (Machine)":"https://www.youtube.com/results?search_query=Treadmill%20Sprint%20(Machine)%20exercise%20tutorial%20form",
+  "Treadmill Incline Walk (Machine)":"https://www.youtube.com/results?search_query=Treadmill%20Incline%20Walk%20(Machine)%20exercise%20tutorial%20form",
+  "Stationary Cycling (Machine)":"https://www.youtube.com/results?search_query=Stationary%20Cycling%20(Machine)%20exercise%20tutorial%20form",
+  "Rowing Machine (Machine)":"https://www.youtube.com/results?search_query=Rowing%20Machine%20(Machine)%20exercise%20tutorial%20form",
+  "Jump Rope (Bodyweight)":"https://www.youtube.com/results?search_query=Jump%20Rope%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Elliptical (Machine)":"https://www.youtube.com/results?search_query=Elliptical%20(Machine)%20exercise%20tutorial%20form",
+  "Stair Climber (Machine)":"https://www.youtube.com/results?search_query=Stair%20Climber%20(Machine)%20exercise%20tutorial%20form",
+  "Assault Bike (Machine)":"https://www.youtube.com/results?search_query=Assault%20Bike%20(Machine)%20exercise%20tutorial%20form",
+  "Battle Ropes (Bodyweight)":"https://www.youtube.com/results?search_query=Battle%20Ropes%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Box Jump (Bodyweight)":"https://www.youtube.com/results?search_query=Box%20Jump%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Cardio Burpees (Bodyweight)":"https://www.youtube.com/results?search_query=Cardio%20Burpees%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Farmer's Carry (Dumbbell)":"https://www.youtube.com/results?search_query=Farmer's%20Carry%20(Dumbbell)%20exercise%20tutorial%20form",
+  "High Knees (Bodyweight)":"https://www.youtube.com/results?search_query=High%20Knees%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Jumping Jacks (Bodyweight)":"https://www.youtube.com/results?search_query=Jumping%20Jacks%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Outdoor Running (Bodyweight)":"https://www.youtube.com/results?search_query=Outdoor%20Running%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Shadow Boxing (Bodyweight)":"https://www.youtube.com/results?search_query=Shadow%20Boxing%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Skater Jumps (Bodyweight)":"https://www.youtube.com/results?search_query=Skater%20Jumps%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Sled Pull (Machine)":"https://www.youtube.com/results?search_query=Sled%20Pull%20(Machine)%20exercise%20tutorial%20form",
+  "Sled Push (Machine)":"https://www.youtube.com/results?search_query=Sled%20Push%20(Machine)%20exercise%20tutorial%20form",
+  "Swimming (Bodyweight)":"https://www.youtube.com/results?search_query=Swimming%20(Bodyweight)%20exercise%20tutorial%20form",
+  // Warmup (15)
+  "Jumping Jacks (Bodyweight)":"https://www.youtube.com/results?search_query=Jumping%20Jacks%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Arm Circles (Bodyweight)":"https://www.youtube.com/results?search_query=Arm%20Circles%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Leg Swings (Bodyweight)":"https://www.youtube.com/results?search_query=Leg%20Swings%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Squat (Bodyweight)":"https://www.youtube.com/results?search_query=Squat%20(Bodyweight)%20exercise%20tutorial%20form",
+  "High Knees (Bodyweight)":"https://www.youtube.com/results?search_query=High%20Knees%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Walking Lunge (Bodyweight)":"https://www.youtube.com/results?search_query=Walking%20Lunge%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Hip Circles (Bodyweight)":"https://www.youtube.com/results?search_query=Hip%20Circles%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Torso Twists (Bodyweight)":"https://www.youtube.com/results?search_query=Torso%20Twists%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Cat Cow Stretch (Bodyweight)":"https://www.youtube.com/results?search_query=Cat%20Cow%20Stretch%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Glute Bridge Warmup (Bodyweight)":"https://www.youtube.com/results?search_query=Glute%20Bridge%20Warmup%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Inchworm (Bodyweight)":"https://www.youtube.com/results?search_query=Inchworm%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Pull Apart (Band)":"https://www.youtube.com/results?search_query=Pull%20Apart%20(Band)%20exercise%20tutorial%20form",
+  "Push Up (Bodyweight)":"https://www.youtube.com/results?search_query=Push%20Up%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Shoulder Dislocates (Band)":"https://www.youtube.com/results?search_query=Shoulder%20Dislocates%20(Band)%20exercise%20tutorial%20form",
+  "World's Greatest Stretch (Bodyweight)":"https://www.youtube.com/results?search_query=World's%20Greatest%20Stretch%20(Bodyweight)%20exercise%20tutorial%20form",
+  // Full Body (40)
+  "Burpee (Bodyweight)":"https://www.youtube.com/results?search_query=Burpee%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Burpee Over the Bar (Barbell)":"https://www.youtube.com/results?search_query=Burpee%20Over%20the%20Bar%20(Barbell)%20exercise%20tutorial%20form",
+  "Clean and Press (Barbell)":"https://www.youtube.com/results?search_query=Clean%20and%20Press%20(Barbell)%20exercise%20tutorial%20form",
+  "Power Clean (Barbell)":"https://www.youtube.com/results?search_query=Power%20Clean%20(Barbell)%20exercise%20tutorial%20form",
+  "Clean and Jerk (Barbell)":"https://www.youtube.com/results?search_query=Clean%20and%20Jerk%20(Barbell)%20exercise%20tutorial%20form",
+  "Thruster (Barbell)":"https://www.youtube.com/results?search_query=Thruster%20(Barbell)%20exercise%20tutorial%20form",
+  "Thruster (Kettlebell)":"https://www.youtube.com/results?search_query=Thruster%20(Kettlebell)%20exercise%20tutorial%20form",
+  "Farmers Walk (Dumbbell)":"https://www.youtube.com/results?search_query=Farmers%20Walk%20(Dumbbell)%20exercise%20tutorial%20form",
+  "Wall Ball (Machine)":"https://www.youtube.com/results?search_query=Wall%20Ball%20(Machine)%20exercise%20tutorial%20form",
+  "Mountain Climber (Bodyweight)":"https://www.youtube.com/results?search_query=Mountain%20Climber%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Ball Slams (Machine)":"https://www.youtube.com/results?search_query=Ball%20Slams%20(Machine)%20exercise%20tutorial%20form",
+  "Clean (Barbell)":"https://www.youtube.com/results?search_query=Clean%20(Barbell)%20exercise%20tutorial%20form",
+  "Clean (Kettlebell)":"https://www.youtube.com/results?search_query=Clean%20(Kettlebell)%20exercise%20tutorial%20form",
+  "Clean Pull (Barbell)":"https://www.youtube.com/results?search_query=Clean%20Pull%20(Barbell)%20exercise%20tutorial%20form",
+  "Deadlift High Pull (Barbell)":"https://www.youtube.com/results?search_query=Deadlift%20High%20Pull%20(Barbell)%20exercise%20tutorial%20form",
+  "Downward Dog (Bodyweight)":"https://www.youtube.com/results?search_query=Downward%20Dog%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Front Lever Hold (Bodyweight)":"https://www.youtube.com/results?search_query=Front%20Lever%20Hold%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Front Lever Raise (Bodyweight)":"https://www.youtube.com/results?search_query=Front%20Lever%20Raise%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Handstand Hold (Bodyweight)":"https://www.youtube.com/results?search_query=Handstand%20Hold%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Hang Clean (Barbell)":"https://www.youtube.com/results?search_query=Hang%20Clean%20(Barbell)%20exercise%20tutorial%20form",
+  "Hang Snatch (Barbell)":"https://www.youtube.com/results?search_query=Hang%20Snatch%20(Barbell)%20exercise%20tutorial%20form",
+  "High Knee Skips (Bodyweight)":"https://www.youtube.com/results?search_query=High%20Knee%20Skips%20(Bodyweight)%20exercise%20tutorial%20form",
+  "High Knees (Bodyweight)":"https://www.youtube.com/results?search_query=High%20Knees%20(Bodyweight)%20exercise%20tutorial%20form",
+  "High Pull (Kettlebell)":"https://www.youtube.com/results?search_query=High%20Pull%20(Kettlebell)%20exercise%20tutorial%20form",
+  "Jump Shrug (Barbell)":"https://www.youtube.com/results?search_query=Jump%20Shrug%20(Barbell)%20exercise%20tutorial%20form",
+  "Jumping Jack (Bodyweight)":"https://www.youtube.com/results?search_query=Jumping%20Jack%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Landmine Squat and Press (Barbell)":"https://www.youtube.com/results?search_query=Landmine%20Squat%20and%20Press%20(Barbell)%20exercise%20tutorial%20form",
+  "Muscle Up (Bodyweight)":"https://www.youtube.com/results?search_query=Muscle%20Up%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Overhead Squat (Barbell)":"https://www.youtube.com/results?search_query=Overhead%20Squat%20(Barbell)%20exercise%20tutorial%20form",
+  "Pilates (Bodyweight)":"https://www.youtube.com/results?search_query=Pilates%20(Bodyweight)%20exercise%20tutorial%20form",
+  "Power Snatch (Barbell)":"https://www.youtube.com/results?search_query=Power%20Snatch%20(Barbell)%20exercise%20tutorial%20form",
+  "Press Under (Barbell)":"https://www.youtube.com/results?search_query=Press%20Under%20(Barbell)%20exercise%20tutorial%20form",
+  "Sled Push (Machine)":"https://www.youtube.com/results?search_query=Sled%20Push%20(Machine)%20exercise%20tutorial%20form",
+  "Snatch (Barbell)":"https://www.youtube.com/results?search_query=Snatch%20(Barbell)%20exercise%20tutorial%20form",
+  "Snatch (Dumbbell)":"https://www.youtube.com/results?search_query=Snatch%20(Dumbbell)%20exercise%20tutorial%20form",
+  "Snatch (Kettlebell)":"https://www.youtube.com/results?search_query=Snatch%20(Kettlebell)%20exercise%20tutorial%20form",
+  "Split Jerk (Barbell)":"https://www.youtube.com/results?search_query=Split%20Jerk%20(Barbell)%20exercise%20tutorial%20form",
+  "Squat Row (Machine)":"https://www.youtube.com/results?search_query=Squat%20Row%20(Machine)%20exercise%20tutorial%20form",
+  "Swing (Kettlebell)":"https://www.youtube.com/results?search_query=Swing%20(Kettlebell)%20exercise%20tutorial%20form",
+  "Turkish Get Up (Kettlebell)":"https://www.youtube.com/results?search_query=Turkish%20Get%20Up%20(Kettlebell)%20exercise%20tutorial%20form",
+};
+
 function initLearnPage(){
-  document.getElementById("learnSearchInput").value="";document.getElementById("learnClassFilter").value="";
+  if(!document.getElementById("learnClassFilter").dataset.built){
+    document.getElementById("learnClassFilter").innerHTML='<option value="">— Select Muscle Group —</option>'+MUSCLE_LIST.map(m=>`<option value="${m}">${m}</option>`).join("");
+    document.getElementById("learnEquipmentFilter").innerHTML='<option value="">All Equipment</option>'+EQUIPMENT_LIST.map(eq=>`<option value="${eq}">${eq}</option>`).join("");
+    document.getElementById("learnClassFilter").dataset.built="1";
+  }
+  document.getElementById("learnSearchInput").value="";document.getElementById("learnClassFilter").value="";document.getElementById("learnEquipmentFilter").value="";
   document.getElementById("learnWorkoutPickerRow").style.display="none";document.getElementById("learnInfoCard").style.display="none";
   document.getElementById("learnEmptyState").style.display="block";document.getElementById("learnSuggestions").style.display="none";
 }
 function handleLearnSearch(){
   const val=document.getElementById("learnSearchInput").value.trim();const sugBox=document.getElementById("learnSuggestions");
   if(val.length<1){sugBox.style.display="none";return}
-  const lower=val.toLowerCase();const matches=Object.keys(LEARN_DB).filter(name=>name.toLowerCase().includes(lower)).slice(0,8);
+  const lower=val.toLowerCase();
+  // Search the SAME full exercise catalog used on the Add Workout page (300+ exercises,
+  // all classes/equipment), not just the small hand-curated LEARN_DB — so every exercise
+  // that shows up in Workout Entry is also findable here.
+  const matches=EXERCISE_CATALOG.filter(e=>e.class!=='multi'&&e.name.toLowerCase().includes(lower)).slice(0,8);
   if(!matches.length){sugBox.style.display="none";return}
-  sugBox.innerHTML=matches.map(name=>{const ex=LEARN_DB[name];return `<div class="sug-item" onclick="selectLearnExercise('${name.replace(/'/g,"\\'")}')"> ${name}<span class="sug-badge">${ex.class}</span></div>`}).join("");
+  sugBox.innerHTML=matches.map(e=>`<div class="sug-item" onclick="selectLearnExercise('${e.name.replace(/'/g,"\\'")}')"> ${e.name}<span class="sug-badge">${e.class}</span></div>`).join("");
   sugBox.style.display="block";
 }
-function handleLearnClassFilter(){
-  const cls=document.getElementById("learnClassFilter").value;const pickerRow=document.getElementById("learnWorkoutPickerRow");const picker=document.getElementById("learnWorkoutPicker");
+/* Rebuilds the "Select Exercise" dropdown from the full EXERCISE_CATALOG filtered by the
+   currently chosen Class + Equipment — exactly the same filter logic (ctmGetFilteredCatalog)
+   used to build the exercise list on the Add Workout page, so Learn always shows the full
+   30–40-per-class list instead of a small curated subset. */
+function updateLearnExercisePicker(){
+  const cls=document.getElementById("learnClassFilter").value;
+  const eq=document.getElementById("learnEquipmentFilter").value;
+  const pickerRow=document.getElementById("learnWorkoutPickerRow");const picker=document.getElementById("learnWorkoutPicker");
   if(!cls){pickerRow.style.display="none";return}
-  const exercises=LEARN_BY_CLASS[cls]||[];picker.innerHTML=`<option value="">— Choose an exercise —</option>`+exercises.map(ex=>`<option value="${ex}">${ex}</option>`).join("");
+  const list=ctmGetFilteredCatalog(cls,eq,'',false);
+  picker.innerHTML=`<option value="">— Choose an exercise (${list.length}) —</option>`+list.map(e=>`<option value="${e.name.replace(/"/g,'&quot;')}">${e.name}</option>`).join("");
   pickerRow.style.display="block";document.getElementById("learnInfoCard").style.display="none";document.getElementById("learnEmptyState").style.display="block";
 }
+function handleLearnClassFilter(){updateLearnExercisePicker()}
+function handleLearnEquipmentFilter(){updateLearnExercisePicker()}
 function handleLearnWorkoutPick(){const name=document.getElementById("learnWorkoutPicker").value;if(!name)return;selectLearnExercise(name)}
 function selectLearnExercise(name){
   document.getElementById("learnSuggestions").style.display="none";document.getElementById("learnSearchInput").value=name;
-  let data=LEARN_DB[name];if(!data){const key=Object.keys(LEARN_DB).find(k=>k.toLowerCase()===name.toLowerCase());if(key)data=LEARN_DB[key]}
-  if(!data){document.getElementById("learnInfoCard").innerHTML=`<div class="learn-info-card"><p style="color:var(--text-muted);font-family:var(--font-alt);padding:20px">Exercise data not found.</p></div>`;document.getElementById("learnInfoCard").style.display="block";document.getElementById("learnEmptyState").style.display="none";return}
-  renderLearnCard(name,data);
+  // 1) Exact match in the hand-curated guide database.
+  let data=LEARN_DB[name];
+  if(!data){const key=Object.keys(LEARN_DB).find(k=>k.toLowerCase()===name.toLowerCase());if(key)data=LEARN_DB[key]}
+  // 2) Catalog names carry an "(Equipment)" suffix, e.g. "Bench Press (Barbell)" — the curated
+  //    guide is stored under the base movement name "Bench Press", so strip it and match again.
+  //    This alone covers most of the 300+ catalog exercises since they're equipment variants
+  //    of the same curated base movements.
+  if(!data){
+    const base=stripExerciseClass(name);
+    const key=Object.keys(LEARN_DB).find(k=>k.toLowerCase()===base.toLowerCase());
+    if(key)data=LEARN_DB[key];
+  }
+  // 3) No curated guide exists yet for this specific variation — build a clear, honest generic
+  //    guide instead of blocking the exercise from being viewable at all. Its video button opens
+  //    a YouTube search for this exact exercise (a specific curated video ID isn't available yet).
+  if(!data){
+    const cls=getExerciseClass(name)!=='Unknown'?getExerciseClass(name):(document.getElementById("learnClassFilter").value||"General");
+    const eq=getExerciseEquipment(name);
+    data={
+      class:cls,gifEmoji:"🏋",
+      youtubeUrl:`https://www.youtube.com/results?search_query=${encodeURIComponent(name+" exercise tutorial form")}`,
+      youtubeLabel:"Search This Exercise on YouTube",
+      steps:[`Set up using ${eq!=="Unknown"?eq:"the required equipment"} in a stable, controlled starting position.`,"Engage your core and keep proper posture throughout the movement.","Perform the movement through a full, controlled range of motion.","Focus the effort on the target muscle group rather than momentum.","Exhale on the exertion phase and control the return to the start.","A dedicated step-by-step guide for this exact variation is coming soon."],
+      mistakes:["Using body momentum instead of controlled muscle contraction","Not completing a full range of motion","Using excessive weight that compromises form","Rushing reps without controlling the negative"],
+      primaryMuscle:cls,secondaryMuscles:[]
+    };
+  }
+  renderLearnCard(name,data,LEARN_VIDEO_URLS[name]);
 }
-function renderLearnCard(name,data){
+function renderLearnCard(name,data,videoUrlOverride){
+  const videoUrl=videoUrlOverride||data.youtubeUrl;
+  const videoLabel=videoUrlOverride?`${name} — Watch Tutorial`:data.youtubeLabel;
   const stepsHtml=data.steps.map((s,i)=>`<li><span class="learn-step-num">${i+1}</span><span>${s}</span></li>`).join("");
   const mistakesHtml=data.mistakes.map(m=>`<li><span>❌</span><span>${m}</span></li>`).join("");
   const secondaryHtml=data.secondaryMuscles.map(m=>`<span class="learn-muscle-chip secondary">${m}</span>`).join("");
-  const html=`<div class="learn-info-card glass"><div class="learn-info-card-header"><div class="learn-exercise-title">${name}</div><span class="learn-muscle-badge">${data.class}</span></div><div class="learn-main-grid"><div class="learn-gif-col"><div class="learn-gif-container"><div class="learn-gif-fallback"><span class="gif-emoji">${data.gifEmoji}</span><div class="gif-label">${name}</div><div style="font-size:11px;color:var(--text-muted);font-family:var(--font-alt);margin-top:6px;letter-spacing:0.3px">3D DEMONSTRATION</div></div></div><button type="button" class="learn-yt-link" id="learnYtBtn"><span class="learn-yt-icon">▶</span><span>${data.youtubeLabel}</span></button><div class="learn-section-block" style="margin-top:12px"><div class="learn-block-title">🎯 Target Muscles</div><div style="margin-bottom:10px"><div style="font-size:11px;font-weight:700;color:var(--text-muted);font-family:var(--font-alt);letter-spacing:0.5px;margin-bottom:6px;text-transform:uppercase">PRIMARY</div><span class="learn-muscle-chip primary">${data.primaryMuscle}</span></div><div><div style="font-size:11px;font-weight:700;color:var(--text-muted);font-family:var(--font-alt);letter-spacing:0.5px;margin-bottom:6px;text-transform:uppercase">SECONDARY</div><div class="learn-muscles-row">${secondaryHtml}</div></div></div></div><div class="learn-details-col"><div class="learn-section-block"><div class="learn-block-title">📋 How To Perform</div><ul class="learn-steps-list">${stepsHtml}</ul></div><div class="learn-section-block"><div class="learn-block-title">⚠️ Common Mistakes</div><ul class="learn-mistakes-list">${mistakesHtml}</ul></div></div></div></div>`;
+  const html=`<div class="learn-info-card glass"><div class="learn-info-card-header"><div class="learn-exercise-title">${name}</div><span class="learn-muscle-badge">${data.class}</span></div><div class="learn-main-grid"><div class="learn-gif-col"><div class="learn-gif-container"><div class="learn-gif-fallback"><span class="gif-emoji">${data.gifEmoji}</span><div class="gif-label">${name}</div><div style="font-size:11px;color:var(--text-muted);font-family:var(--font-alt);margin-top:6px;letter-spacing:0.3px">3D DEMONSTRATION</div></div></div><button type="button" class="learn-yt-link" id="learnYtBtn"><span class="learn-yt-icon">▶</span><span>${videoLabel}</span></button><div class="learn-section-block" style="margin-top:12px"><div class="learn-block-title">🎯 Target Muscles</div><div style="margin-bottom:10px"><div style="font-size:11px;font-weight:700;color:var(--text-muted);font-family:var(--font-alt);letter-spacing:0.5px;margin-bottom:6px;text-transform:uppercase">PRIMARY</div><span class="learn-muscle-chip primary">${data.primaryMuscle}</span></div><div><div style="font-size:11px;font-weight:700;color:var(--text-muted);font-family:var(--font-alt);letter-spacing:0.5px;margin-bottom:6px;text-transform:uppercase">SECONDARY</div><div class="learn-muscles-row">${secondaryHtml}</div></div></div></div><div class="learn-details-col"><div class="learn-section-block"><div class="learn-block-title">📋 How To Perform</div><ul class="learn-steps-list">${stepsHtml}</ul></div><div class="learn-section-block"><div class="learn-block-title">⚠️ Common Mistakes</div><ul class="learn-mistakes-list">${mistakesHtml}</ul></div></div></div></div>`;
   document.getElementById("learnInfoCard").innerHTML=html;document.getElementById("learnInfoCard").style.display="block";document.getElementById("learnEmptyState").style.display="none";
   const ytBtn=document.getElementById("learnYtBtn");
-  if(ytBtn)ytBtn.onclick=()=>openLearnVideo(data.youtubeUrl,data.youtubeLabel);
+  if(ytBtn)ytBtn.onclick=()=>openLearnVideo(videoUrl,videoLabel);
   document.getElementById("learnInfoCard").scrollIntoView({behavior:"smooth",block:"start"});
 }
 
