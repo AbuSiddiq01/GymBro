@@ -673,15 +673,23 @@ body.theme-batman .stats-subnav-btn.active{color:#05050a}
 .ctm-muscle-eq-row>div{flex:1;min-width:130px}
 .ctm-muscle-eq-row label{font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.6px;font-family:var(--font-alt);display:block;margin-bottom:4px}
 .ctm-muscle-eq-row select{margin-top:0;padding:10px 12px;font-size:13px}
-.stats-period-row select{margin-top:0;padding:10px;flex:1;min-width:130px}
-.week-nav-group{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.stats-period-row select{margin-top:0;padding:10px;flex:0.7 1 90px;min-width:0}
+.week-nav-group{display:flex;align-items:center;gap:8px;flex:1.3 0 auto}
 .week-nav-btn{background:var(--bg-card);border:1px solid var(--border-col);border-radius:10px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;font-size:20px;line-height:1;color:var(--accent);cursor:pointer;transition:background 0.15s,transform 0.1s;padding:0;font-family:sans-serif;-webkit-tap-highlight-color:transparent;flex-shrink:0}
 .week-nav-btn:active{transform:scale(0.88)}
 .week-range-label{font-family:var(--font-alt);font-size:12px;font-weight:700;color:var(--text-muted);white-space:nowrap;min-width:150px;text-align:center}
-@media(max-width:480px){
-  #histWeekNavGroup{gap:6px}
-  #histWeekNavGroup .week-nav-btn{width:26px;height:26px;font-size:14px}
-  #histWeekLabel{min-width:0;font-size:10px}
+@media(max-width:600px){
+  .stats-period-row{flex-wrap:nowrap;gap:6px}
+  .stats-period-row .week-nav-group{gap:5px;flex:1.3 0 auto}
+  .stats-period-row .week-nav-btn{width:36px;height:36px;font-size:17px}
+  .stats-period-row .week-range-label{min-width:0;max-width:150px;overflow:hidden;text-overflow:ellipsis;font-size:11.5px}
+  .stats-period-row select{min-width:0;flex:0.7 1 70px;padding:7px 4px;font-size:10px}
+}
+@media(max-width:380px){
+  .stats-period-row .week-nav-group{gap:4px;flex:1.3 0 auto}
+  .stats-period-row .week-nav-btn{width:32px;height:32px;font-size:15px}
+  .stats-period-row .week-range-label{max-width:118px;font-size:10px}
+  .stats-period-row select{flex:0.6 1 55px;padding:6px 3px;font-size:9px}
 }
 
 /* Volume bar glossy hover */
@@ -1435,19 +1443,35 @@ body.theme-batman .bnav-btn.bnav-center .bnav-icon{color:#05050a}
 
 /* ===================== TODAY'S WORKOUT BANNER ===================== */
 .today-workout-banner{
-  margin-top:14px;padding:14px 18px;
+  margin-top:14px;padding:16px 18px;
   background:linear-gradient(135deg,var(--accent-soft),rgba(37,99,235,0.04));
   border:1.5px solid var(--accent);border-radius:16px;
   display:flex;align-items:center;gap:12px;
   animation:fadeIn 0.4s ease;
+  box-shadow:0 4px 20px -8px var(--accent-glow),0 1px 0 rgba(255,255,255,0.04) inset;
+  transition:box-shadow 0.25s ease;
+  position:relative;
 }
+.today-workout-banner:hover{box-shadow:0 6px 26px -6px var(--accent-glow),0 1px 0 rgba(255,255,255,0.04) inset}
 body.theme-batman .today-workout-banner{background:rgba(245,200,0,0.06);border-color:var(--accent)}
 body.theme-godmode .today-workout-banner{background:rgba(192,0,10,0.07);border-color:var(--accent)}
-.today-workout-icon{font-size:28px;flex-shrink:0}
-.today-workout-text{flex:1}
-.today-workout-label{font-family:var(--font-alt);font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:0.8px;text-transform:uppercase;margin-bottom:3px}
+.today-workout-text{flex:1;min-width:0}
+.today-workout-label{font-family:var(--font-alt);font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:0.8px;text-transform:uppercase;margin-bottom:3px;transition:opacity 0.2s ease}
 .today-workout-value{font-family:var(--font-display);font-size:20px;color:var(--accent);letter-spacing:1px}
 .today-workout-sub{font-family:var(--font-alt);font-size:11px;color:var(--text-muted);margin-top:2px}
+.today-workout-collapse-btn{position:absolute;top:10px;right:12px;cursor:pointer;font-size:14px;line-height:1;color:var(--text-muted);padding:5px 7px;user-select:none;border-radius:8px;transition:background 0.2s ease,transform 0.25s ease,color 0.2s ease}
+.today-workout-collapse-btn:hover{background:var(--accent-soft);color:var(--accent)}
+.today-workout-collapse-btn.is-collapsed{transform:rotate(-90deg)}
+#todayWorkoutCollapsibleContent{transition:max-height 0.35s ease,opacity 0.3s ease,margin-top 0.3s ease;max-height:600px;opacity:1;overflow:hidden}
+#todayWorkoutCollapsibleContent.collapsed{max-height:0;opacity:0;margin-top:0;pointer-events:none}
+.today-schedule-link{font-family:var(--font-alt);font-size:11px;font-weight:700;color:var(--accent);cursor:pointer;display:inline-flex;align-items:center;gap:4px;margin-top:6px;padding:4px 11px;border-radius:20px;background:var(--accent-soft);border:1px solid transparent;transition:background 0.2s ease,border-color 0.2s ease,transform 0.15s ease}
+.today-schedule-link:hover{border-color:var(--accent);transform:translateY(-1px)}
+.today-schedule-link:active{transform:scale(0.96)}
+.today-schedule-link.muted{color:var(--text-muted);background:transparent;border:1px solid var(--border-col);margin-top:8px}
+.today-schedule-order-box{max-height:0;opacity:0;overflow:hidden;transition:max-height 0.3s ease,opacity 0.25s ease,margin-top 0.25s ease,padding 0.25s ease;margin-top:0;padding:0 12px;background:var(--accent-soft);border:1px solid transparent;border-radius:12px}
+.today-schedule-order-box.open{max-height:400px;opacity:1;margin-top:8px;padding:10px 12px;border-color:var(--border-col)}
+.today-schedule-order-list{font-family:var(--font-alt);font-size:11.5px;color:var(--text-secondary);line-height:1.85}
+.today-schedule-order-list .rest-day-line{color:var(--text-muted);font-style:italic}
 
 /* ===================== SETTINGS PAGE ===================== */
 #settingsPage{display:none}
@@ -1718,13 +1742,19 @@ body.theme-godmode .levelup-toast{background:linear-gradient(135deg,#7a0006,#c00
           <button class="btn" id="submitCheckinBtn" onclick="processCheckIn()">⚡ SUBMIT CHECK-IN (+50 XP)</button>
           <!-- Today's scheduled workout banner -->
           <div id="todayWorkoutBanner" style="display:none;position:relative" class="today-workout-banner">
-            <span class="today-workout-icon">💪</span>
             <div class="today-workout-text">
-              <div class="today-workout-label">Today's Schedule</div>
-              <div class="today-workout-value" id="todayWorkoutValue">—</div>
-              <div class="today-workout-sub" id="todayWorkoutSub"></div>
+              <div class="today-workout-label" id="todayWorkoutLabel">Previous Schedule</div>
+              <div id="todayWorkoutCollapsibleContent">
+                <div class="today-workout-value" id="todayWorkoutValue">—</div>
+                <div class="today-workout-sub" id="todayWorkoutSub"></div>
+                <span id="todayScheduleViewBtn" class="today-schedule-link" onclick="toggleScheduleOrderView()">📅 View Schedule</span>
+                <div id="todayScheduleOrderBox" class="today-schedule-order-box">
+                  <div id="todayScheduleOrderList" class="today-schedule-order-list"></div>
+                  <span class="today-schedule-link muted" onclick="toggleScheduleOrderView()">Close</span>
+                </div>
+              </div>
             </div>
-            <span id="todayWorkoutCloseBtn" onclick="closeTodayWorkoutBanner()" title="Close" style="position:absolute;top:8px;right:10px;cursor:pointer;font-size:15px;line-height:1;color:var(--text-muted);padding:4px;user-select:none">✕</span>
+            <span id="todayWorkoutCollapseBtn" onclick="toggleTodayScheduleCollapse()" title="Collapse" class="today-workout-collapse-btn">▾</span>
           </div>
         </div>
         <div class="stopwatch-container" id="clockBox">
@@ -1860,7 +1890,7 @@ body.theme-godmode .levelup-toast{background:linear-gradient(135deg,#7a0006,#c00
               <span id="durWeekLabel" class="week-range-label"></span>
               <button type="button" class="week-nav-btn" id="durWeekNext" onclick="durWeekNav(1)" title="Next week" style="visibility:hidden">&#8250;</button>
             </div>
-            <select id="statsMonth" style="margin-top:0;padding:10px;flex:1;min-width:130px" onchange="statsMonthChanged()"></select>
+            <select id="statsMonth" onchange="statsMonthChanged()"></select>
           </div>
           <div class="vol-range-label" id="durRangeLabel"></div>
           <div class="analytics-box">
@@ -1933,7 +1963,7 @@ body.theme-godmode .levelup-toast{background:linear-gradient(135deg,#7a0006,#c00
                 <span id="volWeekLabel" class="week-range-label"></span>
                 <button type="button" class="week-nav-btn" id="volWeekNext" onclick="volWeekNav(1)" title="Next week" style="visibility:hidden">&#8250;</button>
               </div>
-              <select id="volMonth" style="margin-top:0;padding:10px;flex:1;min-width:130px" onchange="volMonthChanged()"></select>
+              <select id="volMonth" onchange="volMonthChanged()"></select>
             </div>
             <div class="vol-range-label" id="volRangeLabel"></div>
 
@@ -2108,14 +2138,16 @@ body.theme-godmode .levelup-toast{background:linear-gradient(135deg,#7a0006,#c00
     <!-- ATTENDANCE TAB -->
     <div id="attPage" class="memberTab" style="display:none">
       <div class="section glass" style="margin-top:0">
-        <div class="section-title" style="justify-content:space-between">
+        <div class="section-title">
           <span>📋 Attendance History</span>
-          <select id="monthFilter" style="width:130px;margin-top:0;padding:6px;font-size:12px" onchange="histMonthChanged()"></select>
         </div>
-        <div id="histWeekNavGroup" class="week-nav-group" style="justify-content:center;margin-bottom:14px;flex-wrap:wrap">
-          <button type="button" class="week-nav-btn" id="histWeekPrev" onclick="histWeekNav(-1)" title="Previous week" style="width:30px;height:30px;font-size:16px">&#8249;</button>
-          <span id="histWeekLabel" class="week-range-label" style="min-width:150px;font-size:11px"></span>
-          <button type="button" class="week-nav-btn" id="histWeekNext" onclick="histWeekNav(1)" title="Next week" style="width:30px;height:30px;font-size:16px">&#8250;</button>
+        <div class="stats-period-row" id="histWeekRow">
+          <div id="histWeekNavGroup" class="week-nav-group">
+            <button type="button" class="week-nav-btn" id="histWeekPrev" onclick="histWeekNav(-1)" title="Previous week">&#8249;</button>
+            <span id="histWeekLabel" class="week-range-label"></span>
+            <button type="button" class="week-nav-btn" id="histWeekNext" onclick="histWeekNav(1)" title="Next week">&#8250;</button>
+          </div>
+          <select id="monthFilter" onchange="histMonthChanged()"></select>
         </div>
         <div style="font-size:11px;color:var(--text-muted);font-family:var(--font-alt);font-weight:700;letter-spacing:0.5px;text-transform:uppercase;margin-bottom:6px">This Month</div>
         <div id="histMonthSummary" class="cards hist-summary-cards">
@@ -4870,8 +4902,10 @@ function getScheduleDayForDate(dateObj,startDateStr){
 function _buildScheduleDayGroups(schedule){
   const groups=[];
   SCHEDULE_DAY_KEYS.forEach(day=>{
-    const classes=(schedule[day]||[]).filter(c=>c&&c!==REST_VALUE);
-    if(classes.length)groups.push({day,classes});
+    const raw=(schedule[day]||[]).filter(Boolean);
+    const isRest=raw[0]===REST_VALUE;
+    const classes=isRest?[]:raw;
+    if(isRest||classes.length)groups.push({day,classes,isRest});
   });
   return groups;
 }
@@ -4887,27 +4921,40 @@ function _fmtDateDay(dateStr){
 
 async function renderTodayWorkoutBanner(){
   const banner=document.getElementById('todayWorkoutBanner');
+  const labelEl=document.getElementById('todayWorkoutLabel');
   const valueEl=document.getElementById('todayWorkoutValue');
   const subEl=document.getElementById('todayWorkoutSub');
+  const viewBtn=document.getElementById('todayScheduleViewBtn');
+  const orderBox=document.getElementById('todayScheduleOrderBox');
+  const orderListEl=document.getElementById('todayScheduleOrderList');
   if(!banner)return;
   const schedule=JSON.parse(localStorage.getItem('gymbro_workout_schedule_'+settingsUid())||'null');
   const startDate=localStorage.getItem('gymbro_schedule_start_'+settingsUid());
   if(!schedule||!startDate){banner.style.display='none';return}
 
-  // If the user already closed today's notify box (or already checked out today), keep it closed
-  // until something actually changes (a new day, or a fresh check-in).
-  const closedFlag=localStorage.getItem('gymbro_schedule_notify_closed_'+settingsUid());
-  if(closedFlag===getLocalDateString()){banner.style.display='none';return}
-
   const uid=localStorage.getItem('user_id');
   const dayGroups=_buildScheduleDayGroups(schedule);
   if(!dayGroups.length){banner.style.display='none';return}
-  const allClasses=dayGroups.flatMap(g=>g.classes);
+  const allClasses=dayGroups.filter(g=>!g.isRest).flatMap(g=>g.classes);
 
-  // Step 1: check the database for the most recent day the user actually checked in with a logged
-  // class. Start at YESTERDAY and walk backward day by day (not just yesterday) until a checked-in
-  // class is found — covers the "missed 2-3 days" case the same way as a single missed day.
-  let lastGroupIdx=-1,lastClassDate=null,doneInGroup=new Set();
+  // Restore today's fold state: if the user collapsed the box today, it stays collapsed across
+  // refreshes/tab-switches until they manually reopen it (or a new day starts, which resets it
+  // to expanded).
+  const collapsibleContent=document.getElementById('todayWorkoutCollapsibleContent');
+  const collapseBtn=document.getElementById('todayWorkoutCollapseBtn');
+  const collapsedFlag=localStorage.getItem('gymbro_schedule_collapsed_'+settingsUid());
+  const startCollapsed=collapsedFlag===getLocalDateString();
+  if(collapsibleContent)collapsibleContent.classList.toggle('collapsed',startCollapsed);
+  if(collapseBtn){collapseBtn.classList.toggle('is-collapsed',startCollapsed);collapseBtn.title=startCollapsed?'Expand':'Collapse'}
+  if(labelEl)labelEl.textContent=startCollapsed?'Your Schedule':'Previous Schedule';
+
+  // The "View Schedule" order list always starts closed on every render — only opens when the
+  // user taps the link, and closes again when they tap Close (or the banner re-renders).
+  if(orderBox)orderBox.classList.remove('open');
+
+  // Walk backward day by day from yesterday until the most recent checked-in class is found
+  // (e.g. today is 15 Jul — this shows 14 Jul if it has data, otherwise the closest earlier date).
+  let lastClasses=[],lastClassDate=null;
   if(uid){
     const{data}=await db.from('attendance').select('attendance_date,workout').eq('user_id',uid).eq('status','Present').order('attendance_date',{ascending:false}).limit(60);
     if(data&&data.length){
@@ -4918,88 +4965,61 @@ async function renderTodayWorkoutBanner(){
         const loggedClasses=row.workout.split(',').map(s=>s.trim()).filter(Boolean);
         const matched=loggedClasses.filter(c=>allClasses.includes(c));
         if(!matched.length)continue;
-        // Which scheduled day-group do these logged classes belong to? Use the group with the
-        // most overlap — this groups "Legs" + "Shoulders" (same day) together instead of only
-        // grabbing a single class like the old flat-list logic did.
-        let bestIdx=-1,bestCount=-1;
-        dayGroups.forEach((g,gi)=>{
-          const cnt=matched.filter(c=>g.classes.includes(c)).length;
-          if(cnt>bestCount){bestCount=cnt;bestIdx=gi}
-        });
-        lastGroupIdx=bestIdx;
+        lastClasses=matched;
         lastClassDate=row.attendance_date;
-        doneInGroup=new Set(matched.filter(c=>dayGroups[bestIdx].classes.includes(c)));
         break;
-      }
-      // If that day's group wasn't fully completed on that single date, look further back for
-      // classes of the SAME group logged on earlier dates (e.g. Chest done Monday, Triceps done
-      // Tuesday — still one training day). Stop as soon as an earlier date belongs to a different
-      // group — that means the group was already closed out before that.
-      if(lastGroupIdx>=0){
-        const group=dayGroups[lastGroupIdx];
-        if(doneInGroup.size<group.classes.length){
-          for(const row of data){
-            if(row.attendance_date>=lastClassDate)continue;
-            if(!row.workout||!row.workout.trim())continue;
-            const logged=row.workout.split(',').map(s=>s.trim()).filter(Boolean);
-            const matched=logged.filter(c=>allClasses.includes(c));
-            if(!matched.length)continue;
-            const belongsToSameGroup=matched.some(c=>group.classes.includes(c));
-            const belongsToOtherGroup=matched.some(c=>!group.classes.includes(c));
-            if(belongsToSameGroup&&!belongsToOtherGroup){
-              matched.forEach(c=>doneInGroup.add(c));
-              if(doneInGroup.size>=group.classes.length)break;
-            } else break; // hit a different training day — stop merging further back
-          }
-        }
       }
     }
   }
 
-  let todayClasses,todayIsRest=false,subText='';
+  // Full Day1 → Day7 schedule order (including Rest days), populated into the View Schedule box.
+  if(orderListEl)orderListEl.innerHTML=dayGroups.map(g=>g.isRest?`<div class="rest-day-line">${g.day}: 😴 Rest Day</div>`:`<div>${g.day}: ${g.classes.join(' & ')}</div>`).join('');
+  if(viewBtn)viewBtn.style.display='inline-flex';
 
-  if(lastGroupIdx>=0){
-    const group=dayGroups[lastGroupIdx];
-    const remaining=group.classes.filter(c=>!doneInGroup.has(c));
-    const doneLabel=[...doneInGroup].join(' & ')||'—';
-    const dateLabel=_fmtDateDay(lastClassDate); // e.g. "11Jul-Sat"
-    const todayLabel=_fmtDateDay(getLocalDateString()); // e.g. "12Jul-Sun"
-    const nextIdx=(lastGroupIdx+1)%dayGroups.length;
-    todayClasses=dayGroups[nextIdx].classes; // always continue forward from the last completed/skipped day
-
-    // Absence only counts days that have FULLY passed (crossed 11:59 PM) — today itself is still
-    // in progress, so it's never counted as missed even before checking in.
-    const todayDateOnly=new Date(getLocalDateString()+'T00:00:00');
-    const lastDateObj=new Date(lastClassDate+'T00:00:00');
-    const daysSince=Math.floor((todayDateOnly-lastDateObj)/86400000);
-    const absentDays=Math.max(0,daysSince-1);
-
-    const notes=[];
-    if(absentDays>0)notes.push(`${absentDays} day${absentDays>1?'s':''} absence`);
-    if(remaining.length)notes.push(`Left ${remaining.join(' & ')}`);
-    const noteStr=notes.length?` (${notes.join(', ')})`:'';
-
-    subText=`${dateLabel}: ${doneLabel} done${noteStr}<br>Today ${todayLabel} Class is : ${todayClasses.join(' & ')}`;
-  } else {
-    // No usable check-in history yet — fall back to the pure calendar-cycle day so new users still see something.
-    const todayDay=getScheduleDayForDate(new Date(),startDate);
-    const dayClasses=(schedule[todayDay]||[]).filter(Boolean);
-    todayIsRest=dayClasses[0]===REST_VALUE;
-    todayClasses=todayIsRest?[]:dayClasses;
-    subText=todayIsRest?'No training scheduled today — recover well!':`${todayDay} of your schedule`;
-  }
-
-  if(todayIsRest){
-    valueEl.textContent='😴 Rest Day';
-    subEl.innerHTML=subText;
+  if(!lastClassDate){
+    // No usable check-in history yet.
+    valueEl.textContent='📋 No Previous Class';
+    subEl.innerHTML='No previous class logged yet.';
     banner.style.display='flex';
     return;
   }
-  if(!todayClasses.length){banner.style.display='none';return}
 
-  valueEl.textContent=todayClasses.join(' & ')+' Day';
-  subEl.innerHTML=subText;
+  // Absence = fully-passed days between the previous done class and today (today itself is still
+  // in progress, so it's never counted as missed).
+  const dateLabel=_fmtDateDay(lastClassDate); // e.g. "14Jul-Mon"
+  const todayDateOnly=new Date(getLocalDateString()+'T00:00:00');
+  const lastDateObj=new Date(lastClassDate+'T00:00:00');
+  const daysSince=Math.floor((todayDateOnly-lastDateObj)/86400000);
+  const absentDays=Math.max(0,daysSince-1);
+  const absenceText=absentDays>0?` (${absentDays} day${absentDays>1?'s':''} absence)`:'';
+
+  valueEl.textContent=lastClasses.join(' & ');
+  subEl.innerHTML=`${dateLabel}: ${lastClasses.join(' & ')} done${absenceText}`;
   banner.style.display='flex';
+}
+
+/* Toggles the Day1–Day7 schedule order box open/closed under the Previous Schedule line. */
+function toggleScheduleOrderView(){
+  const orderBox=document.getElementById('todayScheduleOrderBox');
+  if(!orderBox)return;
+  orderBox.classList.toggle('open');
+}
+
+/* ▾/▸ chevron — folds/unfolds the schedule box content in place (box itself always stays visible;
+   this just collapses the details so it doesn't take up space, and can be reopened any time).
+   The choice is remembered for the rest of today (survives refresh/tab-switch) and automatically
+   resets to expanded once a new day starts. Label swaps to "Your Schedule" while collapsed. */
+function toggleTodayScheduleCollapse(){
+  const content=document.getElementById('todayWorkoutCollapsibleContent');
+  const btn=document.getElementById('todayWorkoutCollapseBtn');
+  const labelEl=document.getElementById('todayWorkoutLabel');
+  if(!content)return;
+  const willCollapse=!content.classList.contains('collapsed');
+  content.classList.toggle('collapsed',willCollapse);
+  if(btn){btn.classList.toggle('is-collapsed',willCollapse);btn.title=willCollapse?'Expand':'Collapse'}
+  if(labelEl)labelEl.textContent=willCollapse?'Your Schedule':'Previous Schedule';
+  if(willCollapse)localStorage.setItem('gymbro_schedule_collapsed_'+settingsUid(),getLocalDateString());
+  else localStorage.removeItem('gymbro_schedule_collapsed_'+settingsUid());
 }
 
 /* Manual close (✕ icon) — hides the notify box for the rest of today. */
@@ -5235,7 +5255,6 @@ async function processCheckOut(){
   const btn=document.getElementById("submitCheckinBtn");btn.disabled=false;btn.textContent="⚡ SUBMIT CHECK-IN (+50 XP)";
   Array.from(sel.options).forEach(o=>o.selected=false);document.querySelectorAll(".muscle-group").forEach(el=>el.style.fill="var(--muscle-idle)");
   const banner=document.getElementById("resumedBanner");if(banner)banner.remove();
-  closeTodayWorkoutBanner(); // check-out done for today — no need to keep nudging about the schedule
   alert(`✅ Check-Out saved! Duration: ${fmt}`);
   await loadAttendanceHistoryRecords();await syncCoreDashboardMetrics();
 }
