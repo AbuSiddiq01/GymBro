@@ -605,6 +605,15 @@ body.theme-godmode .duration-display{color:#d43030}
 
 /* ===================== WORKOUT CARDS ===================== */
 .set-row{display:flex;gap:10px;align-items:center;margin-top:10px;background:var(--set-row-bg);padding:10px;border-radius:11px;border:1px solid var(--border-col);animation:fadeIn 0.3s ease;flex-wrap:wrap}
+.bw-info-icon{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:var(--accent-soft);color:var(--accent);font-size:14px;font-weight:800;cursor:pointer;flex-shrink:0;user-select:none}
+.bw-info-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.55);display:flex;align-items:center;justify-content:center;z-index:99999999;padding:20px;box-sizing:border-box;animation:fadeIn 0.2s ease}
+.bw-info-modal{background:var(--bg-card);border:1px solid var(--border-col);border-radius:16px;box-shadow:0 12px 40px rgba(0,0,0,0.35);padding:20px;max-width:360px;width:100%;box-sizing:border-box;animation:fadeIn 0.25s ease}
+.bw-info-modal-title{font-family:var(--font-alt);font-size:16px;font-weight:700;color:var(--section-title-col);letter-spacing:0.3px;margin-bottom:10px}
+.bw-info-modal-body{font-family:var(--font-body);font-size:13.5px;line-height:1.5;color:var(--text-secondary)}
+.bw-info-modal-actions{display:flex;gap:10px;margin-top:18px}
+.bw-info-modal-btn{flex:1;padding:11px;border-radius:12px;border:none;font-family:var(--font-alt);font-size:13px;font-weight:800;letter-spacing:0.3px;cursor:pointer}
+.bw-info-modal-btn.primary{background:var(--btn-bg);color:#fff;box-shadow:var(--btn-shadow)}
+.bw-info-modal-btn.secondary{background:var(--accent-soft);color:var(--text-secondary)}
 .set-time-locked{font-size:11px;font-weight:700;color:var(--accent);font-family:var(--font-alt);background:var(--accent-soft);padding:5px 10px;border-radius:9px;white-space:nowrap;flex-shrink:0}
 .set-new-timer-row{display:flex;align-items:center;gap:8px;width:100%;margin-top:6px;padding-top:8px;border-top:1px dashed var(--border-col)}
 .set-new-timer-display{font-family:var(--font-display);font-size:15px;color:var(--accent);letter-spacing:1px}
@@ -642,7 +651,9 @@ body.theme-batman .set-copy-btn:hover{color:#05050a}
 .workout-log-card{background:var(--bg-card);border:1px solid var(--border-col);border-radius:14px;padding:13px 16px;margin-bottom:9px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;position:relative;transition:all 0.3s cubic-bezier(0.4,0,0.2,1)}
 .workout-log-card:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 6px 18px var(--accent-glow)}
 .workout-log-card .exercise-name{font-weight:700;color:var(--section-title-col);font-size:14px;font-family:var(--font-alt)}
-.workout-tag{font-size:11px;background:var(--workout-tag-bg);color:var(--workout-tag-col);padding:3px 8px;border-radius:6px;margin-right:4px;font-family:var(--font-alt);font-weight:600}
+.workout-tag{font-size:clamp(7px,2.4vw,11px);line-height:1.3;background:var(--workout-tag-bg);color:var(--workout-tag-col);padding:clamp(4px,1.6vw,6px) clamp(3px,1.2vw,5px);border-radius:6px;font-family:var(--font-alt);font-weight:600;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;box-sizing:border-box;min-width:0;display:flex;align-items:center;justify-content:center}
+.workout-tag-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(4px,1.6vw,8px);align-items:stretch}
+.workout-tag-grid.tag-grid-2col{grid-template-columns:repeat(2,minmax(0,1fr))}
 .workout-actions-overlay{display:flex;gap:7px;opacity:0;transform:translateX(10px);transition:all 0.25s ease;pointer-events:none}
 .workout-log-card.selected-active .workout-actions-overlay{opacity:1;transform:translateX(0);pointer-events:auto}
 .action-icon-btn{background:var(--accent-soft);border:none;padding:7px 9px;border-radius:9px;cursor:pointer;font-size:13px;transition:all 0.2s ease}
@@ -4113,6 +4124,70 @@ function getExerciseEquipment(nameRaw){
   const found=EXERCISE_CATALOG.find(e=>e.name===nameRaw||e.name.replace(/\s*\([^)]+\)/,'').trim()===nameRaw);
   return found?found.equipment:'Unknown';
 }
+/* True bodyweight-only exercises (Push Up, Pull Up, Squat, etc.) need no external Kg entry — only
+   Reps. "Weighted ..." bodyweight variants (e.g. "Weighted Pull Up (Bodyweight)") are excluded here
+   since those DO use added external weight (a vest/plate) on top of bodyweight, so they keep the
+   normal Kg field. */
+function isBodyweightNoWeightExercise(nameRaw){
+  if(!nameRaw)return false;
+  if(getExerciseEquipment(nameRaw)!=='Bodyweight')return false;
+  return !/^weighted\s/i.test(nameRaw.trim());
+}
+/* Small "why is there no Kg box?" info icon shown next to the Reps box for bodyweight-only exercises */
+/* Tracks, per entry-form context, whether the person has opted IN to showing an optional Kg box
+   on a bodyweight-only exercise's sets. false = Kg boxes stay hidden (the default for bodyweight
+   exercises); true = every set's Kg box in that context is shown (still optional to fill in). */
+let bwKgRevealed={nonlive:false,live:false,liveEditExisting:false,liveEditNew:false};
+/* id-prefix + display-mode used by each entry-form context's Kg inputs, keyed the same way as
+   bwKgRevealed above. */
+const BW_KG_ID_PREFIX={nonlive:'weight_set_',live:'liveKg_',liveEditExisting:'liveEditExistKg_',liveEditNew:'liveEditKg_'};
+/* "Why no Kg box?" info icon for bodyweight-only exercises — only rendered on Set 1. Tapping it
+   opens an in-app themed modal (not the browser's native confirm dialog) explaining the reasoning,
+   with an option to reveal an OPTIONAL Kg field on every set in this entry (e.g. for a weighted
+   vest/belt on top of bodyweight) — entering a Kg value is never required. Tapping the icon again
+   after that offers to cancel/hide the Kg boxes again. */
+function bwInfoIconHtml(mode){
+  return `<span class="bw-info-icon" onclick="showBwInfoModal('${mode}')" title="Bodyweight exercise — Kg is optional, tap for details">ⓘ</span>`;
+}
+/* Renders the themed bodyweight-info modal (matches the app's own toast/card styling via CSS
+   vars, so it looks identical across every device/OS instead of the browser's native confirm()).
+   Its button flips between "Enter Kg" (nothing revealed yet) and "Cancel Kg" (already revealed). */
+function showBwInfoModal(mode){
+  document.querySelectorAll('.bw-info-modal-overlay').forEach(el=>el.remove());
+  const revealed=!!bwKgRevealed[mode];
+  const overlay=document.createElement('div');
+  overlay.className='bw-info-modal-overlay';
+  overlay.innerHTML=`<div class="bw-info-modal">
+    <div class="bw-info-modal-title">💡 Bodyweight Exercise</div>
+    <div class="bw-info-modal-body">${revealed?`You've added an optional Kg box to every set of this exercise. You can cancel it if you don't need it.`:`This is a bodyweight exercise, so Kg isn't required — just log your Reps.<br><br>Adding extra weight (e.g. a weighted vest)? You can reveal an optional Kg box on every set.`}</div>
+    <div class="bw-info-modal-actions">
+      <button type="button" class="bw-info-modal-btn secondary" id="bwInfoModalCancelBtn">Got it</button>
+      <button type="button" class="bw-info-modal-btn primary" id="bwInfoModalRevealBtn">${revealed?'❌ Cancel Kg':'➕ Enter Kg'}</button>
+    </div>
+  </div>`;
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click',e=>{if(e.target===overlay)overlay.remove()});
+  document.getElementById('bwInfoModalCancelBtn').onclick=()=>overlay.remove();
+  document.getElementById('bwInfoModalRevealBtn').onclick=()=>{toggleBwKgForAllSets(mode,!revealed);overlay.remove()};
+}
+/* Shows/hides the Kg box on EVERY currently-rendered set in the given context, and remembers the
+   choice (bwKgRevealed) so any new set rows added afterward (more sets picked, next live set
+   started, etc.) also come up revealed/hidden to match — until toggled again or the entry resets. */
+function toggleBwKgForAllSets(mode,reveal){
+  bwKgRevealed[mode]=reveal;
+  const prefix=BW_KG_ID_PREFIX[mode];
+  document.querySelectorAll(`input[id^="${prefix}"]`).forEach(el=>{
+    if(reveal){
+      el.style.display='';
+      el.style.marginTop='0';el.style.padding='9px';el.style.flex='1';
+      el.placeholder='Kgs (optional)';el.min='0';el.step='0.5';
+    } else {
+      el.style.display='none';
+      el.value='0';
+    }
+  });
+  showToast(reveal?'✅ Optional Kg box added to every set — leave blank if you don\'t use extra weight.':'✅ Kg box removed from every set.');
+}
 /* ===================== MUSCLE / EQUIPMENT DROPDOWNS (Add Workout + Tracker) ===================== */
 /* Muscle list is built from every real class actually used in the catalog (excluding "multi",
    which is a picker flag, not a muscle) so it always stays in sync with the catalog above. */
@@ -7410,7 +7485,8 @@ function _updateVolGraphDetailBox(day){
 
 /* Parse individual sets from a workout string.
    Format: "ExerciseName: 10Kg x 10 x 35 sec, 5Kg x 15 x 26 sec"
-   Returns array of {desc, vol} per set */
+   Returns array of {desc, vol, w, r, isBW} per set — isBW true means no Kg was logged for that
+   set (a bodyweight set), in which case desc shows reps only ("15 Reps") instead of "0 kg". */
 function parseWorkoutSets(rawStr){
   if(!rawStr||!rawStr.trim())return[];
   // strip exercise name prefix (everything before first colon)
@@ -7418,11 +7494,33 @@ function parseWorkoutSets(rawStr){
   const setsStr=colonIdx>=0?rawStr.slice(colonIdx+1):rawStr;
   const sets=setsStr.split(',').map(s=>s.trim()).filter(Boolean);
   return sets.map(seg=>{
+    const durMatch=seg.match(/\[(.*?)\]/);
+    const duration=durMatch?durMatch[1].trim():null;
+    const clean=seg.replace(/\[.*?\]/g,'').trim();
     // match weight x reps (x rest optional)
-    const m=seg.match(/([\d.]+)\s*[Kk]g\s*x\s*(\d+)/);
-    const vol=m?parseFloat(m[1])*parseInt(m[2]):0;
-    return{desc:seg,vol:Math.round(vol)};
+    const m=clean.match(/([\d.]+)\s*[Kk]g\s*x\s*(\d+)/);
+    const w=m?parseFloat(m[1]):0;
+    const r=m?parseInt(m[2]):0;
+    const vol=Math.round(w*r);
+    const isBW=w<0.5;
+    const core=isBW?`${r} Reps`:`${w}Kg x ${r}`;
+    const desc=duration?`${core} [${duration}]`:core;
+    return{desc,vol,w,r,isBW};
   });
+}
+/* Whether every set in a workout entry was logged with no Kg (a pure bodyweight exercise) — used
+   to switch the exercise-level total from "0 kg·reps" to a reps total in the volume breakdown. */
+function isAllBodyweightSets(sets){
+  return sets.length>0&&sets.every(s=>s.isBW);
+}
+/* Returns {primary, unit} for an exercise's total — reps-based for pure bodyweight entries,
+   kg·reps-based otherwise — used across the volume breakdown views. */
+function formatExerciseVolTotal(w,sets){
+  if(isAllBodyweightSets(sets)){
+    const totalReps=sets.reduce((a,s)=>a+(s.r||0),0);
+    return{primary:String(totalReps),unit:'Reps'};
+  }
+  return{primary:Math.round(w.vol).toLocaleString(),unit:'kg·reps'};
 }
 
 function renderVolDrilldown(day,titleId,bodyId,panel){
@@ -7453,6 +7551,7 @@ function renderVolDrilldown(day,titleId,bodyId,panel){
     const parts=w.name.split(':');
     const exName=(parts[0]||w.name).trim();
     const sets=parseWorkoutSets(w.name);
+    const vt=formatExerciseVolTotal(w,sets);
     const setsId=`volSets_${uid}_${idx}`;
     const rowId=`volRow_${uid}_${idx}`;
     const isOpen=detailOn;
@@ -7464,7 +7563,7 @@ function renderVolDrilldown(day,titleId,bodyId,panel){
     html+=`<div class="vol-drill-row${isOpen?' expanded':''}" id="${rowId}" onclick="toggleVolSets('${rowId}','${setsId}')"
       style="border-radius:${topRadius};margin-bottom:0;border:1px solid var(--border-col);${borderBottom?'border-bottom:none;':''}padding:10px 14px;display:flex;align-items:center;gap:10px;background:var(--bg-card);cursor:pointer">
       <span class="vol-drill-name" style="flex:1">${exName}</span>
-      <span class="vol-drill-val">${Math.round(w.vol).toLocaleString()} <small style="font-size:10px;opacity:0.65">kg·reps</small></span>
+      <span class="vol-drill-val">${vt.primary} <small style="font-size:10px;opacity:0.65">${vt.unit}</small></span>
       <span class="vol-drill-chevron" id="chev_${rowId}">${chevron}</span>
     </div>`;
 
@@ -7475,10 +7574,11 @@ function renderVolDrilldown(day,titleId,bodyId,panel){
       sets.forEach((s,si)=>{
         html+=`<div class="vol-set-line">
           <span class="vol-set-desc">Set ${si+1} &nbsp;·&nbsp; ${s.desc}</span>
-          <span class="vol-set-vol">${s.vol.toLocaleString()} kg</span>
+          <span class="vol-set-vol">${s.isBW?'':s.vol.toLocaleString()+' kg'}</span>
         </div>`;
+
       });
-      html+=`<div class="vol-sets-total"><span>Total Volume</span><strong>${Math.round(w.vol).toLocaleString()} kg·reps</strong></div>`;
+      html+=`<div class="vol-sets-total"><span>Total Volume</span><strong>${vt.primary} ${vt.unit}</strong></div>`;
     }
     html+=`</div><div style="height:6px"></div>`;
   });
@@ -7869,6 +7969,7 @@ function renderVolDrilldownEnhanced(day,titleId,bodyId,panel){
     const exClass=extractClassFromWorkoutName(w.name);
     const exColor=CLASS_COLORS[exClass]||CLASS_COLORS['Unknown'];
     const sets=parseWorkoutSets(w.name);
+    const vt=formatExerciseVolTotal(w,sets);
     const setsId=`volSets_${uid}_${idx}`;
     const rowId=`volRow_${uid}_${idx}`;
 
@@ -7878,7 +7979,7 @@ function renderVolDrilldownEnhanced(day,titleId,bodyId,panel){
         style="border-radius:10px 10px 0 0;margin-bottom:0;border:1px solid ${exColor}55;border-left:3px solid ${exColor};border-bottom:none;padding:10px 14px;display:flex;align-items:center;gap:8px;background:var(--bg-card);cursor:pointer">
         <span style="width:7px;height:7px;border-radius:2px;background:${exColor};flex-shrink:0"></span>
         <span class="vol-drill-name" style="flex:1;font-size:12px">${exName}<small style="font-size:9px;color:${exColor};margin-left:5px;font-family:var(--font-alt);font-weight:700">${exClass}</small></span>
-        <span class="vol-drill-val">${Math.round(w.vol).toLocaleString()} <small style="font-size:9px;opacity:0.65">kg·reps</small></span>
+        <span class="vol-drill-val">${vt.primary} <small style="font-size:9px;opacity:0.65">${vt.unit}</small></span>
         <span class="vol-drill-chevron" id="chev_${rowId}">▼</span>
       </div>`;
       html+=`<div class="vol-drill-sets open" id="${setsId}" style="border-radius:0 0 10px 10px;margin-bottom:6px">`;
@@ -7886,9 +7987,9 @@ function renderVolDrilldownEnhanced(day,titleId,bodyId,panel){
         html+=`<div class="vol-set-line"><span class="vol-set-desc" style="color:var(--text-muted)">No set data found</span></div>`;
       } else {
         sets.forEach((s,si)=>{
-          html+=`<div class="vol-set-line"><span class="vol-set-desc">Set ${si+1} · ${s.desc}</span><span class="vol-set-vol">${s.vol.toLocaleString()} kg</span></div>`;
+          html+=`<div class="vol-set-line"><span class="vol-set-desc">Set ${si+1} · ${s.desc}</span><span class="vol-set-vol">${s.isBW?'':s.vol.toLocaleString()+' kg'}</span></div>`;
         });
-        html+=`<div class="vol-sets-total"><span>Total</span><strong>${Math.round(w.vol).toLocaleString()} kg·reps</strong></div>`;
+        html+=`<div class="vol-sets-total"><span>Total</span><strong>${vt.primary} ${vt.unit}</strong></div>`;
       }
       html+=`</div>`;
     } else {
@@ -7896,7 +7997,7 @@ function renderVolDrilldownEnhanced(day,titleId,bodyId,panel){
       html+=`<div style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:8px;border:1px solid ${exColor}33;border-left:3px solid ${exColor};background:var(--bg-card);margin-bottom:5px">
         <span style="width:7px;height:7px;border-radius:2px;background:${exColor};flex-shrink:0"></span>
         <span style="flex:1;font-family:var(--font-alt);font-size:12px;font-weight:600;color:var(--text-primary)">${exName}<small style="font-size:9px;color:${exColor};margin-left:5px;font-weight:700">${exClass}</small></span>
-        <span style="font-family:var(--font-alt);font-size:12px;font-weight:700;color:var(--text-secondary)">${Math.round(w.vol).toLocaleString()} <small style="font-size:9px;opacity:0.65">kg·reps</small></span>
+        <span style="font-family:var(--font-alt);font-size:12px;font-weight:700;color:var(--text-secondary)">${vt.primary} <small style="font-size:9px;opacity:0.65">${vt.unit}</small></span>
       </div>`;
     }
   });
@@ -8037,6 +8138,8 @@ function handleWorkoutSearchAuto(forceShow){
           window._selectedWorkoutClass=item.class;
           fetchPrevPerformance(item.name,'nonlive');
         }
+        bwKgRevealed.nonlive=false;
+        buildSetsInputFields();
       };
       box.appendChild(div);
     });
@@ -8092,6 +8195,7 @@ function renderNonLiveSetsRows(weights,reps,locks){
   const n=weights.length;
   locks=locks||[];
   c.innerHTML="";
+  const isBW=isBodyweightNoWeightExercise(document.getElementById("workoutNameInput")?.value.trim());
   for(let i=1;i<=n;i++){
     const w=weights[i-1]||'',r=reps[i-1]||'';
     const locked=!!locks[i-1];
@@ -8105,7 +8209,10 @@ function renderNonLiveSetsRows(weights,reps,locks){
     const labelHtml=showDelete?`<span onclick="toggleSetRowSelection(this)" style="cursor:pointer" title="Tap to show delete option">Set ${i}</span>`:`<span>Set ${i}</span>`;
     const copyBtn=i>=2?`<button type="button" class="set-copy-btn" title="Copy previous set's values" onclick="copyFromPrevNonLiveSet(${i})">📋</button>`:'';
     const lockHtml=`<label class="set-lock-check" title="Tick to lock this set's values (or swipe the row →)"><input type="checkbox" id="lock_set_${i}" ${locked?'checked':''} onchange="handleSetLockToggle(${i})"><span class="set-lock-box"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span></label>`;
-    c.innerHTML+=`<div class="set-row${locked?' set-row-locked':''}" ontouchstart="nlSetSwipeStart(event)" ontouchend="nlSetSwipeEnd(event,${i})">${labelHtml}<input type="number" placeholder="Kgs" id="weight_set_${i}" min="0.5" step="0.5" value="${w}" ${locked?'readonly':''} style="margin-top:0;padding:9px;flex:1" oninput="handleNonLiveSetInputChange()"><input type="number" placeholder="Reps" id="reps_set_${i}" min="1" value="${r}" ${locked?'readonly':''} style="margin-top:0;padding:9px;flex:1" oninput="handleNonLiveSetInputChange()">${extraHtml}${copyBtn}${lockHtml}${delBtn}</div>`;
+    const bwHidden=isBW&&!bwKgRevealed.nonlive;
+    const weightInputHtml=bwHidden?`<input type="number" id="weight_set_${i}" value="0" style="display:none">`:(isBW?`<input type="number" placeholder="Kgs (optional)" id="weight_set_${i}" min="0" step="0.5" value="${w}" ${locked?'readonly':''} style="margin-top:0;padding:9px;flex:1" oninput="handleNonLiveSetInputChange()">`:`<input type="number" placeholder="Kgs" id="weight_set_${i}" min="0.5" step="0.5" value="${w}" ${locked?'readonly':''} style="margin-top:0;padding:9px;flex:1" oninput="handleNonLiveSetInputChange()">`);
+    const bwIcon=(isBW&&i===1)?bwInfoIconHtml('nonlive'):'';
+    c.innerHTML+=`<div class="set-row${locked?' set-row-locked':''}" ontouchstart="nlSetSwipeStart(event)" ontouchend="nlSetSwipeEnd(event,${i})">${labelHtml}${weightInputHtml}<input type="number" placeholder="Reps" id="reps_set_${i}" min="1" value="${r}" ${locked?'readonly':''} style="margin-top:0;padding:9px;flex:1" oninput="handleNonLiveSetInputChange()">${bwIcon}${extraHtml}${copyBtn}${lockHtml}${delBtn}</div>`;
   }
   // Re-check Quick Fill visibility after rebuild
   checkQuickFillVisibility();
@@ -8121,9 +8228,10 @@ function handleNonLiveSetInputChange(){
 /* Copies the immediately PRECEDING set's Kg/Reps into set `i` (not always Set 1). Available on
    every set from Set 2 onward. Skips (leaves untouched) either field if that field is locked. */
 function copyFromPrevNonLiveSet(i){
+  const isBW=isBodyweightNoWeightExercise(document.getElementById("workoutNameInput")?.value.trim());
   const kgPrev=parseFloat(document.getElementById(`weight_set_${i-1}`)?.value)||0;
   const repsPrev=parseInt(document.getElementById(`reps_set_${i-1}`)?.value)||0;
-  if(kgPrev<0.5||repsPrev<1){showToast(`⚠️ Set ${i-1} must have Kgs and Reps filled in first.`);return}
+  if((!isBW&&kgPrev<0.5)||repsPrev<1){showToast(`⚠️ Set ${i-1} must have ${isBW?'Reps':'Kgs and Reps'} filled in first.`);return}
   const wEl=document.getElementById(`weight_set_${i}`),rEl=document.getElementById(`reps_set_${i}`);
   if(wEl&&!wEl.readOnly)wEl.value=kgPrev;
   if(rEl&&!rEl.readOnly)rEl.value=repsPrev;
@@ -8142,9 +8250,11 @@ function handleSetLockToggle(i){
   const cb=document.getElementById(`lock_set_${i}`);if(!cb)return;
   const wEl=document.getElementById(`weight_set_${i}`),rEl=document.getElementById(`reps_set_${i}`);
   const locked=cb.checked;
+  const isBW=isBodyweightNoWeightExercise(document.getElementById("workoutNameInput")?.value.trim());
   if(locked){
     const w=parseFloat(wEl?.value)||0,r=parseInt(rEl?.value)||0;
-    if(w<0.5||r<1){alert(`Set ${i}: enter Kgs and Reps before locking.`);cb.checked=false;return}
+    if(isBW){if(r<1){alert(`Set ${i}: enter Reps before locking.`);cb.checked=false;return}}
+    else if(w<0.5||r<1){alert(`Set ${i}: enter Kgs and Reps before locking.`);cb.checked=false;return}
   }
   if(wEl)wEl.readOnly=locked;
   if(rEl)rEl.readOnly=locked;
@@ -8152,8 +8262,8 @@ function handleSetLockToggle(i){
   saveNonLiveDraft();
   if(locked){
     showToast(`🔒 Set ${i} locked`);
-    const nextW=document.getElementById(`weight_set_${i+1}`);
-    if(nextW)nextW.focus();
+    const nextFocusEl=isBW?document.getElementById(`reps_set_${i+1}`):document.getElementById(`weight_set_${i+1}`);
+    if(nextFocusEl)nextFocusEl.focus();
   }
 }
 
@@ -8277,10 +8387,12 @@ async function saveWorkoutLogEntry(){
   let td=document.getElementById("workoutCalendarFilter").value;
   let sc=parseInt(document.getElementById("setsCountSelect").value);
   if(!name){alert("Please specify an exercise name.");return}
+  const isBW=isBodyweightNoWeightExercise(name);
   let sd=[],tv=0;
   for(let i=1;i<=sc;i++){
     let w=parseFloat(document.getElementById(`weight_set_${i}`).value)||0,r=parseInt(document.getElementById(`reps_set_${i}`).value)||0;
-    if(w<0.5||r<1){alert(`Set ${i}: Must have at least 0.5kg and 1 rep.`);return}
+    if(isBW){if(r<1){alert(`Set ${i}: Must have at least 1 rep.`);return}}
+    else if(w<0.5||r<1){alert(`Set ${i}: Must have at least 0.5kg and 1 rep.`);return}
     tv+=w*r;
     // Preserve the ORIGINAL locked duration for pre-existing sets. Any other set (brand-new entry,
     // OR a new set added while editing a NON-live entry) gets no duration/time data at all — this
@@ -8428,16 +8540,18 @@ function checkQuickFillVisibility(){
   const cnt=parseInt(document.getElementById("setsCountSelect")?.value)||1;
   const btn=document.getElementById("quickFillCopyAllBtn");if(!btn)return;
   if(cnt<2){btn.classList.remove("visible");return}
+  const isBW=isBodyweightNoWeightExercise(document.getElementById("workoutNameInput")?.value.trim());
   const kg1=parseFloat(document.getElementById("weight_set_1")?.value)||0;
   const reps1=parseInt(document.getElementById("reps_set_1")?.value)||0;
-  if(kg1>=0.5&&reps1>=1)btn.classList.add("visible");
+  if((isBW||kg1>=0.5)&&reps1>=1)btn.classList.add("visible");
   else btn.classList.remove("visible");
 }
 function quickFillCopyAll(){
   const cnt=parseInt(document.getElementById("setsCountSelect").value)||1;
+  const isBW=isBodyweightNoWeightExercise(document.getElementById("workoutNameInput")?.value.trim());
   const kg1=parseFloat(document.getElementById("weight_set_1").value)||0;
   const reps1=parseInt(document.getElementById("reps_set_1").value)||0;
-  if(kg1<0.5||reps1<1){alert("Please fill in Set 1 Kgs and Reps first.");return}
+  if((!isBW&&kg1<0.5)||reps1<1){alert(isBW?"Please fill in Set 1 Reps first.":"Please fill in Set 1 Kgs and Reps first.");return}
   for(let i=2;i<=cnt;i++){
     const wEl=document.getElementById(`weight_set_${i}`);
     const rEl=document.getElementById(`reps_set_${i}`);
@@ -8452,9 +8566,10 @@ function quickFillCopyAll(){
 /* Copies Kg and Reps from the immediately PRECEDING set (idx-1) into the target set (idx >= 2) —
    not always Set 1. Only fires if that previous set has valid data. */
 function liveCopyFromPrevSet(idx){
+  const isBW=isBodyweightNoWeightExercise(document.getElementById("liveWorkoutNameInput")?.value.trim());
   const kgPrev=parseFloat(document.getElementById(`liveKg_${idx-1}`)?.value)||0;
   const repsPrev=parseInt(document.getElementById(`liveReps_${idx-1}`)?.value)||0;
-  if(kgPrev<0.5||repsPrev<1){showToast(`⚠️ Set ${idx-1} must have Kgs and Reps filled in first.`);return}
+  if((!isBW&&kgPrev<0.5)||repsPrev<1){showToast(`⚠️ Set ${idx-1} must have ${isBW?'Reps':'Kgs and Reps'} filled in first.`);return}
   const kgEl=document.getElementById(`liveKg_${idx}`);
   const repsEl=document.getElementById(`liveReps_${idx}`);
   if(kgEl)kgEl.value=kgPrev;
@@ -8480,7 +8595,8 @@ function liveEditCopyFromPrevSet(idx){
     repsPrev=parseInt(document.getElementById(`liveEditReps_${idx-1}`)?.value)||0;
     prevLabel=`Set ${committedCount+idx-1}`;
   }
-  if(kgPrev<0.5||repsPrev<1){showToast(`⚠️ ${prevLabel} must have Kgs and Reps filled in first.`);return}
+  const isBW=isBodyweightNoWeightExercise(document.getElementById("liveWorkoutNameInput")?.value.trim());
+  if((!isBW&&kgPrev<0.5)||repsPrev<1){showToast(`⚠️ ${prevLabel} must have ${isBW?'Reps':'Kgs and Reps'} filled in first.`);return}
   const kgEl=document.getElementById(`liveEditKg_${idx}`);
   const repsEl=document.getElementById(`liveEditReps_${idx}`);
   if(kgEl)kgEl.value=kgPrev;
@@ -8565,6 +8681,7 @@ function toggleLiveMode(){
 }
 function showAddWorkoutForm(){
   currentEditingIndex=null;window._liveEditMode=false;editOriginalSetCount=0;
+  bwKgRevealed={nonlive:false,live:false,liveEditExisting:false,liveEditNew:false};
   if(typeof updateRoomTargetBadge==='function')updateRoomTargetBadge();
   ctmInitMuscleEquipmentDropdowns();
   // Reset name input in case it was locked by live-edit mode
@@ -8599,6 +8716,7 @@ function showAddWorkoutForm(){
 }
 function cancelWorkoutLogging(){
   currentEditingIndex=null;document.getElementById("workoutNameInput").value="";
+  bwKgRevealed.nonlive=false;
   updateTrackWorkoutBtnVisibility('nonlive');
   editOriginalDurations={};editOriginalSetCount=0;applySetsCountMinConstraint();
   document.getElementById("dynamicSetsContainer").innerHTML=""; // wipe old set rows so the next "Add Workout" starts blank, not pre-filled
@@ -8607,6 +8725,7 @@ function cancelWorkoutLogging(){
 }
 function cancelLiveWorkout(){
   if(window._liveEditMode){cancelLiveEditWorkout();return;}
+  bwKgRevealed.live=false;
   stopAllLiveTimers();document.getElementById("liveWorkoutForm").style.display="none";document.getElementById("initialWorkoutBox").style.display="block";liveSetResults=[];liveSessionSlot=null;
   clearLiveDraft();
 }
@@ -8663,6 +8782,7 @@ function handleLiveSearchAuto(forceShow){
           window._selectedLiveWorkoutClass=item.class;
           fetchPrevPerformance(item.name,'live');
         }
+        bwKgRevealed.live=false;
       };
       box.appendChild(div);
     });
@@ -8931,12 +9051,17 @@ function startLiveSession(){
   saveLiveDraft();
 }
 function buildLiveSetHTML(idx,active){
+  const isBW=isBodyweightNoWeightExercise(document.getElementById("liveWorkoutNameInput")?.value.trim());
   const copyBtn=idx>=2?`<button class="live-copy-prev-btn" id="liveCopyPrevBtn_${idx}" onclick="liveCopyFromPrevSet(${idx})" title="Auto-fill from the previous set's values">⚡ Copy from previous set</button>`:'';
+  const bwHidden=isBW&&!bwKgRevealed.live;
+  const weightInputHtml=bwHidden?`<input type="number" id="liveKg_${idx}" value="0" style="display:none">`:(isBW?`<input type="number" id="liveKg_${idx}" placeholder="Kgs (optional)" min="0" step="0.5" style="margin-top:0;padding:9px" oninput="saveLiveDraft()">`:`<input type="number" id="liveKg_${idx}" placeholder="Kgs" min="0.5" step="0.5" style="margin-top:0;padding:9px" oninput="saveLiveDraft()">`);
+  const bwIcon=(isBW&&idx===1)?bwInfoIconHtml('live'):'';
   return `<div class="live-set-block${active?' set-active':''}" id="liveSetBlock_${idx}">
     <div class="live-set-header"><span class="live-set-title">SET ${idx}</span><span class="live-set-done-badge" id="liveSetDoneBadge_${idx}" style="display:none">✓ DONE</span></div>
     <div class="live-set-inputs" id="liveSetInputs_${idx}" ${!active?'style="opacity:0.4;pointer-events:none"':''}>
-      <input type="number" id="liveKg_${idx}" placeholder="Kgs" min="0.5" step="0.5" style="margin-top:0;padding:9px" oninput="saveLiveDraft()">
+      ${weightInputHtml}
       <input type="number" id="liveReps_${idx}" placeholder="Reps" min="1" style="margin-top:0;padding:9px" oninput="saveLiveDraft()">
+      ${bwIcon}
       ${copyBtn}
     </div>
     <div class="live-timer-row" id="liveTimerRow_${idx}" ${!active?'style="display:none"':''}>
@@ -8984,8 +9109,10 @@ function toggleLiveSetTimer(idx){
   saveLiveDraft();
 }
 async function saveLiveSet(idx){
+  const isBW=isBodyweightNoWeightExercise(document.getElementById("liveWorkoutNameInput")?.value.trim());
   let kg=parseFloat(document.getElementById(`liveKg_${idx}`).value)||0,reps=parseInt(document.getElementById(`liveReps_${idx}`).value)||0;
-  if(kg<0.5||reps<1){alert(`Set ${idx}: Please enter Kgs and Reps before saving.`);return}
+  if(isBW){if(reps<1){alert(`Set ${idx}: Please enter Reps before saving.`);return}}
+  else if(kg<0.5||reps<1){alert(`Set ${idx}: Please enter Kgs and Reps before saving.`);return}
   if(liveSetTimers[idx]){clearInterval(liveSetTimers[idx]);delete liveSetTimers[idx]}
   delete liveSetTimerStartEpoch[idx];delete liveSetTimerAccumAtStart[idx];
   let secs=liveSetSeconds[idx]||0;let timeLabel=secs===0?"0 sec":secs<60?`${secs} sec`:secs%60>0?`${Math.floor(secs/60)} min ${secs%60} sec`:`${Math.floor(secs/60)} min`;
@@ -9167,8 +9294,9 @@ async function loadWorkoutsForDate(){
     window.currentWorkoutRowObject=row;
     for(let ci=1;ci<=15;ci++){
       let cell=row[`workout_${ci}`];if(!cell||cell.trim()==="")continue;
-      let ename=cell,tags="";if(cell.includes(":")){let pts=cell.split(":");ename=pts[0].trim();pts[1].trim().split(",").forEach(s=>{tags+=`<span class="workout-tag">${s.trim()}</span>`})}
-      html+=`<div class="workout-log-card" onclick="toggleCardSelectionState(this,${ci},'${escapeHtml(cell)}')"><div><div class="exercise-name"><span style="color:var(--accent);margin-right:4px">${counter}.</span>${ename}</div><div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:4px">${tags}</div></div><div class="workout-actions-overlay"><button class="action-icon-btn edit" onclick="initiateWorkoutEdit(event,${ci},'${escapeHtml(cell)}')">✏️</button><button class="action-icon-btn delete" onclick="triggerWorkoutDelete(event,${ci})">🗑️</button></div></div>`;counter++;
+      let ename=cell,tags="",hasDuration=false;if(cell.includes(":")){let pts=cell.split(":");ename=pts[0].trim();pts[1].trim().split(",").map(s=>s.trim()).filter(Boolean).forEach((s,si)=>{if(s.includes("["))hasDuration=true;tags+=`<span class="workout-tag">${formatSetTagLabel(s,si+1)}</span>`})}
+      const tagGridClass=hasDuration?"workout-tag-grid tag-grid-2col":"workout-tag-grid";
+      html+=`<div class="workout-log-card" onclick="toggleCardSelectionState(this,${ci},'${escapeHtml(cell)}')"><div><div class="exercise-name"><span style="color:var(--accent);margin-right:4px">${counter}.</span>${ename}</div><div class="${tagGridClass}" style="margin-top:6px">${tags}</div></div><div class="workout-actions-overlay"><button class="action-icon-btn edit" onclick="initiateWorkoutEdit(event,${ci},'${escapeHtml(cell)}')">✏️</button><button class="action-icon-btn delete" onclick="triggerWorkoutDelete(event,${ci})">🗑️</button></div></div>`;counter++;
     }
   });
   con.innerHTML=html||`<p style="font-size:13px;color:var(--text-muted);text-align:center;padding:10px;font-family:var(--font-alt)">No entries for this date.</p>`;
@@ -9176,6 +9304,7 @@ async function loadWorkoutsForDate(){
 function toggleCardSelectionState(el,ci,rv){let a=el.classList.contains("selected-active");document.querySelectorAll(".workout-log-card").forEach(c=>c.classList.remove("selected-active"));if(!a)el.classList.add("selected-active")}
 function initiateWorkoutEdit(e,ci,rv){
   e.stopPropagation();currentEditingIndex=ci;
+  bwKgRevealed.nonlive=false;
   if(typeof updateRoomTargetBadge==='function')updateRoomTargetBadge();
   editOriginalDurations={};
 
@@ -9286,6 +9415,17 @@ function parseSetSegment(seg){
   let m=clean.match(/^([\d.]+)\s*[Kk][Gg]?\s*x\s*(\d+)/i);
   return{w:m?m[1]:'',r:m?m[2]:'',duration};
 }
+/* Formats a saved set segment for display in the "Saved Workouts" list on the workout page —
+   "Set1: 10Kg x 10" for normal weighted sets (Kg spelled out so it's never confused with reps),
+   or "Set1: 15 Reps" when no Kg was logged (bodyweight sets saved as 0Kg). Duration (from live
+   sets) is preserved when present. */
+function formatSetTagLabel(seg,idx){
+  const p=parseSetSegment(seg);
+  const w=parseFloat(p.w)||0,r=p.r||'0';
+  const core=w<0.5?`${r} Reps`:`${w}Kg x ${r}`;
+  const durSuffix=p.duration?` [${p.duration}]`:'';
+  return `Set${idx}: ${core}${durSuffix}`;
+}
 
 function getLiveEditCommittedSegments(){
   return[...liveEditExistingResults,...liveEditNewResults];
@@ -9293,6 +9433,7 @@ function getLiveEditCommittedSegments(){
 
 function startLiveEditSession(ci,exerciseName,setsStr,segs){
   if(typeof updateRoomTargetBadge==='function')updateRoomTargetBadge();
+  bwKgRevealed.liveEditExisting=false;bwKgRevealed.liveEditNew=false;
   // Parse existing saved sets so we can re-build the combined entry on every save
   liveEditSlot=`workout_${ci}`;
   liveEditExistingResults=segs.map(s=>s.trim()).filter(Boolean);
@@ -9361,14 +9502,18 @@ function renderLiveEditSetsUI(){
   const visibleCommitted=Math.min(desiredTotal,committedCount);
   applyLiveSetsCountMinConstraint();
 
+  const isBWExisting=isBodyweightNoWeightExercise(document.getElementById("liveWorkoutNameInput")?.value.trim());
   let html=`<div class="live-edit-existing-summary" style="background:var(--accent-soft);border:1px solid var(--border-col);border-radius:14px;padding:14px 16px;margin-bottom:14px">
-    <div style="font-family:var(--font-alt);font-size:13px;font-weight:700;color:var(--section-title-col);margin-bottom:10px;letter-spacing:0.4px">✅ SAVED SETS (${committedCount}) — edit Kgs/Reps below</div>`;
+    <div style="font-family:var(--font-alt);font-size:13px;font-weight:700;color:var(--section-title-col);margin-bottom:10px;letter-spacing:0.4px">✅ SAVED SETS (${committedCount}) — edit ${isBWExisting?'Reps':'Kgs/Reps'} below</div>`;
   for(let i=1;i<=visibleCommitted;i++){
     const parsed=parseSetSegment(committedSegs[i-1]);
     const ov=liveEditValueOverrides[i]||{};
     const w=ov.w!==undefined?ov.w:parsed.w,r=ov.r!==undefined?ov.r:parsed.r;
     const durTag=parsed.duration?`<span class="set-time-locked" title="Original duration is preserved and cannot be changed">⏱ ${parsed.duration}</span>`:'';
-    html+=`<div class="set-row" style="margin-top:8px"><span onclick="toggleSetRowSelection(this)" style="cursor:pointer" title="Tap to show delete option">Set ${i}</span><input type="number" placeholder="Kgs" id="liveEditExistKg_${i}" min="0.5" step="0.5" value="${w}" style="margin-top:0;padding:9px;flex:1"><input type="number" placeholder="Reps" id="liveEditExistReps_${i}" min="1" value="${r}" style="margin-top:0;padding:9px;flex:1">${durTag}<button type="button" class="set-delete-btn" title="Delete this set" onclick="deleteLiveEditSavedSet(${i})">🗑</button></div>`;
+    const bwHidden=isBWExisting&&!bwKgRevealed.liveEditExisting;
+    const weightInputHtml=bwHidden?`<input type="number" id="liveEditExistKg_${i}" value="0" style="display:none">`:(isBWExisting?`<input type="number" placeholder="Kgs (optional)" id="liveEditExistKg_${i}" min="0" step="0.5" value="${w}" style="margin-top:0;padding:9px;flex:1">`:`<input type="number" placeholder="Kgs" id="liveEditExistKg_${i}" min="0.5" step="0.5" value="${w}" style="margin-top:0;padding:9px;flex:1">`);
+    const bwIcon=(isBWExisting&&i===1)?bwInfoIconHtml('liveEditExisting'):'';
+    html+=`<div class="set-row" style="margin-top:8px"><span onclick="toggleSetRowSelection(this)" style="cursor:pointer" title="Tap to show delete option">Set ${i}</span>${weightInputHtml}<input type="number" placeholder="Reps" id="liveEditExistReps_${i}" min="1" value="${r}" style="margin-top:0;padding:9px;flex:1">${bwIcon}${durTag}<button type="button" class="set-delete-btn" title="Delete this set" onclick="deleteLiveEditSavedSet(${i})">🗑</button></div>`;
   }
   html+=`<button class="btn" style="background:linear-gradient(135deg,#16a34a,#15803d);margin-top:12px;padding:10px" onclick="updateLiveEditExistingSets()">💾 UPDATE SETS</button>
   </div>`;
@@ -9416,10 +9561,12 @@ async function updateLiveEditExistingSets(){
   const desiredTotal=Math.max(parseInt(document.getElementById("liveSetsCountSelect").value)||1,1);
   const visibleCommitted=Math.min(desiredTotal,committedCount);
 
+  const isBWUpdate=isBodyweightNoWeightExercise(document.getElementById("liveWorkoutNameInput")?.value.trim());
   for(let i=1;i<=visibleCommitted;i++){
     const kgEl=document.getElementById(`liveEditExistKg_${i}`),repEl=document.getElementById(`liveEditExistReps_${i}`);
-    const w=parseFloat(kgEl.value)||0,r=parseInt(repEl.value)||0;
-    if(w<0.5||r<1){alert(`Set ${i}: Must have at least 0.5kg and 1 rep.`);return}
+    let w=parseFloat(kgEl.value)||0,r=parseInt(repEl.value)||0;
+    if(isBWUpdate){if(r<1){alert(`Set ${i}: Must have at least 1 rep.`);return}}
+    else if(w<0.5||r<1){alert(`Set ${i}: Must have at least 0.5kg and 1 rep.`);return}
     liveEditValueOverrides[i]={w:String(w),r:String(r)};
   }
 
@@ -9498,12 +9645,17 @@ function buildLiveEditSetHTML(idx,active){
   const displayIdx=committedCount+idx;
   // In edit mode there's always at least one already-saved set before any new set being added here,
   // so "copy from previous" always has something to pull from — see liveEditCopyFromPrevSet above.
+  const isBW=isBodyweightNoWeightExercise(document.getElementById("liveWorkoutNameInput")?.value.trim());
   const copyBtn=`<button class="live-copy-prev-btn" id="liveEditCopyPrevBtn_${idx}" onclick="liveEditCopyFromPrevSet(${idx})" title="Auto-fill from the previous set's values">⚡ Copy from previous set</button>`;
+  const bwHidden=isBW&&!bwKgRevealed.liveEditNew;
+  const weightInputHtml=bwHidden?`<input type="number" id="liveEditKg_${idx}" value="0" style="display:none">`:(isBW?`<input type="number" id="liveEditKg_${idx}" placeholder="Kgs (optional)" min="0" step="0.5" style="margin-top:0;padding:9px">`:`<input type="number" id="liveEditKg_${idx}" placeholder="Kgs" min="0.5" step="0.5" style="margin-top:0;padding:9px">`);
+  const bwIcon=(isBW&&displayIdx===1)?bwInfoIconHtml('liveEditNew'):'';
   return `<div class="live-set-block${active?' set-active':''}" id="liveEditSetBlock_${idx}">
     <div class="live-set-header"><span class="live-set-title">NEW SET ${displayIdx}</span><span class="live-set-done-badge" id="liveEditSetDoneBadge_${idx}" style="display:none">✓ DONE</span></div>
     <div class="live-set-inputs" id="liveEditSetInputs_${idx}" ${!active?'style="opacity:0.4;pointer-events:none"':''}>
-      <input type="number" id="liveEditKg_${idx}" placeholder="Kgs" min="0.5" step="0.5" style="margin-top:0;padding:9px">
+      ${weightInputHtml}
       <input type="number" id="liveEditReps_${idx}" placeholder="Reps" min="1" style="margin-top:0;padding:9px">
+      ${bwIcon}
       ${copyBtn}
     </div>
     <div class="live-timer-row" id="liveEditTimerRow_${idx}" ${!active?'style="display:none"':''}>
@@ -9547,9 +9699,11 @@ function toggleLiveEditSetTimer(idx){
 }
 
 async function saveLiveEditSet(idx){
+  const isBW=isBodyweightNoWeightExercise(document.getElementById("liveWorkoutNameInput")?.value.trim());
   let kg=parseFloat(document.getElementById(`liveEditKg_${idx}`).value)||0,reps=parseInt(document.getElementById(`liveEditReps_${idx}`).value)||0;
   const displayIdx=liveEditExistingResults.length+liveEditNewResults.length+1;
-  if(kg<0.5||reps<1){alert(`Set ${displayIdx}: Please enter Kgs and Reps before saving.`);return}
+  if(isBW){if(reps<1){alert(`Set ${displayIdx}: Please enter Reps before saving.`);return}}
+  else if(kg<0.5||reps<1){alert(`Set ${displayIdx}: Please enter Kgs and Reps before saving.`);return}
   if(liveEditSetTimers[idx]){clearInterval(liveEditSetTimers[idx]);delete liveEditSetTimers[idx]}
   let secs=liveEditSetSeconds[idx]||0;let timeLabel=secs===0?"0 sec":secs<60?`${secs} sec`:secs%60>0?`${Math.floor(secs/60)} min ${secs%60} sec`:`${Math.floor(secs/60)} min`;
   let setStr=`${kg}Kg x ${reps} [${timeLabel}]`;liveEditNewResults.push(setStr);
@@ -9670,6 +9824,7 @@ function activateNextLiveEditSet(idx){
 }
 
 function cancelLiveEditWorkout(){
+  bwKgRevealed.liveEditExisting=false;bwKgRevealed.liveEditNew=false;
   // Stop all live-edit timers
   Object.values(liveEditSetTimers).forEach(t=>clearInterval(t));
   Object.values(liveEditBreakTimers).forEach(t=>clearInterval(t));
