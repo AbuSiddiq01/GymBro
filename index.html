@@ -648,16 +648,36 @@ body.theme-batman .set-copy-btn:hover{color:#05050a}
 .suggestions-list{position:absolute;left:0;right:0;background:var(--bg-card);border:1px solid var(--border-col);border-radius:11px;max-height:180px;overflow-y:auto;z-index:100;box-shadow:0 10px 30px rgba(0,0,0,0.12);display:none}
 .suggestions-list div{padding:10px 14px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--border-col);color:var(--text-primary)}
 .suggestions-list div:hover{background:var(--accent-soft);color:var(--accent)}
-.workout-log-card{background:var(--bg-card);border:1px solid var(--border-col);border-radius:14px;padding:13px 16px;margin-bottom:9px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;position:relative;transition:all 0.3s cubic-bezier(0.4,0,0.2,1)}
-.workout-log-card:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 6px 18px var(--accent-glow)}
-.workout-log-card .exercise-name{font-weight:700;color:var(--section-title-col);font-size:14px;font-family:var(--font-alt)}
+.workout-log-card{background:var(--bg-card);border:1px solid var(--border-col);border-left:3px solid var(--border-col);border-radius:10px;padding:10px 13px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;gap:8px;cursor:pointer;position:relative;transition:all 0.25s cubic-bezier(0.4,0,0.2,1);flex-wrap:wrap}
+.workout-log-card:hover{transform:translateY(-3px);box-shadow:0 10px 22px var(--wlc-glow,var(--accent-glow))}
+.workout-log-card:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.workout-log-card .wlc-body{flex:1 1 auto;min-width:0}
+.workout-log-card .wlc-header-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.wlc-dot{width:8px;height:8px;border-radius:2px;flex-shrink:0}
+.workout-log-card .exercise-name{font-weight:700;color:var(--text-primary);font-size:13px;font-family:var(--font-alt);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex-shrink:1}
+.wlc-class-label{font-size:9px;font-weight:800;font-family:var(--font-alt);margin-left:6px;letter-spacing:0.3px;white-space:nowrap}
+.wlc-vol-val{font-family:var(--font-alt);font-size:12px;font-weight:700;color:var(--text-secondary);white-space:nowrap;flex-shrink:0;margin-left:auto}
+.wlc-vol-val small{font-size:9px;opacity:0.65;font-weight:600}
+.wlc-sets-block{margin-top:9px}
 .workout-tag{font-size:clamp(7px,2.4vw,11px);line-height:1.3;background:var(--workout-tag-bg);color:var(--workout-tag-col);padding:clamp(4px,1.6vw,6px) clamp(3px,1.2vw,5px);border-radius:6px;font-family:var(--font-alt);font-weight:600;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;box-sizing:border-box;min-width:0;display:flex;align-items:center;justify-content:center}
 .workout-tag-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(4px,1.6vw,8px);align-items:stretch}
 .workout-tag-grid.tag-grid-2col{grid-template-columns:repeat(2,minmax(0,1fr))}
-.workout-actions-overlay{display:flex;gap:7px;opacity:0;transform:translateX(10px);transition:all 0.25s ease;pointer-events:none}
-.workout-log-card.selected-active .workout-actions-overlay{opacity:1;transform:translateX(0);pointer-events:auto}
+/* Collapsed by default (display:none) so the icon row reserves NO space and the card stays as
+   short as a Volume Breakdown row — it only expands to flex once the card is selected/swap-armed. */
+.workout-actions-overlay{display:none;gap:7px;opacity:0;transform:translateX(6px);transition:opacity 0.2s ease,transform 0.2s ease;pointer-events:none;flex-shrink:0;width:100%;justify-content:flex-end;margin-top:2px}
+.workout-log-card.selected-active .workout-actions-overlay,.workout-log-card.swap-pending .workout-actions-overlay{display:flex;opacity:1;transform:translateX(0);pointer-events:auto}
 .action-icon-btn{background:var(--accent-soft);border:none;padding:7px 9px;border-radius:9px;cursor:pointer;font-size:13px;transition:all 0.2s ease}
-.action-icon-btn.edit:hover{background:#dbeafe}.action-icon-btn.delete:hover{background:#fee2e2}
+.action-icon-btn.edit:hover{background:#dbeafe}.action-icon-btn.delete:hover{background:#fee2e2}.action-icon-btn.swap:hover{background:#ede9fe}
+.workout-log-card.swap-pending{border-color:#f59e0b}
+@keyframes swapPulse{0%,100%{box-shadow:0 0 0 2px rgba(245,158,11,0.35)}50%{box-shadow:0 0 0 5px rgba(245,158,11,0.12)}}
+.workout-log-card.swap-pending{animation:swapPulse 1.1s ease-in-out infinite}
+.workout-breakdown-row{display:flex;align-items:center;gap:9px;margin:12px 0 4px}
+.workout-breakdown-row>span{font-size:12px;font-weight:700;color:var(--text-muted);font-family:var(--font-alt);letter-spacing:0.5px;user-select:none}
+@media (max-width:380px){
+  .workout-log-card{padding:9px 11px;margin-bottom:9px}
+  .workout-log-card .exercise-name{font-size:12px}
+  .action-icon-btn{padding:6px 7px;font-size:12px}
+}
 .stats-summary-row{display:flex;justify-content:space-between;align-items:center;background:var(--accent-soft);padding:10px 13px;border-radius:14px;font-size:12px;color:var(--text-secondary);margin-top:12px;border:1px solid var(--border-col);font-family:var(--font-alt);gap:8px;flex-wrap:nowrap;overflow:hidden}
 .stats-summary-row>div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 .analytics-box{background:var(--accent-soft);padding:14px;border-radius:18px;border:1px solid var(--border-col);margin-top:8px}
@@ -2248,6 +2268,12 @@ body.theme-godmode .levelup-toast{background:linear-gradient(135deg,#7a0006,#c00
         </div>
         <div id="initialWorkoutBox">
           <button class="btn" onclick="showAddWorkoutForm()">+ ADD WORKOUT ENTRY</button>
+        </div>
+        <div class="workout-breakdown-row">
+          <span>📋 BREAKDOWN</span>
+          <div class="live-toggle on" id="workoutBreakdownToggle" tabindex="0" role="switch" aria-checked="true" onclick="toggleWorkoutBreakdown()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleWorkoutBreakdown()}" style="width:36px;height:20px">
+            <div class="live-toggle-knob"></div>
+          </div>
         </div>
         <div id="workoutFormStructure" class="workout-form-wrapper" style="display:none">
           <h4 id="formActionTitle">LOG NEW ENTRY</h4>
@@ -9283,23 +9309,100 @@ function finishLiveSession(name){
   container.appendChild(doneMsg);
   let closeBtn=document.createElement("button");closeBtn.className="btn";closeBtn.style.cssText="margin-top:12px;background:linear-gradient(135deg,#64748b,#475569)";closeBtn.textContent="DONE";closeBtn.onclick=cancelLiveWorkout;container.appendChild(closeBtn);
 }
+/* ===================== SAVED WORKOUTS: BREAKDOWN TOGGLE + MANUAL SWAP ===================== */
+let workoutBreakdownOn=true; // default ON — all set values visible per exercise
+let _workoutSwapPendingCi=null; // ci of the card currently "armed" for a swap, or null
+function toggleWorkoutBreakdown(){
+  workoutBreakdownOn=!workoutBreakdownOn;
+  const tog=document.getElementById('workoutBreakdownToggle');
+  if(tog){tog.classList.toggle('on',workoutBreakdownOn);tog.setAttribute('aria-checked',String(workoutBreakdownOn));}
+  loadWorkoutsForDate();
+}
+/* Routes a card tap/click/Enter-key: if a swap is armed on another card, this tap completes the
+   swap; otherwise it behaves like the normal select-to-reveal-icons tap. */
+function handleWorkoutCardActivate(el,ci,rv){
+  if(_workoutSwapPendingCi!==null){performWorkoutSwap(ci);return;}
+  toggleCardSelectionState(el,ci,rv);
+}
+/* Arms "swap mode" on a card (or cancels it if the same swap icon is tapped again). Tapping any
+   OTHER card afterwards (mouse, touch, or Enter/Space via keyboard) completes the position swap. */
+function initiateWorkoutSwap(e,ci){
+  e.stopPropagation();
+  if(_workoutSwapPendingCi===ci){
+    _workoutSwapPendingCi=null;
+    document.querySelectorAll('.workout-log-card').forEach(c=>c.classList.remove('swap-pending'));
+    showToast('Swap cancelled');
+    return;
+  }
+  _workoutSwapPendingCi=ci;
+  document.querySelectorAll('.workout-log-card').forEach(c=>c.classList.remove('swap-pending'));
+  const card=document.querySelector(`.workout-log-card[data-ci="${ci}"]`);
+  if(card)card.classList.add('swap-pending');
+  showToast('🔀 Now tap the workout you want to swap positions with');
+}
+async function performWorkoutSwap(targetCi){
+  const sourceCi=_workoutSwapPendingCi;
+  _workoutSwapPendingCi=null;
+  document.querySelectorAll('.workout-log-card').forEach(c=>c.classList.remove('swap-pending'));
+  if(sourceCi===null||sourceCi===targetCi)return;
+  const uid=getEffectiveUid(),td=isRoomMemberModeActive()?getLocalDateString():document.getElementById("workoutCalendarFilter").value;
+  const{data,error}=await db.from("workouts").select("*").eq("user_id",uid).eq("date",td);
+  if(error||!data||!data.length)return;
+  const row=data[0];
+  const a=row[`workout_${sourceCi}`]??null,b=row[`workout_${targetCi}`]??null;
+  let p={};p[`workout_${sourceCi}`]=b;p[`workout_${targetCi}`]=a;
+  await db.from("workouts").update(p).eq("user_id",uid).eq("date",td);
+  showToast('🔀 Order swapped');
+  await loadWorkoutsForDate();
+}
 async function loadWorkoutsForDate(){
   let uid=getEffectiveUid(),date=isRoomMemberModeActive()?getLocalDateString():document.getElementById("workoutCalendarFilter").value;
   let con=document.getElementById("savedWorkoutLogsContainer");
   con.innerHTML=`<p style="font-size:13px;color:var(--text-muted);text-align:center;padding:10px;font-family:var(--font-alt)">Loading...</p>`;
   const{data,error}=await db.from("workouts").select("*").eq("user_id",uid).eq("date",date);
   if(error||!data||data.length===0){con.innerHTML=`<p style="font-size:13px;color:var(--text-muted);text-align:center;padding:10px;font-family:var(--font-alt)">No workouts logged for this date.</p>`;return}
-  let html="",counter=1;
+  let html="",counter=1,classVolMap={},totalVolAll=0,anyEntry=false;
   data.forEach(row=>{
     window.currentWorkoutRowObject=row;
     for(let ci=1;ci<=15;ci++){
       let cell=row[`workout_${ci}`];if(!cell||cell.trim()==="")continue;
+      anyEntry=true;
       let ename=cell,tags="",hasDuration=false;if(cell.includes(":")){let pts=cell.split(":");ename=pts[0].trim();pts[1].trim().split(",").map(s=>s.trim()).filter(Boolean).forEach((s,si)=>{if(s.includes("["))hasDuration=true;tags+=`<span class="workout-tag">${formatSetTagLabel(s,si+1)}</span>`})}
       const tagGridClass=hasDuration?"workout-tag-grid tag-grid-2col":"workout-tag-grid";
-      html+=`<div class="workout-log-card" onclick="toggleCardSelectionState(this,${ci},'${escapeHtml(cell)}')"><div><div class="exercise-name"><span style="color:var(--accent);margin-right:4px">${counter}.</span>${ename}</div><div class="${tagGridClass}" style="margin-top:6px">${tags}</div></div><div class="workout-actions-overlay"><button class="action-icon-btn edit" onclick="initiateWorkoutEdit(event,${ci},'${escapeHtml(cell)}')">✏️</button><button class="action-icon-btn delete" onclick="triggerWorkoutDelete(event,${ci})">🗑️</button></div></div>`;counter++;
+      const exCls=extractClassFromWorkoutName(cell),exColor=CLASS_COLORS[exCls]||CLASS_COLORS['Unknown'];
+      const cellVol=parseWorkoutVolume(cell);
+      classVolMap[exCls]=(classVolMap[exCls]||0)+cellVol;totalVolAll+=cellVol;
+      const sets=parseWorkoutSets(cell),vt=formatExerciseVolTotal({vol:cellVol},sets);
+      const volVal=`<span class="wlc-vol-val">${vt.primary} <small>${vt.unit}</small></span>`;
+      const classLabel=`<small class="wlc-class-label" style="color:${exColor}">${exCls}</small>`;
+      const setsBlock=workoutBreakdownOn?`<div class="${tagGridClass} wlc-sets-block">${tags}</div>`:"";
+      html+=`<div class="workout-log-card" data-ci="${ci}" tabindex="0" style="border-color:${exColor}55;border-left-color:${exColor};--wlc-glow:${exColor}55" onclick="handleWorkoutCardActivate(this,${ci},'${escapeHtml(cell)}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click()}"><div class="wlc-body"><div class="wlc-header-row"><span class="wlc-dot" style="background:${exColor}"></span><div class="exercise-name"><span style="color:var(--accent);margin-right:4px">${counter}.</span>${ename}${classLabel}</div>${volVal}</div>${setsBlock}</div><div class="workout-actions-overlay"><button class="action-icon-btn swap" title="Swap position" onclick="initiateWorkoutSwap(event,${ci})">🔀</button><button class="action-icon-btn edit" title="Edit" onclick="initiateWorkoutEdit(event,${ci},'${escapeHtml(cell)}')">✏️</button><button class="action-icon-btn delete" title="Delete" onclick="triggerWorkoutDelete(event,${ci})">🗑️</button></div></div>`;counter++;
     }
   });
-  con.innerHTML=html||`<p style="font-size:13px;color:var(--text-muted);text-align:center;padding:10px;font-family:var(--font-alt)">No entries for this date.</p>`;
+  if(!anyEntry){con.innerHTML=`<p style="font-size:13px;color:var(--text-muted);text-align:center;padding:10px;font-family:var(--font-alt)">No entries for this date.</p>`;return}
+  // ── Class Breakdown + Daily Total summary, styled exactly like the Volume Breakdown panel ──
+  const classKeys=Object.keys(classVolMap).filter(c=>classVolMap[c]>0);
+  if(classKeys.length>0){
+    html+=`<div style="margin-top:10px;margin-bottom:10px;padding:10px 12px;border-radius:12px;background:var(--accent-soft);border:1px solid var(--border-col)">`;
+    html+=`<div style="font-family:var(--font-alt);font-size:11px;font-weight:800;color:var(--text-muted);margin-bottom:8px;letter-spacing:0.5px">📊 CLASS BREAKDOWN</div>`;
+    classKeys.sort((a,b)=>classVolMap[b]-classVolMap[a]).forEach(c=>{
+      const pct=totalVolAll>0?Math.round((classVolMap[c]/totalVolAll)*100):0;
+      const col=CLASS_COLORS[c]||CLASS_COLORS['Unknown'];
+      html+=`<div style="margin-bottom:8px">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:3px">
+          <div style="display:flex;align-items:center;gap:5px;min-width:0;flex:1">
+            <span style="width:9px;height:9px;border-radius:2px;background:${col};flex-shrink:0;display:inline-block"></span>
+            <span style="font-family:var(--font-alt);font-size:11px;font-weight:700;color:${col};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${c}</span>
+          </div>
+          <span style="font-family:var(--font-alt);font-size:10px;font-weight:700;color:var(--text-secondary);white-space:nowrap;flex-shrink:0">${Math.round(classVolMap[c]).toLocaleString()} Kg (${pct}%)</span>
+        </div>
+        <div style="width:100%;height:8px;border-radius:4px;background:var(--border-col);overflow:hidden"><div style="height:100%;width:${pct}%;background:${col};border-radius:4px;transition:width 0.3s ease"></div></div>
+      </div>`;
+    });
+    html+=`</div>`;
+  }
+  html+=`<div class="vol-drill-total"><span>📦 Daily Total</span><strong>${Math.round(totalVolAll).toLocaleString()} kg·reps</strong></div>`;
+  con.innerHTML=html;
 }
 function toggleCardSelectionState(el,ci,rv){let a=el.classList.contains("selected-active");document.querySelectorAll(".workout-log-card").forEach(c=>c.classList.remove("selected-active"));if(!a)el.classList.add("selected-active")}
 function initiateWorkoutEdit(e,ci,rv){
