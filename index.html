@@ -648,10 +648,11 @@ body.theme-batman .set-copy-btn:hover{color:#05050a}
 .suggestions-list{position:absolute;left:0;right:0;background:var(--bg-card);border:1px solid var(--border-col);border-radius:11px;max-height:180px;overflow-y:auto;z-index:100;box-shadow:0 10px 30px rgba(0,0,0,0.12);display:none}
 .suggestions-list div{padding:10px 14px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--border-col);color:var(--text-primary)}
 .suggestions-list div:hover{background:var(--accent-soft);color:var(--accent)}
-.workout-log-card{background:var(--bg-card);border:1px solid var(--border-col);border-left:3px solid var(--border-col);border-radius:10px;padding:10px 13px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;gap:8px;cursor:pointer;position:relative;transition:all 0.25s cubic-bezier(0.4,0,0.2,1);flex-wrap:wrap}
-.workout-log-card:hover{transform:translateY(-3px);box-shadow:0 10px 22px var(--wlc-glow,var(--accent-glow))}
-.workout-log-card:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.workout-log-card .wlc-body{flex:1 1 auto;min-width:0}
+.workout-log-card{display:flex;align-items:stretch;gap:0;margin-bottom:10px;cursor:pointer;position:relative}
+.workout-log-card:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:10px}
+.wlc-box{flex:1 1 auto;min-width:0;background:var(--bg-card);border:1px solid var(--border-col);border-left:3px solid var(--border-col);border-radius:10px;padding:10px 13px;transition:transform 0.25s cubic-bezier(0.4,0,0.2,1),box-shadow 0.25s cubic-bezier(0.4,0,0.2,1)}
+.workout-log-card:hover .wlc-box{transform:translateY(-3px);box-shadow:0 10px 22px var(--wlc-glow,var(--accent-glow))}
+.workout-log-card .wlc-body{min-width:0}
 .workout-log-card .wlc-header-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .wlc-dot{width:8px;height:8px;border-radius:2px;flex-shrink:0}
 .workout-log-card .exercise-name{font-weight:700;color:var(--text-primary);font-size:13px;font-family:var(--font-alt);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex-shrink:1}
@@ -659,24 +660,32 @@ body.theme-batman .set-copy-btn:hover{color:#05050a}
 .wlc-vol-val{font-family:var(--font-alt);font-size:12px;font-weight:700;color:var(--text-secondary);white-space:nowrap;flex-shrink:0;margin-left:auto}
 .wlc-vol-val small{font-size:9px;opacity:0.65;font-weight:600}
 .wlc-sets-block{margin-top:9px}
+.wlc-sets-block.wlc-collapsed{display:none}
+.workout-log-card.selected-active .wlc-sets-block.wlc-collapsed{display:grid}
 .workout-tag{font-size:clamp(7px,2.4vw,11px);line-height:1.3;background:var(--workout-tag-bg);color:var(--workout-tag-col);padding:clamp(4px,1.6vw,6px) clamp(3px,1.2vw,5px);border-radius:6px;font-family:var(--font-alt);font-weight:600;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;box-sizing:border-box;min-width:0;display:flex;align-items:center;justify-content:center}
 .workout-tag-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(4px,1.6vw,8px);align-items:stretch}
 .workout-tag-grid.tag-grid-2col{grid-template-columns:repeat(2,minmax(0,1fr))}
-/* Collapsed by default (display:none) so the icon row reserves NO space and the card stays as
-   short as a Volume Breakdown row — it only expands to flex once the card is selected/swap-armed. */
-.workout-actions-overlay{display:none;gap:7px;opacity:0;transform:translateX(6px);transition:opacity 0.2s ease,transform 0.2s ease;pointer-events:none;flex-shrink:0;width:100%;justify-content:flex-end;margin-top:2px}
-.workout-log-card.selected-active .workout-actions-overlay,.workout-log-card.swap-pending .workout-actions-overlay{display:flex;opacity:1;transform:translateX(0);pointer-events:auto}
-.action-icon-btn{background:var(--accent-soft);border:none;padding:7px 9px;border-radius:9px;cursor:pointer;font-size:13px;transition:all 0.2s ease}
-.action-icon-btn.edit:hover{background:#dbeafe}.action-icon-btn.delete:hover{background:#fee2e2}.action-icon-btn.swap:hover{background:#ede9fe}
-.workout-log-card.swap-pending{border-color:#f59e0b}
+/* Icon column: a REAL flex sibling of the box (not absolutely positioned), living in the box's own
+   gutter space. Width is 0 (no reserved space) until the row is selected/swap-armed, at which point
+   it expands in-flow — so it can never float over or bleed into any other saved-workout box. */
+.workout-actions-overlay{width:0;flex-shrink:0;overflow:hidden;opacity:0;display:flex;flex-direction:column;justify-content:center;gap:4px;margin-left:0;transition:width 0.2s ease,opacity 0.2s ease,margin-left 0.2s ease;pointer-events:none}
+.workout-log-card.selected-active .workout-actions-overlay,.workout-log-card.swap-pending .workout-actions-overlay{width:30px;opacity:1;margin-left:8px;pointer-events:auto}
+.action-icon-btn{width:100%;aspect-ratio:1;display:flex;align-items:center;justify-content:center;background:var(--accent-soft);border:none;border-radius:8px;cursor:pointer;padding:0;flex-shrink:0;transition:background 0.2s ease}
+.action-icon-btn svg{width:14px;height:14px;flex-shrink:0}
+.action-icon-btn.edit{color:#2563eb}.action-icon-btn.edit:hover{background:#dbeafe}
+.action-icon-btn.swap{color:#7c3aed}.action-icon-btn.swap:hover{background:#ede9fe}
+.action-icon-btn.delete{color:#dc2626}.action-icon-btn.delete:hover{background:#fee2e2}
+.workout-log-card.swap-pending .wlc-box{border-color:#f59e0b}
 @keyframes swapPulse{0%,100%{box-shadow:0 0 0 2px rgba(245,158,11,0.35)}50%{box-shadow:0 0 0 5px rgba(245,158,11,0.12)}}
-.workout-log-card.swap-pending{animation:swapPulse 1.1s ease-in-out infinite}
+.workout-log-card.swap-pending .wlc-box{animation:swapPulse 1.1s ease-in-out infinite}
 .workout-breakdown-row{display:flex;align-items:center;gap:9px;margin:12px 0 4px}
 .workout-breakdown-row>span{font-size:12px;font-weight:700;color:var(--text-muted);font-family:var(--font-alt);letter-spacing:0.5px;user-select:none}
 @media (max-width:380px){
-  .workout-log-card{padding:9px 11px;margin-bottom:9px}
+  .wlc-box{padding:9px 11px}
+  .workout-log-card{margin-bottom:9px}
   .workout-log-card .exercise-name{font-size:12px}
-  .action-icon-btn{padding:6px 7px;font-size:12px}
+  .action-icon-btn{padding:5px 6px;font-size:11px}
+  .workout-actions-overlay{right:-8px}
 }
 .stats-summary-row{display:flex;justify-content:space-between;align-items:center;background:var(--accent-soft);padding:10px 13px;border-radius:14px;font-size:12px;color:var(--text-secondary);margin-top:12px;border:1px solid var(--border-col);font-family:var(--font-alt);gap:8px;flex-wrap:nowrap;overflow:hidden}
 .stats-summary-row>div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
@@ -704,6 +713,23 @@ body.theme-batman .stats-subnav-btn.active{color:#05050a}
 .ctm-muscle-eq-row>div{flex:1;min-width:130px}
 .ctm-muscle-eq-row label{font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.6px;font-family:var(--font-alt);display:block;margin-bottom:4px}
 .ctm-muscle-eq-row select{margin-top:0;padding:10px 12px;font-size:13px}
+/* Tracker's Muscle/Equipment/Sort row: always stays on one line, on every screen size — the two
+   selects shrink to make room instead of wrapping, so the sort icon never gets pushed to its own row. */
+.ctm-muscle-eq-row.tracker-filter-row{flex-wrap:nowrap}
+.ctm-muscle-eq-row.tracker-filter-row>div{min-width:0}
+.ctm-muscle-eq-row.tracker-filter-row select{width:100%;text-overflow:ellipsis}
+.tracker-sort-wrap{flex:0 0 auto!important;min-width:auto!important;position:relative}
+.tracker-sort-btn{width:38px;height:38px;border-radius:10px;border:1px solid var(--border-col);background:var(--bg-card);color:var(--text-secondary);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.2s ease;padding:0;flex-shrink:0}
+.tracker-sort-btn:hover,.tracker-sort-btn.active{background:var(--accent-soft);color:var(--accent);border-color:var(--accent)}
+.tracker-sort-btn svg{width:16px;height:16px}
+/* In-flow expanding panel (not absolute/fixed) directly below the Muscle/Equipment/Sort row — reserves
+   zero space by default and grows open in place when the sort icon is tapped, exactly like the saved-workout
+   card's icon reveal. Being real document flow, it can never be clipped or mispositioned on any device. */
+.tracker-sort-panel{max-height:0;overflow:hidden;opacity:0;border:1px solid transparent;border-radius:10px;background:var(--bg-card);transition:max-height 0.25s ease,opacity 0.2s ease,margin 0.25s ease,border-color 0.2s ease}
+.tracker-sort-panel.visible{max-height:120px;opacity:1;margin-top:-4px;margin-bottom:12px;border-color:var(--border-col)}
+.tracker-sort-panel button{display:block;width:100%;text-align:left;padding:10px 14px;font-size:12.5px;font-family:var(--font-alt);font-weight:600;color:var(--text-secondary);background:none;border:none;cursor:pointer;transition:background 0.15s ease}
+.tracker-sort-panel button:hover{background:var(--accent-soft);color:var(--accent)}
+.tracker-sort-panel button.active{color:var(--accent);font-weight:800}
 .stats-period-row select{margin-top:0;padding:10px;flex:0.7 1 90px;min-width:0}
 .week-nav-group{display:flex;align-items:center;gap:8px;flex:1.3 0 auto}
 .week-nav-btn{background:var(--bg-card);border:1px solid var(--border-col);border-radius:10px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;font-size:20px;line-height:1;color:var(--accent);cursor:pointer;transition:background 0.15s,transform 0.1s;padding:0;font-family:sans-serif;-webkit-tap-highlight-color:transparent;flex-shrink:0}
@@ -1243,17 +1269,20 @@ body.theme-batman .tracker-track-btn{color:#05050a}
 .tracker-exercise-name{font-weight:700;color:var(--section-title-col);font-family:var(--font-alt);font-size:13px}
 .tracker-freq-badge{display:inline-block;background:var(--accent-soft);color:var(--accent);border:1px solid var(--accent);border-radius:8px;padding:3px 10px;font-size:11px;font-weight:700;font-family:var(--font-alt);letter-spacing:0.5px}
 .tracker-vol-cell{font-size:11px;color:var(--text-secondary);font-family:var(--font-alt);line-height:1.6}
-.tracker-vol-date{color:var(--accent);font-weight:700;font-size:10px;display:block;margin-bottom:2px}
-.tracker-vol-raw{background:var(--accent-soft);border-radius:6px;padding:3px 8px;display:inline-block;font-size:11px;color:var(--text-primary)}
+.tracker-vol-date{color:var(--accent);font-weight:700;font-size:10px;display:block;margin-bottom:2px;white-space:nowrap}
+.tracker-vol-raw{background:var(--accent-soft);border-radius:6px;padding:3px 8px;display:inline-block;font-size:11px;color:var(--text-primary);white-space:nowrap}
+.tracker-vol-collapsed{white-space:nowrap}
 .tracker-analytics-btn{background:var(--btn-bg);color:var(--follow-btn-text);border:none;padding:7px 14px;border-radius:9px;font-size:11px;font-weight:700;font-family:var(--font-alt);cursor:pointer;letter-spacing:0.5px;transition:all 0.2s ease;white-space:nowrap}
 body.theme-batman .tracker-analytics-btn{color:#05050a}
 .tracker-analytics-btn:hover{opacity:0.85;transform:scale(1.05)}
 .tracker-row:hover{background:var(--accent-soft)!important;transition:background 0.15s}
-.tracker-pagination{display:flex;gap:6px;justify-content:center;margin-top:16px;flex-wrap:wrap}
+.tracker-pagination{display:flex;align-items:center;gap:10px;justify-content:center;margin-top:16px;flex-wrap:wrap}
 .tracker-page-btn{width:34px;height:34px;border-radius:9px;border:1px solid var(--border-col);background:var(--bg-card);color:var(--text-secondary);font-size:13px;font-weight:700;font-family:var(--font-alt);cursor:pointer;transition:all 0.2s ease;display:flex;align-items:center;justify-content:center}
 .tracker-page-btn:hover{background:var(--accent-soft);color:var(--accent);border-color:var(--accent)}
 .tracker-page-btn.active{background:var(--btn-bg);color:var(--follow-btn-text);border-color:transparent;box-shadow:var(--btn-shadow)}
 body.theme-batman .tracker-page-btn.active{color:#05050a}
+.tracker-entries-select{display:flex;align-items:center;gap:6px;font-size:12px;font-family:var(--font-alt);font-weight:600;color:var(--text-muted)}
+.tracker-entries-select select{padding:7px 10px;border-radius:8px;border:1px solid var(--border-col);background:var(--bg-card);color:var(--text-secondary);font-size:12px;font-family:var(--font-alt);font-weight:700;cursor:pointer;margin-top:0}
 .tracker-empty{text-align:center;padding:30px;color:var(--text-muted);font-family:var(--font-alt);font-size:14px}
 .tracker-loading{text-align:center;padding:24px;color:var(--accent);font-family:var(--font-alt);font-size:14px;font-weight:700;letter-spacing:0.5px}
 .tracker-analytics-panel{display:none;margin-top:18px;padding:22px;background:var(--bg-card);border-radius:20px;border:1px solid var(--border-col);box-shadow:var(--card-shadow);animation:fadeIn 0.4s ease}
@@ -1262,6 +1291,20 @@ body.theme-batman .tracker-page-btn.active{color:#05050a}
 .tracker-analytics-title{font-family:var(--font-alt);font-size:16px;font-weight:700;color:var(--section-title-col);letter-spacing:0.5px}
 .tracker-analytics-close{background:var(--accent-soft);color:var(--accent);border:1px solid var(--accent);border-radius:9px;padding:6px 14px;font-size:12px;font-weight:700;font-family:var(--font-alt);cursor:pointer;transition:all 0.2s}
 .tracker-analytics-close:hover{background:var(--accent);color:#fff}
+/* Right-side header cluster (mode dropdown + close button) — wraps as one unit under the title on narrow screens */
+.tracker-analytics-header-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.tracker-graph-mode-wrap{display:flex;align-items:center;gap:6px}
+.tracker-graph-mode-wrap label{font-size:10px;font-weight:700;color:var(--text-muted);font-family:var(--font-alt);letter-spacing:0.4px;text-transform:uppercase;white-space:nowrap}
+.tracker-graph-mode-select{margin-top:0;width:auto;padding:7px 26px 7px 12px;border-radius:9px;border:1px solid var(--accent);background:var(--accent-soft);color:var(--accent);font-size:11.5px;font-weight:700;font-family:var(--font-alt);cursor:pointer;letter-spacing:0.3px;-webkit-appearance:none;appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--accent) 50%),linear-gradient(135deg,var(--accent) 50%,transparent 50%);background-position:calc(100% - 14px) center,calc(100% - 9px) center;background-size:5px 5px,5px 5px;background-repeat:no-repeat}
+.tracker-graph-mode-select:focus{outline:none;border-color:var(--accent)}
+@media (max-width:480px){
+  .tracker-graph-mode-wrap label{display:none}
+  .tracker-graph-mode-select{font-size:10.5px;padding:6px 22px 6px 10px}
+}
+/* Wraps the tracker graph + its fixed detail box in the same tinted card used by the Duration/Volume
+   graphs (.analytics-box), so the detail box reads as sitting inside the graph's own card corner
+   instead of floating in open space above it. */
+.tracker-analytics-box{margin-top:14px}
 .tracker-graph-box{position:relative;height:300px;width:100%;min-height:240px}
 .tracker-graph-detail-box{position:absolute;top:8px;right:8px;z-index:5;max-width:46%;min-width:108px;height:130px;display:flex;flex-direction:column;background:var(--bg-card);border:1px solid var(--border-col);border-radius:12px;box-shadow:0 4px 14px rgba(0,0,0,0.15);padding:8px 10px;font-family:var(--font-alt);pointer-events:auto;transition:all 0.15s ease}
 .tracker-graph-detail-hint{font-size:10px;color:var(--text-muted);letter-spacing:0.3px;white-space:nowrap}
@@ -1271,12 +1314,103 @@ body.theme-batman .tracker-page-btn.active{color:#05050a}
 .tracker-graph-detail-list li .tracker-set-num{color:var(--text-muted);font-weight:700;margin-right:3px}
 .tracker-graph-detail-total{margin-top:6px;padding-top:6px;border-top:1px solid var(--border-col);font-size:11px;color:var(--text-muted);font-weight:600;white-space:nowrap;text-align:right;flex-shrink:0}
 .tracker-graph-detail-total strong{color:var(--accent);font-family:var(--font-display);font-size:15px;letter-spacing:0.4px;margin-left:4px}
-.tracker-graph-nav-row{display:none;justify-content:center;align-items:center;gap:16px;margin-top:12px}
+/* Fullscreen-focus icon: hidden by default, revealed only once "View Journey" playback starts (see
+   startTrackerJourney/stopTrackerJourney). Sits directly above the fixed detail box — the box itself
+   drops down (.tracker-journey-live) to make room, so the two never overlap. The chart's own reserved
+   top padding is grown by the same amount at the same moment (setTrackerJourneyLiveLayout), so the
+   graph line/markers still can't reach either element. */
+.tracker-fullscreen-btn{position:absolute;top:8px;right:8px;z-index:6;width:26px;height:26px;border-radius:8px;border:1px solid var(--border-col);background:var(--bg-card);color:var(--accent);display:none;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.15);padding:0;transition:transform 0.2s ease,background 0.2s ease}
+.tracker-fullscreen-btn svg{width:13px;height:13px;display:block}
+.tracker-fullscreen-btn:hover{background:var(--accent-soft);transform:scale(1.15) rotate(6deg)}
+.tracker-fullscreen-btn.is-active{background:var(--accent);color:#fff}
+.tracker-graph-box.tracker-journey-live .tracker-graph-detail-box{top:40px}
+@media (max-width:480px){.tracker-fullscreen-btn{width:23px;height:23px}.tracker-fullscreen-btn svg{width:11px;height:11px}.tracker-graph-box.tracker-journey-live .tracker-graph-detail-box{top:35px}}
+/* Fullscreen-focus overlay: the graph box (canvas + detail box) and the Journey caption get physically
+   moved in here while active, leaving every other control behind — a deliberately minimal view of just
+   the line, the fixed detail box tucked in its corner, and the caption underneath. */
+.tracker-fullscreen-overlay{display:none;position:fixed;inset:0;z-index:999850;background:rgba(5,8,14,0.92);backdrop-filter:blur(6px);padding:56px 18px 24px;align-items:flex-start;justify-content:center;overflow-y:auto;box-sizing:border-box}
+.tracker-fullscreen-overlay.active{display:flex}
+.tracker-fullscreen-stage{width:100%;max-width:720px;display:flex;flex-direction:column;gap:16px}
+.tracker-fullscreen-stage .tracker-graph-box{background:var(--bg-card);border:1px solid var(--border-col);border-radius:16px;padding:14px;box-sizing:border-box;box-shadow:0 12px 32px rgba(0,0,0,0.35)}
+.tracker-fullscreen-stage .tracker-journey-caption{margin-top:0}
+/* The caption's normal colors (--accent-soft background + --text-primary text) are tuned for sitting on
+   the page's own light/dark card background. Inside the fullscreen overlay it instead sits on a near-black
+   backdrop, where --accent-soft's low-opacity tint reads as almost-black and --text-primary can itself be
+   a dark navy (default theme) — together nearly invisible. Fullscreen gets its own fixed, always-readable
+   palette instead of inheriting the theme colors. */
+.tracker-fullscreen-stage .tracker-journey-caption{background:rgba(255,255,255,0.08);border-color:rgba(255,255,255,0.16)}
+.tracker-fullscreen-stage .tracker-journey-caption-date{color:rgba(255,255,255,0.68)}
+.tracker-fullscreen-stage .tracker-journey-caption-msg{color:#f4f6fa}
+.tracker-fullscreen-stage .tracker-journey-caption-msg strong{color:#ffffff}
+.tracker-fullscreen-stage .tracker-journey-caption-msg.tjc-up{color:#22c55e}
+.tracker-fullscreen-stage .tracker-journey-caption-msg.tjc-up strong{color:#22c55e}
+.tracker-fullscreen-stage .tracker-journey-caption-msg.tjc-down{color:#f87171}
+.tracker-fullscreen-stage .tracker-journey-caption-msg.tjc-down strong{color:#f87171}
+.tracker-fullscreen-close{position:fixed;top:16px;right:16px;width:38px;height:38px;border-radius:50%;border:none;background:var(--btn-bg);color:var(--follow-btn-text);cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:var(--btn-shadow);z-index:2;transition:transform 0.2s ease,opacity 0.2s ease;padding:0}
+.tracker-fullscreen-close svg{width:16px;height:16px;display:block}
+.tracker-fullscreen-close:hover{opacity:0.85;transform:scale(1.08) rotate(90deg)}
+body.theme-batman .tracker-fullscreen-close{color:#05050a}
+body.tracker-fs-lock{overflow:hidden}
+@media (max-width:480px){.tracker-fullscreen-overlay{padding:50px 10px 16px}.tracker-fullscreen-close{width:34px;height:34px;top:12px;right:12px}}
+/* Nav row: the arrows are taken out of normal flow and centered with absolute positioning, so they
+   never claim any of the row's actual layout width. That leaves the Journey slot as the row's only
+   in-flow child — margin-left:auto pushes it flush to the right corner and lets it use the *entire*
+   remaining width of the card (instead of being capped to half of it, which used to truncate "View
+   Journey" into "View Jou..." even though space was free). The arrows sit on top visually, but since
+   "View Journey" is comfortably narrower than the gap between them and the card's edge on every
+   supported width, nothing ever overlaps. */
+.tracker-graph-nav-row{position:relative;display:none;align-items:center;min-height:36px;margin-top:12px}
 .tracker-graph-nav-row.visible{display:flex}
-.tracker-graph-nav-btn{width:38px;height:38px;border-radius:50%;border:1px solid var(--border-col);background:var(--bg-card);color:var(--accent);font-size:20px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(0,0,0,0.18);transition:all 0.2s ease;line-height:1;padding:0}
+.tracker-graph-arrows{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:flex;align-items:center;gap:10px;flex-shrink:0}
+.tracker-graph-nav-btn{width:36px;height:36px;border-radius:50%;border:1px solid var(--border-col);background:var(--bg-card);color:var(--accent);font-size:19px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(0,0,0,0.18);transition:all 0.2s ease;line-height:1;padding:0;flex-shrink:0}
 .tracker-graph-nav-btn:hover:not(:disabled){background:var(--accent-soft);transform:scale(1.1)}
 .tracker-graph-nav-btn:disabled{opacity:0.3;cursor:not-allowed}
-@media (max-width:600px){.tracker-graph-nav-btn{width:34px;height:34px;font-size:17px}}
+@media (max-width:600px){.tracker-graph-nav-btn{width:32px;height:32px;font-size:16px}}
+/* "View Journey" playback button — sits in the fixed right column of the nav row and auto-plays the
+   marker across every point on the graph, from first to last, pausing briefly on each one. Icon +
+   label use SVG (not emoji/glyphs) so the control renders identically across every OS/browser. Sized
+   down from the original pill (smaller padding/font) so it never crowds the centered arrows. */
+.tracker-journey-btn-slot{margin-left:auto;min-width:0;max-width:100%;display:flex;align-items:center;justify-content:flex-end}
+.tracker-journey-btn{background:var(--btn-bg);color:var(--follow-btn-text);border:none;border-radius:18px;padding:7px 13px;font-size:10.5px;font-weight:800;font-family:var(--font-alt);cursor:pointer;letter-spacing:0.3px;transition:all 0.2s ease;white-space:nowrap;box-shadow:var(--btn-shadow);flex-shrink:1;min-width:0;overflow:hidden;display:flex;align-items:center;justify-content:center;gap:6px;max-width:100%}
+.tracker-journey-btn .tj-btn-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.tracker-journey-btn .tj-btn-icon{flex-shrink:0;display:flex;align-items:center;justify-content:center;line-height:0}
+.tracker-journey-btn .tj-btn-icon svg{width:11px;height:11px;display:block}
+body.theme-batman .tracker-journey-btn{color:#05050a}
+.tracker-journey-btn:hover:not(:disabled){opacity:0.88;transform:scale(1.03)}
+.tracker-journey-btn:disabled{opacity:0.55;cursor:not-allowed;transform:none}
+@media (max-width:480px){.tracker-journey-btn{padding:6px 10px;font-size:9.5px;gap:5px}.tracker-journey-btn .tj-btn-icon svg{width:10px;height:10px}}
+@media (max-width:360px){.tracker-graph-nav-row{gap:6px}.tracker-graph-arrows{gap:6px}.tracker-journey-btn{padding:6px 8px;font-size:8.5px}}
+/* Pause/Resume + Stop icon controls — shown in place of the "View Journey" button once playback has
+   started. Round, fixed-size, icon-only buttons (SVG, not emoji) so they never wrap or overflow text,
+   and they scale down together at narrow breakpoints instead of one control pushing another off-row. */
+.tracker-journey-controls{display:none;align-items:center;justify-content:flex-end;gap:8px;flex-shrink:0}
+.tracker-journey-controls.visible{display:flex}
+.tracker-journey-icon-btn{width:34px;height:34px;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:var(--btn-shadow);transition:all 0.2s ease;flex-shrink:0;padding:0;background:var(--btn-bg);color:var(--follow-btn-text)}
+body.theme-batman .tracker-journey-icon-btn{color:#05050a}
+.tracker-journey-icon-btn svg{width:14px;height:14px;display:block}
+.tracker-journey-icon-btn:hover{opacity:0.88;transform:scale(1.06)}
+.tracker-journey-icon-btn:active{transform:scale(0.96)}
+.tracker-journey-icon-btn.tj-stop-btn{background:#dc2626;color:#fff}
+@media (max-width:360px){.tracker-journey-controls{gap:6px}.tracker-journey-icon-btn{width:29px;height:29px}.tracker-journey-icon-btn svg{width:12px;height:12px}}
+/* Caption card beneath the graph, driven live during "View Journey" playback — shows which training day is
+   currently highlighted and, compared to the previous marker, whether that mode's value went up, stayed
+   consistent, or dropped. Wraps and shrinks gracefully on narrow screens so long messages never overflow. */
+.tracker-journey-caption{display:none;margin-top:12px;padding:10px 14px;border-radius:14px;background:var(--accent-soft);border:1px solid var(--border-col);text-align:center;animation:fadeIn 0.35s ease;max-width:100%;box-sizing:border-box}
+.tracker-journey-caption-date{font-size:10.5px;font-weight:700;color:var(--text-muted);font-family:var(--font-alt);letter-spacing:0.4px;margin-bottom:4px;white-space:normal;overflow-wrap:break-word}
+.tracker-journey-caption-msg{font-size:13px;font-weight:700;font-family:var(--font-alt);color:var(--text-primary);line-height:1.5;overflow-wrap:break-word;word-break:break-word;display:flex;align-items:flex-start;gap:7px;text-align:left}
+.tracker-journey-caption-msg strong{color:var(--accent);font-family:var(--font-display);letter-spacing:0.3px}
+.tracker-journey-caption-msg .tjc-icon{flex-shrink:0;display:flex;align-items:center;justify-content:center;margin-top:2px}
+.tracker-journey-caption-msg .tjc-icon svg{width:15px;height:15px;display:block}
+.tracker-journey-caption-msg .tjc-text{min-width:0}
+.tracker-journey-caption-msg.tjc-up{color:#16a34a}
+.tracker-journey-caption-msg.tjc-up strong{color:#16a34a}
+.tracker-journey-caption-msg.tjc-down{color:#dc2626}
+.tracker-journey-caption-msg.tjc-down strong{color:#dc2626}
+@media (max-width:480px){
+  .tracker-journey-caption{padding:9px 12px;border-radius:12px}
+  .tracker-journey-caption-date{font-size:9.5px}
+  .tracker-journey-caption-msg{font-size:12px}
+}
 @media (max-width:480px){
   .tracker-graph-detail-box{max-width:54%;height:112px;padding:6px 8px;border-radius:10px}
   .tracker-graph-detail-date{font-size:10px}
@@ -2376,7 +2510,7 @@ body.theme-godmode .levelup-toast{background:linear-gradient(135deg,#7a0006,#c00
         </div>
         <!-- Search + close bar — shown only when results are visible -->
         <div id="trackerSearchBar" style="display:none;margin-top:14px;position:relative">
-          <div class="ctm-muscle-eq-row">
+          <div class="ctm-muscle-eq-row tracker-filter-row">
             <div>
               <label>Muscle</label>
               <select id="trackerMuscleFilter" onchange="handleTrackerSearch()"></select>
@@ -2385,6 +2519,16 @@ body.theme-godmode .levelup-toast{background:linear-gradient(135deg,#7a0006,#c00
               <label>Equipment</label>
               <select id="trackerEquipmentFilter" onchange="handleTrackerSearch()"></select>
             </div>
+            <div class="tracker-sort-wrap">
+              <label style="visibility:hidden">Sort</label>
+              <button type="button" id="trackerSortBtn" class="tracker-sort-btn" title="Sort by frequency" onclick="toggleTrackerSortMenu(event)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21 16-4 4-4-4"/><path d="M17 20V4"/><path d="m3 8 4-4 4 4"/><path d="M7 4v16"/></svg>
+              </button>
+            </div>
+          </div>
+          <div id="trackerSortMenu" class="tracker-sort-panel">
+            <button type="button" data-mode="freq_desc" onclick="applyTrackerSort('freq_desc')">Most to Least (Frequency)</button>
+            <button type="button" data-mode="freq_asc" onclick="applyTrackerSort('freq_asc')">Least to Most (Frequency)</button>
           </div>
           <div style="display:flex;align-items:center;gap:10px">
             <div style="position:relative;flex:1">
@@ -2406,20 +2550,54 @@ body.theme-godmode .levelup-toast{background:linear-gradient(135deg,#7a0006,#c00
               <div class="tracker-analytics-title" id="trackerAnalyticsTitle">📊 Volume Journey</div>
               <div style="font-size:11px;color:var(--text-muted);font-family:var(--font-alt);margin-top:2px" id="trackerAnalyticsSubtitle"></div>
             </div>
-            <button class="tracker-analytics-close" onclick="closeTrackerAnalytics()">✕ Close</button>
-          </div>
-          <div class="tracker-graph-box" id="trackerGraphBox">
-            <div class="tracker-graph-detail-box" id="trackerGraphDetailBox">
-              <div class="tracker-graph-detail-hint" id="trackerGraphDetailHint">👆 Tap a point</div>
-              <div class="tracker-graph-detail-date" id="trackerGraphDetailDate" style="display:none"></div>
-              <ul class="tracker-graph-detail-list" id="trackerGraphDetailList"></ul>
-              <div class="tracker-graph-detail-total" id="trackerGraphDetailTotal" style="display:none"></div>
+            <div class="tracker-analytics-header-actions">
+              <div class="tracker-graph-mode-wrap" id="trackerGraphModeWrap" style="display:none">
+                <label for="trackerGraphModeSelect">View</label>
+                <select class="tracker-graph-mode-select" id="trackerGraphModeSelect" onchange="changeTrackerGraphMode(this.value)">
+                  <option value="volume">Volume</option>
+                  <option value="weight">Weight</option>
+                  <option value="reps">Reps</option>
+                </select>
+              </div>
+              <button class="tracker-analytics-close" onclick="closeTrackerAnalytics()">✕ Close</button>
             </div>
-            <canvas id="trackerAnalyticsChart"></canvas>
+          </div>
+          <div class="analytics-box tracker-analytics-box">
+            <div class="tracker-graph-box" id="trackerGraphBox">
+              <button type="button" class="tracker-fullscreen-btn" id="trackerFullscreenBtn" onclick="toggleTrackerFullscreen()" title="Fullscreen focus" aria-label="Fullscreen focus" style="display:none">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M16 3h3a2 2 0 0 1 2 2v3"/><path d="M8 21H5a2 2 0 0 1-2-2v-3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg>
+              </button>
+              <div class="tracker-graph-detail-box" id="trackerGraphDetailBox">
+                <div class="tracker-graph-detail-hint" id="trackerGraphDetailHint">👆 Tap a point</div>
+                <div class="tracker-graph-detail-date" id="trackerGraphDetailDate" style="display:none"></div>
+                <ul class="tracker-graph-detail-list" id="trackerGraphDetailList"></ul>
+                <div class="tracker-graph-detail-total" id="trackerGraphDetailTotal" style="display:none"></div>
+              </div>
+              <canvas id="trackerAnalyticsChart"></canvas>
+            </div>
+          </div>
+          <div class="tracker-journey-caption" id="trackerJourneyCaption" style="display:none">
+            <div class="tracker-journey-caption-date" id="trackerJourneyCaptionDate"></div>
+            <div class="tracker-journey-caption-msg" id="trackerJourneyCaptionMsg"></div>
           </div>
           <div class="tracker-graph-nav-row" id="trackerGraphNavRow">
-            <button type="button" class="tracker-graph-nav-btn" id="trackerGraphPrevBtn" onclick="navigateTrackerPoint(-1)" title="Previous point" aria-label="Previous point">‹</button>
-            <button type="button" class="tracker-graph-nav-btn" id="trackerGraphNextBtn" onclick="navigateTrackerPoint(1)" title="Next point" aria-label="Next point">›</button>
+            <div class="tracker-graph-arrows">
+              <button type="button" class="tracker-graph-nav-btn" id="trackerGraphPrevBtn" onclick="navigateTrackerPoint(-1)" title="Previous point" aria-label="Previous point">‹</button>
+              <button type="button" class="tracker-graph-nav-btn" id="trackerGraphNextBtn" onclick="navigateTrackerPoint(1)" title="Next point" aria-label="Next point">›</button>
+            </div>
+            <div class="tracker-journey-btn-slot">
+              <button type="button" class="tracker-journey-btn" id="trackerJourneyBtn" onclick="toggleTrackerJourney()">
+                <span class="tj-btn-icon" id="trackerJourneyBtnIcon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l11-6.5z"/></svg></span><span class="tj-btn-label">View Journey</span>
+              </button>
+              <div class="tracker-journey-controls" id="trackerJourneyControls">
+                <button type="button" class="tracker-journey-icon-btn" id="trackerJourneyPauseBtn" onclick="toggleTrackerJourneyPause()" title="Pause" aria-label="Pause">
+                  <span id="trackerJourneyPauseIcon"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg></span>
+                </button>
+                <button type="button" class="tracker-journey-icon-btn tj-stop-btn" id="trackerJourneyStopBtn" onclick="stopTrackerJourney(true)" title="Stop" aria-label="Stop">
+                  <svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -9310,6 +9488,10 @@ function finishLiveSession(name){
   let closeBtn=document.createElement("button");closeBtn.className="btn";closeBtn.style.cssText="margin-top:12px;background:linear-gradient(135deg,#64748b,#475569)";closeBtn.textContent="DONE";closeBtn.onclick=cancelLiveWorkout;container.appendChild(closeBtn);
 }
 /* ===================== SAVED WORKOUTS: BREAKDOWN TOGGLE + MANUAL SWAP ===================== */
+/* Fixed inline-SVG icons (not emoji) so Edit/Swap/Delete render identically across every device/OS. */
+const ICON_EDIT='<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>';
+const ICON_SWAP='<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3 4 7l4 4"/><path d="M4 7h16"/><path d="M16 21l4-4-4-4"/><path d="M20 17H4"/></svg>';
+const ICON_DELETE='<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>';
 let workoutBreakdownOn=true; // default ON — all set values visible per exercise
 let _workoutSwapPendingCi=null; // ci of the card currently "armed" for a swap, or null
 function toggleWorkoutBreakdown(){
@@ -9375,8 +9557,8 @@ async function loadWorkoutsForDate(){
       const sets=parseWorkoutSets(cell),vt=formatExerciseVolTotal({vol:cellVol},sets);
       const volVal=`<span class="wlc-vol-val">${vt.primary} <small>${vt.unit}</small></span>`;
       const classLabel=`<small class="wlc-class-label" style="color:${exColor}">${exCls}</small>`;
-      const setsBlock=workoutBreakdownOn?`<div class="${tagGridClass} wlc-sets-block">${tags}</div>`:"";
-      html+=`<div class="workout-log-card" data-ci="${ci}" tabindex="0" style="border-color:${exColor}55;border-left-color:${exColor};--wlc-glow:${exColor}55" onclick="handleWorkoutCardActivate(this,${ci},'${escapeHtml(cell)}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click()}"><div class="wlc-body"><div class="wlc-header-row"><span class="wlc-dot" style="background:${exColor}"></span><div class="exercise-name"><span style="color:var(--accent);margin-right:4px">${counter}.</span>${ename}${classLabel}</div>${volVal}</div>${setsBlock}</div><div class="workout-actions-overlay"><button class="action-icon-btn swap" title="Swap position" onclick="initiateWorkoutSwap(event,${ci})">🔀</button><button class="action-icon-btn edit" title="Edit" onclick="initiateWorkoutEdit(event,${ci},'${escapeHtml(cell)}')">✏️</button><button class="action-icon-btn delete" title="Delete" onclick="triggerWorkoutDelete(event,${ci})">🗑️</button></div></div>`;counter++;
+      const setsBlock=`<div class="${tagGridClass} wlc-sets-block${workoutBreakdownOn?"":" wlc-collapsed"}">${tags}</div>`;
+      html+=`<div class="workout-log-card" data-ci="${ci}" tabindex="0" style="--wlc-glow:${exColor}55" onclick="handleWorkoutCardActivate(this,${ci},'${escapeHtml(cell)}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click()}"><div class="wlc-box" style="border-color:${exColor}55;border-left-color:${exColor}"><div class="wlc-body"><div class="wlc-header-row"><span class="wlc-dot" style="background:${exColor}"></span><div class="exercise-name"><span style="color:var(--accent);margin-right:4px">${counter}.</span>${ename}${classLabel}</div>${volVal}</div>${setsBlock}</div></div><div class="workout-actions-overlay"><button class="action-icon-btn swap" title="Swap position" onclick="initiateWorkoutSwap(event,${ci})">${ICON_SWAP}</button><button class="action-icon-btn edit" title="Edit" onclick="initiateWorkoutEdit(event,${ci},'${escapeHtml(cell)}')">${ICON_EDIT}</button><button class="action-icon-btn delete" title="Delete" onclick="triggerWorkoutDelete(event,${ci})">${ICON_DELETE}</button></div></div>`;counter++;
     }
   });
   if(!anyEntry){con.innerHTML=`<p style="font-size:13px;color:var(--text-muted);text-align:center;padding:10px;font-family:var(--font-alt)">No entries for this date.</p>`;return}
@@ -11480,7 +11662,34 @@ function toggleFollow(btn,name){/* Legacy stub */}
 <!-- ===================== WORKOUT TRACKER ENGINE ===================== -->
 <script>
 let trackerAllData=[],trackerSortedList=[],trackerCurrentPage=1;
-const TRACKER_PAGE_SIZE=5;
+let trackerPageSize=5;
+// null = default order (frequency, most-to-least, as already produced by runWorkoutTracker).
+// 'freq_desc' / 'freq_asc' = explicit user choice from the sort menu, re-applied on every render until reset.
+let trackerSortMode=null;
+function toggleTrackerSortMenu(e){
+  e.stopPropagation();
+  const menu=document.getElementById('trackerSortMenu');
+  if(menu)menu.classList.toggle('visible');
+}
+document.addEventListener('click',function(e){
+  const menu=document.getElementById('trackerSortMenu'),btn=document.getElementById('trackerSortBtn');
+  if(!menu||!menu.classList.contains('visible'))return;
+  if(menu.contains(e.target)||(btn&&btn.contains(e.target)))return;
+  menu.classList.remove('visible');
+});
+function applyTrackerSort(mode){
+  trackerSortMode=mode;
+  document.querySelectorAll('#trackerSortMenu button').forEach(b=>b.classList.toggle('active',b.getAttribute('data-mode')===mode));
+  const sortBtn=document.getElementById('trackerSortBtn');if(sortBtn)sortBtn.classList.add('active');
+  const menu=document.getElementById('trackerSortMenu');if(menu)menu.classList.remove('visible');
+  trackerCurrentPage=1;
+  renderTrackerTable();
+}
+function changeTrackerPageSize(val){
+  trackerPageSize=parseInt(val)||5;
+  trackerCurrentPage=1;
+  renderTrackerTable();
+}
 /* When set (via the "Track Workout" button on the Add/Edit form), the tracker stays "focused" on this one
    exercise: re-running Track Workouts after changing the date range keeps showing only this exercise
    (table row + graph), instead of snapping back to the full list. A manual/normal Track Workouts run
@@ -11489,7 +11698,102 @@ let trackerFocusedExerciseName=null;
 let trackerAnalyticsChartInstance=null;
 /* Graph marker navigation/highlight state — module-level so the arrow buttons & keyboard handler
    (outside the showTrackerAnalytics closure) can drive the currently-selected point. */
-let trackerGraphPointCount=0,trackerGraphSelectedIdx=-1,trackerGraphSelectFn=null;
+let trackerGraphPointCount=0,trackerGraphSelectedIdx=-1,trackerGraphSelectFn=null,trackerGraphPulseFn=null;
+/* Graph "View" dropdown state — 'volume' | 'weight' | 'reps'. trackerGraphContext holds the per-exercise
+   data (dateMap/sortedDates/labels) computed once in showTrackerAnalytics so switching modes via the
+   dropdown can just re-render the chart without refetching or reprocessing the raw set data. */
+let trackerGraphMode='volume',trackerGraphContext=null;
+/* "View Journey" autoplay state — trackerJourneyValues holds the currently-plotted per-day values (same
+   basis as the chart: volume/weight/reps) so the playback can build "upgraded/consistent/dropped" captions
+   without recomputing anything. trackerJourneyTimer is the pending setTimeout id for the next step, used
+   to stop playback early (Close, new exercise, mode switch, or tapping the button again mid-play). */
+let trackerJourneyPlaying=false,trackerJourneyTimer=null,trackerJourneyValues=null;
+// Base (non-live) height for #trackerGraphBox, recorded every render so setTrackerJourneyLiveLayout can
+// grow it (and the chart's own reserved top padding) by exactly the amount the fullscreen icon adds above
+// the detail box while playing, then restore the exact original numbers once playback stops.
+let trackerGraphBaseHeight=0,trackerGraphBaseTopPad=155;
+// Fullscreen-focus state: which node the graph box / caption normally live in, so exiting fullscreen can
+// put them back in exactly the right spot (rather than assuming a fixed structure).
+let trackerFullscreenOpen=false,trackerFsGraphParent=null,trackerFsGraphNext=null,trackerFsCaptionParent=null,trackerFsCaptionNext=null;
+// Extra playback state for pause/resume: TRACKER_JOURNEY_STEP_MS is the fixed duration of every step
+// (kept in the 5-8s "readable caption" range the design calls for). trackerJourneyPaused, together with
+// the remaining-ms + pending-index pair, lets a paused step resume exactly where it left off instead of
+// restarting or skipping ahead.
+const TRACKER_JOURNEY_STEP_MS=6000;
+let trackerJourneyPaused=false,trackerJourneyStepStartTime=0,trackerJourneyStepRemainingMs=0,trackerJourneyPendingIdx=0;
+/* "View Journey" line coloring: trackerJourneySegmentColors[i] holds the trend ('up'/'down'/'same') for
+   the line segment between point i and i+1, once the journey has walked across it — green for an upgrade,
+   red for a downgrade, amber for holding steady. Read by the chart's own `segment.borderColor` (see the
+   dataset config below), so the color lives directly on the graph line itself. trackerJourneyTravelState
+   (while non-null) is the segment currently being crossed — the moving dot glides smoothly from its start
+   to its end each frame (no jump) using this state. Both reset to nothing the instant playback stops, in
+   either normal or fullscreen view, since the chart instance itself (not the DOM container it's sitting
+   in at the time) owns this state — so the line is guaranteed back to its normal single color either way. */
+let trackerJourneySegmentColors=[],trackerJourneyTravelState=null,trackerJourneyAnimRunning=false;
+const TRACKER_JOURNEY_MOVE_MS=700;
+// Small canvas overlay plugin: draws the traveling dot at chart.$trackerMovingMarker's live position.
+// Registered once, globally — every other Chart.js instance on the page simply has no
+// $trackerMovingMarker state, so this is a no-op for them.
+const TRACKER_MOVING_MARKER_PLUGIN={
+  id:'trackerMovingMarker',
+  afterDatasetsDraw(chart){
+    const state=chart.$trackerMovingMarker;
+    if(!state||!state.active)return;
+    const ctx=chart.ctx;
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(state.x,state.y,8,0,Math.PI*2);
+    ctx.fillStyle=state.color;
+    ctx.shadowColor=state.color;ctx.shadowBlur=12;
+    ctx.fill();
+    ctx.shadowBlur=0;
+    ctx.lineWidth=2.5;ctx.strokeStyle='#fff';ctx.stroke();
+    ctx.restore();
+  }
+};
+if(typeof Chart!=='undefined')Chart.register(TRACKER_MOVING_MARKER_PLUGIN);
+// Single continuous animation loop, running only while trackerJourneyPlaying is true. Each frame, if a
+// segment is currently being traveled (trackerJourneyTravelState set), advances the dot smoothly toward
+// its destination — a genuine glide instead of an instant jump — then, on arrival, locks that segment's
+// trend color onto the line itself and hands control back to trackerJourneyStep via onDone.
+function trackerJourneyDriveAnim(){
+  if(trackerJourneyAnimRunning)return;
+  trackerJourneyAnimRunning=true;
+  function frame(now){
+    if(!trackerJourneyPlaying){trackerJourneyAnimRunning=false;return}
+    const chart=trackerAnalyticsChartInstance;
+    const ts=trackerJourneyTravelState;
+    if(chart&&ts){
+      const t=Math.min(1,(now-ts.start)/TRACKER_JOURNEY_MOVE_MS),eased=1-Math.pow(1-t,3);
+      chart.$trackerMovingMarker={active:true,x:ts.fromX+(ts.toX-ts.fromX)*eased,y:ts.fromY+(ts.toY-ts.fromY)*eased,color:ts.color};
+      chart.draw();
+      if(t>=1){
+        chart.$trackerMovingMarker={active:false};
+        chart.draw();
+        trackerJourneyTravelState=null;
+        const done=ts.onDone;
+        if(done)done();
+      }
+    }
+    if(chart&&ts)requestAnimationFrame(frame);else trackerJourneyAnimRunning=false;
+  }
+  requestAnimationFrame(frame);
+}
+// Kicks off the glide from `fromIdx` to `toIdx` (real pixel coordinates on the current chart), colored by
+// `trend` ('up'/'down'/'same'). The segment's color is applied to the line itself immediately, and the dot
+// then visibly slides across that now-colored segment instead of snapping straight to the next point.
+function animateTrackerJourneyTravel(fromIdx,toIdx,trend,onDone){
+  const chart=trackerAnalyticsChartInstance;
+  if(!chart){onDone();return}
+  const meta=chart.getDatasetMeta(0);
+  const p0=meta&&meta.data[fromIdx],p1=meta&&meta.data[toIdx];
+  if(!p0||!p1){onDone();return}
+  const color=trend==='up'?'#16a34a':trend==='down'?'#dc2626':'#f59e0b';
+  trackerJourneySegmentColors[Math.min(fromIdx,toIdx)]=trend;
+  chart.update('none');
+  trackerJourneyTravelState={fromX:p0.x,fromY:p0.y,toX:p1.x,toY:p1.y,color,start:performance.now(),onDone};
+  trackerJourneyDriveAnim();
+}
 function formatTrackerDate(dateStr){const d=new Date(dateStr+'T00:00:00'),months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];return `${months[d.getMonth()]} ${String(d.getDate()).padStart(2,'0')}/${d.getFullYear()}`}
 function parseSetVolume(setStr){const m=setStr.trim().match(/^([\d.]+)\s*[Kk][Gg]?\s*x\s*(\d+)/);if(!m)return 0;return parseFloat(m[1])*(parseInt(m[2])||0)}
 function parseSetWeightReps(setStr){const m=setStr.trim().match(/^([\d.]+)\s*[Kk][Gg]?\s*x\s*(\d+)/);if(!m)return{weight:0,reps:0};return{weight:parseFloat(m[1])||0,reps:parseInt(m[2])||0}}
@@ -11503,7 +11807,8 @@ function formatSetDisplay(setStr,showDuration){
   const clean=s.replace(/\[.*?\]/g,'').trim();
   const m=clean.match(/^([\d.]+)\s*[Kk][Gg]?\s*x\s*(\d+)/);
   if(!m)return s;
-  const base=`${m[1]}kgs x ${m[2]}`;
+  const weight=parseFloat(m[1])||0,reps=m[2];
+  const base=weight===0?`${reps} Reps`:`${m[1]}kgs x ${reps}`;
   return(showDuration&&duration)?`${base} [${duration}]`:base;
 }
 // Compares two sets purely by weight (kg) first, then by reps at equal weight. Returns >0 if a is "more" than b.
@@ -11528,6 +11833,9 @@ function compareSessionByWeight(sessionA,sessionB){
 async function runWorkoutTracker(){
   const uid=localStorage.getItem("user_id");if(!uid){alert("Please log in first.");return}
   ctmInitMuscleEquipmentDropdowns();
+  trackerSortMode=null;
+  const sortBtn=document.getElementById('trackerSortBtn');if(sortBtn)sortBtn.classList.remove('active');
+  document.querySelectorAll('#trackerSortMenu button').forEach(b=>b.classList.remove('active'));
   const fromDate=document.getElementById("trackerFromDate").value,toDate=document.getElementById("trackerToDate").value;
   if(!fromDate||!toDate){alert("Please select both From and To dates.");return}if(fromDate>toDate){alert("From Date must be before or equal to To Date.");return}
   const area=document.getElementById("trackerResultsArea");area.innerHTML=`<div class="tracker-loading">⏳ Fetching workout data...</div>`;closeTrackerAnalytics();
@@ -11578,6 +11886,7 @@ function renderTrackerTable(filterName){
   document.getElementById('trackerSearchBar').style.display='block';
 
   // Apply name filter, plus the Muscle/Equipment dropdown filters, if provided
+  if(filterName===undefined){const si=document.getElementById('trackerSearchInput');filterName=si?si.value:''}
   const muscleVal=document.getElementById("trackerMuscleFilter")?document.getElementById("trackerMuscleFilter").value:"";
   const equipVal=document.getElementById("trackerEquipmentFilter")?document.getElementById("trackerEquipmentFilter").value:"";
   const muscleClasses=ctmMuscleClassesFor(muscleVal);
@@ -11585,23 +11894,33 @@ function renderTrackerTable(filterName){
   if(filterName)list=list.filter(i=>i.name.toLowerCase().includes(filterName.toLowerCase()));
   if(muscleClasses)list=list.filter(i=>muscleClasses.includes(getExerciseClass(i.name)));
   if(equipVal)list=list.filter(i=>getExerciseEquipment(i.name)===equipVal);
+  // User-chosen frequency sort (from the sort icon menu). "Most to Least" IS the list's built-in default
+  // order (already frequency-desc from runWorkoutTracker), so it needs no change. "Least to Most" is an
+  // exact mirror of that same order — reversing (not re-sorting) keeps each row's original S.No intact,
+  // so page 1 shows the tail end of the default list (e.g. S.No 30,29,28...) instead of renumbering.
+  if(trackerSortMode==='freq_asc')list=[...list].reverse();
 
   if(!list.length){area.innerHTML=`<div class="tracker-empty">No exercises match your search.</div>`;return}
 
-  const totalPages=Math.ceil(list.length/TRACKER_PAGE_SIZE),start=(trackerCurrentPage-1)*TRACKER_PAGE_SIZE,pageItems=list.slice(start,start+TRACKER_PAGE_SIZE);
+  const totalPages=Math.ceil(list.length/trackerPageSize),start=(trackerCurrentPage-1)*trackerPageSize,pageItems=list.slice(start,start+trackerPageSize);
   // Builds the markup for one Recent/Highest/Lowest cell: a collapsed single-line view (default, no duration)
   // and an expanded per-set list (date once, then "Set N: Wkgs x R [duration]" for every set), toggled via CSS class.
-  const buildVolCell=(set,session)=>{
+  // For pure-bodyweight exercises (every set logged at 0kg), the collapsed line shows the TOTAL reps across
+  // every set in that session (not just one set's reps) since a single set's reps alone isn't a meaningful
+  // "recent/highest/lowest" summary the way a weight-based set is — the expanded view still lists each set.
+  const buildVolCell=(set,session,isBW)=>{
     if(!set||!session){return `<div class="tracker-vol-cell"><span style="color:var(--text-muted);font-size:11px;font-family:var(--font-alt)">—</span></div>`}
-    const collapsed=`<div class="tracker-vol-collapsed"><span class="tracker-vol-date">${formatTrackerDate(set.date)}</span><span class="tracker-vol-raw">{${formatSetDisplay(set.raw,false)}}</span></div>`;
+    const collapsedLabel=isBW?`Total: ${session.sets.reduce((a,s)=>a+s.reps,0)} Reps`:formatSetDisplay(set.raw,false);
+    const collapsed=`<div class="tracker-vol-collapsed"><span class="tracker-vol-date">${formatTrackerDate(set.date)}</span><span class="tracker-vol-raw">{${collapsedLabel}}</span></div>`;
     const setsListHtml=session.sets.map((s,i)=>`<li><span class="tracker-set-num">Set ${i+1}:</span><span>${formatSetDisplay(s.raw,true)}</span></li>`).join('');
     const expanded=`<div class="tracker-vol-expanded"><span class="tracker-vol-date">${formatTrackerDate(session.date)}</span><ul class="tracker-set-list-compact">${setsListHtml}</ul></div>`;
     return `<div class="tracker-vol-cell">${collapsed}${expanded}</div>`;
   };
   let rowsHtml=pageItems.map((item,i)=>{
-    const recentHtml=buildVolCell(item.recentSet,item.recentSession);
-    const highestHtml=buildVolCell(item.highestSet,item.highestSession);
-    const lowestHtml=buildVolCell(item.lowestSet,item.lowestSession);
+    const isBW=item.sets.every(s=>s.weight===0);
+    const recentHtml=buildVolCell(item.recentSet,item.recentSession,isBW);
+    const highestHtml=buildVolCell(item.highestSet,item.highestSession,isBW);
+    const lowestHtml=buildVolCell(item.lowestSet,item.lowestSession,isBW);
     const rowId=`trackerRow_${start+i}`;
     // Single eye icon lives next to the workout name; hidden by default, revealed only when the row is selected (clicked).
     // Clicking the eye expands the Recent/Highest/Lowest cells in place (same row, no modal, no extra row).
@@ -11615,10 +11934,13 @@ function renderTrackerTable(filterName){
       <td><button class="tracker-analytics-btn" style="display:none" onclick="event.stopPropagation();showTrackerAnalytics('${escapeHtml(item.name)}')">📊 Show Analytics</button></td>
     </tr>`;
   }).join('');
-  let paginationHtml='';
-  if(totalPages>1){paginationHtml='<div class="tracker-pagination">';if(trackerCurrentPage>1)paginationHtml+=`<button class="tracker-page-btn" onclick="goTrackerPage(${trackerCurrentPage-1})">‹</button>`;for(let p=1;p<=totalPages;p++){paginationHtml+=`<button class="tracker-page-btn${p===trackerCurrentPage?' active':''}" onclick="goTrackerPage(${p})">${p}</button>`}if(trackerCurrentPage<totalPages)paginationHtml+=`<button class="tracker-page-btn" onclick="goTrackerPage(${trackerCurrentPage+1})">›</button>`;paginationHtml+='</div>'}
+  let paginationHtml=`<div class="tracker-pagination">`;
+  if(trackerCurrentPage>1)paginationHtml+=`<button class="tracker-page-btn" onclick="goTrackerPage(${trackerCurrentPage-1})" title="Previous page">‹</button>`;
+  if(trackerCurrentPage<totalPages)paginationHtml+=`<button class="tracker-page-btn" onclick="goTrackerPage(${trackerCurrentPage+1})" title="Next page">›</button>`;
+  paginationHtml+=`<div class="tracker-entries-select"><label for="trackerEntriesPerPage">Show</label><select id="trackerEntriesPerPage" onchange="changeTrackerPageSize(this.value)">${[5,10,15,20,30].map(n=>`<option value="${n}"${n===trackerPageSize?' selected':''}>${n}</option>`).join('')}</select><label>entries</label></div>`;
+  paginationHtml+=`</div>`;
   const totalItems=list.length;
-  area.innerHTML=`<div style="margin:8px 0 10px;font-size:12px;color:var(--text-muted);font-family:var(--font-alt);letter-spacing:0.3px">Showing ${start+1}–${Math.min(start+TRACKER_PAGE_SIZE,totalItems)} of ${totalItems} exercises · <span style="color:var(--accent)">Click a row to reveal analytics</span></div><div class="tracker-table-wrapper"><table class="tracker-table"><thead><tr><th>S.No</th><th>Workout Name</th><th>Frequency</th><th>Recent Set</th><th>Highest Set</th><th>Lowest Set</th><th>Analytics</th></tr></thead><tbody>${rowsHtml}</tbody></table></div>${paginationHtml}`;
+  area.innerHTML=`<div style="margin:8px 0 10px;font-size:12px;color:var(--text-muted);font-family:var(--font-alt);letter-spacing:0.3px">Showing ${start+1}–${Math.min(start+trackerPageSize,totalItems)} of ${totalItems} exercises · <span style="color:var(--accent)">Click a row to reveal analytics</span></div><div class="tracker-table-wrapper"><table class="tracker-table"><thead><tr><th>S.No</th><th>Workout Name</th><th>Frequency</th><th>Recent Set</th><th>Highest Set</th><th>Lowest Set</th><th>Analytics</th></tr></thead><tbody>${rowsHtml}</tbody></table></div>${paginationHtml}`;
 }
 
 // Called when a tracker row is clicked — highlights row and reveals its eye icon + analytics button
@@ -11719,12 +12041,65 @@ function goTrackerPage(page){trackerCurrentPage=page;renderTrackerTable();docume
 function showTrackerAnalytics(exName){
   const decoded=exName.replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&#039;/g,"'");
   const exData=trackerAllData[decoded];if(!exData||!exData.sets.length){alert("No set data available for this exercise.");return}
-  // Build one entry per training day, keeping every individual set (with raw string, so duration survives) for that session
-  const dateMap={};exData.sets.forEach(s=>{if(!dateMap[s.date])dateMap[s.date]={totalVol:0,sets:[]};dateMap[s.date].totalVol+=s.vol;dateMap[s.date].sets.push(s)});
-  const sortedDates=Object.keys(dateMap).sort(),labels=sortedDates.map(d=>formatTrackerDate(d)),volumes=sortedDates.map(d=>dateMap[d].totalVol);
+  // Pure-bodyweight detection: if EVERY logged set for this exercise has 0kg, weight/volume are meaningless
+  // (always 0), so only the Reps graph is offered and the mode dropdown stays hidden. If even one set has
+  // real weight logged, the full Volume/Weight/Reps dropdown is shown (covers bodyweight exercises that are
+  // sometimes done weighted, e.g. weighted dips).
+  const isBodyweightOnly=exData.sets.every(s=>s.weight===0);
+  // Build one entry per training day, keeping every individual set (with raw string, so duration survives) for
+  // that session, plus the day's total volume, total reps, and highest single-set weight logged that day.
+  const dateMap={};
+  exData.sets.forEach(s=>{
+    if(!dateMap[s.date])dateMap[s.date]={totalVol:0,totalReps:0,maxWeight:0,sets:[]};
+    dateMap[s.date].totalVol+=s.vol;
+    dateMap[s.date].totalReps+=s.reps;
+    if(s.weight>dateMap[s.date].maxWeight)dateMap[s.date].maxWeight=s.weight;
+    dateMap[s.date].sets.push(s);
+  });
+  const sortedDates=Object.keys(dateMap).sort(),labels=sortedDates.map(d=>formatTrackerDate(d));
+
+  // Reset the View dropdown. Bodyweight-only exercises (never logged with Kg) are always Reps with the
+  // dropdown hidden — unchanged. Everything else shows the full Volume/Weight/Reps dropdown, but the
+  // *default* selection now depends on the exercise's catalog equipment tag: true bodyweight exercises
+  // that happen to have some Kg logged (e.g. a weighted dip, or an optional Kg entry on a bodyweight
+  // move) open on Reps by default since reps is still their primary metric; everything else (normal
+  // weighted exercises) keeps opening on Volume, exactly as before.
+  const isBodyweightCatalog=getExerciseEquipment(decoded)==='Bodyweight';
+  trackerGraphMode=isBodyweightOnly?'reps':(isBodyweightCatalog?'reps':'volume');
+  const modeWrap=document.getElementById('trackerGraphModeWrap'),modeSelect=document.getElementById('trackerGraphModeSelect');
+  if(modeWrap)modeWrap.style.display=isBodyweightOnly?'none':'flex';
+  if(modeSelect)modeSelect.value=trackerGraphMode;
+
+  trackerGraphContext={decoded,isBodyweightOnly,dateMap,sortedDates,labels};
+
   const panel=document.getElementById("trackerAnalyticsPanel");panel.classList.add("visible");
-  document.getElementById("trackerAnalyticsTitle").textContent=`📊 ${decoded} — Volume Journey`;
-  document.getElementById("trackerAnalyticsSubtitle").textContent=`Total volume (kg × reps) per session across ${sortedDates.length} training day${sortedDates.length!==1?'s':''}`;
+  renderTrackerChart();
+  panel.scrollIntoView({behavior:"smooth",block:"start"});
+}
+// Called when the person picks a different option ("Volume"/"Weight"/"Reps") from the View dropdown.
+// Re-renders the chart + detail box for the already-loaded exercise data — no refetch needed.
+function changeTrackerGraphMode(mode){
+  if(!trackerGraphContext||trackerGraphContext.isBodyweightOnly||trackerJourneyPlaying)return;
+  trackerGraphMode=mode;
+  renderTrackerChart();
+}
+// Builds (or rebuilds) the analytics chart + fixed detail box for trackerGraphContext, using the value
+// basis selected by trackerGraphMode: 'volume' (kg × reps total), 'weight' (highest single-set weight
+// logged that day), or 'reps' (total reps that day). Shared by showTrackerAnalytics (first open) and
+// changeTrackerGraphMode (dropdown switch).
+function renderTrackerChart(){
+  stopTrackerJourney(true);
+  const{decoded,isBodyweightOnly,dateMap,sortedDates,labels}=trackerGraphContext;
+  const mode=trackerGraphMode;
+  const modeLabel=mode==='weight'?'Weight':mode==='reps'?'Reps':'Volume';
+  const dayWord=`${sortedDates.length} training day${sortedDates.length!==1?'s':''}`;
+  const subtitleByMode={
+    volume:`Total volume (kg × reps) per session across ${dayWord}`,
+    weight:`Highest weight logged per session across ${dayWord}`,
+    reps:`Total reps per session across ${dayWord}`
+  };
+  document.getElementById("trackerAnalyticsTitle").textContent=`📊 ${decoded} — ${modeLabel} Journey`;
+  document.getElementById("trackerAnalyticsSubtitle").textContent=subtitleByMode[mode];
   if(trackerAnalyticsChartInstance){trackerAnalyticsChartInstance.destroy();trackerAnalyticsChartInstance=null}
 
   // Graph box grows with the data so markers never feel cramped, especially on small/low-end mobile screens.
@@ -11735,15 +12110,28 @@ function showTrackerAnalytics(exName){
   const pointCount=sortedDates.length;
   const dynamicHeight=Math.max(260,Math.min(560,140+pointCount*26))+155;
   graphBox.style.height=dynamicHeight+'px';
+  graphBox.classList.remove('tracker-journey-live');
+  trackerGraphBaseHeight=dynamicHeight;
 
-  // Reset the fixed detail box to its hint state every time a new exercise's graph is drawn
+  // Reset the fixed detail box to its hint state every time the graph is (re)drawn
   const hintEl=document.getElementById("trackerGraphDetailHint");
   const dateEl=document.getElementById("trackerGraphDetailDate");
   const listEl=document.getElementById("trackerGraphDetailList");
   const totalEl=document.getElementById("trackerGraphDetailTotal");
   hintEl.style.display='block';dateEl.style.display='none';listEl.innerHTML='';totalEl.style.display='none';
 
-  // Renders the selected day's full set breakdown (with [sec] duration) plus Total Volume into the fixed top-right detail box
+  // The plotted value for each training day, per the selected mode
+  const values=sortedDates.map(d=>{
+    if(mode==='weight')return dateMap[d].maxWeight;
+    if(mode==='reps')return dateMap[d].totalReps;
+    return dateMap[d].totalVol;
+  });
+
+  // Formats a weight number without a trailing ".0" for whole kg values (e.g. 5 -> "5", 4.5 -> "4.5")
+  function fmtWeight(w){return w%1===0?w:parseFloat(w.toFixed(1))}
+
+  // Renders the selected day's full set breakdown (with [sec] duration) plus the mode's summary line
+  // (Total Volume / Highest Weight / Total Reps) into the fixed top-right detail box
   function updateGraphDetailBox(dataIndex){
     const date=sortedDates[dataIndex];if(!date)return;
     const sets=dateMap[date].sets;
@@ -11752,8 +12140,14 @@ function showTrackerAnalytics(exName){
     dateEl.textContent=formatTrackerDate(date);
     listEl.innerHTML=sets.map((s,i)=>`<li><span class="tracker-set-num">Set${i+1}:</span>${formatSetDisplay(s.raw,true)}</li>`).join('');
     totalEl.style.display='block';
-    const totalVol=Math.round(dateMap[date].totalVol);
-    totalEl.innerHTML=`Total Volume: <strong>${totalVol>=1000?(totalVol/1000).toFixed(1)+'k':totalVol}</strong>`;
+    if(mode==='weight'){
+      totalEl.innerHTML=`Highest Weight: <strong>${fmtWeight(dateMap[date].maxWeight)}kg</strong>`;
+    }else if(mode==='reps'){
+      totalEl.innerHTML=`Total Reps: <strong>${dateMap[date].totalReps}</strong>`;
+    }else{
+      const totalVol=Math.round(dateMap[date].totalVol);
+      totalEl.innerHTML=`Total Volume: <strong>${totalVol>=1000?(totalVol/1000).toFixed(1)+'k':totalVol}</strong>`;
+    }
   }
 
   const ctx=document.getElementById("trackerAnalyticsChart").getContext("2d");
@@ -11765,18 +12159,33 @@ function showTrackerAnalytics(exName){
   // Fixed height-ratio safety: the Y-axis max is computed so the tallest point on the line is
   // scaled to a constrained ratio of the plot area, always leaving headroom above it — the line
   // and its markers can never reach the top-right corner where the detail box sits.
-  const trkMaxVal=Math.max(0,...volumes);
+  const trkMaxVal=Math.max(0,...values);
   const trkSuggestedMax=trkMaxVal>0?Math.ceil((trkMaxVal*1.45)/10)*10:100;
 
   // Per-point style arrays so the selected marker can be enlarged + recolored without affecting the rest.
-  const basePointRadius=sortedDates.map(()=>6),baseHoverRadius=sortedDates.map(()=>9);
+  // Hover radius is deliberately a bigger jump from the resting radius (6 -> 12) than before, paired with
+  // the "active" transition below, so hovering a point reads as a clear little pop/zoom rather than a
+  // subtle size tick.
+  const basePointRadius=sortedDates.map(()=>6),baseHoverRadius=sortedDates.map(()=>12);
   const basePointBg=sortedDates.map(()=>pointColor),basePointBorder=sortedDates.map(()=>'#fff'),basePointBorderW=sortedDates.map(()=>2);
 
+  const yAxisTitle=mode==='weight'?'Weight (kg)':mode==='reps'?'Reps':'Volume (kg × reps)';
+
   trackerAnalyticsChartInstance=new Chart(ctx,{
-    type:'line',data:{labels,datasets:[{label:'Volume (kg × reps)',data:volumes,borderColor:lineColor,backgroundColor:fillColor,pointBackgroundColor:[...basePointBg],pointBorderColor:[...basePointBorder],pointBorderWidth:[...basePointBorderW],pointRadius:[...basePointRadius],pointHoverRadius:[...baseHoverRadius],borderWidth:2.5,fill:true,tension:0.35}]},
+    type:'line',data:{labels,datasets:[{label:yAxisTitle,data:values,borderColor:lineColor,backgroundColor:fillColor,pointBackgroundColor:[...basePointBg],pointBorderColor:[...basePointBorder],pointBorderWidth:[...basePointBorderW],pointRadius:[...basePointRadius],pointHoverRadius:[...baseHoverRadius],borderWidth:2.5,fill:true,tension:0.35,
+      // Colors each line segment once "View Journey" has walked across it: green for an upgrade, red for
+      // a downgrade, amber for holding steady. Segments not yet walked (or outside any journey) fall back
+      // to the normal theme line color (undefined = "use dataset default").
+      segment:{borderColor(ctx){const c=trackerJourneySegmentColors[ctx.p0DataIndex];return c==='up'?'#16a34a':c==='down'?'#dc2626':c==='same'?'#f59e0b':undefined}}
+    }]},
     options:{
       responsive:true,maintainAspectRatio:false,
       interaction:{mode:'index',intersect:false},
+      // Slower, eased line/point transitions (rather than Chart.js's terser default) so moving between
+      // markers — via click, arrow nav, or "View Journey" — reads as a clear animated motion rather than
+      // an instant snap. The "active" transition governs the quick hover pop on point radius/color.
+      animation:{duration:650,easing:'easeInOutQuart'},
+      transitions:{active:{animation:{duration:280,easing:'easeOutBack'}}},
       // Layout safety: the graph box now reserves +155px of genuine extra height (see dynamicHeight
       // above) specifically for the fixed top-right detail box (138px fixed box + clear gap). This top
       // padding carves that same amount out of the chart's own plot area, so the line and its point
@@ -11786,12 +12195,13 @@ function showTrackerAnalytics(exName){
       // Default Chart.js tooltip is disabled — the fixed top-right detail box replaces it with the full per-set breakdown
       plugins:{legend:{display:false},tooltip:{enabled:false}},
       scales:{
-        y:{beginAtZero:true,suggestedMax:trkSuggestedMax,grid:{color:'rgba(128,128,128,0.08)'},ticks:{color:'#6b7280',font:{family:'Rajdhani',size:12},callback(v){return v+'kg'}},title:{display:true,text:'Volume (kg × reps)',color:'#6b7280',font:{family:'Rajdhani',size:11}}},
+        y:{beginAtZero:true,suggestedMax:trkSuggestedMax,grid:{color:'rgba(128,128,128,0.08)'},ticks:{color:'#6b7280',font:{family:'Rajdhani',size:12},callback(v){return mode==='reps'?v:v+'kg'}},title:{display:true,text:yAxisTitle,color:'#6b7280',font:{family:'Rajdhani',size:11}}},
         // X axis: no date labels and no gridlines, per spec — dates only ever appear inside the detail box
         x:{display:false,grid:{display:false},ticks:{display:false}}
       },
       // Fires on tap (mobile) and click (desktop) — selects the nearest point and updates the fixed detail box
       onClick(evt,elements,chart){
+        if(trackerJourneyPlaying)return;
         const points=chart.getElementsAtEventForMode(evt,'index',{intersect:false},true);
         if(points.length)selectTrackerGraphPoint(points[0].index);
       }
@@ -11800,8 +12210,10 @@ function showTrackerAnalytics(exName){
 
   // Selects a marker point by index: highlights it on the chart (bigger radius + amber ring), updates the
   // detail box, syncs the left/right arrow enabled state, and remembers the index for arrow/keyboard nav.
-  // Shared by click, touch-drag, the arrow buttons, and keyboard left/right.
-  function selectTrackerGraphPoint(idx){
+  // Shared by click, touch-drag, the arrow buttons, keyboard left/right, and "View Journey" playback.
+  // animate=true (used only during journey playback) lets Chart.js run its normal transition so the
+  // highlighted marker visibly "travels" from point to point instead of snapping instantly.
+  function selectTrackerGraphPoint(idx,animate){
     if(idx<0||idx>=sortedDates.length||!trackerAnalyticsChartInstance)return;
     trackerGraphSelectedIdx=idx;
     const ds=trackerAnalyticsChartInstance.data.datasets[0];
@@ -11810,19 +12222,44 @@ function showTrackerAnalytics(exName){
     ds.pointBackgroundColor=basePointBg.map((c,i)=>i===idx?pointColor:c);
     ds.pointBorderColor=basePointBorder.map((c,i)=>i===idx?highlightColor:c);
     ds.pointBorderWidth=basePointBorderW.map((w,i)=>i===idx?4:w);
-    trackerAnalyticsChartInstance.update('none');
+    trackerAnalyticsChartInstance.update(animate?undefined:'none');
     updateGraphDetailBox(idx);
     updateTrackerGraphNavButtons();
   }
   trackerGraphSelectFn=selectTrackerGraphPoint;
+  // "Reached the marker" pulse used only during "View Journey" playback (trackerJourneyStep): does the
+  // normal animated move to `idx`, then — once it arrives — briefly zooms the marker past its usual
+  // highlight size and settles back, like a little bounce landing on the point, before holding steady.
+  // Guards against the point having changed (person tapped Stop mid-pulse) before each timed step fires.
+  function pulseTrackerGraphPoint(idx){
+    selectTrackerGraphPoint(idx,true);
+    const ds=trackerAnalyticsChartInstance&&trackerAnalyticsChartInstance.data.datasets[0];
+    if(!ds)return;
+    setTimeout(()=>{
+      if(!trackerAnalyticsChartInstance||trackerGraphSelectedIdx!==idx)return;
+      ds.pointRadius=basePointRadius.map((r,i)=>i===idx?16:r);
+      ds.pointHoverRadius=baseHoverRadius.map((r,i)=>i===idx?18:r);
+      trackerAnalyticsChartInstance.update();
+      setTimeout(()=>{
+        if(!trackerAnalyticsChartInstance||trackerGraphSelectedIdx!==idx)return;
+        ds.pointRadius=basePointRadius.map((r,i)=>i===idx?11:r);
+        ds.pointHoverRadius=baseHoverRadius.map((r,i)=>i===idx?13:r);
+        trackerAnalyticsChartInstance.update();
+      },240);
+    },380);
+  }
+  trackerGraphPulseFn=pulseTrackerGraphPoint;
   trackerGraphPointCount=sortedDates.length;
   trackerGraphSelectedIdx=-1;
+  // Snapshot of the currently-plotted per-day values (same basis as the chart) plus the dates/mode, so
+  // "View Journey" playback can build its improvement captions without touching chart internals.
+  trackerJourneyValues={values,sortedDates,mode};
 
   // Touch-drag support: as a finger moves along the line (without lifting), keep the detail box live-updating
   // and the touched marker highlighted. preventDefault stops the page from scrolling while dragging.
   const canvasEl=document.getElementById("trackerAnalyticsChart");
   canvasEl.ontouchmove=function(evt){
-    if(!trackerAnalyticsChartInstance)return;
+    if(!trackerAnalyticsChartInstance||trackerJourneyPlaying)return;
     const touch=evt.touches[0];if(!touch)return;
     const rect=canvasEl.getBoundingClientRect();
     const fakeEvt={x:touch.clientX-rect.left,y:touch.clientY-rect.top,native:evt};
@@ -11830,31 +12267,217 @@ function showTrackerAnalytics(exName){
     if(points.length){evt.preventDefault();selectTrackerGraphPoint(points[0].index)}
   };
 
-  // Left/right marker navigation arrows — only worth showing once there's more than one point to move between
+  // Left/right marker navigation arrows + "View Journey" button — only worth showing once there's more
+  // than one point to move between / play through
   const navRow=document.getElementById('trackerGraphNavRow');
   const showArrows=sortedDates.length>1;
   if(navRow)navRow.classList.toggle('visible',showArrows);
+  const journeyBtn=document.getElementById('trackerJourneyBtn');
+  if(journeyBtn){journeyBtn.disabled=false;journeyBtn.style.display='';journeyBtn.querySelector('.tj-btn-label').textContent='View Journey'}
+  const journeyBtnIcon=document.getElementById('trackerJourneyBtnIcon');
+  if(journeyBtnIcon)journeyBtnIcon.innerHTML=TJ_ICON_PLAY;
+  const journeyControls=document.getElementById('trackerJourneyControls');
+  if(journeyControls)journeyControls.classList.remove('visible');
+  const journeyCaption=document.getElementById('trackerJourneyCaption');
+  if(journeyCaption)journeyCaption.style.display='none';
 
   // Auto-select the most recent day so the detail box isn't empty on first render
   if(sortedDates.length)selectTrackerGraphPoint(sortedDates.length-1);
-
-  panel.scrollIntoView({behavior:"smooth",block:"start"});
 }
 // Enables/disables the left/right arrow buttons based on how close the current selection is to either end
+// (both stay disabled while "View Journey" is auto-playing, so the person can't fight the animation)
 function updateTrackerGraphNavButtons(){
   const prevBtn=document.getElementById('trackerGraphPrevBtn'),nextBtn=document.getElementById('trackerGraphNextBtn');
-  if(prevBtn)prevBtn.disabled=trackerGraphSelectedIdx<=0;
-  if(nextBtn)nextBtn.disabled=trackerGraphSelectedIdx>=trackerGraphPointCount-1||trackerGraphPointCount===0;
+  if(prevBtn)prevBtn.disabled=trackerJourneyPlaying||trackerGraphSelectedIdx<=0;
+  if(nextBtn)nextBtn.disabled=trackerJourneyPlaying||trackerGraphSelectedIdx>=trackerGraphPointCount-1||trackerGraphPointCount===0;
 }
 // Moves the selected marker point left (-1) or right (+1) — wired to the arrow buttons and to the
 // keyboard ArrowLeft/ArrowRight keys while the analytics graph is visible.
 function navigateTrackerPoint(direction){
-  if(!trackerGraphPointCount||!trackerGraphSelectFn)return;
+  if(!trackerGraphPointCount||!trackerGraphSelectFn||trackerJourneyPlaying)return;
   let next=trackerGraphSelectedIdx<0?(direction>0?0:trackerGraphPointCount-1):trackerGraphSelectedIdx+direction;
   if(next<0)next=0;
   if(next>trackerGraphPointCount-1)next=trackerGraphPointCount-1;
   if(next===trackerGraphSelectedIdx)return;
   trackerGraphSelectFn(next);
+}
+
+/* ===================== "VIEW JOURNEY" ANIMATED PLAYBACK ===================== */
+// Inline SVG strings (not emoji/text glyphs) used across the playback controls and caption card, so
+// every icon renders pixel-identical across OS/browser/device instead of relying on emoji font coverage.
+const TJ_ICON_PLAY='<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l11-6.5z"/></svg>';
+const TJ_ICON_PAUSE='<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>';
+const TJ_ICON_FLAG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3v18"/><path d="M5 4h13l-2.5 4L18 12H5"/></svg>';
+const TJ_ICON_UP='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 17 9 11 13 15 21 6"/><polyline points="15 6 21 6 21 12"/></svg>';
+const TJ_ICON_DOWN='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 7 9 13 13 9 21 18"/><polyline points="15 18 21 18 21 12"/></svg>';
+const TJ_ICON_CHECK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="8 12 11 15 16 9"/></svg>';
+// Formats a plotted value with the right unit for the currently-selected mode, matching the same
+// rounding/"k" shorthand rules used elsewhere in the graph (detail box, y-axis) so numbers stay consistent.
+function fmtTrackerJourneyVal(v,mode){
+  if(mode==='weight'){const w=v%1===0?v:parseFloat(v.toFixed(1));return `${w}Kg`}
+  if(mode==='reps')return `${v} Reps`;
+  const vol=Math.round(v);
+  return vol>=1000?`${(vol/1000).toFixed(1)}k`:`${vol}`;
+}
+// Builds the caption shown for one step of the journey, comparing the current point's value to the
+// previous point's value: "consistent" (no change), "upgraded" (increase), or "dropped" (decrease).
+// idx===0 has no previous point to compare against, so it's introduced as the starting point instead.
+// Copy is deliberately a bit richer than a bare number comparison — one short motivating sentence that
+// gives the value context, without turning into a paragraph.
+function buildTrackerJourneyCaption(idx){
+  const{values,sortedDates,mode}=trackerJourneyValues;
+  const curr=values[idx],currText=fmtTrackerJourneyVal(curr,mode);
+  const metricLabel=mode==='weight'?'weight':mode==='reps'?'rep count':'volume';
+  const wrap=(icon,text)=>`<span class="tjc-icon">${icon}</span><span class="tjc-text">${text}</span>`;
+  if(idx===0){
+    return{type:'start',html:wrap(TJ_ICON_FLAG,`This is where it all began — <strong>${currText}</strong> ${metricLabel==='volume'?'Volume':metricLabel==='weight'?'Weight':'Reps'}. ${sortedDates.length} sessions of progress start right here.`)};
+  }
+  const prev=values[idx-1],prevText=fmtTrackerJourneyVal(prev,mode);
+  if(curr===prev){
+    return{type:'same',html:wrap(TJ_ICON_CHECK,`Holding steady at <strong>${currText}</strong> — that kind of consistency is exactly what builds lasting strength.`)};
+  }
+  if(curr>prev){
+    const diffText=fmtTrackerJourneyVal(curr-prev,mode);
+    return{type:'up',html:wrap(TJ_ICON_UP,`Leveled up from ${prevText} to <strong>${currText}</strong> — that's +${diffText} of real progress. Keep this up!`)};
+  }
+  const diffText=fmtTrackerJourneyVal(prev-curr,mode);
+  return{type:'down',html:wrap(TJ_ICON_DOWN,`Eased back to <strong>${currText}</strong> from ${prevText} (-${diffText}) — a lighter session is still a session. Bounce back next time.`)};
+}
+// Toggle handler for the "View Journey" button: starts playback from the beginning, or stops it early
+// if it's already running (tapping the button again acts as a manual stop). A manual stop also closes
+// the caption card and returns everything to normal, same as the dedicated Stop icon.
+function toggleTrackerJourney(){
+  if(trackerJourneyPlaying){stopTrackerJourney(true);return}
+  startTrackerJourney();
+}
+function startTrackerJourney(){
+  if(!trackerGraphContext||!trackerJourneyValues||trackerGraphPointCount<2)return;
+  trackerJourneyPlaying=true;
+  trackerJourneyPaused=false;
+  const modeSelect=document.getElementById('trackerGraphModeSelect');if(modeSelect)modeSelect.disabled=true;
+  const journeyBtn=document.getElementById('trackerJourneyBtn');
+  if(journeyBtn)journeyBtn.style.display='none';
+  const journeyControls=document.getElementById('trackerJourneyControls');
+  if(journeyControls)journeyControls.classList.add('visible');
+  setTrackerJourneyPauseIcon(false);
+  updateTrackerGraphNavButtons();
+  const caption=document.getElementById('trackerJourneyCaption');
+  if(caption)caption.style.display='block';
+  const fsBtn=document.getElementById('trackerFullscreenBtn');
+  if(fsBtn)fsBtn.style.display='flex';
+  setTrackerJourneyLiveLayout(true);
+  trackerJourneyStep(0);
+}
+// Grows (live=true) or restores (live=false) the graph box height + the chart's own reserved top padding
+// by exactly the amount the fullscreen-focus icon adds above the detail box, so the box's new lower
+// position never gets any closer to the plotted line/markers than it normally is — same collision-avoidance
+// guarantee as the base layout, just re-measured for the icon's extra space.
+function setTrackerJourneyLiveLayout(live){
+  const graphBox=document.getElementById('trackerGraphBox');
+  if(!graphBox)return;
+  graphBox.classList.toggle('tracker-journey-live',live);
+  if(!trackerAnalyticsChartInstance||!trackerGraphBaseHeight)return;
+  const extra=live?34:0;
+  graphBox.style.height=(trackerGraphBaseHeight+extra)+'px';
+  trackerAnalyticsChartInstance.options.layout.padding.top=trackerGraphBaseTopPad+extra;
+  trackerAnalyticsChartInstance.resize();
+  trackerAnalyticsChartInstance.update('none');
+}
+// Plays one step of the journey: highlights the marker at `idx` (with a smooth animated transition),
+// updates the caption card with that step's improvement message, then schedules the next step. On the
+// very last point, "the next step" is the auto-close: the final caption holds on screen for the same
+// step duration so it's fully readable, then the caption closes and playback resets to normal on its
+// own — matching what a manual Stop does. Start time + full duration are recorded on every step so a
+// pause mid-step (including the final hold) can compute exactly how much time is left before resuming.
+function trackerJourneyStep(idx){
+  if(!trackerJourneyPlaying||!trackerGraphSelectFn||!trackerJourneyValues)return;
+  const{values,sortedDates}=trackerJourneyValues;
+  const isLast=idx>=sortedDates.length-1;
+  // Lands on `idx`: highlights the marker, builds the caption, and schedules the next step. Split out so
+  // it can run either immediately (the very first point) or after the traveling dot finishes crossing the
+  // segment into this point.
+  const landOnPoint=()=>{
+    if(!trackerJourneyPlaying)return;
+    if(trackerGraphPulseFn)trackerGraphPulseFn(idx);else trackerGraphSelectFn(idx,true);
+    const dateEl=document.getElementById('trackerJourneyCaptionDate'),msgEl=document.getElementById('trackerJourneyCaptionMsg');
+    const caption=buildTrackerJourneyCaption(idx);
+    if(dateEl)dateEl.textContent=`${formatTrackerDate(sortedDates[idx])} · Day ${idx+1} of ${sortedDates.length}`;
+    if(msgEl){
+      msgEl.innerHTML=caption.html;
+      msgEl.className='tracker-journey-caption-msg'+(caption.type==='up'?' tjc-up':caption.type==='down'?' tjc-down':'');
+    }
+    trackerJourneyPendingIdx=isLast?-1:idx+1;
+    trackerJourneyStepStartTime=Date.now();
+    trackerJourneyStepRemainingMs=TRACKER_JOURNEY_STEP_MS;
+    trackerJourneyTimer=setTimeout(()=>{
+      if(trackerJourneyPendingIdx<0){stopTrackerJourney(true);return}
+      trackerJourneyStep(trackerJourneyPendingIdx);
+    },TRACKER_JOURNEY_STEP_MS);
+  };
+  // idx 0 is the journey's starting point — nothing to travel from yet, so it lands immediately. Every
+  // later point first plays the moving-marker effect across the segment it's arriving from, colored green
+  // (upgrade) / red (downgrade) / amber (held steady) based on the value change.
+  if(idx>0){
+    const trend=values[idx]>values[idx-1]?'up':values[idx]<values[idx-1]?'down':'same';
+    animateTrackerJourneyTravel(idx-1,idx,trend,landOnPoint);
+  }else{
+    landOnPoint();
+  }
+}
+// Swaps the pause button's icon between pause (playing) and resume/play (paused), and updates its
+// title/aria-label to match — screen readers and hover tooltips stay accurate either way.
+function setTrackerJourneyPauseIcon(paused){
+  const iconHost=document.getElementById('trackerJourneyPauseIcon');
+  if(iconHost)iconHost.innerHTML=paused?TJ_ICON_PLAY:TJ_ICON_PAUSE;
+  const pauseBtn=document.getElementById('trackerJourneyPauseBtn');
+  if(pauseBtn){const label=paused?'Resume':'Pause';pauseBtn.title=label;pauseBtn.setAttribute('aria-label',label)}
+}
+// Pause/Resume toggle for the pause icon button. Pausing freezes the marker and caption exactly where
+// they are (no timer runs) and remembers how much of the current step's delay was left. Resuming
+// reschedules the same upcoming step for that remaining duration, so nothing is skipped or restarted.
+function toggleTrackerJourneyPause(){
+  if(!trackerJourneyPlaying)return;
+  if(trackerJourneyPaused){
+    trackerJourneyPaused=false;
+    setTrackerJourneyPauseIcon(false);
+    trackerJourneyStepStartTime=Date.now();
+    trackerJourneyTimer=setTimeout(()=>{
+      if(trackerJourneyPendingIdx<0){stopTrackerJourney(true);return}
+      trackerJourneyStep(trackerJourneyPendingIdx);
+    },trackerJourneyStepRemainingMs);
+  }else{
+    trackerJourneyPaused=true;
+    if(trackerJourneyTimer){clearTimeout(trackerJourneyTimer);trackerJourneyTimer=null}
+    const elapsed=Date.now()-trackerJourneyStepStartTime;
+    trackerJourneyStepRemainingMs=Math.max(250,trackerJourneyStepRemainingMs-elapsed);
+    setTrackerJourneyPauseIcon(true);
+  }
+}
+// Stops playback (early tap, natural completion, Close, a new exercise loaded, or the panel torn down).
+// reset=true (used on teardown/re-render) also hides the caption card immediately instead of leaving the
+// final message visible, since the graph itself is about to change.
+function stopTrackerJourney(reset){
+  trackerJourneyPlaying=false;
+  trackerJourneyPaused=false;
+  trackerJourneyTravelState=null;
+  trackerJourneySegmentColors=[];
+  if(trackerJourneyTimer){clearTimeout(trackerJourneyTimer);trackerJourneyTimer=null}
+  if(trackerAnalyticsChartInstance){
+    trackerAnalyticsChartInstance.$trackerMovingMarker={active:false};
+    trackerAnalyticsChartInstance.update('none');
+  }
+  const modeSelect=document.getElementById('trackerGraphModeSelect');if(modeSelect)modeSelect.disabled=false;
+  const journeyBtn=document.getElementById('trackerJourneyBtn');
+  if(journeyBtn)journeyBtn.style.display='';
+  const journeyControls=document.getElementById('trackerJourneyControls');
+  if(journeyControls)journeyControls.classList.remove('visible');
+  setTrackerJourneyPauseIcon(false);
+  const fsBtn=document.getElementById('trackerFullscreenBtn');
+  if(fsBtn)fsBtn.style.display='none';
+  if(trackerFullscreenOpen)exitTrackerFullscreen();
+  setTrackerJourneyLiveLayout(false);
+  if(reset){const caption=document.getElementById('trackerJourneyCaption');if(caption)caption.style.display='none'}
+  updateTrackerGraphNavButtons();
 }
 document.addEventListener('keydown',function(e){
   if(e.key!=='ArrowLeft'&&e.key!=='ArrowRight')return;
@@ -11866,7 +12489,71 @@ document.addEventListener('keydown',function(e){
   e.preventDefault();
   navigateTrackerPoint(e.key==='ArrowLeft'?-1:1);
 });
-function closeTrackerAnalytics(){const panel=document.getElementById("trackerAnalyticsPanel");panel.classList.remove("visible");if(trackerAnalyticsChartInstance){trackerAnalyticsChartInstance.destroy();trackerAnalyticsChartInstance=null}const cv=document.getElementById("trackerAnalyticsChart");if(cv)cv.ontouchmove=null;trackerGraphPointCount=0;trackerGraphSelectedIdx=-1;trackerGraphSelectFn=null;const navRow=document.getElementById('trackerGraphNavRow');if(navRow)navRow.classList.remove('visible')}
+function closeTrackerAnalytics(){stopTrackerJourney(true);const panel=document.getElementById("trackerAnalyticsPanel");panel.classList.remove("visible");if(trackerAnalyticsChartInstance){trackerAnalyticsChartInstance.destroy();trackerAnalyticsChartInstance=null}const cv=document.getElementById("trackerAnalyticsChart");if(cv)cv.ontouchmove=null;trackerGraphPointCount=0;trackerGraphSelectedIdx=-1;trackerGraphSelectFn=null;trackerGraphPulseFn=null;trackerGraphContext=null;trackerJourneyValues=null;const navRow=document.getElementById('trackerGraphNavRow');if(navRow)navRow.classList.remove('visible')}
+
+/* ===================== TRACK WORKOUT GRAPH — FULLSCREEN FOCUS ===================== */
+// Toggle handler for the fullscreen-focus icon (only visible while "View Journey" is playing).
+function toggleTrackerFullscreen(){
+  if(trackerFullscreenOpen){exitTrackerFullscreen();return}
+  enterTrackerFullscreen();
+}
+// Physically relocates the graph box (canvas + its fixed detail box) and the Journey caption into the
+// fullscreen overlay's stage — everything else (subnav, header, mode select, nav row) stays behind on
+// the page, out of view, so the overlay is a deliberately focused view of just those two pieces.
+// Their original parent + next-sibling are remembered so exitTrackerFullscreen can put them back in
+// exactly the right spot rather than assuming a fixed page structure.
+function enterTrackerFullscreen(){
+  const graphBox=document.getElementById('trackerGraphBox');
+  const caption=document.getElementById('trackerJourneyCaption');
+  const overlay=document.getElementById('trackerFullscreenOverlay');
+  const stage=document.getElementById('trackerFullscreenStage');
+  if(!graphBox||!overlay||!stage)return;
+  trackerFsGraphParent=graphBox.parentNode;trackerFsGraphNext=graphBox.nextSibling;
+  stage.appendChild(graphBox);
+  if(caption){trackerFsCaptionParent=caption.parentNode;trackerFsCaptionNext=caption.nextSibling;stage.appendChild(caption)}
+  overlay.classList.add('active');
+  document.body.classList.add('tracker-fs-lock');
+  trackerFullscreenOpen=true;
+  const icon=document.getElementById('trackerFullscreenBtn');
+  if(icon){icon.classList.add('is-active');icon.title='Exit fullscreen';icon.setAttribute('aria-label','Exit fullscreen')}
+  // The graph box changed containers/width — force Chart.js to remeasure so the line/points redraw at
+  // the new stage size instead of holding onto stale canvas dimensions. Once that's settled, if a
+  // "View Journey" playback is mid-flight, restart it from the very first marker: the focused fullscreen
+  // view is meant to be watched as a full run from day 1, not picked up wherever the background playback
+  // happened to be when the fullscreen icon was tapped.
+  if(trackerAnalyticsChartInstance){
+    requestAnimationFrame(()=>{
+      trackerAnalyticsChartInstance.resize();
+      if(trackerJourneyPlaying){
+        if(trackerJourneyTimer){clearTimeout(trackerJourneyTimer);trackerJourneyTimer=null}
+        trackerJourneyPaused=false;
+        setTrackerJourneyPauseIcon(false);
+        trackerJourneyTravelState=null;
+        trackerJourneySegmentColors=[];
+        trackerAnalyticsChartInstance.$trackerMovingMarker={active:false};
+        trackerAnalyticsChartInstance.update('none');
+        trackerJourneyStep(0);
+      }
+    });
+  }
+}
+function exitTrackerFullscreen(){
+  const graphBox=document.getElementById('trackerGraphBox');
+  const caption=document.getElementById('trackerJourneyCaption');
+  const overlay=document.getElementById('trackerFullscreenOverlay');
+  if(!graphBox||!overlay)return;
+  if(trackerFsGraphParent)trackerFsGraphParent.insertBefore(graphBox,trackerFsGraphNext);
+  if(caption&&trackerFsCaptionParent)trackerFsCaptionParent.insertBefore(caption,trackerFsCaptionNext);
+  overlay.classList.remove('active');
+  document.body.classList.remove('tracker-fs-lock');
+  trackerFullscreenOpen=false;
+  const icon=document.getElementById('trackerFullscreenBtn');
+  if(icon){icon.classList.remove('is-active');icon.title='Fullscreen focus';icon.setAttribute('aria-label','Fullscreen focus')}
+  if(trackerAnalyticsChartInstance)requestAnimationFrame(()=>trackerAnalyticsChartInstance.resize());
+}
+document.addEventListener('keydown',function(e){
+  if(e.key==='Escape'&&trackerFullscreenOpen)exitTrackerFullscreen();
+});
 
 document.addEventListener('click',function(e){
   const sug=document.getElementById('trackerSearchSuggestions');
@@ -12521,5 +13208,15 @@ function closeLearnVideo(){
   learnYTPlayer=null;
 }
 </script>
+<!-- Track Workout graph "fullscreen focus" overlay: while active, the graph box (canvas + its fixed
+     detail box) and the Journey caption are physically relocated in here (see enterTrackerFullscreen /
+     exitTrackerFullscreen), leaving every other control (subnav, mode select, arrows, Journey button)
+     behind on the page — a deliberately stripped-down view of just those two pieces. -->
+<div class="tracker-fullscreen-overlay" id="trackerFullscreenOverlay">
+  <button type="button" class="tracker-fullscreen-close" id="trackerFullscreenCloseBtn" onclick="toggleTrackerFullscreen()" title="Exit fullscreen" aria-label="Exit fullscreen">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg>
+  </button>
+  <div class="tracker-fullscreen-stage" id="trackerFullscreenStage"></div>
+</div>
 </body>
 </html>
