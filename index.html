@@ -656,7 +656,7 @@ body.theme-batman .set-copy-btn:hover{color:#05050a}
 .suggestions-list{position:absolute;left:0;right:0;background:var(--bg-card);border:1px solid var(--border-col);border-radius:11px;max-height:180px;overflow-y:auto;z-index:100;box-shadow:0 10px 30px rgba(0,0,0,0.12);display:none}
 .suggestions-list div{padding:10px 14px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--border-col);color:var(--text-primary)}
 .suggestions-list div:hover{background:var(--accent-soft);color:var(--accent)}
-.workout-log-card{display:flex;align-items:stretch;gap:0;margin-bottom:10px;cursor:pointer;position:relative}
+.workout-log-card{display:flex;align-items:stretch;gap:0;margin-bottom:10px;cursor:pointer;position:relative;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
 .workout-log-card:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:10px}
 .wlc-box{flex:1 1 auto;min-width:0;background:var(--bg-card);border:1px solid var(--border-col);border-left:3px solid var(--border-col);border-radius:10px;padding:10px 13px;transition:transform 0.25s cubic-bezier(0.4,0,0.2,1),box-shadow 0.25s cubic-bezier(0.4,0,0.2,1)}
 .workout-log-card:hover .wlc-box{transform:translateY(-3px);box-shadow:0 10px 22px var(--wlc-glow,var(--accent-glow))}
@@ -9622,26 +9622,32 @@ function toggleWorkoutBreakdown(){
 /* Routes a card tap/click/Enter-key to the normal select-to-reveal-icons behavior. (Reordering is
    handled separately via long-press free drag-and-drop — see the WLC DRAG REORDER block below.) */
 function handleWorkoutCardActivate(el,ci,rv){
+  if(Date.now()<_wcSuppressClickUntil){_wcSuppressClickUntil=0;return;}
   toggleCardSelectionState(el,ci,rv);
 }
 
 /* ===================== WLC DRAG REORDER (long-press, free drag-and-drop) =====================
    Long-press (~550ms) any saved-workout card, then drag it up/down anywhere in the list and
    release to drop it there — no separate "swap target" needed. Built on Pointer Events so the
-   exact same code path drives mouse (desktop) and touch (mobile) drags. The real card element
-   stays in normal document flow the whole time (so layout/wrapping never breaks on narrow
-   screens) but is hidden while a floating clone ("ghost") tracks the finger/cursor; siblings
-   animate (FLIP-style) into their new slots as the ghost passes their midpoint. */
+   same code path drives mouse (desktop) and touch (mobile) drags. The real card element stays in
+   normal document flow the whole time (so layout/wrapping never breaks on narrow screens) but is
+   hidden while a floating clone ("ghost") tracks the finger/cursor; siblings animate (FLIP-style)
+   into their new slots as the ghost passes their midpoint.
+   IMPORTANT: .workout-log-card carries touch-action:none + user-select:none + -webkit-touch-
+   callout:none in CSS — without that, mobile browsers win the race with their own long-press
+   text-selection/callout gesture (and desktop browsers start a native text-selection drag),
+   which is what makes a press look like it merely "selects" instead of dragging. */
 const WLC_LONGPRESS_MS=550;
 const WLC_MOVE_TOLERANCE=10;
 let _wDrag=null;
+let _wcSuppressClickUntil=0;
 function wcPointerDown(e,el,ci){
   if(e.pointerType==='mouse'&&e.button!==0)return;
   if(e.target.closest('.action-icon-btn'))return;
   if(_wDrag)return;
   const container=document.getElementById('savedWorkoutLogsContainer');
   const originalOrder=Array.from(container.querySelectorAll('.workout-log-card')).map(c=>parseInt(c.dataset.ci,10));
-  const st={ci,el,pointerId:e.pointerId,startX:e.clientX,startY:e.clientY,armed:false,ghost:null,offsetX:0,offsetY:0,timer:null,originalOrder};
+  const st={ci,el,pointerId:e.pointerId,startX:e.clientX,startY:e.clientY,armed:false,ghost:null,baseTop:0,baseLeft:0,height:0,timer:null,originalOrder};
   _wDrag=st;
   st.timer=setTimeout(wcArmDrag,WLC_LONGPRESS_MS);
   document.addEventListener('pointermove',wcPointerMove,{passive:false});
@@ -9652,15 +9658,18 @@ function wcArmDrag(){
   const st=_wDrag;if(!st)return;
   st.armed=true;
   const el=st.el,rect=el.getBoundingClientRect();
-  st.offsetX=st.startX-rect.left;st.offsetY=st.startY-rect.top;
+  st.baseTop=rect.top;st.baseLeft=rect.left;st.height=rect.height;
+  try{el.setPointerCapture(st.pointerId)}catch(err){}
   const ghost=el.cloneNode(true);
   ghost.classList.add('wlc-drag-ghost');
   ghost.classList.remove('selected-active');
   ghost.removeAttribute('onclick');ghost.removeAttribute('onkeydown');ghost.removeAttribute('onpointerdown');ghost.removeAttribute('tabindex');
   ghost.style.position='fixed';
-  ghost.style.left=rect.left+'px';ghost.style.top=rect.top+'px';
+  ghost.style.top=rect.top+'px';ghost.style.left=rect.left+'px';
   ghost.style.width=rect.width+'px';ghost.style.height=rect.height+'px';
+  ghost.style.margin='0';
   ghost.style.pointerEvents='none';ghost.style.zIndex='9999';
+  ghost.style.transform='scale(1.03)';
   document.body.appendChild(ghost);
   st.ghost=ghost;
   el.classList.add('wlc-drag-source');
@@ -9675,12 +9684,25 @@ function wcPointerMove(e){
     return;
   }
   e.preventDefault();
-  const ghost=st.ghost;
-  ghost.style.top=(e.clientY-st.offsetY)+'px';
-  ghost.style.left=(e.clientX-st.offsetX)+'px';
+  const clampedDy=wcClampDy(st,dy);
+  st.ghost.style.transform=`translate(0px,${clampedDy}px) scale(1.03)`;
   wcCheckReorder(st);
   const vh=window.innerHeight;
   if(e.clientY<70)window.scrollBy(0,-14);else if(e.clientY>vh-70)window.scrollBy(0,14);
+}
+/* Keeps the dragged card's ghost from ever visually leaving the saved-workouts list — it can't be
+   dragged up past the top of the first card (into the Track/live-session area above) or down past
+   the bottom of the last card (into the Class Breakdown / Daily Total area below). Bounds are
+   recomputed on every move since the list can reflow (and the page can auto-scroll) mid-drag. */
+function wcClampDy(st,dy){
+  const container=document.getElementById('savedWorkoutLogsContainer');
+  const cards=container.querySelectorAll('.workout-log-card');
+  if(!cards.length)return dy;
+  const minTop=cards[0].getBoundingClientRect().top;
+  const maxBottom=cards[cards.length-1].getBoundingClientRect().bottom;
+  let newTop=st.baseTop+dy;
+  newTop=Math.max(minTop,Math.min(newTop,maxBottom-st.height));
+  return newTop-st.baseTop;
 }
 function wcCheckReorder(st){
   const container=document.getElementById('savedWorkoutLogsContainer');
@@ -9689,18 +9711,31 @@ function wcCheckReorder(st){
   if(!cards.length)return;
   const ghostRect=st.ghost.getBoundingClientRect();
   const ghostCenter=ghostRect.top+ghostRect.height/2;
-  let target=null;
-  for(const c of cards){
-    const r=c.getBoundingClientRect();
-    if(ghostCenter<r.top+r.height/2){target=c;break}
+  const firstRect=cards[0].getBoundingClientRect();
+  const lastRect=cards[cards.length-1].getBoundingClientRect();
+  let target;
+  if(ghostRect.top<=firstRect.top+2){
+    // ghost has reached the very top of the list (it's clamped there, so exact-center equality
+    // can't be trusted) — snap straight to "become the new first card"
+    target=cards[0];
+  } else if(ghostRect.bottom>=lastRect.bottom-2){
+    // ghost has reached the very bottom of the list — snap straight to "become the new last card"
+    target=null;
+  } else {
+    target=null;
+    for(const c of cards){
+      const r=c.getBoundingClientRect();
+      if(ghostCenter<r.top+r.height/2){target=c;break}
+    }
   }
   const nextEl=target||cards[cards.length-1].nextSibling;
-  if(dragEl.nextSibling===nextEl||(!target&&dragEl===cards[cards.length-1]))return;
+  if(dragEl.nextSibling===nextEl)return;
   const prevRects=new Map();
   container.querySelectorAll('.workout-log-card').forEach(c=>prevRects.set(c,c.getBoundingClientRect()));
   if(target)container.insertBefore(dragEl,target);
   else container.insertBefore(dragEl,cards[cards.length-1].nextSibling);
   wcAnimateFlip(container,prevRects);
+  wcRenumber(container);
 }
 function wcAnimateFlip(container,prevRects){
   container.querySelectorAll('.workout-log-card').forEach(c=>{
@@ -9718,6 +9753,12 @@ function wcAnimateFlip(container,prevRects){
     }
   });
 }
+/* Keeps the visible "1. / 2. / 3. ..." serial numbers in sync with on-screen order the instant
+   cards get reordered mid-drag, rather than waiting for the DB round-trip + reload. */
+function wcRenumber(container){
+  let n=1;
+  container.querySelectorAll('.workout-log-card .wlc-serial').forEach(sp=>{sp.textContent=n+'.';n++});
+}
 function wcPointerUp(e){
   const st=_wDrag;if(!st||e.pointerId!==st.pointerId)return;
   wcEndDrag(true);
@@ -9731,17 +9772,18 @@ function wcEndDrag(commit){
   document.removeEventListener('pointercancel',wcPointerUp);
   document.body.classList.remove('wlc-dragging-active');
   if(!st.armed)return; // was just a tap/scroll — let the normal click fire untouched
+  try{st.el.releasePointerCapture(st.pointerId)}catch(err){}
+  // the browser still fires a synthetic click after this pointer sequence ends — suppress just
+  // that one so dropping a card doesn't also toggle its selected/expanded state
+  _wcSuppressClickUntil=Date.now()+400;
   const dragEl=st.el,ghost=st.ghost;
-  // swallow the synthetic click the browser fires after this pointer sequence ends, so the drop
-  // doesn't also toggle the card's selected/expanded state
-  const swallow=ev=>{ev.stopPropagation();ev.preventDefault()};
-  document.addEventListener('click',swallow,true);
-  setTimeout(()=>document.removeEventListener('click',swallow,true),350);
   const finalRect=dragEl.getBoundingClientRect();
-  ghost.style.transition='top 0.2s cubic-bezier(0.2,0.8,0.2,1),left 0.2s cubic-bezier(0.2,0.8,0.2,1),transform 0.2s ease,box-shadow 0.2s ease';
-  ghost.style.top=finalRect.top+'px';ghost.style.left=finalRect.left+'px';
-  ghost.style.transform='scale(1)';ghost.style.boxShadow='none';
+  const dx=finalRect.left-st.baseLeft,dy=finalRect.top-st.baseTop;
+  ghost.style.transition='transform 0.2s cubic-bezier(0.2,0.8,0.2,1),box-shadow 0.2s ease';
+  ghost.style.transform=`translate(${dx}px,${dy}px) scale(1)`;
+  ghost.style.boxShadow='none';
   setTimeout(()=>{ghost.remove();dragEl.classList.remove('wlc-drag-source')},210);
+  wcRenumber(document.getElementById('savedWorkoutLogsContainer'));
   if(commit){
     const container=document.getElementById('savedWorkoutLogsContainer');
     const newOrder=Array.from(container.querySelectorAll('.workout-log-card')).map(c=>parseInt(c.dataset.ci,10));
@@ -9783,7 +9825,7 @@ async function loadWorkoutsForDate(){
       const volVal=`<span class="wlc-vol-val">${vt.primary} <small>${vt.unit}</small></span>`;
       const classLabel=`<small class="wlc-class-label" style="color:${exColor}">${exCls}</small>`;
       const setsBlock=`<div class="${tagGridClass} wlc-sets-block${workoutBreakdownOn?"":" wlc-collapsed"}">${tags}</div>`;
-      html+=`<div class="workout-log-card" data-ci="${ci}" tabindex="0" style="--wlc-glow:${exColor}55" onclick="handleWorkoutCardActivate(this,${ci},'${escapeHtml(cell)}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click()}" onpointerdown="wcPointerDown(event,this,${ci})"><div class="wlc-box" style="border-color:${exColor}55;border-left-color:${exColor}"><div class="wlc-body"><div class="wlc-header-row"><span class="wlc-dot" style="background:${exColor}"></span><div class="exercise-name"><span style="color:var(--accent);margin-right:4px">${counter}.</span>${ename}${classLabel}</div>${volVal}</div>${setsBlock}</div></div><div class="workout-actions-overlay"><button class="action-icon-btn track" title="Track Workout" onclick="trackWorkoutFromCard(event,'${escapeHtml(ename)}')">${ICON_TRACK}</button><button class="action-icon-btn edit" title="Edit" onclick="initiateWorkoutEdit(event,${ci},'${escapeHtml(cell)}')">${ICON_EDIT}</button><button class="action-icon-btn delete" title="Delete" onclick="triggerWorkoutDelete(event,${ci})">${ICON_DELETE}</button></div></div>`;counter++;
+      html+=`<div class="workout-log-card" data-ci="${ci}" tabindex="0" style="--wlc-glow:${exColor}55" onclick="handleWorkoutCardActivate(this,${ci},'${escapeHtml(cell)}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click()}" onpointerdown="wcPointerDown(event,this,${ci})"><div class="wlc-box" style="border-color:${exColor}55;border-left-color:${exColor}"><div class="wlc-body"><div class="wlc-header-row"><span class="wlc-dot" style="background:${exColor}"></span><div class="exercise-name"><span class="wlc-serial" style="color:var(--accent);margin-right:4px">${counter}.</span>${ename}${classLabel}</div>${volVal}</div>${setsBlock}</div></div><div class="workout-actions-overlay"><button class="action-icon-btn track" title="Track Workout" onclick="trackWorkoutFromCard(event,'${escapeHtml(ename)}')">${ICON_TRACK}</button><button class="action-icon-btn edit" title="Edit" onclick="initiateWorkoutEdit(event,${ci},'${escapeHtml(cell)}')">${ICON_EDIT}</button><button class="action-icon-btn delete" title="Delete" onclick="triggerWorkoutDelete(event,${ci})">${ICON_DELETE}</button></div></div>`;counter++;
     }
   });
   if(!anyEntry){con.innerHTML=`<p style="font-size:13px;color:var(--text-muted);text-align:center;padding:10px;font-family:var(--font-alt)">No entries for this date.</p>`;return}
