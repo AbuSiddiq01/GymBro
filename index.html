@@ -641,10 +641,18 @@ body.theme-batman .set-copy-btn:hover{color:#05050a}
 .set-row.set-row-locked input[type="number"]{opacity:0.75;cursor:not-allowed}
 .set-row{touch-action:pan-y} /* keep vertical page scroll working while we read horizontal swipes ourselves */
 .suggestion-box{position:relative;margin-bottom:8px}
-.suggestion-box input{padding-right:38px}
+.suggestion-box input{padding-right:64px}
 .sugg-dropdown-icon{position:absolute;right:10px;top:0;bottom:0;width:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-muted);font-size:11px;user-select:none;transition:color 0.2s ease,transform 0.2s ease}
 .sugg-dropdown-icon:hover{color:var(--accent)}
 .sugg-dropdown-icon.open{color:var(--accent);transform:translateY(1px) rotate(180deg)}
+/* Fixed SVG "X" icon (not an emoji, so it renders identically on every device/OS) that clears the
+   exercise-name box — Add Workout, Live Workout, and the Workout Tracker's search box all reuse this
+   same class. Only shown once the box actually has a value (and never while the box is read-only, e.g.
+   a locked exercise name during live-edit). */
+.sugg-clear-icon{position:absolute;right:34px;top:0;bottom:0;width:26px;display:none;align-items:center;justify-content:center;cursor:pointer;color:var(--text-muted);transition:color 0.2s ease}
+.sugg-clear-icon svg{width:14px;height:14px}
+.sugg-clear-icon.visible{display:flex}
+.sugg-clear-icon:hover{color:var(--accent)}
 .suggestions-list{position:absolute;left:0;right:0;background:var(--bg-card);border:1px solid var(--border-col);border-radius:11px;max-height:180px;overflow-y:auto;z-index:100;box-shadow:0 10px 30px rgba(0,0,0,0.12);display:none}
 .suggestions-list div{padding:10px 14px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--border-col);color:var(--text-primary)}
 .suggestions-list div:hover{background:var(--accent-soft);color:var(--accent)}
@@ -669,15 +677,26 @@ body.theme-batman .set-copy-btn:hover{color:#05050a}
    gutter space. Width is 0 (no reserved space) until the row is selected/swap-armed, at which point
    it expands in-flow — so it can never float over or bleed into any other saved-workout box. */
 .workout-actions-overlay{width:0;flex-shrink:0;overflow:hidden;opacity:0;display:flex;flex-direction:column;justify-content:center;gap:4px;margin-left:0;transition:width 0.2s ease,opacity 0.2s ease,margin-left 0.2s ease;pointer-events:none}
-.workout-log-card.selected-active .workout-actions-overlay,.workout-log-card.swap-pending .workout-actions-overlay{width:30px;opacity:1;margin-left:8px;pointer-events:auto}
+.workout-log-card.selected-active .workout-actions-overlay{width:30px;opacity:1;margin-left:8px;pointer-events:auto}
 .action-icon-btn{width:100%;aspect-ratio:1;display:flex;align-items:center;justify-content:center;background:var(--accent-soft);border:none;border-radius:8px;cursor:pointer;padding:0;flex-shrink:0;transition:background 0.2s ease}
 .action-icon-btn svg{width:14px;height:14px;flex-shrink:0}
 .action-icon-btn.edit{color:#2563eb}.action-icon-btn.edit:hover{background:#dbeafe}
-.action-icon-btn.swap{color:#7c3aed}.action-icon-btn.swap:hover{background:#ede9fe}
 .action-icon-btn.delete{color:#dc2626}.action-icon-btn.delete:hover{background:#fee2e2}
-.workout-log-card.swap-pending .wlc-box{border-color:#f59e0b}
-@keyframes swapPulse{0%,100%{box-shadow:0 0 0 2px rgba(245,158,11,0.35)}50%{box-shadow:0 0 0 5px rgba(245,158,11,0.12)}}
-.workout-log-card.swap-pending .wlc-box{animation:swapPulse 1.1s ease-in-out infinite}
+.action-icon-btn.track{color:#059669}.action-icon-btn.track:hover{background:#d1fae5}
+/* The inline Track Workout button inside the edit form is intentionally hidden ONLY while that
+   form is relocated into the edit overlay (i.e. while editing a saved entry) — Track Workout now
+   lives as a card icon instead. The "+ ADD WORKOUT ENTRY" form never enters the overlay, so its
+   Track Workout button is completely unaffected. */
+.workout-edit-overlay-stage .track-workout-btn{display:none!important}
+/* Long-press free drag-and-drop reordering for saved workout cards (replaces the old manual
+   "swap" flow). wlc-drag-source is the real card, kept in normal flow so layout/reflow stays
+   correct, but hidden while a floating wlc-drag-ghost clone follows the finger/mouse instead. */
+.workout-log-card.wlc-drag-source{visibility:hidden}
+.wlc-drag-ghost{position:fixed;margin:0!important;list-style:none;transform:scale(1.03);box-shadow:0 18px 34px rgba(0,0,0,0.28);border-radius:10px;opacity:0.98;transition:box-shadow 0.2s ease;will-change:top,left,transform}
+.wlc-drag-ghost .workout-actions-overlay{display:none!important}
+.wlc-drag-ghost .wlc-box{transform:none!important;box-shadow:none!important}
+body.wlc-dragging-active,body.wlc-dragging-active *{user-select:none!important;-webkit-user-select:none!important}
+body.wlc-dragging-active .workout-log-card:not(.wlc-drag-source){cursor:grabbing}
 .workout-breakdown-row{display:flex;align-items:center;gap:9px;margin:12px 0 4px}
 .workout-breakdown-row>span{font-size:12px;font-weight:700;color:var(--text-muted);font-family:var(--font-alt);letter-spacing:0.5px;user-select:none}
 @media (max-width:380px){
@@ -718,6 +737,12 @@ body.theme-batman .stats-subnav-btn.active{color:#05050a}
 .ctm-muscle-eq-row.tracker-filter-row{flex-wrap:nowrap}
 .ctm-muscle-eq-row.tracker-filter-row>div{min-width:0}
 .ctm-muscle-eq-row.tracker-filter-row select{width:100%;text-overflow:ellipsis}
+/* Add/Edit Workout Entry's Muscle/Equipment row (both live and non-live forms): same nowrap treatment
+   as the tracker row above — always stays on one line on every screen size, including narrow mobile,
+   with each select shrinking/ellipsizing instead of wrapping to its own row. */
+.ctm-muscle-eq-row.entry-filter-row{flex-wrap:nowrap}
+.ctm-muscle-eq-row.entry-filter-row>div{min-width:0}
+.ctm-muscle-eq-row.entry-filter-row select{width:100%;text-overflow:ellipsis}
 .tracker-sort-wrap{flex:0 0 auto!important;min-width:auto!important;position:relative}
 .tracker-sort-btn{width:38px;height:38px;border-radius:10px;border:1px solid var(--border-col);background:var(--bg-card);color:var(--text-secondary);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.2s ease;padding:0;flex-shrink:0}
 .tracker-sort-btn:hover,.tracker-sort-btn.active{background:var(--accent-soft);color:var(--accent);border-color:var(--accent)}
@@ -1151,6 +1176,22 @@ body.theme-batman .rankup-close{color:#05050a}
 /* Misc */
 .workout-form-wrapper{background:var(--accent-soft);padding:16px;border-radius:16px;border:1px solid var(--border-col);margin-top:10px}
 .workout-form-wrapper h4{color:var(--accent);margin-bottom:10px;font-family:var(--font-alt);font-size:16px;font-weight:700}
+/* ===== Edit Workout Overlay (edit-only; the "add new" flow is never routed through this) =====
+   Same relocate-into-overlay pattern as .tracker-fullscreen-overlay: the live/non-live edit form
+   is physically moved into #workoutEditOverlayStage while editing, and moved back to its original
+   spot on close, so the "+ ADD WORKOUT ENTRY" flow is completely untouched. */
+.workout-edit-overlay{display:none;position:fixed;inset:0;z-index:9999;background:rgba(5,8,14,0.72);backdrop-filter:blur(4px);align-items:flex-start;justify-content:center;padding:40px 14px 24px;overflow-y:auto;box-sizing:border-box}
+.workout-edit-overlay.active{display:flex}
+.workout-edit-overlay-stage{width:100%;max-width:520px;margin:auto;box-sizing:border-box;max-height:calc(100vh - 64px);overflow-y:auto;-webkit-overflow-scrolling:touch;border-radius:18px;box-shadow:0 20px 50px rgba(0,0,0,0.4);position:relative}
+.workout-edit-overlay-stage .workout-form-wrapper{margin-top:0;max-width:100%;box-sizing:border-box}
+.workout-edit-overlay-close{position:fixed;top:16px;right:16px;width:38px;height:38px;border-radius:50%;border:none;background:var(--btn-bg);color:var(--follow-btn-text);cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:var(--btn-shadow);z-index:2;padding:0}
+.workout-edit-overlay-close svg{width:16px;height:16px;display:block}
+body.workout-edit-lock{overflow:hidden}
+@media (max-width:480px){
+  .workout-edit-overlay{padding:54px 8px 16px}
+  .workout-edit-overlay-stage{max-width:100%}
+  .workout-edit-overlay-close{width:34px;height:34px;top:12px;right:12px}
+}
 .welcomeBox{background:var(--bg-card);padding:20px;border-radius:18px;border:1px solid var(--border-col);margin-bottom:4px;box-shadow:var(--card-shadow)}
 .welcomeBox h2{font-family:var(--font-display);font-size:26px;color:var(--section-title-col);letter-spacing:1px}
 .welcomeBox p{font-size:13px;color:var(--text-muted);font-family:var(--font-alt);margin-top:3px}
@@ -1235,6 +1276,15 @@ body.theme-batman .live-break-btn.start{color:#05050a}
 body.theme-batman .track-workout-btn{color:#05050a}
 .track-workout-btn.visible{display:flex}
 .track-workout-btn:hover{transform:translateY(-2px);box-shadow:0 8px 24px var(--accent-glow)}
+
+/* ===================== WORKOUT ENTRY FORM: SMALL SAVE/CLOSE BUTTONS =====================
+   Compact primary-action button (Save Entry / Update Sets / Start Live Session) and the matching
+   Close button beneath it — used consistently across Add & Edit, Live & Non-Live so the whole
+   entry form reads lighter than the full-size .btn used elsewhere in the app. */
+.workout-form-action-btn{width:100%;padding:10px 14px;margin-top:12px;border:none;border-radius:11px;cursor:pointer;font-size:12.5px;font-weight:800;font-family:var(--font-alt);letter-spacing:0.6px;background:linear-gradient(135deg,#16a34a,#15803d);color:#fff;box-shadow:var(--btn-shadow);transition:all 0.2s ease;text-align:center}
+.workout-form-action-btn:hover{transform:translateY(-2px);box-shadow:0 8px 24px var(--accent-glow)}
+.workout-form-close-btn{width:100%;padding:9px 14px;margin-top:8px;border:none;border-radius:11px;cursor:pointer;font-size:12px;font-weight:700;font-family:var(--font-alt);letter-spacing:0.5px;background:linear-gradient(135deg,#64748b,#475569);color:#fff;transition:all 0.2s ease;text-align:center}
+.workout-form-close-btn:hover{transform:translateY(-2px)}
 
 /* ===================== MIN:SEC PICKER WIDGET ===================== */
 .minsec-picker{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
@@ -2411,7 +2461,7 @@ body.theme-godmode .levelup-toast{background:linear-gradient(135deg,#7a0006,#c00
         </div>
         <div id="workoutFormStructure" class="workout-form-wrapper" style="display:none">
           <h4 id="formActionTitle">LOG NEW ENTRY</h4>
-          <div class="ctm-muscle-eq-row">
+          <div class="ctm-muscle-eq-row entry-filter-row">
             <div>
               <label>Muscle</label>
               <select id="addWorkoutMuscleFilter" onchange="handleWorkoutSearchAuto()"></select>
@@ -2424,6 +2474,7 @@ body.theme-godmode .levelup-toast{background:linear-gradient(135deg,#7a0006,#c00
           <label style="font-size:12px;font-weight:700;color:var(--text-muted);font-family:var(--font-alt)">EXERCISE NAME:</label>
           <div class="suggestion-box">
             <input type="text" id="workoutNameInput" placeholder="Type or Select (e.g. Bench Press)" oninput="handleWorkoutSearchAuto();saveNonLiveDraft()" onfocus="handleWorkoutSearchAuto()" autocomplete="off">
+            <span class="sugg-clear-icon" id="workoutNameClearIcon" title="Clear" onclick="clearWorkoutNameInput('nonlive')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg></span>
             <span class="sugg-dropdown-icon" id="workoutNameDropdownIcon" onclick="toggleWorkoutNameDropdown(event)">▼</span>
             <div id="autoSuggestions" class="suggestions-list"></div>
           </div>
@@ -2438,23 +2489,27 @@ body.theme-godmode .levelup-toast{background:linear-gradient(135deg,#7a0006,#c00
           </div>
           <!-- Track Workout (Non-Live) — always available while an exercise name is entered, whether adding or editing -->
           <button type="button" class="track-workout-btn" id="trackWorkoutBtnNonLive" onclick="trackWorkoutFromForm('nonlive')">📈 Track Workout</button>
-          <label style="font-size:12px;font-weight:700;color:var(--text-muted);font-family:var(--font-alt)">SETS STRUCTURE:</label>
-          <select id="setsCountSelect" style="margin-top:5px" onchange="handleSetsCountSelectChange()">
-            <option value="1">1 Set</option><option value="2">2 Sets</option><option value="3">3 Sets</option>
-            <option value="4">4 Sets</option><option value="5">5 Sets</option><option value="6">6 Sets</option>
-          </select>
-          <div id="dynamicSetsContainer" style="margin-top:10px"></div>
-          <!-- Quick Fill: Copy to All (Non-Live) -->
-          <button class="quick-fill-btn" id="quickFillCopyAllBtn" onclick="quickFillCopyAll()">⚡ COPY SET 1 TO ALL SETS</button>
-          <button class="btn" style="background:linear-gradient(135deg,#16a34a,#15803d);margin-top:12px" onclick="saveWorkoutLogEntry()">💾 SAVE ENTRY</button>
-          <button class="btn" style="background:linear-gradient(135deg,#64748b,#475569);margin-top:7px" onclick="cancelWorkoutLogging()">CANCEL</button>
+          <!-- Sets Structure + Set value boxes (Non-Live) — only shown once an exercise name is present in
+               the box, whether typed manually or chosen from the dropdown. See updateNonLiveSetsStructureVisibility(). -->
+          <div id="nonLiveSetsStructureWrap" style="display:none">
+            <label style="font-size:12px;font-weight:700;color:var(--text-muted);font-family:var(--font-alt)">SETS STRUCTURE:</label>
+            <select id="setsCountSelect" style="margin-top:5px" onchange="handleSetsCountSelectChange()">
+              <option value="1">1 Set</option><option value="2">2 Sets</option><option value="3">3 Sets</option>
+              <option value="4">4 Sets</option><option value="5">5 Sets</option><option value="6">6 Sets</option>
+            </select>
+            <div id="dynamicSetsContainer" style="margin-top:10px"></div>
+            <!-- Quick Fill: Copy to All (Non-Live) -->
+            <button class="quick-fill-btn" id="quickFillCopyAllBtn" onclick="quickFillCopyAll()">⚡ COPY SET 1 TO ALL SETS</button>
+            <button class="workout-form-action-btn" onclick="saveWorkoutLogEntry()">💾 SAVE ENTRY</button>
+          </div>
+          <button class="workout-form-close-btn" onclick="cancelWorkoutLogging()">CLOSE</button>
         </div>
         <div id="liveWorkoutForm" class="workout-form-wrapper" style="display:none">
           <h4 style="color:var(--accent);display:flex;align-items:center;gap:8px">
             <span class="live-dot"></span> LIVE WORKOUT SESSION
           </h4>
           <div id="liveSetupPanel">
-            <div class="ctm-muscle-eq-row">
+            <div class="ctm-muscle-eq-row entry-filter-row">
               <div>
                 <label>Muscle</label>
                 <select id="liveWorkoutMuscleFilter" onchange="handleLiveSearchAuto()"></select>
@@ -2467,6 +2522,7 @@ body.theme-godmode .levelup-toast{background:linear-gradient(135deg,#7a0006,#c00
             <label style="font-size:12px;font-weight:700;color:var(--text-muted);font-family:var(--font-alt)">EXERCISE NAME:</label>
             <div class="suggestion-box">
               <input type="text" id="liveWorkoutNameInput" placeholder="Type or Select (e.g. Bench Press)" oninput="handleLiveSearchAuto()" onfocus="handleLiveSearchAuto()" autocomplete="off">
+              <span class="sugg-clear-icon" id="liveWorkoutNameClearIcon" title="Clear" onclick="clearWorkoutNameInput('live')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg></span>
               <span class="sugg-dropdown-icon" id="liveWorkoutNameDropdownIcon" onclick="toggleLiveNameDropdown(event)">▼</span>
               <div id="liveAutoSuggestions" class="suggestions-list"></div>
             </div>
@@ -2481,16 +2537,20 @@ body.theme-godmode .levelup-toast{background:linear-gradient(135deg,#7a0006,#c00
             </div>
             <!-- Track Workout (Live) — always available while an exercise name is entered, whether starting fresh or live-editing -->
             <button type="button" class="track-workout-btn" id="trackWorkoutBtnLive" onclick="trackWorkoutFromForm('live')">📈 Track Workout</button>
-            <label style="font-size:12px;font-weight:700;color:var(--text-muted);font-family:var(--font-alt);margin-top:6px;display:block">SETS STRUCTURE:</label>
-            <select id="liveSetsCountSelect" style="margin-top:5px" onchange="handleLiveSetsCountSelectChange()">
-              <option value="1">1 Set</option><option value="2">2 Sets</option><option value="3">3 Sets</option>
-              <option value="4">4 Sets</option><option value="5">5 Sets</option><option value="6">6 Sets</option>
-            </select>
-            <button class="btn" id="liveStartSessionBtn" style="background:linear-gradient(135deg,#16a34a,#15803d);margin-top:12px" onclick="startLiveSession()">▶ START LIVE SESSION</button>
+            <!-- Sets Structure (Live) — only shown once an exercise name is present in the box, whether
+                 typed manually or chosen from the dropdown. See updateLiveSetsStructureVisibility(). -->
+            <div id="liveSetsStructureWrap" style="display:none">
+              <label style="font-size:12px;font-weight:700;color:var(--text-muted);font-family:var(--font-alt);margin-top:6px;display:block">SETS STRUCTURE:</label>
+              <select id="liveSetsCountSelect" style="margin-top:5px" onchange="handleLiveSetsCountSelectChange()">
+                <option value="1">1 Set</option><option value="2">2 Sets</option><option value="3">3 Sets</option>
+                <option value="4">4 Sets</option><option value="5">5 Sets</option><option value="6">6 Sets</option>
+              </select>
+              <button class="workout-form-action-btn" id="liveStartSessionBtn" onclick="startLiveSession()">▶ START LIVE SESSION</button>
+            </div>
           </div>
-          <button class="btn" style="background:linear-gradient(135deg,#64748b,#475569);margin-top:7px" onclick="cancelLiveWorkout()">CANCEL</button>
           <div id="liveSessionTitle" style="display:none;margin-top:10px;font-weight:800;font-size:15px;color:var(--accent);font-family:var(--font-alt);letter-spacing:0.5px"></div>
           <div id="liveSetsContainer" style="margin-top:14px"></div>
+          <button class="workout-form-close-btn" onclick="cancelLiveWorkout()">CLOSE</button>
         </div>
         <div id="savedWorkoutLogsContainer" style="margin-top:18px"></div>
       </div>
@@ -2534,7 +2594,8 @@ body.theme-godmode .levelup-toast{background:linear-gradient(135deg,#7a0006,#c00
             <div style="position:relative;flex:1">
               <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:15px;pointer-events:none">🔍</span>
               <input type="text" id="trackerSearchInput" placeholder="Search exercise... (e.g. Bench Press)" oninput="handleTrackerSearch()" autocomplete="off"
-                style="margin-top:0;padding-left:38px;border-radius:12px;font-size:13px">
+                style="margin-top:0;padding-left:38px;padding-right:34px;border-radius:12px;font-size:13px">
+              <span class="sugg-clear-icon" id="trackerSearchClearIcon" title="Clear" onclick="clearWorkoutNameInput('tracker')" style="right:8px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg></span>
               <div id="trackerSearchSuggestions" style="display:none;position:absolute;left:0;right:0;top:calc(100% + 4px);background:var(--bg-card);border:1px solid var(--border-col);border-radius:12px;max-height:200px;overflow-y:auto;z-index:200;box-shadow:0 8px 24px rgba(0,0,0,0.12)"></div>
             </div>
             <button onclick="closeTrackerResults()" title="Close"
@@ -8304,6 +8365,8 @@ function toggleWorkoutNameDropdown(e){
 }
 function handleWorkoutSearchAuto(forceShow){
   let val=document.getElementById("workoutNameInput").value.toLowerCase();
+  updateNonLiveSetsStructureVisibility();
+  updateNameClearIconVisibility('workoutNameInput','workoutNameClearIcon');
   const muscleVal=document.getElementById("addWorkoutMuscleFilter")?document.getElementById("addWorkoutMuscleFilter").value:"";
   const equipVal=document.getElementById("addWorkoutEquipmentFilter")?document.getElementById("addWorkoutEquipmentFilter").value:"";
   let box=document.getElementById("autoSuggestions");box.innerHTML="";box.style.display="none";
@@ -8373,6 +8436,52 @@ function toggleSetRowSelection(el){
   if(!wasSelected)row.classList.add('set-selected');
 }
 
+/* Shows/hides the non-live "SETS STRUCTURE" select + set value boxes + quick-fill button. Only
+   revealed once an exercise name is present in the box (typed manually OR chosen from the dropdown);
+   hidden again the instant the name is cleared. Called on every keystroke (handleWorkoutSearchAuto)
+   and every time the set rows are (re)rendered (renderNonLiveSetsRows), so it stays in sync no matter
+   how the name got there — typing, a suggestion click, a restored draft, or opening an existing entry
+   to edit. */
+function updateNonLiveSetsStructureVisibility(){
+  const wrap=document.getElementById("nonLiveSetsStructureWrap");if(!wrap)return;
+  const hasName=!!document.getElementById("workoutNameInput")?.value.trim();
+  wrap.style.display=hasName?"block":"none";
+}
+/* Same idea for the live setup panel's "SETS STRUCTURE" select + Start button. */
+function updateLiveSetsStructureVisibility(){
+  const wrap=document.getElementById("liveSetsStructureWrap");if(!wrap)return;
+  const hasName=!!document.getElementById("liveWorkoutNameInput")?.value.trim();
+  wrap.style.display=hasName?"block":"none";
+}
+/* Fixed SVG "X" clear icon shared by the Add Workout, Live Workout, and Workout Tracker exercise-name
+   boxes — only shown once the box has a value, and hidden while the box is read-only (e.g. the locked
+   exercise name during a live-edit session, where clearing it makes no sense). */
+function updateNameClearIconVisibility(inputId,iconId){
+  const input=document.getElementById(inputId),icon=document.getElementById(iconId);
+  if(!input||!icon)return;
+  icon.classList.toggle('visible',!!input.value.trim()&&!input.readOnly);
+}
+/* Click handler for that clear icon. mode: 'nonlive' | 'live' | 'tracker'. Clearing re-runs the same
+   search/auto handler the box already uses on input, so every dependent bit of UI (suggestions,
+   previous-performance badge, sets structure, track button, tracker table/suggestions) resets exactly
+   as if the person had deleted the text themselves. */
+function clearWorkoutNameInput(mode){
+  if(mode==='tracker'){
+    const input=document.getElementById('trackerSearchInput');if(!input)return;
+    input.value='';
+    handleTrackerSearch();
+    updateNameClearIconVisibility('trackerSearchInput','trackerSearchClearIcon');
+    input.focus();
+    return;
+  }
+  const inputId=mode==='live'?'liveWorkoutNameInput':'workoutNameInput';
+  const input=document.getElementById(inputId);
+  if(!input||input.readOnly)return;
+  input.value='';
+  if(mode==='live'){handleLiveSearchAuto();}else{handleWorkoutSearchAuto();saveNonLiveDraft();}
+  updateNameClearIconVisibility(inputId,mode==='live'?'liveWorkoutNameClearIcon':'workoutNameClearIcon');
+  input.focus();
+}
 function buildSetsInputFields(){
   let cnt=parseInt(document.getElementById("setsCountSelect").value);
   let c=document.getElementById("dynamicSetsContainer");
@@ -8395,6 +8504,8 @@ function buildSetsInputFields(){
    advances focus to the next set, and persists the locked value in the draft so a browser refresh
    mid-entry doesn't lose it (see saveNonLiveDraft below). */
 function renderNonLiveSetsRows(weights,reps,locks){
+  updateNonLiveSetsStructureVisibility();
+  updateNameClearIconVisibility('workoutNameInput','workoutNameClearIcon');
   const c=document.getElementById("dynamicSetsContainer");
   const n=weights.length;
   locks=locks||[];
@@ -8894,6 +9005,8 @@ function showAddWorkoutForm(){
     document.getElementById("initialWorkoutBox").style.display="none";document.getElementById("liveWorkoutForm").style.display="block";document.getElementById("workoutFormStructure").style.display="none";
     document.getElementById("liveWorkoutNameInput").value="";document.getElementById("liveSetsCountSelect").value="1";document.getElementById("liveSetsContainer").innerHTML="";
     document.getElementById("liveSetupPanel").style.display="block";document.getElementById("liveSessionTitle").style.display="none";
+    updateLiveSetsStructureVisibility();
+    updateNameClearIconVisibility('liveWorkoutNameInput','liveWorkoutNameClearIcon');
     document.getElementById("prevPerfBadgeLive").classList.remove("visible");
     updateTrackWorkoutBtnVisibility('live');
     liveCurrentSet=1;liveTotalSets=0;liveSetTimers={};liveSetSeconds={};liveSetTimerStartEpoch={};liveSetTimerAccumAtStart={};liveBreakTimers={};liveBreakSeconds={};liveBreakTotalSecs={};liveBreakStartEpoch={};liveBreakAccumAtStart={};liveSetResults=[];liveSessionSlot=null;
@@ -8924,8 +9037,11 @@ function cancelWorkoutLogging(){
   updateTrackWorkoutBtnVisibility('nonlive');
   editOriginalDurations={};editOriginalSetCount=0;applySetsCountMinConstraint();
   document.getElementById("dynamicSetsContainer").innerHTML=""; // wipe old set rows so the next "Add Workout" starts blank, not pre-filled
+  updateNonLiveSetsStructureVisibility();
+  updateNameClearIconVisibility('workoutNameInput','workoutNameClearIcon');
   clearNonLiveDraft();
   document.getElementById("workoutFormStructure").style.display="none";document.getElementById("liveWorkoutForm").style.display="none";document.getElementById("initialWorkoutBox").style.display="block";stopAllLiveTimers();
+  closeWorkoutEditOverlay();
 }
 function cancelLiveWorkout(){
   if(window._liveEditMode){cancelLiveEditWorkout();return;}
@@ -8950,6 +9066,8 @@ function toggleLiveNameDropdown(e){
 function handleLiveSearchAuto(forceShow){
   saveLiveDraft();
   let val=document.getElementById("liveWorkoutNameInput").value.toLowerCase();
+  updateLiveSetsStructureVisibility();
+  updateNameClearIconVisibility('liveWorkoutNameInput','liveWorkoutNameClearIcon');
   const muscleVal=document.getElementById("liveWorkoutMuscleFilter")?document.getElementById("liveWorkoutMuscleFilter").value:"";
   const equipVal=document.getElementById("liveWorkoutEquipmentFilter")?document.getElementById("liveWorkoutEquipmentFilter").value:"";
   let box=document.getElementById("liveAutoSuggestions");box.innerHTML="";box.style.display="none";
@@ -8987,6 +9105,8 @@ function handleLiveSearchAuto(forceShow){
           fetchPrevPerformance(item.name,'live');
         }
         bwKgRevealed.live=false;
+        updateLiveSetsStructureVisibility();
+        updateNameClearIconVisibility('liveWorkoutNameInput','liveWorkoutNameClearIcon');
       };
       box.appendChild(div);
     });
@@ -9485,56 +9605,161 @@ function finishLiveSession(name){
   let summary=liveSetResults.map((s,i)=>`<div style="font-size:12px;color:var(--text-secondary);margin-top:3px;font-family:var(--font-alt)">Set ${i+1}: ${s}</div>`).join("");
   doneMsg.innerHTML=`<div style="font-size:28px;margin-bottom:6px">🏆</div><div style="font-weight:800;color:#16a34a;font-family:var(--font-alt);font-size:16px;letter-spacing:0.5px">ALL SETS COMPLETE!</div><div style="font-size:13px;color:var(--text-secondary);margin-top:4px;font-family:var(--font-alt)">${name} — saved to your log 💪</div>${summary}`;
   container.appendChild(doneMsg);
-  let closeBtn=document.createElement("button");closeBtn.className="btn";closeBtn.style.cssText="margin-top:12px;background:linear-gradient(135deg,#64748b,#475569)";closeBtn.textContent="DONE";closeBtn.onclick=cancelLiveWorkout;container.appendChild(closeBtn);
+  let closeBtn=document.createElement("button");closeBtn.className="workout-form-close-btn";closeBtn.textContent="DONE";closeBtn.onclick=cancelLiveWorkout;container.appendChild(closeBtn);
 }
 /* ===================== SAVED WORKOUTS: BREAKDOWN TOGGLE + MANUAL SWAP ===================== */
 /* Fixed inline-SVG icons (not emoji) so Edit/Swap/Delete render identically across every device/OS. */
 const ICON_EDIT='<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>';
-const ICON_SWAP='<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3 4 7l4 4"/><path d="M4 7h16"/><path d="M16 21l4-4-4-4"/><path d="M20 17H4"/></svg>';
 const ICON_DELETE='<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>';
+const ICON_TRACK='<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 17 9 11 13 15 21 7"/><polyline points="14 7 21 7 21 14"/></svg>';
 let workoutBreakdownOn=true; // default ON — all set values visible per exercise
-let _workoutSwapPendingCi=null; // ci of the card currently "armed" for a swap, or null
 function toggleWorkoutBreakdown(){
   workoutBreakdownOn=!workoutBreakdownOn;
   const tog=document.getElementById('workoutBreakdownToggle');
   if(tog){tog.classList.toggle('on',workoutBreakdownOn);tog.setAttribute('aria-checked',String(workoutBreakdownOn));}
   loadWorkoutsForDate();
 }
-/* Routes a card tap/click/Enter-key: if a swap is armed on another card, this tap completes the
-   swap; otherwise it behaves like the normal select-to-reveal-icons tap. */
+/* Routes a card tap/click/Enter-key to the normal select-to-reveal-icons behavior. (Reordering is
+   handled separately via long-press free drag-and-drop — see the WLC DRAG REORDER block below.) */
 function handleWorkoutCardActivate(el,ci,rv){
-  if(_workoutSwapPendingCi!==null){performWorkoutSwap(ci);return;}
   toggleCardSelectionState(el,ci,rv);
 }
-/* Arms "swap mode" on a card (or cancels it if the same swap icon is tapped again). Tapping any
-   OTHER card afterwards (mouse, touch, or Enter/Space via keyboard) completes the position swap. */
-function initiateWorkoutSwap(e,ci){
-  e.stopPropagation();
-  if(_workoutSwapPendingCi===ci){
-    _workoutSwapPendingCi=null;
-    document.querySelectorAll('.workout-log-card').forEach(c=>c.classList.remove('swap-pending'));
-    showToast('Swap cancelled');
+
+/* ===================== WLC DRAG REORDER (long-press, free drag-and-drop) =====================
+   Long-press (~550ms) any saved-workout card, then drag it up/down anywhere in the list and
+   release to drop it there — no separate "swap target" needed. Built on Pointer Events so the
+   exact same code path drives mouse (desktop) and touch (mobile) drags. The real card element
+   stays in normal document flow the whole time (so layout/wrapping never breaks on narrow
+   screens) but is hidden while a floating clone ("ghost") tracks the finger/cursor; siblings
+   animate (FLIP-style) into their new slots as the ghost passes their midpoint. */
+const WLC_LONGPRESS_MS=550;
+const WLC_MOVE_TOLERANCE=10;
+let _wDrag=null;
+function wcPointerDown(e,el,ci){
+  if(e.pointerType==='mouse'&&e.button!==0)return;
+  if(e.target.closest('.action-icon-btn'))return;
+  if(_wDrag)return;
+  const container=document.getElementById('savedWorkoutLogsContainer');
+  const originalOrder=Array.from(container.querySelectorAll('.workout-log-card')).map(c=>parseInt(c.dataset.ci,10));
+  const st={ci,el,pointerId:e.pointerId,startX:e.clientX,startY:e.clientY,armed:false,ghost:null,offsetX:0,offsetY:0,timer:null,originalOrder};
+  _wDrag=st;
+  st.timer=setTimeout(wcArmDrag,WLC_LONGPRESS_MS);
+  document.addEventListener('pointermove',wcPointerMove,{passive:false});
+  document.addEventListener('pointerup',wcPointerUp);
+  document.addEventListener('pointercancel',wcPointerUp);
+}
+function wcArmDrag(){
+  const st=_wDrag;if(!st)return;
+  st.armed=true;
+  const el=st.el,rect=el.getBoundingClientRect();
+  st.offsetX=st.startX-rect.left;st.offsetY=st.startY-rect.top;
+  const ghost=el.cloneNode(true);
+  ghost.classList.add('wlc-drag-ghost');
+  ghost.classList.remove('selected-active');
+  ghost.removeAttribute('onclick');ghost.removeAttribute('onkeydown');ghost.removeAttribute('onpointerdown');ghost.removeAttribute('tabindex');
+  ghost.style.position='fixed';
+  ghost.style.left=rect.left+'px';ghost.style.top=rect.top+'px';
+  ghost.style.width=rect.width+'px';ghost.style.height=rect.height+'px';
+  ghost.style.pointerEvents='none';ghost.style.zIndex='9999';
+  document.body.appendChild(ghost);
+  st.ghost=ghost;
+  el.classList.add('wlc-drag-source');
+  document.body.classList.add('wlc-dragging-active');
+  if(navigator.vibrate)navigator.vibrate(35);
+}
+function wcPointerMove(e){
+  const st=_wDrag;if(!st||e.pointerId!==st.pointerId)return;
+  const dx=e.clientX-st.startX,dy=e.clientY-st.startY;
+  if(!st.armed){
+    if(Math.abs(dx)>WLC_MOVE_TOLERANCE||Math.abs(dy)>WLC_MOVE_TOLERANCE)wcEndDrag(false);
     return;
   }
-  _workoutSwapPendingCi=ci;
-  document.querySelectorAll('.workout-log-card').forEach(c=>c.classList.remove('swap-pending'));
-  const card=document.querySelector(`.workout-log-card[data-ci="${ci}"]`);
-  if(card)card.classList.add('swap-pending');
-  showToast('🔀 Now tap the workout you want to swap positions with');
+  e.preventDefault();
+  const ghost=st.ghost;
+  ghost.style.top=(e.clientY-st.offsetY)+'px';
+  ghost.style.left=(e.clientX-st.offsetX)+'px';
+  wcCheckReorder(st);
+  const vh=window.innerHeight;
+  if(e.clientY<70)window.scrollBy(0,-14);else if(e.clientY>vh-70)window.scrollBy(0,14);
 }
-async function performWorkoutSwap(targetCi){
-  const sourceCi=_workoutSwapPendingCi;
-  _workoutSwapPendingCi=null;
-  document.querySelectorAll('.workout-log-card').forEach(c=>c.classList.remove('swap-pending'));
-  if(sourceCi===null||sourceCi===targetCi)return;
+function wcCheckReorder(st){
+  const container=document.getElementById('savedWorkoutLogsContainer');
+  const dragEl=st.el;
+  const cards=Array.from(container.querySelectorAll('.workout-log-card:not(.wlc-drag-source)'));
+  if(!cards.length)return;
+  const ghostRect=st.ghost.getBoundingClientRect();
+  const ghostCenter=ghostRect.top+ghostRect.height/2;
+  let target=null;
+  for(const c of cards){
+    const r=c.getBoundingClientRect();
+    if(ghostCenter<r.top+r.height/2){target=c;break}
+  }
+  const nextEl=target||cards[cards.length-1].nextSibling;
+  if(dragEl.nextSibling===nextEl||(!target&&dragEl===cards[cards.length-1]))return;
+  const prevRects=new Map();
+  container.querySelectorAll('.workout-log-card').forEach(c=>prevRects.set(c,c.getBoundingClientRect()));
+  if(target)container.insertBefore(dragEl,target);
+  else container.insertBefore(dragEl,cards[cards.length-1].nextSibling);
+  wcAnimateFlip(container,prevRects);
+}
+function wcAnimateFlip(container,prevRects){
+  container.querySelectorAll('.workout-log-card').forEach(c=>{
+    const prev=prevRects.get(c);if(!prev)return;
+    const now=c.getBoundingClientRect();
+    const dx=prev.left-now.left,dy=prev.top-now.top;
+    if(dx||dy){
+      c.style.transition='none';
+      c.style.transform=`translate(${dx}px,${dy}px)`;
+      requestAnimationFrame(()=>{
+        c.style.transition='transform 0.22s cubic-bezier(0.2,0.8,0.2,1)';
+        c.style.transform='';
+        c.addEventListener('transitionend',function te(){c.style.transition='';c.removeEventListener('transitionend',te)});
+      });
+    }
+  });
+}
+function wcPointerUp(e){
+  const st=_wDrag;if(!st||e.pointerId!==st.pointerId)return;
+  wcEndDrag(true);
+}
+function wcEndDrag(commit){
+  const st=_wDrag;if(!st)return;
+  _wDrag=null;
+  clearTimeout(st.timer);
+  document.removeEventListener('pointermove',wcPointerMove);
+  document.removeEventListener('pointerup',wcPointerUp);
+  document.removeEventListener('pointercancel',wcPointerUp);
+  document.body.classList.remove('wlc-dragging-active');
+  if(!st.armed)return; // was just a tap/scroll — let the normal click fire untouched
+  const dragEl=st.el,ghost=st.ghost;
+  // swallow the synthetic click the browser fires after this pointer sequence ends, so the drop
+  // doesn't also toggle the card's selected/expanded state
+  const swallow=ev=>{ev.stopPropagation();ev.preventDefault()};
+  document.addEventListener('click',swallow,true);
+  setTimeout(()=>document.removeEventListener('click',swallow,true),350);
+  const finalRect=dragEl.getBoundingClientRect();
+  ghost.style.transition='top 0.2s cubic-bezier(0.2,0.8,0.2,1),left 0.2s cubic-bezier(0.2,0.8,0.2,1),transform 0.2s ease,box-shadow 0.2s ease';
+  ghost.style.top=finalRect.top+'px';ghost.style.left=finalRect.left+'px';
+  ghost.style.transform='scale(1)';ghost.style.boxShadow='none';
+  setTimeout(()=>{ghost.remove();dragEl.classList.remove('wlc-drag-source')},210);
+  if(commit){
+    const container=document.getElementById('savedWorkoutLogsContainer');
+    const newOrder=Array.from(container.querySelectorAll('.workout-log-card')).map(c=>parseInt(c.dataset.ci,10));
+    const orig=st.originalOrder;
+    const changed=newOrder.length!==orig.length||newOrder.some((v,i)=>v!==orig[i]);
+    if(changed)performWorkoutReorder(newOrder);
+  }
+}
+async function performWorkoutReorder(newOrderCis){
   const uid=getEffectiveUid(),td=isRoomMemberModeActive()?getLocalDateString():document.getElementById("workoutCalendarFilter").value;
   const{data,error}=await db.from("workouts").select("*").eq("user_id",uid).eq("date",td);
   if(error||!data||!data.length)return;
   const row=data[0];
-  const a=row[`workout_${sourceCi}`]??null,b=row[`workout_${targetCi}`]??null;
-  let p={};p[`workout_${sourceCi}`]=b;p[`workout_${targetCi}`]=a;
+  let p={};
+  newOrderCis.forEach((oldCi,idx)=>{p[`workout_${idx+1}`]=row[`workout_${oldCi}`]??null});
+  for(let k=newOrderCis.length+1;k<=15;k++)p[`workout_${k}`]=null;
   await db.from("workouts").update(p).eq("user_id",uid).eq("date",td);
-  showToast('🔀 Order swapped');
+  showToast('↕️ Order updated');
   await loadWorkoutsForDate();
 }
 async function loadWorkoutsForDate(){
@@ -9558,7 +9783,7 @@ async function loadWorkoutsForDate(){
       const volVal=`<span class="wlc-vol-val">${vt.primary} <small>${vt.unit}</small></span>`;
       const classLabel=`<small class="wlc-class-label" style="color:${exColor}">${exCls}</small>`;
       const setsBlock=`<div class="${tagGridClass} wlc-sets-block${workoutBreakdownOn?"":" wlc-collapsed"}">${tags}</div>`;
-      html+=`<div class="workout-log-card" data-ci="${ci}" tabindex="0" style="--wlc-glow:${exColor}55" onclick="handleWorkoutCardActivate(this,${ci},'${escapeHtml(cell)}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click()}"><div class="wlc-box" style="border-color:${exColor}55;border-left-color:${exColor}"><div class="wlc-body"><div class="wlc-header-row"><span class="wlc-dot" style="background:${exColor}"></span><div class="exercise-name"><span style="color:var(--accent);margin-right:4px">${counter}.</span>${ename}${classLabel}</div>${volVal}</div>${setsBlock}</div></div><div class="workout-actions-overlay"><button class="action-icon-btn swap" title="Swap position" onclick="initiateWorkoutSwap(event,${ci})">${ICON_SWAP}</button><button class="action-icon-btn edit" title="Edit" onclick="initiateWorkoutEdit(event,${ci},'${escapeHtml(cell)}')">${ICON_EDIT}</button><button class="action-icon-btn delete" title="Delete" onclick="triggerWorkoutDelete(event,${ci})">${ICON_DELETE}</button></div></div>`;counter++;
+      html+=`<div class="workout-log-card" data-ci="${ci}" tabindex="0" style="--wlc-glow:${exColor}55" onclick="handleWorkoutCardActivate(this,${ci},'${escapeHtml(cell)}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click()}" onpointerdown="wcPointerDown(event,this,${ci})"><div class="wlc-box" style="border-color:${exColor}55;border-left-color:${exColor}"><div class="wlc-body"><div class="wlc-header-row"><span class="wlc-dot" style="background:${exColor}"></span><div class="exercise-name"><span style="color:var(--accent);margin-right:4px">${counter}.</span>${ename}${classLabel}</div>${volVal}</div>${setsBlock}</div></div><div class="workout-actions-overlay"><button class="action-icon-btn track" title="Track Workout" onclick="trackWorkoutFromCard(event,'${escapeHtml(ename)}')">${ICON_TRACK}</button><button class="action-icon-btn edit" title="Edit" onclick="initiateWorkoutEdit(event,${ci},'${escapeHtml(cell)}')">${ICON_EDIT}</button><button class="action-icon-btn delete" title="Delete" onclick="triggerWorkoutDelete(event,${ci})">${ICON_DELETE}</button></div></div>`;counter++;
     }
   });
   if(!anyEntry){con.innerHTML=`<p style="font-size:13px;color:var(--text-muted);text-align:center;padding:10px;font-family:var(--font-alt)">No entries for this date.</p>`;return}
@@ -9587,6 +9812,51 @@ async function loadWorkoutsForDate(){
   con.innerHTML=html;
 }
 function toggleCardSelectionState(el,ci,rv){let a=el.classList.contains("selected-active");document.querySelectorAll(".workout-log-card").forEach(c=>c.classList.remove("selected-active"));if(!a)el.classList.add("selected-active")}
+/* Entry point for the per-card 📈 Track Workout icon (shown, same as swap/edit/delete, once a saved
+   workout card is tapped — regardless of the Breakdown on/off toggle). Reuses the exact same
+   goToWorkoutTrackerForExercise() the old inline "Track Workout" button in the edit form used, so
+   behavior is identical — only where the button lives has changed. */
+function trackWorkoutFromCard(e,name){
+  e.stopPropagation();
+  goToWorkoutTrackerForExercise(name);
+}
+
+/* ===== Workout Edit Overlay helpers =====
+   Relocates the given edit-form element (#workoutFormStructure or #liveWorkoutForm) into the
+   overlay stage so it always renders front-and-center over the whole screen instead of appearing
+   above the on-page workout list. Its original parent + next-sibling are remembered so it can be
+   put back in exactly the right spot on close. This is used ONLY for editing an existing saved
+   workout — the "+ ADD WORKOUT ENTRY" flow never calls this and keeps its original in-page form. */
+let _workoutEditOverlayFormParent=null,_workoutEditOverlayFormNext=null,_workoutEditOverlayFormEl=null;
+function openWorkoutEditOverlay(formEl){
+  const overlay=document.getElementById("workoutEditOverlay");
+  const stage=document.getElementById("workoutEditOverlayStage");
+  if(!overlay||!stage||!formEl)return;
+  _workoutEditOverlayFormEl=formEl;
+  _workoutEditOverlayFormParent=formEl.parentNode;
+  _workoutEditOverlayFormNext=formEl.nextSibling;
+  stage.appendChild(formEl);
+  overlay.classList.add("active");
+  document.body.classList.add("workout-edit-lock");
+  overlay.scrollTop=0;stage.scrollTop=0;
+}
+function closeWorkoutEditOverlay(){
+  const overlay=document.getElementById("workoutEditOverlay");
+  if(!overlay)return;
+  if(_workoutEditOverlayFormEl&&_workoutEditOverlayFormParent){
+    _workoutEditOverlayFormParent.insertBefore(_workoutEditOverlayFormEl,_workoutEditOverlayFormNext);
+  }
+  _workoutEditOverlayFormEl=null;_workoutEditOverlayFormParent=null;_workoutEditOverlayFormNext=null;
+  overlay.classList.remove("active");
+  document.body.classList.remove("workout-edit-lock");
+}
+/* Wired to the overlay's own ✕ button — routes through the real cancel handlers so timers stop
+   and drafts clear correctly, instead of just hiding the overlay cosmetically. */
+function closeWorkoutEditOverlayViaCancel(){
+  if(window._liveEditMode){cancelLiveEditWorkout();return}
+  if(currentEditingIndex!==null){cancelWorkoutLogging();return}
+  closeWorkoutEditOverlay();
+}
 function initiateWorkoutEdit(e,ci,rv){
   e.stopPropagation();currentEditingIndex=ci;
   bwKgRevealed.nonlive=false;
@@ -9606,11 +9876,13 @@ function initiateWorkoutEdit(e,ci,rv){
     return;
   }
 
-  // Non-live path — static form as before
+  // Non-live path — static form as before, but shown inside the edit overlay so it never appears
+  // scrolled away above the on-page workout list.
   document.getElementById("formActionTitle").innerText=`EDIT ENTRY (Slot ${ci})`;
   document.getElementById("initialWorkoutBox").style.display="none";
   document.getElementById("workoutFormStructure").style.display="block";
   document.getElementById("liveWorkoutForm").style.display="none";
+  openWorkoutEditOverlay(document.getElementById("workoutFormStructure"));
 
   let parsedSets=segs.map((seg,i)=>{
     let durMatch=seg.match(/\[(.*?)\]/);
@@ -9728,16 +10000,19 @@ function startLiveEditSession(ci,exerciseName,setsStr,segs){
   liveEditBreakTimers={};liveEditBreakSeconds={};liveEditBreakTotalSecs={};
   liveEditValueOverrides={};
 
-  // Show the live form, hide everything else
+  // Show the live form, hide everything else, and relocate it into the edit overlay so it never
+  // appears scrolled away above the on-page workout list.
   document.getElementById("initialWorkoutBox").style.display="none";
   document.getElementById("workoutFormStructure").style.display="none";
   document.getElementById("liveWorkoutForm").style.display="block";
+  openWorkoutEditOverlay(document.getElementById("liveWorkoutForm"));
 
   // Pre-fill the exercise name and lock it
   const nameInput=document.getElementById("liveWorkoutNameInput");
   nameInput.value=exerciseName;
   nameInput.readOnly=true;
   nameInput.style.opacity="0.7";
+  updateNameClearIconVisibility('liveWorkoutNameInput','liveWorkoutNameClearIcon');
   // Editing — hide prev perf badge and kill any pending debounce lookup, but keep Track Workout available
   document.getElementById("prevPerfBadgeLive").classList.remove("visible");
   if(_prevPerfLiveTimer){clearTimeout(_prevPerfLiveTimer);_prevPerfLiveTimer=null;}
@@ -9751,6 +10026,7 @@ function startLiveEditSession(ci,exerciseName,setsStr,segs){
   // Show the setup panel (name + sets dropdown) but hide the "Start" button —
   // in edit mode the dropdown itself drives everything, no extra click needed.
   document.getElementById("liveSetupPanel").style.display="block";
+  updateLiveSetsStructureVisibility();
   const startBtn=document.getElementById("liveStartSessionBtn");
   if(startBtn)startBtn.style.display="none";
 
@@ -9800,7 +10076,7 @@ function renderLiveEditSetsUI(){
     const bwIcon=(isBWExisting&&i===1)?bwInfoIconHtml('liveEditExisting'):'';
     html+=`<div class="set-row" style="margin-top:8px"><span onclick="toggleSetRowSelection(this)" style="cursor:pointer" title="Tap to show delete option">Set ${i}</span>${weightInputHtml}<input type="number" placeholder="Reps" id="liveEditExistReps_${i}" min="1" value="${r}" style="margin-top:0;padding:9px;flex:1">${bwIcon}${durTag}<button type="button" class="set-delete-btn" title="Delete this set" onclick="deleteLiveEditSavedSet(${i})">🗑</button></div>`;
   }
-  html+=`<button class="btn" style="background:linear-gradient(135deg,#16a34a,#15803d);margin-top:12px;padding:10px" onclick="updateLiveEditExistingSets()">💾 UPDATE SETS</button>
+  html+=`<button class="workout-form-action-btn" onclick="updateLiveEditExistingSets()">💾 SAVE ENTRY</button>
   </div>`;
   container.innerHTML=html;
 
@@ -9878,6 +10154,10 @@ async function updateLiveEditExistingSets(){
    _updSegs.forEach(seg=>{const _m=seg.match(/([\d.]+)\s*[Kk][Gg]?\s*x\s*(\d+)/i);if(_m){const _k=parseFloat(_m[1]),_r=parseInt(_m[2]);if(_k>_mxKU){_mxKU=_k;_mxRU=_r}}});
    if(_mxKU>0)checkAndShowLevelUp(_exNU,_mxKU,_mxRU);}
   await loadWorkoutsForDate();await syncCoreDashboardMetrics();
+  // Save & close, same as Save Entry — but only when there's no pending new-set slot still waiting to
+  // be logged below (i.e. the sets-count dropdown wasn't raised above what's already saved). If new
+  // sets are still pending, leave the form open so that live timer/break flow can be completed.
+  if(liveEditTotalNewSets===0)cancelLiveEditWorkout();
 }
 
 /* Removes the segment at 1-based combined index i from whichever underlying array (existing vs
@@ -10121,11 +10401,13 @@ function cancelLiveEditWorkout(){
   // Reset name input readonly
   const nameInput=document.getElementById("liveWorkoutNameInput");
   if(nameInput){nameInput.readOnly=false;nameInput.style.opacity="1";}
+  updateNameClearIconVisibility('liveWorkoutNameInput','liveWorkoutNameClearIcon');
   // Restore the dropdown's normal labels and the Start button for the next fresh live session
   setLiveSetsDropdownLabels('fresh');
   const startBtn=document.getElementById("liveStartSessionBtn");if(startBtn)startBtn.style.display="block";
   document.getElementById("liveWorkoutForm").style.display="none";
   document.getElementById("initialWorkoutBox").style.display="block";
+  closeWorkoutEditOverlay();
 }
 async function triggerWorkoutDelete(e,ci){
   e.stopPropagation();if(!confirm("Delete this workout entry?"))return;
@@ -11994,6 +12276,7 @@ function toggleTrackerRowExpand(rowId,eyeBtn){
 function handleTrackerSearch(){
   const val=document.getElementById('trackerSearchInput').value.trim();
   const sugBox=document.getElementById('trackerSearchSuggestions');
+  updateNameClearIconVisibility('trackerSearchInput','trackerSearchClearIcon');
   // Manually editing the search box means the person wants to browse freely again —
   // drop any "focused on one exercise" state from a prior Track Workout redirect.
   trackerFocusedExerciseName=null;
@@ -12014,6 +12297,7 @@ function pickTrackerSuggestion(name){
   trackerFocusedExerciseName=null;
   document.getElementById('trackerSearchInput').value=name;
   document.getElementById('trackerSearchSuggestions').style.display='none';
+  updateNameClearIconVisibility('trackerSearchInput','trackerSearchClearIcon');
   trackerCurrentPage=1;
   renderTrackerTable(name);
 }
@@ -12024,6 +12308,7 @@ function closeTrackerResults(){
   document.getElementById('trackerSearchBar').style.display='none';
   document.getElementById('trackerSearchInput').value='';
   document.getElementById('trackerSearchSuggestions').style.display='none';
+  updateNameClearIconVisibility('trackerSearchInput','trackerSearchClearIcon');
   // Reset the Muscle/Equipment filter dropdowns (tracker only) so the next Track Workouts run starts fresh
   const muscleSel=document.getElementById('trackerMuscleFilter'),equipSel=document.getElementById('trackerEquipmentFilter');
   if(muscleSel)muscleSel.value='';
@@ -12553,6 +12838,7 @@ function exitTrackerFullscreen(){
 }
 document.addEventListener('keydown',function(e){
   if(e.key==='Escape'&&trackerFullscreenOpen)exitTrackerFullscreen();
+  if(e.key==='Escape'&&document.getElementById('workoutEditOverlay')?.classList.contains('active'))closeWorkoutEditOverlayViaCancel();
 });
 
 document.addEventListener('click',function(e){
@@ -13212,6 +13498,16 @@ function closeLearnVideo(){
      detail box) and the Journey caption are physically relocated in here (see enterTrackerFullscreen /
      exitTrackerFullscreen), leaving every other control (subnav, mode select, arrows, Journey button)
      behind on the page — a deliberately stripped-down view of just those two pieces. -->
+<!-- Workout Edit Overlay: while editing a saved workout (live or non-live), #workoutFormStructure or
+     #liveWorkoutForm is physically relocated in here (see openWorkoutEditOverlay / closeWorkoutEditOverlay)
+     so the edit form always shows front-and-center instead of appearing above the on-page workout list.
+     The "+ ADD WORKOUT ENTRY" flow never touches this overlay and keeps its original in-page behavior. -->
+<div class="workout-edit-overlay" id="workoutEditOverlay">
+  <button type="button" class="workout-edit-overlay-close" id="workoutEditOverlayCloseBtn" onclick="closeWorkoutEditOverlayViaCancel()" title="Close" aria-label="Close">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg>
+  </button>
+  <div class="workout-edit-overlay-stage" id="workoutEditOverlayStage"></div>
+</div>
 <div class="tracker-fullscreen-overlay" id="trackerFullscreenOverlay">
   <button type="button" class="tracker-fullscreen-close" id="trackerFullscreenCloseBtn" onclick="toggleTrackerFullscreen()" title="Exit fullscreen" aria-label="Exit fullscreen">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg>
