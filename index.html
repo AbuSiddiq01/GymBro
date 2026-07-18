@@ -681,7 +681,7 @@ body.theme-batman .set-copy-btn:hover{color:#05050a}
 /* Two mutually-exclusive icon groups inside the same overlay slot: a tap (click) reveals the
    normal 3-icon group (Track/Edit/Delete) via .selected-active; a long-press reveals the single
    fixed Swap icon via .wlc-armed. Only one of these two card-level classes is ever applied at a
-   time (see wcArmDrag/wcEndDrag/toggleCardSelectionState in JS), so the two groups never show
+   time (see wcArmSwap/wcEndDrag/toggleCardSelectionState in JS), so the two groups never show
    together — each group additionally guards on the *other* class being absent as defense in depth. */
 .wlc-actions-icons{display:none;flex-direction:column;gap:4px}
 .wlc-actions-swap{display:none;flex-direction:column;gap:4px}
@@ -692,7 +692,8 @@ body.theme-batman .set-copy-btn:hover{color:#05050a}
 .action-icon-btn.edit{color:#2563eb}.action-icon-btn.edit:hover{background:#dbeafe}
 .action-icon-btn.delete{color:#dc2626}.action-icon-btn.delete:hover{background:#fee2e2}
 .action-icon-btn.track{color:#059669}.action-icon-btn.track:hover{background:#d1fae5}
-.action-icon-btn.swap{color:var(--accent);cursor:grab}
+.action-icon-btn.swap{color:var(--accent);cursor:grab;touch-action:none;-webkit-user-select:none;user-select:none}
+body.wlc-dragging-active .action-icon-btn.swap{cursor:grabbing}
 /* The inline Track Workout button inside the edit form is intentionally hidden ONLY while that
    form is relocated into the edit overlay (i.e. while editing a saved entry) — Track Workout now
    lives as a card icon instead. The "+ ADD WORKOUT ENTRY" form never enters the overlay, so its
@@ -9637,66 +9638,112 @@ function toggleWorkoutBreakdown(){
   loadWorkoutsForDate();
 }
 /* Routes a card tap/click/Enter-key to the normal select-to-reveal-icons behavior. (Reordering is
-   handled separately via long-press free drag-and-drop — see the WLC DRAG REORDER block below.) */
+   handled separately via long-press-to-arm + drag-via-Swap-handle — see the WLC DRAG REORDER block
+   below.) A tap on a card that's currently armed (Swap icon showing) just dismisses it back to
+   neutral — a plain tap should never reveal Track/Edit/Delete while the Swap icon is up, and a
+   plain tap is the natural "cancel" gesture for a long-press the user decided not to act on. */
 function handleWorkoutCardActivate(el,ci,rv){
   if(Date.now()<_wcSuppressClickUntil){_wcSuppressClickUntil=0;return;}
+  if(el.classList.contains('wlc-armed')){el.classList.remove('wlc-armed');return;}
   toggleCardSelectionState(el,ci,rv);
 }
 
-/* ===================== WLC DRAG REORDER (long-press, free drag-and-drop) =====================
-   Long-press (~550ms) any saved-workout card, then drag it up/down anywhere in the list and
-   release to drop it there — no separate "swap target" needed. Built on Pointer Events so the
-   same code path drives mouse (desktop) and touch (mobile) drags. The real card element stays in
-   normal document flow the whole time (so layout/wrapping never breaks on narrow screens) but is
-   hidden while a floating clone ("ghost") tracks the finger/cursor; siblings animate (FLIP-style)
-   into their new slots as the ghost passes their midpoint.
+/* ===================== WLC DRAG REORDER (long-press to arm, then drag via the Swap handle) =====
+   Two distinct, non-overlapping gestures:
+   1) Long-press (~550ms) any saved-workout card → it "arms": the Track/Edit/Delete icons are
+      replaced by a single fixed Swap icon. Nothing moves yet — this step only reveals the handle.
+   2) Press-and-drag specifically on that Swap icon → THIS is what starts the actual free
+      drag-and-drop. Release anywhere in the list to drop the card there.
+   Splitting it this way (rather than continuing to track the same long-press touch straight into
+   a drag) is what makes it reliable on mobile: the long-press phase never has to preventDefault or
+   fight the page's own scroll/gesture handling, and the drag phase is a fresh, unambiguous pointer
+   sequence captured on a small dedicated handle instead of the whole card.
+   Built on Pointer Events so the same code path drives mouse (desktop) and touch (mobile).
+   The real card element stays in normal document flow the whole time (so layout/wrapping never
+   breaks on narrow screens) but is hidden while a floating clone ("ghost") tracks the finger/mouse
+   instead; siblings animate (FLIP-style) into their new slots as the ghost passes their midpoint.
    IMPORTANT: .workout-log-card carries touch-action:none + user-select:none + -webkit-touch-
    callout:none in CSS — without that, mobile browsers win the race with their own long-press
-   text-selection/callout gesture (and desktop browsers start a native text-selection drag),
-   which is what makes a press look like it merely "selects" instead of dragging. */
+   text-selection/callout gesture, which is what makes a press look like it merely "selects". */
 const WLC_LONGPRESS_MS=550;
 const WLC_MOVE_TOLERANCE=10;
 const WLC_EDGE_BUFFER=30; // matches the CSS padding-top/padding-bottom added to the container while dragging
-let _wDrag=null;
+let _wPress=null; // tracks the long-press-to-arm gesture on the card body (no ghost yet)
+let _wDrag=null;  // tracks the actual free-drag gesture, started only from the Swap handle
 let _wcSuppressClickUntil=0;
 /* Defensive cleanup: removes any leftover ghost clone / armed-card state. Normally the drag's own
    end-of-drag timeout handles this, but if a reorder commit triggers a full re-render of the
    saved-workouts list (loadWorkoutsForDate) before that short timeout fires, the old ghost node
    (which lives on document.body, outside the re-rendered container) would otherwise be orphaned
    and left floating on screen — visually looking like a duplicated/overlapping card. Called both
-   before starting a fresh drag and at the top of every list re-render, so it can never linger. */
+   before starting a fresh press/drag and at the top of every list re-render, so it can never linger. */
 function wcCleanupGhosts(){
   document.querySelectorAll('.wlc-drag-ghost').forEach(g=>g.remove());
   document.querySelectorAll('.workout-log-card.wlc-drag-source,.workout-log-card.wlc-armed').forEach(c=>c.classList.remove('wlc-drag-source','wlc-armed'));
   document.body.classList.remove('wlc-dragging-active');
 }
+/* ---- Step 1: long-press the card body to arm it (reveal the Swap icon). No ghost, no movement
+   tracking beyond a small tolerance used only to cancel the timer if it turns out to be a scroll. */
 function wcPointerDown(e,el,ci){
   if(e.pointerType==='mouse'&&e.button!==0)return;
-  if(e.target.closest('.action-icon-btn'))return;
-  if(_wDrag)return;
+  if(e.target.closest('.action-icon-btn'))return; // never arm from a press that started on an icon (incl. Swap)
+  if(_wPress||_wDrag)return;
   wcCleanupGhosts();
+  const st={ci,el,pointerId:e.pointerId,startX:e.clientX,startY:e.clientY,timer:null};
+  _wPress=st;
+  st.timer=setTimeout(()=>wcArmSwap(st),WLC_LONGPRESS_MS);
+  document.addEventListener('pointermove',wcPressMove,{passive:true});
+  document.addEventListener('pointerup',wcPressEnd);
+  document.addEventListener('pointercancel',wcPressEnd);
+}
+function wcPressMove(e){
+  const st=_wPress;if(!st||e.pointerId!==st.pointerId)return;
+  const dx=e.clientX-st.startX,dy=e.clientY-st.startY;
+  if(Math.abs(dx)>WLC_MOVE_TOLERANCE||Math.abs(dy)>WLC_MOVE_TOLERANCE)wcCancelPress();
+}
+function wcPressEnd(e){
+  const st=_wPress;if(!st||e.pointerId!==st.pointerId)return;
+  wcCancelPress();
+}
+function wcCancelPress(){
+  const st=_wPress;if(!st)return;
+  _wPress=null;
+  clearTimeout(st.timer);
+  document.removeEventListener('pointermove',wcPressMove);
+  document.removeEventListener('pointerup',wcPressEnd);
+  document.removeEventListener('pointercancel',wcPressEnd);
+}
+function wcArmSwap(st){
+  if(_wPress!==st)return;
+  // a tap-revealed Track/Edit/Delete row and a long-press-revealed Swap icon are triggered by
+  // different gestures and must never show at the same time — clear any tap-selected/armed
+  // card(s) the instant a long-press arms this one
+  document.querySelectorAll('.workout-log-card.selected-active').forEach(c=>c.classList.remove('selected-active'));
+  document.querySelectorAll('.workout-log-card.wlc-armed').forEach(c=>{if(c!==st.el)c.classList.remove('wlc-armed')});
+  st.el.classList.add('wlc-armed');
+  // the browser still fires a synthetic click when this same touch lifts off (a hold-then-release
+  // in place is a valid tap) — suppress just that one so arming doesn't also toggle the 3-icon view
+  _wcSuppressClickUntil=Date.now()+400;
+  if(navigator.vibrate)navigator.vibrate(35);
+  wcCancelPress(); // done watching this press — the card just stays visually armed until acted on
+}
+/* ---- Step 2: press-and-drag on the Swap icon itself starts the real reordering drag. ---- */
+function wcSwapPointerDown(e,el,ci){
+  e.stopPropagation();
+  if(e.pointerType==='mouse'&&e.button!==0)return;
+  if(_wDrag)return;
+  const card=el.closest('.workout-log-card');
+  if(!card)return;
+  e.preventDefault();
+  wcCleanupGhosts();
+  card.classList.add('wlc-armed');
   const container=document.getElementById('savedWorkoutLogsContainer');
   const originalOrder=Array.from(container.querySelectorAll('.workout-log-card')).map(c=>parseInt(c.dataset.ci,10));
-  const st={ci,el,pointerId:e.pointerId,startX:e.clientX,startY:e.clientY,armed:false,ghost:null,baseTop:0,baseLeft:0,height:0,timer:null,originalOrder};
+  const rect=card.getBoundingClientRect();
+  const st={ci,el:card,handle:el,pointerId:e.pointerId,startX:e.clientX,startY:e.clientY,baseTop:rect.top,baseLeft:rect.left,height:rect.height,ghost:null,originalOrder};
   _wDrag=st;
-  st.timer=setTimeout(wcArmDrag,WLC_LONGPRESS_MS);
-  document.addEventListener('pointermove',wcPointerMove,{passive:false});
-  document.addEventListener('pointerup',wcPointerUp);
-  document.addEventListener('pointercancel',wcPointerUp);
-}
-function wcArmDrag(){
-  const st=_wDrag;if(!st)return;
-  st.armed=true;
-  const el=st.el,rect=el.getBoundingClientRect();
-  st.baseTop=rect.top;st.baseLeft=rect.left;st.height=rect.height;
-  try{el.setPointerCapture(st.pointerId)}catch(err){}
-  // a tap-revealed Track/Edit/Delete row and a long-press-revealed Swap icon are triggered by
-  // different gestures and must never show at the same time — clear any tap-selected card(s) the
-  // instant a long-press arms, then mark this card as armed (before cloning, so the floating
-  // ghost — the only copy actually visible once dragging starts — inherits the Swap icon too)
-  document.querySelectorAll('.workout-log-card.selected-active').forEach(c=>c.classList.remove('selected-active'));
-  el.classList.add('wlc-armed');
-  const ghost=el.cloneNode(true);
+  try{el.setPointerCapture(e.pointerId)}catch(err){}
+  const ghost=card.cloneNode(true);
   ghost.classList.add('wlc-drag-ghost');
   ghost.classList.remove('selected-active');
   ghost.removeAttribute('onclick');ghost.removeAttribute('onkeydown');ghost.removeAttribute('onpointerdown');ghost.removeAttribute('tabindex');
@@ -9708,18 +9755,17 @@ function wcArmDrag(){
   ghost.style.transform='scale(1.03)';
   document.body.appendChild(ghost);
   st.ghost=ghost;
-  el.classList.add('wlc-drag-source');
+  card.classList.add('wlc-drag-source');
   document.body.classList.add('wlc-dragging-active');
   if(navigator.vibrate)navigator.vibrate(35);
+  document.addEventListener('pointermove',wcDragMove,{passive:false});
+  document.addEventListener('pointerup',wcDragEnd);
+  document.addEventListener('pointercancel',wcDragEnd);
 }
-function wcPointerMove(e){
+function wcDragMove(e){
   const st=_wDrag;if(!st||e.pointerId!==st.pointerId)return;
-  const dx=e.clientX-st.startX,dy=e.clientY-st.startY;
-  if(!st.armed){
-    if(Math.abs(dx)>WLC_MOVE_TOLERANCE||Math.abs(dy)>WLC_MOVE_TOLERANCE)wcEndDrag(false);
-    return;
-  }
   e.preventDefault();
+  const dy=e.clientY-st.startY;
   const clampedDy=wcClampDy(st,dy);
   st.ghost.style.transform=`translate(0px,${clampedDy}px) scale(1.03)`;
   wcCheckReorder(st);
@@ -9795,19 +9841,17 @@ function wcRenumber(container){
   let n=1;
   container.querySelectorAll('.workout-log-card .wlc-serial').forEach(sp=>{sp.textContent=n+'.';n++});
 }
-function wcPointerUp(e){
+function wcDragEnd(e){
   const st=_wDrag;if(!st||e.pointerId!==st.pointerId)return;
   wcEndDrag(true);
 }
 function wcEndDrag(commit){
   const st=_wDrag;if(!st)return;
   _wDrag=null;
-  clearTimeout(st.timer);
-  document.removeEventListener('pointermove',wcPointerMove);
-  document.removeEventListener('pointerup',wcPointerUp);
-  document.removeEventListener('pointercancel',wcPointerUp);
-  if(!st.armed){document.body.classList.remove('wlc-dragging-active');return} // was just a tap/scroll — let the normal click fire untouched
-  try{st.el.releasePointerCapture(st.pointerId)}catch(err){}
+  document.removeEventListener('pointermove',wcDragMove);
+  document.removeEventListener('pointerup',wcDragEnd);
+  document.removeEventListener('pointercancel',wcDragEnd);
+  try{st.handle.releasePointerCapture(st.pointerId)}catch(err){}
   // the browser still fires a synthetic click after this pointer sequence ends — suppress just
   // that one so dropping a card doesn't also toggle its selected/expanded state
   _wcSuppressClickUntil=Date.now()+400;
@@ -9868,7 +9912,7 @@ async function loadWorkoutsForDate(){
       const volVal=`<span class="wlc-vol-val">${vt.primary} <small>${vt.unit}</small></span>`;
       const classLabel=`<small class="wlc-class-label" style="color:${exColor}">${exCls}</small>`;
       const setsBlock=`<div class="${tagGridClass} wlc-sets-block${workoutBreakdownOn?"":" wlc-collapsed"}">${tags}</div>`;
-      html+=`<div class="workout-log-card" data-ci="${ci}" tabindex="0" style="--wlc-glow:${exColor}55" onclick="handleWorkoutCardActivate(this,${ci},'${escapeHtml(cell)}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click()}" onpointerdown="wcPointerDown(event,this,${ci})"><div class="wlc-box" style="border-color:${exColor}55;border-left-color:${exColor}"><div class="wlc-body"><div class="wlc-header-row"><span class="wlc-dot" style="background:${exColor}"></span><div class="exercise-name"><span class="wlc-serial" style="color:var(--accent);margin-right:4px">${counter}.</span>${ename}${classLabel}</div>${volVal}</div>${setsBlock}</div></div><div class="workout-actions-overlay"><div class="wlc-actions-icons"><button class="action-icon-btn track" title="Track Workout" onclick="trackWorkoutFromCard(event,'${escapeHtml(ename)}')">${ICON_TRACK}</button><button class="action-icon-btn edit" title="Edit" onclick="initiateWorkoutEdit(event,${ci},'${escapeHtml(cell)}')">${ICON_EDIT}</button><button class="action-icon-btn delete" title="Delete" onclick="triggerWorkoutDelete(event,${ci})">${ICON_DELETE}</button></div><div class="wlc-actions-swap"><span class="action-icon-btn swap" title="Drag to reorder">${ICON_SWAP}</span></div></div></div>`;counter++;
+      html+=`<div class="workout-log-card" data-ci="${ci}" tabindex="0" style="--wlc-glow:${exColor}55" onclick="handleWorkoutCardActivate(this,${ci},'${escapeHtml(cell)}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click()}" onpointerdown="wcPointerDown(event,this,${ci})"><div class="wlc-box" style="border-color:${exColor}55;border-left-color:${exColor}"><div class="wlc-body"><div class="wlc-header-row"><span class="wlc-dot" style="background:${exColor}"></span><div class="exercise-name"><span class="wlc-serial" style="color:var(--accent);margin-right:4px">${counter}.</span>${ename}${classLabel}</div>${volVal}</div>${setsBlock}</div></div><div class="workout-actions-overlay"><div class="wlc-actions-icons"><button class="action-icon-btn track" title="Track Workout" onclick="trackWorkoutFromCard(event,'${escapeHtml(ename)}')">${ICON_TRACK}</button><button class="action-icon-btn edit" title="Edit" onclick="initiateWorkoutEdit(event,${ci},'${escapeHtml(cell)}')">${ICON_EDIT}</button><button class="action-icon-btn delete" title="Delete" onclick="triggerWorkoutDelete(event,${ci})">${ICON_DELETE}</button></div><div class="wlc-actions-swap"><span class="action-icon-btn swap" title="Drag to reorder" onpointerdown="wcSwapPointerDown(event,this,${ci})">${ICON_SWAP}</span></div></div></div>`;counter++;
     }
   });
   if(!anyEntry){con.innerHTML=`<p style="font-size:13px;color:var(--text-muted);text-align:center;padding:10px;font-family:var(--font-alt)">No entries for this date.</p>`;return}
