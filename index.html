@@ -1775,24 +1775,47 @@ body.theme-batman .live-copy-prev-btn:hover{color:#05050a}
 .levelup-toast{
   position:fixed;bottom:88px;left:50%;transform:translateX(-50%);
   background:linear-gradient(135deg,#15803d,#16a34a);
-  color:#fff;border-radius:16px;
-  padding:14px 20px;z-index:9999999;
+  color:#fff;border-radius:14px;
+  padding:12px 16px;z-index:9999999;
   box-shadow:0 8px 28px rgba(22,163,74,0.45),0 0 0 2px rgba(255,255,255,0.15);
-  font-family:var(--font-alt);font-size:13px;font-weight:700;letter-spacing:0.4px;
-  display:flex;align-items:flex-start;gap:12px;max-width:340px;width:90%;
+  font-family:var(--font-alt);font-size:12px;font-weight:700;letter-spacing:0.3px;
+  display:flex;align-items:flex-start;gap:10px;
+  /* Comfortably readable on both a narrow phone (min() keeps it from ever exceeding the viewport)
+     and a wide desktop screen (max-width caps it from growing into an oversized banner). */
+  width:min(92vw,340px);max-width:340px;
+  box-sizing:border-box;
   animation:levelUpIn 0.45s cubic-bezier(0.22,0.8,0.4,1) forwards;
 }
 @keyframes levelUpIn{
   0%{opacity:0;transform:translateX(-50%) translateY(24px) scale(0.92)}
   100%{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}
 }
-.levelup-toast .levelup-icon{font-size:28px;flex-shrink:0;line-height:1;filter:drop-shadow(0 0 6px rgba(255,255,0,0.5))}
-.levelup-toast .levelup-body{}
-.levelup-toast .levelup-title{font-size:15px;font-weight:900;letter-spacing:1px;color:#fff;margin-bottom:4px;display:flex;align-items:center;gap:6px}
-.levelup-toast .levelup-title .levelup-badge{background:rgba(255,255,255,0.25);border-radius:6px;padding:1px 7px;font-size:11px}
-.levelup-toast .levelup-msg{font-size:12px;color:rgba(255,255,255,0.9);font-weight:600;line-height:1.5}
+.levelup-toast .levelup-icon{width:22px;height:22px;flex-shrink:0;line-height:1;color:#fde047;filter:drop-shadow(0 0 4px rgba(255,255,0,0.5));margin-top:1px}
+.levelup-toast .levelup-icon svg{width:100%;height:100%;display:block}
+.levelup-toast .levelup-body{padding-right:12px;min-width:0;flex:1}
+.levelup-toast .levelup-title{font-size:14px;font-weight:900;letter-spacing:0.8px;color:#fff;margin-bottom:4px;display:flex;align-items:center;gap:6px}
+.levelup-toast .levelup-title .levelup-badge{background:rgba(255,255,255,0.25);border-radius:6px;padding:1px 7px;font-size:10px}
+.levelup-toast .levelup-msg{font-size:12px;color:rgba(255,255,255,0.92);font-weight:600;line-height:1.45;max-height:min(34vh,230px);overflow-y:auto;overflow-x:hidden;padding-right:2px}
+.levelup-toast .levelup-exname{font-size:13px;font-weight:900;color:#fff;margin-bottom:6px;letter-spacing:0.2px;overflow-wrap:anywhere;word-break:break-word}
+.levelup-toast .levelup-record{overflow-wrap:anywhere;word-break:break-word}
+.levelup-toast .levelup-record+.levelup-record{margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,0.22)}
+.levelup-toast .levelup-type{font-weight:900}
+/* Line 1: previous best (muted white). Line 2: the new value that just beat it — bolder, with the
+   fixed upgrade icon, so the actual news of the toast reads as the visually stronger line. */
+.levelup-toast .levelup-rline1{color:rgba(255,255,255,0.82);font-weight:600}
+.levelup-toast .levelup-rline2{display:flex;align-items:flex-start;gap:5px;color:#fff;font-weight:800;margin-top:3px}
+.levelup-toast .levelup-ricon{width:13px;height:13px;flex-shrink:0;margin-top:1.5px;color:#bbf7d0}
+.levelup-toast .levelup-ricon svg{width:100%;height:100%;display:block}
+.levelup-toast .levelup-close{position:absolute;top:8px;right:10px;background:rgba(255,255,255,0.2);border:none;border-radius:50%;width:20px;height:20px;line-height:20px;text-align:center;color:#fff;font-size:13px;font-weight:800;cursor:pointer;padding:0}
+.levelup-toast .levelup-close:hover{background:rgba(255,255,255,0.35)}
+body.theme-batman .levelup-toast .levelup-close{background:rgba(5,5,10,0.15);color:#05050a}
 body.theme-batman .levelup-toast{background:linear-gradient(135deg,#c8a000,#f5c800);color:#05050a;box-shadow:0 8px 28px rgba(245,200,0,0.45)}
+body.theme-batman .levelup-toast .levelup-icon{color:#05050a;filter:none}
 body.theme-batman .levelup-toast .levelup-msg{color:rgba(5,5,10,0.85)}
+body.theme-batman .levelup-toast .levelup-rline1{color:rgba(5,5,10,0.7)}
+body.theme-batman .levelup-toast .levelup-rline2{color:#05050a}
+body.theme-batman .levelup-toast .levelup-ricon{color:#05050a}
+body.theme-batman .levelup-toast .levelup-record+.levelup-record{border-top-color:rgba(5,5,10,0.2)}
 body.theme-batman .levelup-toast .levelup-badge{background:rgba(5,5,10,0.15);color:#05050a}
 body.theme-godmode .levelup-toast{background:linear-gradient(135deg,#7a0006,#c0000a)}
 </style>
@@ -2460,7 +2483,7 @@ body.theme-godmode .levelup-toast{background:linear-gradient(135deg,#7a0006,#c00
         <div id="initialWorkoutBox">
           <button class="btn" onclick="showAddWorkoutForm()">+ ADD WORKOUT ENTRY</button>
         </div>
-        <div class="workout-breakdown-row">
+        <div class="workout-breakdown-row" id="workoutBreakdownRow" style="display:none">
           <span>📋 BREAKDOWN</span>
           <div class="live-toggle on" id="workoutBreakdownToggle" tabindex="0" role="switch" aria-checked="true" onclick="toggleWorkoutBreakdown()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleWorkoutBreakdown()}" style="width:36px;height:20px">
             <div class="live-toggle-knob"></div>
@@ -8734,10 +8757,10 @@ async function saveWorkoutLogEntry(){
     else{p={user_id:uid,date:td,workout_1:ser};await db.from("workouts").insert([p])}
   }
   editOriginalDurations={};
-  // Level Up check: find the highest Kg across all sets being saved, compare vs history
-  {let _maxKg=0,_maxKgReps=0;
-   for(let _i=1;_i<=sc;_i++){const _k=parseFloat(document.getElementById('weight_set_'+_i)?.value)||0,_r=parseInt(document.getElementById('reps_set_'+_i)?.value)||0;if(_k>_maxKg){_maxKg=_k;_maxKgReps=_r}}
-   checkAndShowLevelUp(name,_maxKg,_maxKgReps);}
+  // Level Up check: highest Kg (or, for pure bodyweight, highest Reps) across all sets being saved,
+  // compared vs ALL-time saved history for this exercise.
+  {const _mx=computeSessionMaxes(sd);
+   checkAndShowLevelUp(name,_mx.maxKg,_mx.maxKg>0?_mx.maxKgReps:_mx.totalReps,_mx.totalVolume);}
   alert(`✅ Workout saved! +${xpe} XP earned!`);cancelWorkoutLogging();await loadWorkoutsForDate();await syncCoreDashboardMetrics();
 }
 
@@ -8927,10 +8950,45 @@ function liveEditCopyFromPrevSet(idx){
 }
 
 /* ===================== LEVEL UP NOTIFICATION ===================== */
-/* Fetches the most recent historical Kg for this exercise and shows a "Level Up"
-   toast if the current saved Kg exceeds the previous entry. */
-async function checkAndShowLevelUp(exerciseName,currentKg,currentReps){
-  if(!exerciseName||currentKg<=0)return;
+/* Small helper: given an array of saved set-segment strings (e.g. "20Kg x 10 [30 sec]" or
+   "0kg x 15"), returns the highest Kg logged (+ the reps that went with it), the highest Reps
+   logged across ALL sets regardless of Kg (used so pure-bodyweight sessions can be compared on
+   Reps), the TOTAL reps across every set (for the bodyweight total-reps PR), and the TOTAL volume
+   (Kg × Reps, summed across every set — for the weighted-exercise total-volume PR). */
+function computeSessionMaxes(segs){
+  let maxKg=0,maxKgReps=0,maxReps=0,totalReps=0,totalVolume=0;
+  (segs||[]).forEach(seg=>{
+    const m=String(seg).match(/([\d.]+)\s*[Kk][Gg]?\s*x\s*(\d+)/i);
+    if(!m)return;
+    const k=parseFloat(m[1])||0,r=parseInt(m[2])||0;
+    if(k>maxKg){maxKg=k;maxKgReps=r}
+    if(r>maxReps)maxReps=r;
+    totalReps+=r;
+    totalVolume+=k*r;
+  });
+  return{maxKg,maxKgReps,maxReps,totalReps,totalVolume};
+}
+/* Formats a saved DB date string ("YYYY-MM-DD") the same way the Previous Performance badge does. */
+function formatLevelUpDate(dateStr){
+  if(!dateStr)return'';
+  return new Date(dateStr+"T00:00:00").toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+}
+/* Scans ALL saved prior-day history for this exercise (not just the most recent entry) and shows a
+   "Level Up / NEW PR" toast if the current session beats the all-time best. Multiple records can be
+   broken in the same save (e.g. both a new heaviest Kg AND a new highest total volume), in which
+   case all of them are shown together in a single toast:
+   - If currentKg>0 (a normal weighted exercise, OR a bodyweight exercise the person added extra Kg
+     to — which is meant to behave exactly like a normal weighted exercise):
+       • Kg record: compares currentKg against the HIGHEST single-set Kg ever logged for this
+         exercise across every saved entry, however long ago.
+       • Volume record: compares currentVolume (Kg × Reps, summed across every set in this session)
+         against the HIGHEST total volume ever logged in a single saved entry for this exercise.
+   - Otherwise, if currentReps>0 (a true bodyweight exercise with no Kg entered): compares the
+     CURRENT TOTAL reps against the HIGHEST TOTAL reps ever logged in a single saved entry (summed
+     across that entry's sets, only counting entries that were also bodyweight-only). */
+async function checkAndShowLevelUp(exerciseName,currentKg,currentReps,currentVolume){
+  if(!exerciseName)return;
+  if(currentKg<=0&&currentReps<=0)return;
   if(isRoomMemberModeActive())return; // members: skip prior-day comparisons/toasts
   const uid=getEffectiveUid();
   if(!uid)return;
@@ -8938,53 +8996,146 @@ async function checkAndShowLevelUp(exerciseName,currentKg,currentReps){
   // sets saved within the same day's session don't compare against themselves.
   const todayStr=getLocalDateString();
   try{
-    const{data,error}=await db.from('workouts').select('*').eq('user_id',uid).lt('date',todayStr).order('date',{ascending:false}).limit(60);
+    const{data,error}=await db.from('workouts').select('*').eq('user_id',uid).lt('date',todayStr).order('date',{ascending:false}).limit(500);
     if(error){console.warn('[LevelUp] DB error:',error);return}
     if(!data||!data.length){console.log('[LevelUp] No prior-day data found for uid',uid);return}
     const nameLower=exerciseName.toLowerCase().trim();
-    let prevHighKg=null,prevHighKgReps=null;
-    // Find the most recent date this exercise appears, then pick the HIGHEST Kg across all its sets.
-    outer:for(const row of data){
-      for(let i=1;i<=15;i++){
-        const cell=row[`workout_${i}`];if(!cell)continue;
-        const ci=cell.indexOf(':');if(ci===-1)continue;
-        if(cell.substring(0,ci).trim().toLowerCase()!==nameLower)continue;
-        const setsStr=cell.substring(ci+1).trim();
-        const segs=setsStr.split(',').map(s=>s.trim()).filter(Boolean);
-        for(const seg of segs){
-          const m=seg.match(/([\d.]+)\s*[Kk][Gg]?\s*x\s*(\d+)/i);
-          if(m){
-            const segKg=parseFloat(m[1]),segReps=parseInt(m[2]);
-            if(prevHighKg===null||segKg>prevHighKg){prevHighKg=segKg;prevHighKgReps=segReps}
+    const records=[];
+    if(currentKg>0){
+      // Kg record: HIGHEST single-set Kg ever recorded for this exercise across ALL saved history.
+      // Volume record: HIGHEST total volume (Kg × Reps, summed per saved entry) ever recorded.
+      let bestKg=null,bestKgReps=null,bestKgDate=null;
+      let bestVolume=null,bestVolumeDate=null;
+      for(const row of data){
+        for(let i=1;i<=15;i++){
+          const cell=row[`workout_${i}`];if(!cell)continue;
+          const ci=cell.indexOf(':');if(ci===-1)continue;
+          if(cell.substring(0,ci).trim().toLowerCase()!==nameLower)continue;
+          const segs=cell.substring(ci+1).trim().split(',').map(s=>s.trim()).filter(Boolean);
+          let entryVolume=0;
+          for(const seg of segs){
+            const m=seg.match(/([\d.]+)\s*[Kk][Gg]?\s*x\s*(\d+)/i);
+            if(!m)continue;
+            const segKg=parseFloat(m[1])||0,segReps=parseInt(m[2])||0;
+            entryVolume+=segKg*segReps;
+            if(bestKg===null||segKg>bestKg){bestKg=segKg;bestKgReps=segReps;bestKgDate=row.date}
           }
+          if(entryVolume>0&&(bestVolume===null||entryVolume>bestVolume)){bestVolume=entryVolume;bestVolumeDate=row.date}
         }
-        break outer; // stop after the first (most-recent) matching date
+      }
+      console.log('[LevelUp]',exerciseName,'bestKg='+bestKg,'currentKg='+currentKg,'bestVolume='+bestVolume,'currentVolume='+currentVolume);
+      if(bestKg!==null&&currentKg>bestKg){
+        records.push({type:'kg',prevVal:bestKg,prevReps:bestKgReps,prevDate:bestKgDate,curVal:currentKg,curReps:currentReps,curDate:todayStr});
+      }
+      if(bestVolume!==null&&currentVolume>bestVolume){
+        records.push({type:'volume',prevVal:Math.round(bestVolume),prevDate:bestVolumeDate,curVal:Math.round(currentVolume),curDate:todayStr});
+      }
+    } else if(currentReps>0){
+      // Reps record (pure bodyweight, no Kg entered): compare the CURRENT TOTAL reps (summed
+      // across every set in this session) against the highest TOTAL reps ever logged in a single
+      // saved entry (summed across that entry's sets) — across ALL saved history. Only entries
+      // where every set was also bodyweight (no Kg) count toward the comparison.
+      let bestTotalReps=null,bestTotalRepsDate=null;
+      for(const row of data){
+        for(let i=1;i<=15;i++){
+          const cell=row[`workout_${i}`];if(!cell)continue;
+          const ci=cell.indexOf(':');if(ci===-1)continue;
+          if(cell.substring(0,ci).trim().toLowerCase()!==nameLower)continue;
+          const segs=cell.substring(ci+1).trim().split(',').map(s=>s.trim()).filter(Boolean);
+          let entryTotalReps=0,entryHasKg=false;
+          for(const seg of segs){
+            const m=seg.match(/([\d.]+)\s*[Kk][Gg]?\s*x\s*(\d+)/i);
+            if(!m)continue;
+            const segKg=parseFloat(m[1])||0,segReps=parseInt(m[2])||0;
+            if(segKg>0){entryHasKg=true;break}
+            entryTotalReps+=segReps;
+          }
+          if(entryHasKg||entryTotalReps<=0)continue;
+          if(bestTotalReps===null||entryTotalReps>bestTotalReps){bestTotalReps=entryTotalReps;bestTotalRepsDate=row.date}
+        }
+      }
+      console.log('[LevelUp]',exerciseName,'bestTotalReps='+bestTotalReps,'currentTotalReps='+currentReps);
+      if(bestTotalReps!==null&&currentReps>bestTotalReps){
+        records.push({type:'reps',prevVal:bestTotalReps,prevDate:bestTotalRepsDate,curVal:currentReps,curDate:todayStr});
       }
     }
-    console.log('[LevelUp]',exerciseName,'prevHighKg='+prevHighKg,'currentKg='+currentKg);
-    if(prevHighKg!==null&&currentKg>prevHighKg){
-      showLevelUpNotification(prevHighKg,prevHighKgReps,currentKg,currentReps);
-    }
+    if(records.length)showLevelUpNotification(exerciseName,records);
   }catch(e){console.error('[LevelUp] Exception:',e)}
 }
 
-function showLevelUpNotification(prevKg,prevReps,curKg,curReps){
+// Fixed (non-emoji) SVG icons for the PR toast — render pixel-identical across every OS/browser,
+// unlike emoji glyphs which vary by platform and can look inconsistent or blurry at small sizes.
+const LEVELUP_ICON_MAIN='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 17 9 11 13 15 21 6"/><polyline points="15 6 21 6 21 12"/></svg>';
+const LEVELUP_ICON_WEIGHT='<svg viewBox="0 0 24 24" fill="currentColor"><path d="M1 10h2v4H1zM3 8.5h2v7H3zM19 8.5h2v7h-2zM21 10h2v4h-2zM5.5 11h13v2h-13z"/></svg>';
+const LEVELUP_ICON_VOLUME='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 3 8l9 5 9-5-9-5z"/><path d="M3 16l9 5 9-5"/><path d="M3 12l9 5 9-5"/></svg>';
+const LEVELUP_ICON_REPS='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>';
+const LEVELUP_ICON_UPGRADE='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="8 12 12 8 16 12"/><line x1="12" y1="16" x2="12" y2="8"/></svg>';
+/* records = array of: {type:'kg', prevVal,prevReps,prevDate, curVal,curReps,curDate}
+                     or {type:'volume', prevVal,prevDate, curVal,curDate}
+                     or {type:'reps', prevVal,prevDate, curVal,curDate}
+   All broken records from the same save are shown together in one toast. Exactly 3 lines per broken
+   type: the exercise name (shown once, shared across every type), a "Highest ... Lift/Done" line with
+   the previous best + its date, and a "Now Upgraded to" line with the new value + today's date and the
+   fixed upgrade icon. Weight, Volume, and Reps all follow this same 3-line shape. */
+function showLevelUpNotification(exerciseName,records){
+  if(!records||!records.length)return;
   document.querySelectorAll('.levelup-toast').forEach(el=>el.remove());
   const toast=document.createElement('div');
   toast.className='levelup-toast';
+  const exName=escapeHtml(exerciseName||'');
+  const rowsHtml=records.map(info=>{
+    const prevDateLabel=formatLevelUpDate(info.prevDate);
+    const prevDateSuffix=prevDateLabel?` (${prevDateLabel})`:'';
+    const curDateLabel=formatLevelUpDate(info.curDate);
+    const curDateSuffix=curDateLabel?` (${curDateLabel})`:'';
+    let type,highestLabel,prevContent,curContent;
+    if(info.type==='kg'){
+      type='Weight';highestLabel='Highest Weight Lift';
+      prevContent=`${info.prevVal}kg x${info.prevReps}${prevDateSuffix}`;
+      curContent=`${info.curVal}kg x${info.curReps}${curDateSuffix}`;
+    }else if(info.type==='volume'){
+      type='Volume';highestLabel='Highest Volume Done';
+      prevContent=`${info.prevVal.toLocaleString()} kg·reps${prevDateSuffix}`;
+      curContent=`${info.curVal.toLocaleString()} kg·reps${curDateSuffix}`;
+    }else{
+      type='Reps';highestLabel='Highest Reps Done';
+      prevContent=`${info.prevVal} reps${prevDateSuffix}`;
+      curContent=`${info.curVal} reps${curDateSuffix}`;
+    }
+    return `<div class="levelup-record">
+      <div class="levelup-rline1"><span class="levelup-type">${type} :</span> ${highestLabel}: ${prevContent}</div>
+      <div class="levelup-rline2"><span class="levelup-ricon">${LEVELUP_ICON_UPGRADE}</span>Now Upgraded to: ${curContent}</div>
+    </div>`;
+  }).join('');
   toast.innerHTML=`
-    <div class="levelup-icon">⬆️</div>
+    <button type="button" class="levelup-close" title="Close" onclick="dismissLevelUpToast(this)">✕</button>
+    <div class="levelup-icon">${LEVELUP_ICON_MAIN}</div>
     <div class="levelup-body">
       <div class="levelup-title">LEVEL UP! <span class="levelup-badge">NEW PR</span></div>
-      <div class="levelup-msg">Your Previous: ${prevKg}kg × ${prevReps} reps<br>→ Now updated: ${curKg}kg × ${curReps} reps</div>
+      <div class="levelup-exname">${exName}</div>
+      <div class="levelup-msg">${rowsHtml}</div>
     </div>`;
   document.body.appendChild(toast);
-  setTimeout(()=>{
-    toast.style.transition='opacity 0.4s ease, transform 0.4s ease';
-    toast.style.opacity='0';
-    toast.style.transform='translateX(-50%) translateY(10px)';
-    setTimeout(()=>toast.remove(),400);
-  },4500);
+  const autoTimer=setTimeout(()=>dismissLevelUpToast(toast),7000);
+  toast._levelUpAutoTimer=autoTimer;
+  // Once the person touches/clicks anywhere on the box, cancel the auto-dismiss timer — from then on
+  // they have to close it manually via the ✕ button. Fires once (per toast) via a capture-phase listener
+  // that removes itself immediately so later taps on the ✕ button etc. aren't affected.
+  const cancelAutoDismiss=()=>{
+    if(toast._levelUpAutoTimer){clearTimeout(toast._levelUpAutoTimer);toast._levelUpAutoTimer=null}
+  };
+  toast.addEventListener('pointerdown',cancelAutoDismiss,{once:true});
+}
+/* Fades and removes the PR toast — used by both the auto-dismiss timer and the manual ✕ button.
+   Accepts either the toast element itself or a child element (e.g. the close button) inside it. */
+function dismissLevelUpToast(el){
+  const toast=el&&el.classList&&el.classList.contains('levelup-toast')?el:el?.closest?.('.levelup-toast');
+  if(!toast)return;
+  if(toast._levelUpAutoTimer)clearTimeout(toast._levelUpAutoTimer);
+  toast.style.transition='opacity 0.4s ease, transform 0.4s ease';
+  toast.style.opacity='0';
+  toast.style.transform='translateX(-50%) translateY(10px)';
+  setTimeout(()=>toast.remove(),400);
 }
 
 /* ===================== LIVE MODE ===================== */
@@ -9603,10 +9754,10 @@ function activateNextLiveSet(idx){
   block.classList.add("set-active");document.getElementById(`liveSetInputs_${idx}`).style.opacity="1";document.getElementById(`liveSetInputs_${idx}`).style.pointerEvents="auto";document.getElementById(`liveTimerRow_${idx}`).style.display="flex";block.scrollIntoView({behavior:"smooth",block:"center"});
 }
 function finishLiveSession(name){
-  // Level Up: compare highest Kg across all sets this session vs prior-day history
-  {let _mxKg=0,_mxReps=0;
-   liveSetResults.forEach(seg=>{const _m=seg.match(/([\d.]+)\s*[Kk][Gg]?\s*x\s*(\d+)/i);if(_m){const _k=parseFloat(_m[1]),_r=parseInt(_m[2]);if(_k>_mxKg){_mxKg=_k;_mxReps=_r}}});
-   if(_mxKg>0)checkAndShowLevelUp(name,_mxKg,_mxReps);}
+  // Level Up: highest Kg (or, for pure bodyweight, highest Reps) across all sets this session,
+  // compared vs ALL-time saved history for this exercise.
+  {const _mx=computeSessionMaxes(liveSetResults);
+   checkAndShowLevelUp(name,_mx.maxKg,_mx.maxKg>0?_mx.maxKgReps:_mx.totalReps,_mx.totalVolume);}
   const container=document.getElementById("liveSetsContainer");
   let doneMsg=document.createElement("div");doneMsg.style.cssText="text-align:center;padding:18px;background:linear-gradient(135deg,rgba(22,163,74,0.15),rgba(22,163,74,0.05));border:1px solid #16a34a;border-radius:14px;margin-top:14px;";
   let summary=liveSetResults.map((s,i)=>`<div style="font-size:12px;color:var(--text-secondary);margin-top:3px;font-family:var(--font-alt)">Set ${i+1}: ${s}</div>`).join("");
@@ -9619,9 +9770,27 @@ function finishLiveSession(name){
 const ICON_EDIT='<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>';
 const ICON_DELETE='<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>';
 const ICON_TRACK='<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 17 9 11 13 15 21 7"/><polyline points="14 7 21 7 21 14"/></svg>';
-let workoutBreakdownOn=true; // default ON — all set values visible per exercise
+// Breakdown toggle preference persists across refreshes/tab switches — stored per user so it stays
+// exactly as the person left it until they manually flip it again. Falls back to ON only the very
+// first time (nothing saved yet); any saved '0'/'1' always wins after that.
+function _workoutBreakdownStorageKey(){return 'gymbro_workoutBreakdown_'+settingsUid()}
+function _loadWorkoutBreakdownPref(){
+  try{
+    const v=localStorage.getItem(_workoutBreakdownStorageKey());
+    return v===null?true:v==='1';
+  }catch(e){return true}
+}
+let workoutBreakdownOn=_loadWorkoutBreakdownPref();
+// Syncs the toggle switch's visual on/off state (and aria-checked) to workoutBreakdownOn — the HTML
+// markup hard-codes it "on" by default, so this corrects it to match a restored OFF preference as soon
+// as the script runs, before the person ever sees a mismatched switch.
+(function syncWorkoutBreakdownToggleUI(){
+  const tog=document.getElementById('workoutBreakdownToggle');
+  if(tog){tog.classList.toggle('on',workoutBreakdownOn);tog.setAttribute('aria-checked',String(workoutBreakdownOn));}
+})();
 function toggleWorkoutBreakdown(){
   workoutBreakdownOn=!workoutBreakdownOn;
+  try{localStorage.setItem(_workoutBreakdownStorageKey(),workoutBreakdownOn?'1':'0');}catch(e){}
   const tog=document.getElementById('workoutBreakdownToggle');
   if(tog){tog.classList.toggle('on',workoutBreakdownOn);tog.setAttribute('aria-checked',String(workoutBreakdownOn));}
   loadWorkoutsForDate();
@@ -9876,7 +10045,8 @@ async function loadWorkoutsForDate(){
   let con=document.getElementById("savedWorkoutLogsContainer");
   con.innerHTML=`<p style="font-size:13px;color:var(--text-muted);text-align:center;padding:10px;font-family:var(--font-alt)">Loading...</p>`;
   const{data,error}=await db.from("workouts").select("*").eq("user_id",uid).eq("date",date);
-  if(error||!data||data.length===0){con.innerHTML=`<p style="font-size:13px;color:var(--text-muted);text-align:center;padding:10px;font-family:var(--font-alt)">No workouts logged for this date.</p>`;return}
+  const breakdownRow=document.getElementById("workoutBreakdownRow");
+  if(error||!data||data.length===0){con.innerHTML=`<p style="font-size:13px;color:var(--text-muted);text-align:center;padding:10px;font-family:var(--font-alt)">No workouts logged for this date.</p>`;if(breakdownRow)breakdownRow.style.display="none";return}
   let html="",counter=1,classVolMap={},totalVolAll=0,anyEntry=false;
   data.forEach(row=>{
     window.currentWorkoutRowObject=row;
@@ -9895,7 +10065,8 @@ async function loadWorkoutsForDate(){
       html+=`<div class="workout-log-card" data-ci="${ci}" tabindex="0" style="--wlc-glow:${exColor}55" onclick="handleWorkoutCardActivate(this,${ci},'${escapeHtml(cell)}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click()}" onpointerdown="wcPointerDown(event,this,${ci})"><div class="wlc-box" style="border-color:${exColor}55;border-left-color:${exColor}"><div class="wlc-body"><div class="wlc-header-row"><span class="wlc-dot" style="background:${exColor}"></span><div class="exercise-name"><span class="wlc-serial" style="color:var(--accent);margin-right:4px">${counter}.</span>${ename}${classLabel}</div>${volVal}</div>${setsBlock}</div></div><div class="workout-actions-overlay"><button class="action-icon-btn track" title="Track Workout" onclick="trackWorkoutFromCard(event,'${escapeHtml(ename)}')">${ICON_TRACK}</button><button class="action-icon-btn edit" title="Edit" onclick="initiateWorkoutEdit(event,${ci},'${escapeHtml(cell)}')">${ICON_EDIT}</button><button class="action-icon-btn delete" title="Delete" onclick="triggerWorkoutDelete(event,${ci})">${ICON_DELETE}</button></div></div>`;counter++;
     }
   });
-  if(!anyEntry){con.innerHTML=`<p style="font-size:13px;color:var(--text-muted);text-align:center;padding:10px;font-family:var(--font-alt)">No entries for this date.</p>`;return}
+  if(!anyEntry){con.innerHTML=`<p style="font-size:13px;color:var(--text-muted);text-align:center;padding:10px;font-family:var(--font-alt)">No entries for this date.</p>`;if(breakdownRow)breakdownRow.style.display="none";return}
+  if(breakdownRow)breakdownRow.style.display="flex";
   // ── Class Breakdown + Daily Total summary, styled exactly like the Volume Breakdown panel ──
   const classKeys=Object.keys(classVolMap).filter(c=>classVolMap[c]>0);
   if(classKeys.length>0){
@@ -10025,6 +10196,10 @@ function initiateWorkoutEdit(e,ci,rv){
   document.getElementById("setsCountSelect").value=segs.length;
   editOriginalSetCount=segs.length;
   applySetsCountMinConstraint();
+  // If this is a bodyweight-only exercise but some already-saved set actually has a Kg value
+  // (the person manually added extra weight), reveal the Kg boxes now so the saved value shows
+  // instead of being blanked/zeroed out by the hidden-input rendering path.
+  if(isBodyweightNoWeightExercise(en)&&parsedSets.some(ps=>parseFloat(ps.w)>0))bwKgRevealed.nonlive=true;
   // Editing — hide prev perf badge and kill any pending debounce lookup, but keep Track Workout available
   document.getElementById("prevPerfBadgeNonLive").classList.remove("visible");
   if(_prevPerfNonLiveTimer){clearTimeout(_prevPerfNonLiveTimer);_prevPerfNonLiveTimer=null;}
@@ -10167,6 +10342,11 @@ function startLiveEditSession(ci,exerciseName,setsStr,segs){
   window._liveEditMode=true;
   applyLiveSetsCountMinConstraint();
 
+  // If this is a bodyweight-only exercise but some already-saved set actually has a Kg value
+  // (the person manually added extra weight), reveal the Kg boxes now so the saved value shows
+  // instead of being blanked/zeroed out by the hidden-input rendering path.
+  if(isBodyweightNoWeightExercise(exerciseName)&&liveEditExistingResults.some(seg=>parseFloat(parseSetSegment(seg).w)>0))bwKgRevealed.liveEditExisting=true;
+
   renderLiveEditSetsUI();
 }
 
@@ -10275,12 +10455,11 @@ async function updateLiveEditExistingSets(){
   let p={};p[liveEditSlot]=combinedEntry;
   await db.from("workouts").update(p).eq("user_id",uid).eq("date",td);
   showToast("💾 Sets updated");
-  // Level Up: compare highest Kg from updated sets vs prior-day history
-  {let _exNU=document.getElementById("liveWorkoutNameInput").value.trim();
-   let _updSegs=rebuilt;
-   let _mxKU=0,_mxRU=0;
-   _updSegs.forEach(seg=>{const _m=seg.match(/([\d.]+)\s*[Kk][Gg]?\s*x\s*(\d+)/i);if(_m){const _k=parseFloat(_m[1]),_r=parseInt(_m[2]);if(_k>_mxKU){_mxKU=_k;_mxRU=_r}}});
-   if(_mxKU>0)checkAndShowLevelUp(_exNU,_mxKU,_mxRU);}
+  // Level Up: highest Kg (or, for pure bodyweight, highest Reps) from the updated sets,
+  // compared vs ALL-time saved history for this exercise.
+  {const _exNU=document.getElementById("liveWorkoutNameInput").value.trim();
+   const _mx=computeSessionMaxes(rebuilt);
+   checkAndShowLevelUp(_exNU,_mx.maxKg,_mx.maxKg>0?_mx.maxKgReps:_mx.totalReps,_mx.totalVolume);}
   await loadWorkoutsForDate();await syncCoreDashboardMetrics();
   // Save & close, same as Save Entry — but only when there's no pending new-set slot still waiting to
   // be logged below (i.e. the sets-count dropdown wasn't raised above what's already saved). If new
@@ -10430,12 +10609,12 @@ async function saveLiveEditSet(idx){
       document.getElementById(`liveEditBreakAutoSkip_${idx}`).style.display="none";
     }
   } else {
-    // Last new set saved — compare highest Kg across entire session (existing + new) vs prior-day history
-    {let _exN2=document.getElementById("liveWorkoutNameInput").value.trim();
-     let _allS=[...liveEditExistingResults,...liveEditNewResults];
-     let _mxK=0,_mxR=0;
-     _allS.forEach(seg=>{const _m=seg.match(/([\d.]+)\s*[Kk][Gg]?\s*x\s*(\d+)/i);if(_m){const _k=parseFloat(_m[1]),_r=parseInt(_m[2]);if(_k>_mxK){_mxK=_k;_mxR=_r}}});
-     if(_mxK>0)checkAndShowLevelUp(_exN2,_mxK,_mxR);}
+    // Last new set saved — highest Kg (or, for pure bodyweight, highest Reps) across the entire
+    // session (existing + new), compared vs ALL-time saved history for this exercise.
+    {const _exN2=document.getElementById("liveWorkoutNameInput").value.trim();
+     const _allS=[...liveEditExistingResults,...liveEditNewResults];
+     const _mx=computeSessionMaxes(_allS);
+     checkAndShowLevelUp(_exN2,_mx.maxKg,_mx.maxKg>0?_mx.maxKgReps:_mx.totalReps,_mx.totalVolume);}
     renderLiveEditSetsUI();
   }
   await loadWorkoutsForDate();await syncCoreDashboardMetrics();
@@ -12584,8 +12763,40 @@ function renderTrackerChart(){
 
   const yAxisTitle=mode==='weight'?'Weight (kg)':mode==='reps'?'Reps':'Volume (kg × reps)';
 
+  // Highest/Lowest point markers: a bold green "H" above the highest-value point and a bold red "L"
+  // above the lowest-value point, for whichever metric is currently plotted (Volume, Weight, or Reps) —
+  // works the same way for every workout format since it's driven purely off the plotted `values` array
+  // (normal weighted exercises, bodyweight-only reps, and bodyweight-with-added-Kg all flow through here).
+  // Uses the FIRST occurrence of each extreme. If every point shares the same value (flat line) or there's
+  // only one point, there's no meaningful "highest vs lowest" to call out, so nothing is drawn.
+  let trkHighIdx=-1,trkLowIdx=-1;
+  if(values.length>1){
+    const trkMax=Math.max(...values),trkMin=Math.min(...values);
+    if(trkMax!==trkMin){trkHighIdx=values.indexOf(trkMax);trkLowIdx=values.indexOf(trkMin)}
+  }
+  const trkHighLowPlugin={
+    id:'trkHighLowMarkers',
+    afterDatasetsDraw(chart){
+      if(trkHighIdx<0&&trkLowIdx<0)return;
+      const meta=chart.getDatasetMeta(0);if(!meta||!meta.data)return;
+      const{ctx}=chart;
+      ctx.save();
+      ctx.font='800 13px Rajdhani, sans-serif';
+      ctx.textAlign='center';ctx.textBaseline='bottom';
+      const drawLabel=(idx,letter,color)=>{
+        const pt=meta.data[idx];if(!pt)return;
+        const x=pt.x,y=pt.y-14;
+        ctx.lineWidth=3;ctx.strokeStyle='#fff';ctx.strokeText(letter,x,y);
+        ctx.fillStyle=color;ctx.fillText(letter,x,y);
+      };
+      if(trkHighIdx>=0)drawLabel(trkHighIdx,'H','#16a34a');
+      if(trkLowIdx>=0)drawLabel(trkLowIdx,'L','#dc2626');
+      ctx.restore();
+    }
+  };
+
   trackerAnalyticsChartInstance=new Chart(ctx,{
-    type:'line',data:{labels,datasets:[{label:yAxisTitle,data:values,borderColor:lineColor,backgroundColor:fillColor,pointBackgroundColor:[...basePointBg],pointBorderColor:[...basePointBorder],pointBorderWidth:[...basePointBorderW],pointRadius:[...basePointRadius],pointHoverRadius:[...baseHoverRadius],borderWidth:2.5,fill:true,tension:0.35,
+    type:'line',plugins:[trkHighLowPlugin],data:{labels,datasets:[{label:yAxisTitle,data:values,borderColor:lineColor,backgroundColor:fillColor,pointBackgroundColor:[...basePointBg],pointBorderColor:[...basePointBorder],pointBorderWidth:[...basePointBorderW],pointRadius:[...basePointRadius],pointHoverRadius:[...baseHoverRadius],borderWidth:2.5,fill:true,tension:0.35,
       // Colors each line segment once "View Journey" has walked across it: green for an upgrade, red for
       // a downgrade, amber for holding steady. Segments not yet walked (or outside any journey) fall back
       // to the normal theme line color (undefined = "use dataset default").
