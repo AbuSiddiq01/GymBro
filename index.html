@@ -161,6 +161,7 @@ body.theme-custom.has-bg-image .custom-theme-modal{
 }
 
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
 body{background:var(--bg-base);min-height:100vh;color:var(--text-primary);font-family:var(--font-body);overflow-x:hidden;transition:background 0.5s ease,color 0.5s ease}
 body.theme-godmode{background-image:radial-gradient(ellipse at 20% 50%,rgba(140,0,0,0.07) 0%,transparent 60%),radial-gradient(ellipse at 80% 20%,rgba(100,0,0,0.06) 0%,transparent 60%)}
 body.theme-batman{
@@ -656,8 +657,13 @@ body.theme-batman .set-copy-btn:hover{color:#05050a}
 .suggestions-list{position:absolute;left:0;right:0;background:var(--bg-card);border:1px solid var(--border-col);border-radius:11px;max-height:180px;overflow-y:auto;z-index:100;box-shadow:0 10px 30px rgba(0,0,0,0.12);display:none}
 .suggestions-list div{padding:10px 14px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--border-col);color:var(--text-primary)}
 .suggestions-list div:hover{background:var(--accent-soft);color:var(--accent)}
-.workout-log-card{display:flex;align-items:stretch;gap:0;margin-bottom:10px;cursor:pointer;position:relative;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
+.workout-log-card{display:flex;align-items:stretch;gap:0;margin-bottom:10px;cursor:pointer;position:relative;touch-action:pan-y;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
 .workout-log-card:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:10px}
+/* Scroll-triggered glow: toggled by JS (IntersectionObserver) as each card scrolls through the
+   viewport, using the same per-class --wlc-glow color already set inline on the card so every
+   box glows in its own designated color while the user scrolls past it. */
+.workout-log-card .wlc-box{transition:transform 0.25s cubic-bezier(0.22,0.8,0.3,1),box-shadow 0.35s ease}
+.workout-log-card.wlc-scroll-glow .wlc-box{box-shadow:0 6px 20px var(--wlc-glow,var(--accent-glow)),0 0 0 1px var(--wlc-glow,var(--accent-glow)) inset;transform:translateY(-2px)}
 .wlc-box{flex:1 1 auto;min-width:0;background:var(--bg-card);border:1px solid var(--border-col);border-left:3px solid var(--border-col);border-radius:10px;padding:10px 13px;transition:transform 0.25s cubic-bezier(0.4,0,0.2,1),box-shadow 0.25s cubic-bezier(0.4,0,0.2,1)}
 .workout-log-card:hover .wlc-box{transform:translateY(-3px);box-shadow:0 10px 22px var(--wlc-glow,var(--accent-glow))}
 .workout-log-card .wlc-body{min-width:0}
@@ -9825,6 +9831,25 @@ async function loadWorkoutsForDate(){
   }
   html+=`<div class="vol-drill-total"><span>📦 Daily Total</span><strong>${Math.round(totalVolAll).toLocaleString()} kg·reps</strong></div>`;
   con.innerHTML=html;
+  wcInitScrollGlow();
+}
+/* ===================== WLC SCROLL GLOW (per-card colored glow while scrolling) =====================
+   As the page scrolls (finger-scroll on mobile now works again since .workout-log-card uses
+   touch-action:pan-y instead of :none — see WLC DRAG REORDER notes above), each saved-workout card
+   lights up with its own class color (the same --wlc-glow var already set inline per card) as it
+   passes through a band near the middle of the screen, then fades back out once it drifts away.
+   Re-run after every re-render of #savedWorkoutLogsContainer since the cards are fresh elements. */
+let _wcScrollGlowObserver=null;
+function wcInitScrollGlow(){
+  const container=document.getElementById('savedWorkoutLogsContainer');
+  if(!container)return;
+  if(_wcScrollGlowObserver)_wcScrollGlowObserver.disconnect();
+  _wcScrollGlowObserver=new IntersectionObserver((entries)=>{
+    entries.forEach(entry=>{
+      entry.target.classList.toggle('wlc-scroll-glow',entry.isIntersecting);
+    });
+  },{root:null,rootMargin:'-38% 0px -38% 0px',threshold:0});
+  container.querySelectorAll('.workout-log-card').forEach(card=>_wcScrollGlowObserver.observe(card));
 }
 function toggleCardSelectionState(el,ci,rv){let a=el.classList.contains("selected-active");document.querySelectorAll(".workout-log-card").forEach(c=>c.classList.remove("selected-active"));if(!a)el.classList.add("selected-active")}
 /* Entry point for the per-card 📈 Track Workout icon (shown, same as swap/edit/delete, once a saved
