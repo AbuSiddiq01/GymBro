@@ -677,12 +677,22 @@ body.theme-batman .set-copy-btn:hover{color:#05050a}
    gutter space. Width is 0 (no reserved space) until the row is selected/swap-armed, at which point
    it expands in-flow — so it can never float over or bleed into any other saved-workout box. */
 .workout-actions-overlay{width:0;flex-shrink:0;overflow:hidden;opacity:0;display:flex;flex-direction:column;justify-content:center;gap:4px;margin-left:0;transition:width 0.2s ease,opacity 0.2s ease,margin-left 0.2s ease;pointer-events:none}
-.workout-log-card.selected-active .workout-actions-overlay{width:30px;opacity:1;margin-left:8px;pointer-events:auto}
+.workout-log-card.selected-active .workout-actions-overlay,.workout-log-card.wlc-armed .workout-actions-overlay{width:30px;opacity:1;margin-left:8px;pointer-events:auto}
+/* Two mutually-exclusive icon groups inside the same overlay slot: a tap (click) reveals the
+   normal 3-icon group (Track/Edit/Delete) via .selected-active; a long-press reveals the single
+   fixed Swap icon via .wlc-armed. Only one of these two card-level classes is ever applied at a
+   time (see wcArmDrag/wcEndDrag/toggleCardSelectionState in JS), so the two groups never show
+   together — each group additionally guards on the *other* class being absent as defense in depth. */
+.wlc-actions-icons{display:none;flex-direction:column;gap:4px}
+.wlc-actions-swap{display:none;flex-direction:column;gap:4px}
+.workout-log-card.selected-active:not(.wlc-armed) .wlc-actions-icons{display:flex}
+.workout-log-card.wlc-armed .wlc-actions-swap{display:flex}
 .action-icon-btn{width:100%;aspect-ratio:1;display:flex;align-items:center;justify-content:center;background:var(--accent-soft);border:none;border-radius:8px;cursor:pointer;padding:0;flex-shrink:0;transition:background 0.2s ease}
 .action-icon-btn svg{width:14px;height:14px;flex-shrink:0}
 .action-icon-btn.edit{color:#2563eb}.action-icon-btn.edit:hover{background:#dbeafe}
 .action-icon-btn.delete{color:#dc2626}.action-icon-btn.delete:hover{background:#fee2e2}
 .action-icon-btn.track{color:#059669}.action-icon-btn.track:hover{background:#d1fae5}
+.action-icon-btn.swap{color:var(--accent);cursor:grab}
 /* The inline Track Workout button inside the edit form is intentionally hidden ONLY while that
    form is relocated into the edit overlay (i.e. while editing a saved entry) — Track Workout now
    lives as a card icon instead. The "+ ADD WORKOUT ENTRY" form never enters the overlay, so its
@@ -692,11 +702,15 @@ body.theme-batman .set-copy-btn:hover{color:#05050a}
    "swap" flow). wlc-drag-source is the real card, kept in normal flow so layout/reflow stays
    correct, but hidden while a floating wlc-drag-ghost clone follows the finger/mouse instead. */
 .workout-log-card.wlc-drag-source{visibility:hidden}
-.wlc-drag-ghost{position:fixed;margin:0!important;list-style:none;transform:scale(1.03);box-shadow:0 18px 34px rgba(0,0,0,0.28);border-radius:10px;opacity:0.98;transition:box-shadow 0.2s ease;will-change:top,left,transform}
-.wlc-drag-ghost .workout-actions-overlay{display:none!important}
+.wlc-drag-ghost{position:fixed;margin:0!important;list-style:none;transform:scale(1.03);box-shadow:0 18px 34px rgba(0,0,0,0.28);border-radius:10px;opacity:0.98;transition:box-shadow 0.2s ease;will-change:top,left,transform;z-index:9999}
+.wlc-drag-ghost .wlc-actions-icons{display:none!important}
 .wlc-drag-ghost .wlc-box{transform:none!important;box-shadow:none!important}
 body.wlc-dragging-active,body.wlc-dragging-active *{user-select:none!important;-webkit-user-select:none!important}
 body.wlc-dragging-active .workout-log-card:not(.wlc-drag-source){cursor:grabbing}
+/* Extra breathing room at the very top/bottom of the list while a drag is active, so the ghost has
+   somewhere to sit when parked at the first/last slot instead of being clamped flush against the
+   edge card (which is what caused the two boxes to visually overlap/"collapse" together there). */
+body.wlc-dragging-active #savedWorkoutLogsContainer{padding-top:30px;padding-bottom:30px;transition:padding 0.15s ease}
 .workout-breakdown-row{display:flex;align-items:center;gap:9px;margin:12px 0 4px}
 .workout-breakdown-row>span{font-size:12px;font-weight:700;color:var(--text-muted);font-family:var(--font-alt);letter-spacing:0.5px;user-select:none}
 @media (max-width:380px){
@@ -9612,6 +9626,9 @@ function finishLiveSession(name){
 const ICON_EDIT='<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>';
 const ICON_DELETE='<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>';
 const ICON_TRACK='<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 17 9 11 13 15 21 7"/><polyline points="14 7 21 7 21 14"/></svg>';
+/* Fixed "Swap" indicator shown (in place of Track/Edit/Delete) only while a card is armed for
+   long-press free drag reordering — see the WLC DRAG REORDER block below. */
+const ICON_SWAP='<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3 4 7l4 4"/><path d="M4 7h16"/><path d="M16 21l4-4-4-4"/><path d="M20 17H4"/></svg>';
 let workoutBreakdownOn=true; // default ON — all set values visible per exercise
 function toggleWorkoutBreakdown(){
   workoutBreakdownOn=!workoutBreakdownOn;
@@ -9639,12 +9656,25 @@ function handleWorkoutCardActivate(el,ci,rv){
    which is what makes a press look like it merely "selects" instead of dragging. */
 const WLC_LONGPRESS_MS=550;
 const WLC_MOVE_TOLERANCE=10;
+const WLC_EDGE_BUFFER=30; // matches the CSS padding-top/padding-bottom added to the container while dragging
 let _wDrag=null;
 let _wcSuppressClickUntil=0;
+/* Defensive cleanup: removes any leftover ghost clone / armed-card state. Normally the drag's own
+   end-of-drag timeout handles this, but if a reorder commit triggers a full re-render of the
+   saved-workouts list (loadWorkoutsForDate) before that short timeout fires, the old ghost node
+   (which lives on document.body, outside the re-rendered container) would otherwise be orphaned
+   and left floating on screen — visually looking like a duplicated/overlapping card. Called both
+   before starting a fresh drag and at the top of every list re-render, so it can never linger. */
+function wcCleanupGhosts(){
+  document.querySelectorAll('.wlc-drag-ghost').forEach(g=>g.remove());
+  document.querySelectorAll('.workout-log-card.wlc-drag-source,.workout-log-card.wlc-armed').forEach(c=>c.classList.remove('wlc-drag-source','wlc-armed'));
+  document.body.classList.remove('wlc-dragging-active');
+}
 function wcPointerDown(e,el,ci){
   if(e.pointerType==='mouse'&&e.button!==0)return;
   if(e.target.closest('.action-icon-btn'))return;
   if(_wDrag)return;
+  wcCleanupGhosts();
   const container=document.getElementById('savedWorkoutLogsContainer');
   const originalOrder=Array.from(container.querySelectorAll('.workout-log-card')).map(c=>parseInt(c.dataset.ci,10));
   const st={ci,el,pointerId:e.pointerId,startX:e.clientX,startY:e.clientY,armed:false,ghost:null,baseTop:0,baseLeft:0,height:0,timer:null,originalOrder};
@@ -9660,6 +9690,12 @@ function wcArmDrag(){
   const el=st.el,rect=el.getBoundingClientRect();
   st.baseTop=rect.top;st.baseLeft=rect.left;st.height=rect.height;
   try{el.setPointerCapture(st.pointerId)}catch(err){}
+  // a tap-revealed Track/Edit/Delete row and a long-press-revealed Swap icon are triggered by
+  // different gestures and must never show at the same time — clear any tap-selected card(s) the
+  // instant a long-press arms, then mark this card as armed (before cloning, so the floating
+  // ghost — the only copy actually visible once dragging starts — inherits the Swap icon too)
+  document.querySelectorAll('.workout-log-card.selected-active').forEach(c=>c.classList.remove('selected-active'));
+  el.classList.add('wlc-armed');
   const ghost=el.cloneNode(true);
   ghost.classList.add('wlc-drag-ghost');
   ghost.classList.remove('selected-active');
@@ -9698,8 +9734,8 @@ function wcClampDy(st,dy){
   const container=document.getElementById('savedWorkoutLogsContainer');
   const cards=container.querySelectorAll('.workout-log-card');
   if(!cards.length)return dy;
-  const minTop=cards[0].getBoundingClientRect().top;
-  const maxBottom=cards[cards.length-1].getBoundingClientRect().bottom;
+  const minTop=cards[0].getBoundingClientRect().top-WLC_EDGE_BUFFER;
+  const maxBottom=cards[cards.length-1].getBoundingClientRect().bottom+WLC_EDGE_BUFFER;
   let newTop=st.baseTop+dy;
   newTop=Math.max(minTop,Math.min(newTop,maxBottom-st.height));
   return newTop-st.baseTop;
@@ -9770,8 +9806,7 @@ function wcEndDrag(commit){
   document.removeEventListener('pointermove',wcPointerMove);
   document.removeEventListener('pointerup',wcPointerUp);
   document.removeEventListener('pointercancel',wcPointerUp);
-  document.body.classList.remove('wlc-dragging-active');
-  if(!st.armed)return; // was just a tap/scroll — let the normal click fire untouched
+  if(!st.armed){document.body.classList.remove('wlc-dragging-active');return} // was just a tap/scroll — let the normal click fire untouched
   try{st.el.releasePointerCapture(st.pointerId)}catch(err){}
   // the browser still fires a synthetic click after this pointer sequence ends — suppress just
   // that one so dropping a card doesn't also toggle its selected/expanded state
@@ -9782,7 +9817,14 @@ function wcEndDrag(commit){
   ghost.style.transition='transform 0.2s cubic-bezier(0.2,0.8,0.2,1),box-shadow 0.2s ease';
   ghost.style.transform=`translate(${dx}px,${dy}px) scale(1)`;
   ghost.style.boxShadow='none';
-  setTimeout(()=>{ghost.remove();dragEl.classList.remove('wlc-drag-source')},210);
+  // keep the edge-buffer padding (driven by body.wlc-dragging-active) in place until the ghost has
+  // fully animated back and been removed, so the buffer never collapses mid-animation right when
+  // dropping on the first/last card — that premature collapse was what caused the visual glitch
+  setTimeout(()=>{
+    ghost.remove();
+    dragEl.classList.remove('wlc-drag-source','wlc-armed');
+    document.body.classList.remove('wlc-dragging-active');
+  },210);
   wcRenumber(document.getElementById('savedWorkoutLogsContainer'));
   if(commit){
     const container=document.getElementById('savedWorkoutLogsContainer');
@@ -9805,6 +9847,7 @@ async function performWorkoutReorder(newOrderCis){
   await loadWorkoutsForDate();
 }
 async function loadWorkoutsForDate(){
+  wcCleanupGhosts();
   let uid=getEffectiveUid(),date=isRoomMemberModeActive()?getLocalDateString():document.getElementById("workoutCalendarFilter").value;
   let con=document.getElementById("savedWorkoutLogsContainer");
   con.innerHTML=`<p style="font-size:13px;color:var(--text-muted);text-align:center;padding:10px;font-family:var(--font-alt)">Loading...</p>`;
@@ -9825,7 +9868,7 @@ async function loadWorkoutsForDate(){
       const volVal=`<span class="wlc-vol-val">${vt.primary} <small>${vt.unit}</small></span>`;
       const classLabel=`<small class="wlc-class-label" style="color:${exColor}">${exCls}</small>`;
       const setsBlock=`<div class="${tagGridClass} wlc-sets-block${workoutBreakdownOn?"":" wlc-collapsed"}">${tags}</div>`;
-      html+=`<div class="workout-log-card" data-ci="${ci}" tabindex="0" style="--wlc-glow:${exColor}55" onclick="handleWorkoutCardActivate(this,${ci},'${escapeHtml(cell)}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click()}" onpointerdown="wcPointerDown(event,this,${ci})"><div class="wlc-box" style="border-color:${exColor}55;border-left-color:${exColor}"><div class="wlc-body"><div class="wlc-header-row"><span class="wlc-dot" style="background:${exColor}"></span><div class="exercise-name"><span class="wlc-serial" style="color:var(--accent);margin-right:4px">${counter}.</span>${ename}${classLabel}</div>${volVal}</div>${setsBlock}</div></div><div class="workout-actions-overlay"><button class="action-icon-btn track" title="Track Workout" onclick="trackWorkoutFromCard(event,'${escapeHtml(ename)}')">${ICON_TRACK}</button><button class="action-icon-btn edit" title="Edit" onclick="initiateWorkoutEdit(event,${ci},'${escapeHtml(cell)}')">${ICON_EDIT}</button><button class="action-icon-btn delete" title="Delete" onclick="triggerWorkoutDelete(event,${ci})">${ICON_DELETE}</button></div></div>`;counter++;
+      html+=`<div class="workout-log-card" data-ci="${ci}" tabindex="0" style="--wlc-glow:${exColor}55" onclick="handleWorkoutCardActivate(this,${ci},'${escapeHtml(cell)}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click()}" onpointerdown="wcPointerDown(event,this,${ci})"><div class="wlc-box" style="border-color:${exColor}55;border-left-color:${exColor}"><div class="wlc-body"><div class="wlc-header-row"><span class="wlc-dot" style="background:${exColor}"></span><div class="exercise-name"><span class="wlc-serial" style="color:var(--accent);margin-right:4px">${counter}.</span>${ename}${classLabel}</div>${volVal}</div>${setsBlock}</div></div><div class="workout-actions-overlay"><div class="wlc-actions-icons"><button class="action-icon-btn track" title="Track Workout" onclick="trackWorkoutFromCard(event,'${escapeHtml(ename)}')">${ICON_TRACK}</button><button class="action-icon-btn edit" title="Edit" onclick="initiateWorkoutEdit(event,${ci},'${escapeHtml(cell)}')">${ICON_EDIT}</button><button class="action-icon-btn delete" title="Delete" onclick="triggerWorkoutDelete(event,${ci})">${ICON_DELETE}</button></div><div class="wlc-actions-swap"><span class="action-icon-btn swap" title="Drag to reorder">${ICON_SWAP}</span></div></div></div>`;counter++;
     }
   });
   if(!anyEntry){con.innerHTML=`<p style="font-size:13px;color:var(--text-muted);text-align:center;padding:10px;font-family:var(--font-alt)">No entries for this date.</p>`;return}
