@@ -9639,26 +9639,45 @@ function handleWorkoutCardActivate(el,ci,rv){
    normal document flow the whole time (so layout/wrapping never breaks on narrow screens) but is
    hidden while a floating clone ("ghost") tracks the finger/cursor; siblings animate (FLIP-style)
    into their new slots as the ghost passes their midpoint.
-   IMPORTANT: .workout-log-card carries touch-action:none + user-select:none + -webkit-touch-
-   callout:none in CSS — without that, mobile browsers win the race with their own long-press
-   text-selection/callout gesture (and desktop browsers start a native text-selection drag),
-   which is what makes a press look like it merely "selects" instead of dragging. */
+   IMPORTANT: .workout-log-card carries touch-action:pan-y + user-select:none + -webkit-touch-
+   callout:none in CSS — pan-y lets normal vertical page scrolling through untouched, while an
+   armed drag calls preventDefault() itself to take over the gesture for the rest of that touch.
+
+   DUPLICATE-BOX FIX: the visible "duplicate saved-workout box" bug happened when a drag's
+   pointerup/pointercancel never reached us (OS gesture interruptions — control-center swipes,
+   app switches, a stalled/low-end main thread, etc. can eat that event on some mobile browsers).
+   When that happens the floating ghost clone never gets removed and the real card stays hidden,
+   so the ghost sits there looking like a stray duplicate entry. We now close that gap with three
+   independent safety nets (any one of them is enough to recover): the pointer's own
+   'lostpointercapture' event (fires whenever capture is released for ANY reason, including a
+   silently-eaten gesture), a page-visibility/blur listener, and a hard watchdog timeout. Every
+   cleanup path funnels through the same idempotent wcEndDrag(), so nothing can leave a duplicate
+   ghost or a permanently-hidden card behind.
+
+   PERFORMANCE FIX: reorder target-detection used to run a full getBoundingClientRect() pass over
+   every card on *every single* pointermove event, which is a layout-thrashing hot loop — the
+   actual cause of the reported lag on low-end devices (and, since it hogs the main thread, of
+   taps elsewhere feeling delayed too). It's now coalesced to run at most once per animation
+   frame via requestAnimationFrame, no matter how many raw move events the device fires. */
 const WLC_LONGPRESS_MS=550;
 const WLC_MOVE_TOLERANCE=10;
+const WLC_WATCHDOG_MS=8000;
 let _wDrag=null;
 let _wcSuppressClickUntil=0;
 function wcPointerDown(e,el,ci){
   if(e.pointerType==='mouse'&&e.button!==0)return;
   if(e.target.closest('.action-icon-btn'))return;
-  if(_wDrag)return;
+  // Defensive: if a previous drag somehow never cleaned itself up, force-clear it now instead of
+  // permanently locking out dragging (belt-and-braces alongside the watchdog/lostpointercapture nets).
+  if(_wDrag){wcEndDrag(false);}
   const container=document.getElementById('savedWorkoutLogsContainer');
   const originalOrder=Array.from(container.querySelectorAll('.workout-log-card')).map(c=>parseInt(c.dataset.ci,10));
-  const st={ci,el,pointerId:e.pointerId,startX:e.clientX,startY:e.clientY,armed:false,ghost:null,baseTop:0,baseLeft:0,timer:null,originalOrder};
+  const st={ci,el,pointerId:e.pointerId,startX:e.clientX,startY:e.clientY,lastX:e.clientX,lastY:e.clientY,armed:false,ghost:null,baseTop:0,baseLeft:0,timer:null,watchdog:null,rafId:null,reorderQueued:false,originalOrder};
   _wDrag=st;
   st.timer=setTimeout(wcArmDrag,WLC_LONGPRESS_MS);
   document.addEventListener('pointermove',wcPointerMove,{passive:false});
   document.addEventListener('pointerup',wcPointerUp);
-  document.addEventListener('pointercancel',wcPointerUp);
+  document.addEventListener('pointercancel',wcPointerCancel);
 }
 function wcArmDrag(){
   const st=_wDrag;if(!st)return;
@@ -9666,9 +9685,11 @@ function wcArmDrag(){
   const el=st.el,rect=el.getBoundingClientRect();
   st.baseTop=rect.top;st.baseLeft=rect.left;
   try{el.setPointerCapture(st.pointerId)}catch(err){}
+  el.addEventListener('lostpointercapture',wcLostCapture);
+  st.watchdog=setTimeout(()=>wcEndDrag(false),WLC_WATCHDOG_MS);
   const ghost=el.cloneNode(true);
   ghost.classList.add('wlc-drag-ghost');
-  ghost.classList.remove('selected-active');
+  ghost.classList.remove('selected-active','workout-log-card');
   ghost.removeAttribute('onclick');ghost.removeAttribute('onkeydown');ghost.removeAttribute('onpointerdown');ghost.removeAttribute('tabindex');
   ghost.style.position='fixed';
   ghost.style.top=rect.top+'px';ghost.style.left=rect.left+'px';
@@ -9682,6 +9703,7 @@ function wcArmDrag(){
   document.body.classList.add('wlc-dragging-active');
   if(navigator.vibrate)navigator.vibrate(35);
 }
+function wcLostCapture(){if(_wDrag)wcEndDrag(false);}
 function wcPointerMove(e){
   const st=_wDrag;if(!st||e.pointerId!==st.pointerId)return;
   const dx=e.clientX-st.startX,dy=e.clientY-st.startY;
@@ -9690,10 +9712,22 @@ function wcPointerMove(e){
     return;
   }
   e.preventDefault();
+  st.lastX=e.clientX;st.lastY=e.clientY;
+  // Coalesce every move into one rAF tick — keeps ghost tracking silky-smooth while avoiding
+  // repeated layout reads/writes per raw touch event on slower hardware.
+  if(!st.reorderQueued){
+    st.reorderQueued=true;
+    st.rafId=requestAnimationFrame(()=>wcFrameTick(st));
+  }
+}
+function wcFrameTick(st){
+  if(_wDrag!==st)return; // drag already ended between scheduling and this frame
+  st.reorderQueued=false;
+  const dx=st.lastX-st.startX,dy=st.lastY-st.startY;
   st.ghost.style.transform=`translate(${dx}px,${dy}px) scale(1.03)`;
   wcCheckReorder(st);
   const vh=window.innerHeight;
-  if(e.clientY<70)window.scrollBy(0,-14);else if(e.clientY>vh-70)window.scrollBy(0,14);
+  if(st.lastY<70)window.scrollBy(0,-14);else if(st.lastY>vh-70)window.scrollBy(0,14);
 }
 function wcCheckReorder(st){
   const container=document.getElementById('savedWorkoutLogsContainer');
@@ -9742,13 +9776,23 @@ function wcPointerUp(e){
   const st=_wDrag;if(!st||e.pointerId!==st.pointerId)return;
   wcEndDrag(true);
 }
+// A pointercancel means the OS/browser yanked the gesture away from us (system gesture, app
+// switch, etc.) — that's an interruption, not an intentional drop, so we abort instead of saving
+// whatever position the drag happened to be frozen at.
+function wcPointerCancel(e){
+  const st=_wDrag;if(!st||e.pointerId!==st.pointerId)return;
+  wcEndDrag(false);
+}
 function wcEndDrag(commit){
   const st=_wDrag;if(!st)return;
   _wDrag=null;
   clearTimeout(st.timer);
+  clearTimeout(st.watchdog);
+  if(st.rafId)cancelAnimationFrame(st.rafId);
   document.removeEventListener('pointermove',wcPointerMove);
   document.removeEventListener('pointerup',wcPointerUp);
-  document.removeEventListener('pointercancel',wcPointerUp);
+  document.removeEventListener('pointercancel',wcPointerCancel);
+  st.el.removeEventListener('lostpointercapture',wcLostCapture);
   document.body.classList.remove('wlc-dragging-active');
   if(!st.armed)return; // was just a tap/scroll — let the normal click fire untouched
   try{st.el.releasePointerCapture(st.pointerId)}catch(err){}
@@ -9756,12 +9800,17 @@ function wcEndDrag(commit){
   // that one so dropping a card doesn't also toggle its selected/expanded state
   _wcSuppressClickUntil=Date.now()+400;
   const dragEl=st.el,ghost=st.ghost;
-  const finalRect=dragEl.getBoundingClientRect();
-  const dx=finalRect.left-st.baseLeft,dy=finalRect.top-st.baseTop;
-  ghost.style.transition='transform 0.2s cubic-bezier(0.2,0.8,0.2,1),box-shadow 0.2s ease';
-  ghost.style.transform=`translate(${dx}px,${dy}px) scale(1)`;
-  ghost.style.boxShadow='none';
-  setTimeout(()=>{ghost.remove();dragEl.classList.remove('wlc-drag-source')},210);
+  dragEl.classList.remove('wlc-drag-source');
+  // Ghost cleanup is unconditional and immediate-ish (short animated fade), independent of
+  // whether the drop animation's transitionend ever fires, so nothing can be left orphaned.
+  if(ghost&&ghost.isConnected){
+    const finalRect=dragEl.getBoundingClientRect();
+    const dx=finalRect.left-st.baseLeft,dy=finalRect.top-st.baseTop;
+    ghost.style.transition='transform 0.2s cubic-bezier(0.2,0.8,0.2,1),box-shadow 0.2s ease';
+    ghost.style.transform=`translate(${dx}px,${dy}px) scale(1)`;
+    ghost.style.boxShadow='none';
+    setTimeout(()=>ghost.remove(),210);
+  }
   wcRenumber(document.getElementById('savedWorkoutLogsContainer'));
   if(commit){
     const container=document.getElementById('savedWorkoutLogsContainer');
@@ -9771,7 +9820,15 @@ function wcEndDrag(commit){
     if(changed)performWorkoutReorder(newOrder);
   }
 }
+// Extra safety nets at the document/window level (registered once): if the tab is backgrounded,
+// loses focus, or is hidden mid-drag, force-abort so a ghost can never survive past that point.
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&_wDrag)wcEndDrag(false)});
+window.addEventListener('blur',()=>{if(_wDrag)wcEndDrag(false)});
+window.addEventListener('pagehide',()=>{if(_wDrag)wcEndDrag(false)});
 async function performWorkoutReorder(newOrderCis){
+  // Defensive de-dupe: guarantees we can never write the same saved workout into two slots even
+  // if some future edge case fed a repeated ci into the DOM order.
+  newOrderCis=newOrderCis.filter((v,i)=>Number.isFinite(v)&&newOrderCis.indexOf(v)===i);
   const uid=getEffectiveUid(),td=isRoomMemberModeActive()?getLocalDateString():document.getElementById("workoutCalendarFilter").value;
   const{data,error}=await db.from("workouts").select("*").eq("user_id",uid).eq("date",td);
   if(error||!data||!data.length)return;
