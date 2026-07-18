@@ -9647,12 +9647,12 @@ function handleWorkoutCardActivate(el,ci,rv){
    pointerup/pointercancel never reached us (OS gesture interruptions — control-center swipes,
    app switches, a stalled/low-end main thread, etc. can eat that event on some mobile browsers).
    When that happens the floating ghost clone never gets removed and the real card stays hidden,
-   so the ghost sits there looking like a stray duplicate entry. We now close that gap with three
-   independent safety nets (any one of them is enough to recover): the pointer's own
-   'lostpointercapture' event (fires whenever capture is released for ANY reason, including a
-   silently-eaten gesture), a page-visibility/blur listener, and a hard watchdog timeout. Every
-   cleanup path funnels through the same idempotent wcEndDrag(), so nothing can leave a duplicate
-   ghost or a permanently-hidden card behind.
+   so the ghost sits there looking like a stray duplicate entry. We now close that gap with two
+   safety nets that don't interfere with a normal drag: a page-visibility/blur/pagehide listener,
+   and a hard watchdog timeout. A pointercancel is also now treated as an abort (discard) rather
+   than a commit (save), since it means the gesture was interrupted, not intentionally dropped.
+   Every cleanup path funnels through the same idempotent wcEndDrag(), so nothing can leave a
+   duplicate ghost or a permanently-hidden card behind.
 
    PERFORMANCE FIX: reorder target-detection used to run a full getBoundingClientRect() pass over
    every card on *every single* pointermove event, which is a layout-thrashing hot loop — the
@@ -9667,8 +9667,8 @@ let _wcSuppressClickUntil=0;
 function wcPointerDown(e,el,ci){
   if(e.pointerType==='mouse'&&e.button!==0)return;
   if(e.target.closest('.action-icon-btn'))return;
-  // Defensive: if a previous drag somehow never cleaned itself up, force-clear it now instead of
-  // permanently locking out dragging (belt-and-braces alongside the watchdog/lostpointercapture nets).
+  // Defensive: if a previous drag somehow never cleaned itself up (e.g. a swallowed pointerup),
+  // force-clear it now instead of permanently locking out dragging.
   if(_wDrag){wcEndDrag(false);}
   const container=document.getElementById('savedWorkoutLogsContainer');
   const originalOrder=Array.from(container.querySelectorAll('.workout-log-card')).map(c=>parseInt(c.dataset.ci,10));
@@ -9685,11 +9685,10 @@ function wcArmDrag(){
   const el=st.el,rect=el.getBoundingClientRect();
   st.baseTop=rect.top;st.baseLeft=rect.left;
   try{el.setPointerCapture(st.pointerId)}catch(err){}
-  el.addEventListener('lostpointercapture',wcLostCapture);
   st.watchdog=setTimeout(()=>wcEndDrag(false),WLC_WATCHDOG_MS);
   const ghost=el.cloneNode(true);
   ghost.classList.add('wlc-drag-ghost');
-  ghost.classList.remove('selected-active','workout-log-card');
+  ghost.classList.remove('selected-active');
   ghost.removeAttribute('onclick');ghost.removeAttribute('onkeydown');ghost.removeAttribute('onpointerdown');ghost.removeAttribute('tabindex');
   ghost.style.position='fixed';
   ghost.style.top=rect.top+'px';ghost.style.left=rect.left+'px';
@@ -9703,7 +9702,6 @@ function wcArmDrag(){
   document.body.classList.add('wlc-dragging-active');
   if(navigator.vibrate)navigator.vibrate(35);
 }
-function wcLostCapture(){if(_wDrag)wcEndDrag(false);}
 function wcPointerMove(e){
   const st=_wDrag;if(!st||e.pointerId!==st.pointerId)return;
   const dx=e.clientX-st.startX,dy=e.clientY-st.startY;
@@ -9792,7 +9790,6 @@ function wcEndDrag(commit){
   document.removeEventListener('pointermove',wcPointerMove);
   document.removeEventListener('pointerup',wcPointerUp);
   document.removeEventListener('pointercancel',wcPointerCancel);
-  st.el.removeEventListener('lostpointercapture',wcLostCapture);
   document.body.classList.remove('wlc-dragging-active');
   if(!st.armed)return; // was just a tap/scroll — let the normal click fire untouched
   try{st.el.releasePointerCapture(st.pointerId)}catch(err){}
