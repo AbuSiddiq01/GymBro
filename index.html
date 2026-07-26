@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/browser-image-compression@2.0.2/dist/browser-image-compression.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <title>GymBro 2026</title>
@@ -1122,6 +1123,18 @@ input:checked+.privacy-toggle-slider:before{transform:translateX(20px)}
 .follow-req-toast-msg{font-size:13px;font-weight:700;color:var(--text-primary);font-family:var(--font-alt)}
 .follow-req-toast-sub{font-size:11px;color:var(--text-muted);margin-top:2px}
 .follow-req-toast-actions{display:flex;gap:6px;flex-shrink:0}
+
+/* ---- Fee-due notification (mirrors .follow-req-toast pattern) ---- */
+.fee-due-popup{position:fixed;top:0;left:0;right:0;z-index:999994;display:flex;flex-direction:column;gap:10px;padding:16px;pointer-events:none}
+.fee-due-toast{background:var(--bg-card);border-radius:16px;padding:14px 16px;box-shadow:0 10px 40px rgba(0,0,0,0.35);display:flex;align-items:center;gap:12px;pointer-events:all;animation:slideUp 0.3s ease;max-width:400px;margin:0 auto;width:100%;border-left:4px solid var(--accent)}
+.fee-due-toast.fee-due-urgent{border-left-color:#dc2626}
+.fee-due-toast.fee-due-today{border-left-color:#d97706}
+.fee-due-toast.fee-due-soon{border-left-color:var(--accent)}
+.fee-due-toast-ico{width:38px;height:38px;border-radius:50%;background:var(--accent-soft);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.fee-due-toast-text{flex:1;min-width:0}
+.fee-due-toast-msg{font-size:13px;font-weight:700;color:var(--text-primary);font-family:var(--font-alt)}
+.fee-due-toast-sub{font-size:11px;color:var(--text-muted);margin-top:2px}
+.fee-due-toast-close{background:none;border:none;color:var(--text-muted);font-size:15px;padding:4px;cursor:pointer;flex-shrink:0}
 .freq-accept-btn{padding:6px 12px;border-radius:8px;font-size:11px;font-weight:700;font-family:var(--font-alt);cursor:pointer;background:var(--btn-bg);color:var(--follow-btn-text);border:none}
 body.theme-batman .freq-accept-btn{color:#05050a}
 .freq-decline-btn{padding:6px 12px;border-radius:8px;font-size:11px;font-weight:700;font-family:var(--font-alt);cursor:pointer;background:var(--accent-soft);color:var(--text-muted);border:1px solid var(--border-col)}
@@ -1202,6 +1215,41 @@ body.workout-edit-lock{overflow:hidden}
 .welcomeBox{background:var(--bg-card);padding:20px;border-radius:18px;border:1px solid var(--border-col);margin-bottom:4px;box-shadow:var(--card-shadow)}
 .welcomeBox h2{font-family:var(--font-display);font-size:26px;color:var(--section-title-col);letter-spacing:1px}
 .welcomeBox p{font-size:13px;color:var(--text-muted);font-family:var(--font-alt);margin-top:3px}
+
+/* ---- Homepage payment-received banner + receipt card (mirrors admin.html's billCard) ---- */
+.receiptBanner{background:linear-gradient(135deg,#25D366,#128C7E);color:#fff;border-radius:16px;padding:13px 16px;margin:12px 0;box-shadow:0 8px 24px rgba(18,140,126,0.35)}
+.receiptBannerHead{display:flex;align-items:center;gap:12px;cursor:pointer}
+.receiptBannerIco{font-size:22px;flex-shrink:0}
+.receiptBannerText{flex:1;min-width:0}
+.receiptBannerTitle{font-weight:800;font-size:13.5px;font-family:var(--font-alt)}
+.receiptBannerSub{font-size:11.5px;opacity:0.9;margin-top:2px;line-height:1.55}
+.receiptBannerSub div{margin-top:1px}
+.receiptBannerArrow{font-size:22px;opacity:0.85;flex-shrink:0}
+.receiptBannerBody{overflow:hidden;max-height:200px;transition:max-height 0.25s ease,opacity 0.2s ease,margin-top 0.2s ease;margin-top:6px;opacity:1}
+.receiptBannerBody.folded{max-height:0;opacity:0;margin-top:0}
+/* ---- Fixed, non-cancellable, non-foldable FEE-DUE variant of the same homepage box (soon/today/overdue) ---- */
+.receiptBanner.due-soon{background:linear-gradient(135deg,#2563eb,#1d4ed8);box-shadow:0 8px 24px rgba(37,99,235,0.35)}
+.receiptBanner.due-today{background:linear-gradient(135deg,#d97706,#b45309);box-shadow:0 8px 24px rgba(217,119,6,0.35)}
+.receiptBanner.due-overdue{background:linear-gradient(135deg,#dc2626,#b91c1c);box-shadow:0 8px 24px rgba(220,38,38,0.35)}
+.receiptBanner.due-soon .receiptBannerHead,.receiptBanner.due-today .receiptBannerHead,.receiptBanner.due-overdue .receiptBannerHead{cursor:default}
+/* ---- Fold/unfold toggle on the RECEIPT variant only — purely a show/hide of the detail lines,
+   defaults to revealed every time a fresh receipt appears (see setupMemberBillingBox in JS) ---- */
+.receiptBannerFold{background:rgba(255,255,255,0.22);border:none;color:#fff;font-size:12px;width:26px;height:26px;border-radius:50%;flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform 0.2s ease}
+.receiptBannerFold:active{background:rgba(255,255,255,0.35)}
+.receiptBannerFold.folded{transform:rotate(180deg)}
+/* ---- Receipt card (deliberately FIXED/literal colors, not theme variables — this guarantees the
+   downloaded PNG matches what's on screen pixel-for-pixel across every theme, since html2canvas can
+   struggle to correctly composite semi-transparent theme colors) ---- */
+.billCard{background:#eef2ff;border:1px solid #c7d2fe;border-radius:16px;padding:18px 20px;margin:4px 0 16px;font-family:'Rajdhani',sans-serif}
+.billCardHead{text-align:center;margin-bottom:12px;padding-bottom:12px;border-bottom:2px dashed #c7d2fe}
+.billGymNameOut{font-family:'Bebas Neue',sans-serif;font-size:19px;color:#1d4ed8;letter-spacing:0.5px}
+.billCardTag{font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;margin-top:2px}
+.billCardRow{display:flex;justify-content:space-between;align-items:center;padding:6px 0;font-size:13px;color:#475569}
+.billCardRow b{color:#0f172a;font-weight:700}
+.billCardAmount{font-size:16px}
+.billCardAmount b{color:#1d4ed8;font-size:18px}
+.billCardDivider{border-top:1px dashed #c7d2fe;margin:8px 0}
+.billCardFoot{text-align:center;font-size:10.5px;color:#94a3b8;margin-top:12px;padding-top:10px;border-top:2px dashed #c7d2fe}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 @keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
 .dashboard{display:none;animation:fadeIn 0.4s ease-in-out}
@@ -1956,6 +2004,19 @@ body.theme-godmode .levelup-toast{background:linear-gradient(135deg,#7a0006,#c00
         <h2 id="memberWelcome">Welcome Back, GymBro</h2>
         <p>Your training metrics for this month — keep grinding.</p>
       </div>
+      <div class="receiptBanner" id="receiptBanner" style="display:none">
+        <div class="receiptBannerHead" onclick="handleBillingBoxClick()">
+          <div class="receiptBannerIco" id="receiptBannerIco">🧾</div>
+          <div class="receiptBannerText">
+            <div class="receiptBannerTitle" id="receiptBannerTitle">Payment received</div>
+          </div>
+          <div class="receiptBannerArrow" id="receiptBannerArrow">›</div>
+          <button type="button" class="receiptBannerFold" id="receiptBannerFold" style="display:none" onclick="toggleReceiptFold(event)" title="Show/hide details" aria-label="Show/hide details">▲</button>
+        </div>
+        <div class="receiptBannerBody" id="receiptBannerBody">
+          <div class="receiptBannerSub" id="receiptBannerSub">Tap to view your receipt</div>
+        </div>
+      </div>
       <div class="cards">
         <div class="card"><div class="card-label">🔥 Streak</div><h3 id="streak">0</h3><div class="card-sub">Days Continuous</div></div>
         <div class="card"><div class="card-label">⏱ Min Tracked</div><h3 id="weekMinutes">0</h3><div class="card-sub">This week</div></div>
@@ -2508,7 +2569,8 @@ body.theme-godmode .levelup-toast{background:linear-gradient(135deg,#7a0006,#c00
             <span class="sugg-dropdown-icon" id="workoutNameDropdownIcon" onclick="toggleWorkoutNameDropdown(event)">▼</span>
             <div id="autoSuggestions" class="suggestions-list"></div>
           </div>
-          <button id="_inlineClassBtnNonLive" type="button" style="display:none;margin-top:6px;padding:7px 14px;border-radius:11px;border:1.5px solid var(--accent);background:var(--accent-soft);color:var(--accent);font-family:var(--font-alt);font-size:12px;font-weight:800;cursor:pointer;letter-spacing:0.4px" onclick="_triggerInlineClassPicker('workoutNameInput','nonlive')">🏷 Choose Class (optional)</button>
+          <button id="_inlineClassBtnNonLive" type="button" style="display:none;margin-top:6px;margin-right:6px;padding:7px 14px;border-radius:11px;border:1.5px solid var(--accent);background:var(--accent-soft);color:var(--accent);font-family:var(--font-alt);font-size:12px;font-weight:800;cursor:pointer;letter-spacing:0.4px" onclick="_triggerInlineClassPicker('workoutNameInput','nonlive')">🏷 Choose Class (required)</button>
+          <button id="_inlineEquipBtnNonLive" type="button" style="display:none;margin-top:6px;padding:7px 14px;border-radius:11px;border:1.5px solid var(--accent);background:var(--accent-soft);color:var(--accent);font-family:var(--font-alt);font-size:12px;font-weight:800;cursor:pointer;letter-spacing:0.4px" onclick="_triggerInlineEquipPicker('workoutNameInput','nonlive')">🔧 Choose Equipment (optional)</button>
           <!-- Previous Performance Badge (Non-Live) -->
           <div class="prev-perf-badge" id="prevPerfBadgeNonLive">
             <span class="prev-perf-icon">📊</span>
@@ -2556,7 +2618,8 @@ body.theme-godmode .levelup-toast{background:linear-gradient(135deg,#7a0006,#c00
               <span class="sugg-dropdown-icon" id="liveWorkoutNameDropdownIcon" onclick="toggleLiveNameDropdown(event)">▼</span>
               <div id="liveAutoSuggestions" class="suggestions-list"></div>
             </div>
-            <button id="_inlineClassBtnLive" type="button" style="display:none;margin-top:6px;padding:7px 14px;border-radius:11px;border:1.5px solid var(--accent);background:var(--accent-soft);color:var(--accent);font-family:var(--font-alt);font-size:12px;font-weight:800;cursor:pointer;letter-spacing:0.4px" onclick="_triggerInlineClassPicker('liveWorkoutNameInput','live')">🏷 Choose Class (optional)</button>
+            <button id="_inlineClassBtnLive" type="button" style="display:none;margin-top:6px;margin-right:6px;padding:7px 14px;border-radius:11px;border:1.5px solid var(--accent);background:var(--accent-soft);color:var(--accent);font-family:var(--font-alt);font-size:12px;font-weight:800;cursor:pointer;letter-spacing:0.4px" onclick="_triggerInlineClassPicker('liveWorkoutNameInput','live')">🏷 Choose Class (required)</button>
+            <button id="_inlineEquipBtnLive" type="button" style="display:none;margin-top:6px;padding:7px 14px;border-radius:11px;border:1.5px solid var(--accent);background:var(--accent-soft);color:var(--accent);font-family:var(--font-alt);font-size:12px;font-weight:800;cursor:pointer;letter-spacing:0.4px" onclick="_triggerInlineEquipPicker('liveWorkoutNameInput','live')">🔧 Choose Equipment (optional)</button>
             <!-- Previous Performance Badge (Live) -->
             <div class="prev-perf-badge" id="prevPerfBadgeLive">
               <span class="prev-perf-icon">📊</span>
@@ -3073,6 +3136,32 @@ body.theme-godmode .levelup-toast{background:linear-gradient(135deg,#7a0006,#c00
   </div>
 
   <!-- ===================== CUSTOM THEME EDITOR MODAL ===================== -->
+  <div id="memberReceiptModal" class="custom-theme-modal-overlay">
+    <div class="custom-theme-modal" style="width:min(400px,94vw)">
+      <div class="ctm-header">
+        <h3>🧾 Payment Receipt</h3>
+        <button class="ctm-close" onclick="closeMemberReceiptModal()">✕</button>
+      </div>
+      <div class="ctm-body">
+        <div id="memberReceiptCard" class="billCard">
+          <div class="billCardHead">
+            <div class="billGymNameOut">🏋 GYMBRO GYM</div>
+            <div class="billCardTag">Payment Receipt</div>
+          </div>
+          <div class="billCardRow"><span>Member</span><b id="mrOutName">—</b></div>
+          <div class="billCardRow"><span>Login ID</span><b id="mrOutLogin">—</b></div>
+          <div class="billCardRow"><span>Plan</span><b id="mrOutPlan">—</b></div>
+          <div class="billCardRow billCardAmount"><span>Amount Paid</span><b id="mrOutAmount">₹0</b></div>
+          <div class="billCardDivider"></div>
+          <div class="billCardRow"><span>Payment Date</span><b id="mrOutDate">—</b></div>
+          <div class="billCardRow"><span>Next Due Date</span><b id="mrOutNextDue">—</b></div>
+          <div class="billCardFoot">Generated via GymBro</div>
+        </div>
+        <button class="ctm-btn ctm-save-btn" style="width:100%;justify-content:center" onclick="downloadMemberReceipt()">⬇ Download Receipt</button>
+      </div>
+    </div>
+  </div>
+
   <div id="customThemeModal" class="custom-theme-modal-overlay">
     <div class="custom-theme-modal">
       <div class="ctm-header">
@@ -4081,17 +4170,16 @@ function getLocalTimestampString(){
   const s=String(now.getSeconds()).padStart(2,'0');
   return `${y}-${mo}-${d}T${h}:${mi}:${s}`;
 }
-/* Formats a "YYYY-MM-DDTHH:mm:ss" (no-timezone) string into a human check-in time like
-   "6:45 AM". Parsed manually via regex (not `new Date(str)`) so it can never be shifted
-   by the browser's own timezone assumptions. */
+/* Formats a Session row's created_at (a real timestamptz UTC instant) into a human check-in
+   time like "6:45 AM", converted to THIS device's local timezone. Uses real Date parsing +
+   toLocaleTimeString so it's correct regardless of which device/timezone is viewing it —
+   unlike a raw string/regex read, which would just echo back whatever timezone the value
+   happened to be written in. */
 function formatCheckInTime(tsStr){
   if(!tsStr)return'-';
-  const m=String(tsStr).match(/T(\d{2}):(\d{2})/);
-  if(!m)return'-';
-  let h=parseInt(m[1],10),mi=m[2];
-  const ampm=h>=12?'PM':'AM';
-  h=h%12;if(h===0)h=12;
-  return `${h}:${mi} ${ampm}`;
+  const dt=new Date(tsStr);
+  if(isNaN(dt.getTime()))return'-';
+  return dt.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',hour12:true});
 }
 
 /* ===================== SUPABASE + APP CORE ===================== */
@@ -4100,6 +4188,359 @@ const SUPABASE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSI
 const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 let activeWorkoutTimer=null,chronometerSeconds=0,userStatsInstanceChart=null,currentEditingIndex=null;
 let activeSessionCheckInTimestamp=null;
+let activeSessionCreatedAt=null; // created_at of the in-progress Session row (part of its composite PK)
+
+/* ===================== FEE-DUE + RECEIPT — ONE FIXED HOMEPAGE BOX (reads ONLY from this app's own
+   database — no admin project URL/key/connection anywhere in this file) =====================
+   The admin panel (admin.html) lives on a separate Supabase project for plans/fees/due-dates, but
+   this file must never hold any credentials for that project. Instead, admin.html computes each
+   member's next-due date + amount and writes them straight onto THIS SAME users row — via the
+   `next_due_date` / `next_due_amount` / `current_paid_date` columns — every time a payment is
+   collected or a due-date override is set. This app just reads those columns off the row it
+   already fetched at login, so there's zero extra network call and zero admin-side credential
+   exposure here.
+
+   Both states below share the SAME on-screen slot (#receiptBanner, dashboard homepage):
+     - DUE state: fee is due soon/today/overdue. Fixed in place — no close button and not
+       foldable — shows the plan, amount, Last Paid date, and current Due date. Re-appears
+       automatically, on every refresh, for as long as it's due, until the fee is actually paid
+       (i.e. admin records payment and next_due_date moves forward).
+     - RECEIPT state: no due pending right now AND a payment is on file. Shown in that same spot
+       as a fold/unfold card — the detail line can be hidden or revealed at will (default: revealed),
+       nothing to "download first" here since folding never removes the card. Tapping the row
+       itself (outside the fold toggle) still opens the full receipt to view/download/share. This
+       stays in place until the NEXT payment is recorded (a new current_paid_date resets the fold
+       back to its default revealed state); once the next due date arrives, the DUE state takes
+       over the same slot again — the same cycle repeats indefinitely. */
+let lastReceiptUser=null;
+function formatDisplayDate(dateStr){
+  try{
+    return new Date(dateStr+'T00:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'});
+  }catch(e){return dateStr;}
+}
+function computeFeeDueStatus(user){
+  if(!user||!user.next_due_date)return null; // no due date on file yet (e.g. legacy member not yet synced)
+  const nextDue=new Date(user.next_due_date+'T00:00:00');
+  const today=new Date(getLocalDateString()+'T00:00:00');
+  const diffDays=Math.round((nextDue-today)/86400000);
+  if(diffDays>7)return null; // not due soon enough to show yet
+  return{status:diffDays<0?'overdue':diffDays===0?'today':'soon',diffDays};
+}
+// Fold state is scoped to THIS member + THIS specific payment date, so a new payment (new
+// current_paid_date) always resets back to the default revealed state automatically.
+function receiptFoldKey(user){return`gymbro_receipt_folded_${user.login_id||'x'}_${user.current_paid_date||'x'}`;}
+function isReceiptFolded(user){return user?localStorage.getItem(receiptFoldKey(user))==='1':false;}
+function setReceiptFolded(user,folded){if(user)localStorage.setItem(receiptFoldKey(user),folded?'1':'0');}
+function setupMemberBillingBox(user){
+  lastReceiptUser=user||null;
+  const banner=document.getElementById('receiptBanner');
+  const foldBtn=document.getElementById('receiptBannerFold');
+  const arrow=document.getElementById('receiptBannerArrow');
+  const ico=document.getElementById('receiptBannerIco');
+  const body=document.getElementById('receiptBannerBody');
+  banner.classList.remove('due-soon','due-today','due-overdue');
+  if(!user){banner.style.display='none';return;}
+  const due=computeFeeDueStatus(user);
+  if(due){
+    // ---- DUE STATE: fixed, not foldable, no close button — includes Last Paid + Due Date ----
+    banner.classList.add(due.status==='overdue'?'due-overdue':due.status==='today'?'due-today':'due-soon');
+    ico.textContent=due.status==='overdue'?'⚠️':'💰';
+    const amountTxt=user.next_due_amount?('₹'+user.next_due_amount):'your membership fee';
+    document.getElementById('receiptBannerTitle').textContent=due.status==='overdue'
+      ?`Fee overdue by ${Math.abs(due.diffDays)} day${Math.abs(due.diffDays)===1?'':'s'}`
+      :due.status==='today'?'Your fee is due today'
+      :`Fee due in ${due.diffDays} day${due.diffDays===1?'':'s'}`;
+    document.getElementById('receiptBannerSub').innerHTML=
+      `<div>${escapeHtml(user.plan||'Your plan')} · ${amountTxt}</div>`+
+      `<div>Last Paid: ${user.current_paid_date?formatDisplayDate(user.current_paid_date):'—'}</div>`+
+      `<div>Due Date: ${formatDisplayDate(user.next_due_date)}</div>`+
+      `<div>Please pay at the front desk</div>`;
+    arrow.style.display='none';
+    foldBtn.style.display='none';
+    body.classList.remove('folded');
+    banner.style.display='block';
+    return;
+  }
+  // ---- No due pending: consider showing the RECEIPT state instead ----
+  if(!user.current_paid_date){banner.style.display='none';return;}
+  const paidDate=new Date(user.current_paid_date+'T00:00:00');
+  const today=new Date(getLocalDateString()+'T00:00:00');
+  const daysSince=Math.round((today-paidDate)/86400000);
+  ico.textContent='🧾';
+  document.getElementById('receiptBannerTitle').textContent=daysSince<=2?'✅ Payment received!':'🧾 Your last receipt';
+  document.getElementById('receiptBannerSub').innerHTML=`<div>Paid on ${formatDisplayDate(user.current_paid_date)} · Tap to view</div>`;
+  arrow.style.display='';
+  foldBtn.style.display='flex';
+  const folded=isReceiptFolded(user); // defaults to false (revealed) the first time each new payment is seen
+  body.classList.toggle('folded',folded);
+  foldBtn.classList.toggle('folded',folded);
+  foldBtn.textContent=folded?'▼':'▲';
+  banner.style.display='block';
+}
+function handleBillingBoxClick(){
+  // The DUE box isn't tappable (no arrow, nothing to open) — only the receipt box opens the modal.
+  if(!lastReceiptUser||computeFeeDueStatus(lastReceiptUser))return;
+  openMemberReceiptModal();
+}
+function toggleReceiptFold(e){
+  e.stopPropagation();
+  if(!lastReceiptUser)return;
+  const body=document.getElementById('receiptBannerBody');
+  const foldBtn=document.getElementById('receiptBannerFold');
+  const nowFolded=!body.classList.contains('folded');
+  body.classList.toggle('folded',nowFolded);
+  foldBtn.classList.toggle('folded',nowFolded);
+  foldBtn.textContent=nowFolded?'▼':'▲';
+  setReceiptFolded(lastReceiptUser,nowFolded);
+}
+function openMemberReceiptModal(){
+  if(!lastReceiptUser)return;
+  document.getElementById('mrOutName').textContent=lastReceiptUser.name||'—';
+  document.getElementById('mrOutLogin').textContent=lastReceiptUser.login_id?('@'+lastReceiptUser.login_id):'—';
+  document.getElementById('mrOutPlan').textContent=lastReceiptUser.plan||'—';
+  document.getElementById('mrOutAmount').textContent=lastReceiptUser.next_due_amount?('₹'+lastReceiptUser.next_due_amount):'—';
+  document.getElementById('mrOutDate').textContent=lastReceiptUser.current_paid_date?formatDisplayDate(lastReceiptUser.current_paid_date):'—';
+  document.getElementById('mrOutNextDue').textContent=lastReceiptUser.next_due_date?formatDisplayDate(lastReceiptUser.next_due_date):'—';
+  document.getElementById('memberReceiptModal').style.display='flex';
+}
+function closeMemberReceiptModal(){
+  document.getElementById('memberReceiptModal').style.display='none';
+}
+async function downloadMemberReceipt(){
+  try{
+    await document.fonts.ready; // make sure the display font is loaded before rasterizing
+    const el=document.getElementById('memberReceiptCard');
+    // The card's background is a semi-transparent gradient (by design, so it blends with the
+    // modal). It needs an OPAQUE backdrop matching the modal's own (theme-aware) background to
+    // composite correctly — a transparent canvas is what made downloaded receipts look washed-out
+    // compared to what's shown on screen.
+    const modalEl=document.querySelector('#memberReceiptModal .custom-theme-modal');
+    const modalBg=modalEl?getComputedStyle(modalEl).backgroundColor:'#ffffff';
+    const canvas=await html2canvas(el,{backgroundColor:modalBg||'#ffffff',scale:2,useCORS:true});
+    const link=document.createElement('a');
+    const u=lastReceiptUser||{};
+    link.download=`Receipt_${u.login_id||'member'}_${u.current_paid_date||''}.png`;
+    link.href=canvas.toDataURL('image/png');
+    link.click();
+    showToast('✅ Receipt downloaded successfully.');
+  }catch(e){console.warn('Could not generate receipt image:',e);}
+}
+
+/* ===================== SESSION TABLE DATA-ACCESS LAYER =====================
+   Unified replacement for the old separate "attendance" + "workouts" tables.
+   Schema: public."Session" (user_id, date, class, duration, workouts jsonb, created_at)
+   PK = (user_id, date, created_at) — so a user can legitimately have MORE THAN ONE
+   row for the same date (rare: 2 sessions in a day). Every read/write helper below
+   is written to be safe under that assumption — never assume a single row per date.
+
+   - "class"    : comma-joined CLASS CODES (see encodeClassName/decodeClassCode below), e.g. "1,2"
+                  decodes back to "Chest, Biceps". Old Morning/Evening "session" slot label is no
+                  longer persisted — multiple sessions in a day are distinguished by created_at.
+   - "duration" : same text format as before ("1Hr 20min" / "45min" / "In Progress|<ISO>")
+   - "workouts" : jsonb ARRAY of compact "<exerciseCode-or-customName>:<sets>" STRINGS, one per
+                  exercise logged, e.g. ["11:5Kg x15,5Kg x12,5Kg x12", "Custom Move:5Kg x10"].
+                  Catalog exercises are stored as their numeric CODE (1-based index into
+                  EXERCISE_CATALOG — see encodeExerciseName/decodeExerciseCode below) to keep rows
+                  tiny; exercises not in the catalog (custom, user-added) fall back to their literal
+                  name since they have no stable code. This replaces the old workout_1..workout_15
+                  text columns.
+   - Presence   : a Session row existing for a date = attended/Present that day.
+                  No row = Absent (Rest Day remains the existing client-side/localStorage
+                  concept and is untouched by this layer).
+   - Robustness : every reader below normalizes "workouts" through sessionWorkoutsArray() and
+                  decodes entries through sessionDecodeWorkoutEntry(), both of which tolerate
+                  legacy/malformed shapes (a stray single object instead of an array, an
+                  un-parsed JSON string, null, or an old-format {name,sets} object) instead of
+                  throwing — bad/old rows self-heal the next time they're saved.
+============================================================================ */
+const SESSION_TABLE="Session";
+
+/* ---- Compact code lookup for exercise names (built lazily off EXERCISE_CATALOG, 1-based index) ---- */
+let _exerciseCodeMap=null,_exerciseCodeList=null;
+function _ensureExerciseCodeMaps(){
+  if(_exerciseCodeMap)return;
+  _exerciseCodeMap={};_exerciseCodeList=[];
+  EXERCISE_CATALOG.forEach((e,idx)=>{
+    _exerciseCodeList[idx]=e.name;
+    const key=e.name.trim().toLowerCase();
+    if(!(key in _exerciseCodeMap))_exerciseCodeMap[key]=String(idx+1); // first occurrence wins for any duplicate names
+  });
+}
+/* Catalog exercise → its numeric code (as a string); non-catalog (custom) names pass through unchanged. */
+function encodeExerciseName(name){
+  _ensureExerciseCodeMaps();
+  const trimmed=(name||'').trim();
+  const key=trimmed.toLowerCase();
+  return(key&&_exerciseCodeMap[key])?_exerciseCodeMap[key]:trimmed;
+}
+/* Numeric code → full catalog exercise name; anything non-numeric is returned as-is (custom name). */
+function decodeExerciseCode(codeOrName){
+  _ensureExerciseCodeMaps();
+  const s=(codeOrName||'').trim();
+  if(/^\d+$/.test(s)){
+    const idx=parseInt(s,10)-1;
+    if(idx>=0&&idx<_exerciseCodeList.length)return _exerciseCodeList[idx];
+  }
+  return s;
+}
+
+/* ---- Compact code lookup for class/muscle names (built lazily off WORKOUT_CLASSES, 1-based index) ---- */
+let _classCodeMap=null,_classCodeList=null;
+function _ensureClassCodeMaps(){
+  if(_classCodeMap)return;
+  _classCodeMap={};_classCodeList=[];
+  WORKOUT_CLASSES.forEach((c,idx)=>{
+    _classCodeList[idx]=c;
+    _classCodeMap[c.trim().toLowerCase()]=String(idx+1);
+  });
+}
+function encodeClassName(name){
+  _ensureClassCodeMaps();
+  const trimmed=(name||'').trim();
+  const key=trimmed.toLowerCase();
+  return(key&&_classCodeMap[key])?_classCodeMap[key]:trimmed;
+}
+function decodeClassCode(codeOrName){
+  _ensureClassCodeMaps();
+  const s=(codeOrName||'').trim();
+  if(/^\d+$/.test(s)){
+    const idx=parseInt(s,10)-1;
+    if(idx>=0&&idx<_classCodeList.length)return _classCodeList[idx];
+  }
+  return s;
+}
+
+/* Build the "class" text field (comma-joined CODES) from an array of selected class/muscle names. */
+function sessionBuildClassField(classNames){return(classNames||[]).filter(Boolean).map(encodeClassName).join(',')}
+/* Parse the "class" text field back into an array of readable class/muscle names. */
+function sessionParseClassField(classField){return(classField||'').split(',').map(s=>s.trim()).filter(Boolean).map(decodeClassCode)}
+
+/* Always returns a real, safe array for a Session row's "workouts" field — tolerates it being
+   a proper array (normal case), a single stray object (malformed row), a not-yet-parsed JSON
+   string, or null/undefined. This is the fix for the "(row.workouts||[]).forEach is not a
+   function" crash: any row that isn't already a clean array is recovered instead of throwing. */
+function sessionWorkoutsArray(row){
+  const w=row&&row.workouts;
+  if(Array.isArray(w))return w;
+  if(w==null)return[];
+  if(typeof w==='string'){
+    try{const parsed=JSON.parse(w);return Array.isArray(parsed)?parsed:(parsed?[parsed]:[]);}catch(e){return[];}
+  }
+  if(typeof w==='object')return[w]; // a single entry saved without its array wrapper
+  return[];
+}
+/* Decodes one workout entry — whether it's the new compact "<code>:<sets>" string or an old-format
+   {name,sets} object left over from a previous save — into a consistent {name,sets} pair. */
+function sessionDecodeWorkoutEntry(entry){
+  if(!entry)return{name:'',sets:''};
+  if(typeof entry==='object'){
+    return{name:decodeExerciseCode((entry.name||'').trim())||(entry.name||'').trim(),sets:(entry.sets||'').trim()};
+  }
+  const s=String(entry);
+  const idx=s.indexOf(':');
+  if(idx===-1)return{name:decodeExerciseCode(s.trim()),sets:''};
+  return{name:decodeExerciseCode(s.substring(0,idx).trim()),sets:s.substring(idx+1).trim()};
+}
+/* Build a compact "<exerciseCode-or-name>:<sets>" string to store in the workouts jsonb array. */
+function sessionMakeWorkoutEntry(name,sets){return`${encodeExerciseName(name)}:${(sets||'').trim()}`}
+/* Total volume (kg·reps) for one workout entry, whichever shape it's stored in. */
+function sessionWorkoutEntryVolume(entry){const d=sessionDecodeWorkoutEntry(entry);return d.sets?parseWorkoutVolume('x:'+d.sets):0}
+/* Render any workout entry back to the old "Name: sets" display string (used everywhere the UI
+   expects the combined text format — extractClassFromWorkoutName, parseWorkoutVolume, etc). */
+function sessionWorkoutEntryToText(entry){const d=sessionDecodeWorkoutEntry(entry);if(!d.name)return'';return d.sets?`${d.name}: ${d.sets}`:d.name}
+
+/* Accumulates one Session row's workouts jsonb array into a day-bucket {volume,workouts:[{name,vol}...]}
+   — "name" here is the FULL "ExerciseName: sets" text (matches the old workout_N text-column convention)
+   so every downstream consumer (extractClassFromWorkoutName, buildDayClassVolume, day-drilldown UI, etc.)
+   keeps working unchanged regardless of the underlying compact storage shape. */
+function _accumulateSessionRowVolume(bucket,row){
+  sessionWorkoutsArray(row).forEach(entry=>{
+    const text=sessionWorkoutEntryToText(entry);
+    if(!text||!text.trim())return;
+    const vol=sessionWorkoutEntryVolume(entry);
+    bucket.volume+=vol;
+    bucket.workouts.push({name:text,vol});
+  });
+}
+
+/* Insert a new Session row. payload: {user_id,date,class,duration,workouts,created_at?} */
+async function sessionInsert(payload){
+  const row={user_id:payload.user_id,date:payload.date,class:payload.class||'',duration:payload.duration||'',workouts:payload.workouts||[]};
+  if(payload.created_at)row.created_at=payload.created_at;
+  return await db.from(SESSION_TABLE).insert([row]).select();
+}
+/* Update a specific Session row, identified by its full composite key. patch: partial fields. */
+async function sessionUpdateByKey(uid,date,createdAt,patch){
+  return await db.from(SESSION_TABLE).update(patch).eq('user_id',uid).eq('date',date).eq('created_at',createdAt);
+}
+/* Delete a specific Session row, identified by its full composite key. */
+async function sessionDeleteByKey(uid,date,createdAt){
+  return await db.from(SESSION_TABLE).delete().eq('user_id',uid).eq('date',date).eq('created_at',createdAt);
+}
+/* All Session rows for a user on one date (usually 0 or 1, occasionally 2). */
+async function sessionFetchByUserDate(uid,date){
+  const{data,error}=await db.from(SESSION_TABLE).select('*').eq('user_id',uid).eq('date',date).order('created_at',{ascending:true});
+  return{data:data||[],error};
+}
+/* All Session rows for a user across an inclusive date range, oldest→newest by default. */
+async function sessionFetchRange(uid,startStr,endStr,ascending=true){
+  return await db.from(SESSION_TABLE).select('*').eq('user_id',uid).gte('date',startStr).lte('date',endStr).order('date',{ascending}).order('created_at',{ascending:true});
+}
+/* All Session rows for a user, most recent first (mirrors old "all attendance history" queries). */
+async function sessionFetchAllForUser(uid,ascending=false){
+  return await db.from(SESSION_TABLE).select('*').eq('user_id',uid).order('date',{ascending}).order('created_at',{ascending:true});
+}
+/* Find the currently in-progress (checked-in, not yet checked-out) Session row for a user/date, if any. */
+async function sessionFindInProgress(uid,date){
+  const{data,error}=await db.from(SESSION_TABLE).select('*').eq('user_id',uid).eq('date',date).like('duration','In Progress|%').order('created_at',{ascending:false}).limit(1);
+  return{data:data||[],error};
+}
+/* Fetch one specific Session row by its full composite key (fresh read, avoids acting on stale data). */
+async function sessionFetchRowByKey(uid,date,createdAt){
+  const{data}=await db.from(SESSION_TABLE).select('*').eq('user_id',uid).eq('date',date).eq('created_at',createdAt).maybeSingle();
+  return data||null;
+}
+/* Track Workout / manual logging needs SOME Session row to attach entries to for a given date.
+   If one or more rows already exist for that date, the most recently created one is used (the
+   most likely "active" session); otherwise a fresh blank row is created. */
+async function sessionGetOrCreateTargetRow(uid,date){
+  const{data}=await sessionFetchByUserDate(uid,date);
+  if(data&&data.length)return data[data.length-1];
+  const localCreatedAt=new Date().toISOString();
+  const{data:inserted}=await sessionInsert({user_id:uid,date,class:'',duration:'',workouts:[],created_at:localCreatedAt});
+  return(inserted&&inserted[0])?inserted[0]:{user_id:uid,date,class:'',duration:'',workouts:[],created_at:localCreatedAt};
+}
+/* Create or update a single compact workout entry within a Session row's "workouts" jsonb array.
+   slotRef: null (create a new entry, appended to the target row) OR {rowCreatedAt,idx} (overwrite an
+   existing entry in place — used both for saving in-progress live sets and for editing a saved entry).
+   Returns the resulting slotRef, or null if the target row's 15-entry capacity is full. */
+async function sessionUpsertWorkoutEntry(uid,date,slotRef,entry){
+  if(slotRef&&slotRef.rowCreatedAt){
+    const row=await sessionFetchRowByKey(uid,date,slotRef.rowCreatedAt);
+    if(row){
+      const arr=sessionWorkoutsArray(row).slice();
+      arr[slotRef.idx]=entry;
+      await sessionUpdateByKey(uid,date,slotRef.rowCreatedAt,{workouts:arr});
+      return slotRef;
+    }
+  }
+  const row=await sessionGetOrCreateTargetRow(uid,date);
+  const arr=sessionWorkoutsArray(row).slice();
+  if(arr.length>=15)return null; // capacity reached for this session
+  const idx=arr.length;
+  arr.push(entry);
+  await sessionUpdateByKey(uid,date,row.created_at,{workouts:arr});
+  return{rowCreatedAt:row.created_at,idx};
+}
+/* Delete a single workout entry (by its resolved {rowCreatedAt,idx}) from its Session row's array. */
+async function sessionDeleteWorkoutEntry(uid,date,slotRef){
+  if(!slotRef||!slotRef.rowCreatedAt)return;
+  const row=await sessionFetchRowByKey(uid,date,slotRef.rowCreatedAt);
+  if(!row)return;
+  const arr=sessionWorkoutsArray(row).slice();
+  arr.splice(slotRef.idx,1);
+  await sessionUpdateByKey(uid,date,slotRef.rowCreatedAt,{workouts:arr});
+}
 
 const RANK_TIERS=[
   {name:'BEGINNER',emoji:'🥋',min:0,max:500},{name:'INTERMEDIATE',emoji:'🥊',min:501,max:1500},
@@ -4410,14 +4851,23 @@ function getExerciseClass(nameRaw){
     const base=nameRaw.replace(/\s*\([^)]+\)\s*$/,'').trim().toLowerCase();
     found=EXERCISE_CATALOG.find(e=>e.name.replace(/\s*\([^)]+\)\s*$/,'').trim().toLowerCase()===base);
   }
-  return found&&found.class!=='multi'?found.class:'Unknown';
+  if(found&&found.class!=='multi')return found.class;
+  // Not a built-in catalog exercise — fall back to the person's own saved custom-exercise registry
+  // (matched by base name, "(Equipment)" suffix stripped) so a custom exercise's designated Class
+  // resolves everywhere the catalog's does: Volume page, Tracker filtering, Learn page, etc.
+  const base=nameRaw.replace(/\s*\([^)]+\)\s*$/,'').trim().toLowerCase();
+  const custom=getCustomExerciseCatalog().find(c=>c.name.toLowerCase()===base);
+  return (custom&&custom.class)?custom.class:'Unknown';
 }
 /* Strip "(Equipment)" (or legacy "(Class)") suffix from exercise name for display/storage */
 function stripExerciseClass(name){return name.replace(/\s*\([^)]+\)\s*$/, '').trim();}
 /* Same lookup pattern as getExerciseClass(), but for the Equipment tag */
 function getExerciseEquipment(nameRaw){
   const found=EXERCISE_CATALOG.find(e=>e.name===nameRaw||e.name.replace(/\s*\([^)]+\)/,'').trim()===nameRaw);
-  return found?found.equipment:'Unknown';
+  if(found)return found.equipment;
+  const base=nameRaw.replace(/\s*\([^)]+\)\s*$/,'').trim().toLowerCase();
+  const custom=getCustomExerciseCatalog().find(c=>c.name.toLowerCase()===base);
+  return (custom&&custom.equipment)?custom.equipment:'Unknown';
 }
 /* True bodyweight-only exercises (Push Up, Pull Up, Squat, etc.) need no external Kg entry — only
    Reps. "Weighted ..." bodyweight variants (e.g. "Weighted Pull Up (Bodyweight)") are excluded here
@@ -4531,15 +4981,14 @@ async function loadExerciseFrequencyMap(){
   const map={};
   if(uid){
     try{
-      const{data}=await db.from("workouts").select("*").eq("user_id",uid);
+      const{data}=await db.from(SESSION_TABLE).select("workouts").eq("user_id",uid);
       if(data){
         data.forEach(row=>{
-          for(let ci=1;ci<=15;ci++){
-            const cell=row[`workout_${ci}`];
-            if(!cell||!cell.trim())continue;
-            const exName=cell.includes(':')?cell.substring(0,cell.indexOf(':')).trim():cell.trim();
+          sessionWorkoutsArray(row).forEach(entry=>{
+            const exName=sessionDecodeWorkoutEntry(entry).name;
+            if(!exName)return;
             map[exName]=(map[exName]||0)+1;
-          }
+          });
         });
       }
     }catch(e){console.log('[ExerciseFreq] load failed',e);}
@@ -4558,7 +5007,7 @@ async function loadExerciseFrequencyMap(){
    accessory and bodyweight variants come last. This is deliberately NOT re-sorted by the current
    user's personal log frequency, so picking a muscle always surfaces the same popular-first list
    instead of whatever that one person happens to have logged the most. */
-function ctmGetFilteredCatalog(muscleVal,equipmentVal,textVal,includeMulti){
+function ctmGetFilteredCatalog(muscleVal,equipmentVal,textVal,includeMulti,includeCustom){
   const classes=ctmMuscleClassesFor(muscleVal);
   const text=(textVal||'').toLowerCase().trim();
   let list=EXERCISE_CATALOG.filter(e=>{
@@ -4574,6 +5023,24 @@ function ctmGetFilteredCatalog(muscleVal,equipmentVal,textVal,includeMulti){
     if(text&&!e.name.toLowerCase().includes(text))return false;
     return true;
   });
+  // Merge in the person's own previously-saved custom exercises (default ON — pass includeCustom=false
+  // to opt out, e.g. for pickers unrelated to Workout Entry/Tracking such as the Learn page). A custom
+  // exercise with no remembered Class only matches when no Muscle filter is active (an "Unknown"-class
+  // exercise has nothing to match a specific muscle against); Equipment/text filters apply normally.
+  if(includeCustom!==false){
+    const customList=getCustomExerciseCatalog().filter(c=>{
+      if(classes){if(!c.class||!classes.includes(c.class))return false;}
+      if(equipmentVal&&c.equipment!==equipmentVal)return false;
+      if(text&&!c.name.toLowerCase().includes(text))return false;
+      return true;
+    }).map(c=>{
+      const hasEq=c.equipment&&c.equipment!=='Unknown';
+      // Display name carries "(Equipment)" just like every built-in catalog exercise — Class is kept
+      // as a separate field (see finalizeCustomExerciseName / getExerciseClass) rather than in the name.
+      return{name:hasEq?`${c.name} (${c.equipment})`:c.name,baseName:c.name,class:c.class||'Unknown',equipment:c.equipment||'Unknown',isCustom:true};
+    });
+    list=list.concat(customList);
+  }
   return list;
 }
 function _unusedFreqSort(list){
@@ -4689,6 +5156,9 @@ async function mountMemberDashboard(data,initialTab){
   loadExerciseFrequencyMap();
   // Check for pending follow requests (for private accounts) — show pop-up notification
   setTimeout(checkIncomingFollowRequests,2000);
+  // Show the fixed homepage billing box — fee-due notice (non-cancellable) OR, if nothing is due,
+  // the last payment receipt (cancellable only once downloaded). Same slot, same logic every load.
+  setupMemberBillingBox(data);
 }
 
 /* ===================== AUTO-RESTORE SESSION ON PAGE LOAD ===================== */
@@ -4719,15 +5189,17 @@ window.addEventListener('load', async function(){
 /* ===================== RESUME ACTIVE SESSION ON LOGIN ===================== */
 async function resumeActiveSession(uid){
   const today=getLocalDateString();
-  const{data,error}=await db.from("attendance").select("*").eq("user_id",uid).eq("attendance_date",today).like("duration","In Progress|%").order("created_at",{ascending:false}).limit(1);
+  const{data,error}=await sessionFindInProgress(uid,today);
   if(error||!data||data.length===0)return;
   const row=data[0];const parts=row.duration.split('|');const checkInISO=parts[1]||null;if(!checkInISO)return;
   const checkInTime=new Date(checkInISO);if(isNaN(checkInTime.getTime()))return;
   activeSessionCheckInTimestamp=checkInISO;
+  activeSessionCreatedAt=row.created_at;
   const elapsedMs=Date.now()-checkInTime.getTime();chronometerSeconds=Math.max(0,Math.floor(elapsedMs/1000));
   const btn=document.getElementById("submitCheckinBtn");btn.disabled=true;btn.textContent="✅ CHECKED IN — WORKOUT IN PROGRESS";
-  const sessionSel=document.getElementById("session");
-  if(row.session){Array.from(sessionSel.options).forEach(o=>{if(o.value===row.session)o.selected=true})}
+  const workoutSel=document.getElementById("workout");
+  const restoredClasses=sessionParseClassField(row.class);
+  if(workoutSel&&restoredClasses.length)Array.from(workoutSel.options).forEach(o=>{if(restoredClasses.includes(o.value))o.selected=true});
   document.getElementById("clockBox").classList.add("visible");document.getElementById("workoutSelectorArea").classList.add("visible");
   const existingBanner=document.getElementById("resumedBanner");
   if(!existingBanner){
@@ -5326,17 +5798,17 @@ async function renderTodayWorkoutBanner(){
   // (e.g. today is 15 Jul — this shows 14 Jul if it has data, otherwise the closest earlier date).
   let lastClasses=[],lastClassDate=null;
   if(uid){
-    const{data}=await db.from('attendance').select('attendance_date,workout').eq('user_id',uid).eq('status','Present').order('attendance_date',{ascending:false}).limit(60);
+    const{data}=await db.from(SESSION_TABLE).select('date,class').eq('user_id',uid).order('date',{ascending:false}).limit(60);
     if(data&&data.length){
       const todayStr=getLocalDateString();
       for(const row of data){
-        if(row.attendance_date>=todayStr)continue; // skip today itself — we only look at PAST check-ins
-        if(!row.workout||!row.workout.trim())continue;
-        const loggedClasses=row.workout.split(',').map(s=>s.trim()).filter(Boolean);
+        if(row.date>=todayStr)continue; // skip today itself — we only look at PAST check-ins
+        if(!row.class||!row.class.trim())continue;
+        const loggedClasses=sessionParseClassField(row.class);
         const matched=loggedClasses.filter(c=>allClasses.includes(c));
         if(!matched.length)continue;
         lastClasses=matched;
-        lastClassDate=row.attendance_date;
+        lastClassDate=row.date;
         break;
       }
     }
@@ -5502,10 +5974,10 @@ async function switchMemberTab(id){
 /* ===================== STREAK ALGORITHM ===================== */
 async function syncCoreDashboardMetrics(){
   let uid=localStorage.getItem("user_id");if(!uid)return;
-  const{data:attData,error}=await db.from("attendance").select("*").eq("user_id",uid).order("attendance_date",{ascending:false});
+  const{data:attData,error}=await sessionFetchAllForUser(uid,false);
   if(error){console.error(error);return}
   let presentDates=new Set();
-  if(attData)attData.forEach(r=>{if(r.status&&r.status.toLowerCase()==='present')presentDates.add(r.attendance_date)});
+  if(attData)attData.forEach(r=>presentDates.add(r.date));
 
   // Streak logic: count consecutive days.
   // Rule: streak counts completed days up through yesterday, plus today if checked in.
@@ -5529,18 +6001,17 @@ async function syncCoreDashboardMetrics(){
   let wt=0;
   if(attData){
     let now=new Date(),dow=now.getDay(),mon=new Date(now);mon.setDate(now.getDate()-((dow+6)%7));mon.setHours(0,0,0,0);
-    attData.forEach(r=>{if(new Date(r.attendance_date)>=mon&&r.status==="Present")wt+=parseDurationToMinutes(r.duration)});
+    attData.forEach(r=>{if(new Date(r.date)>=mon)wt+=parseDurationToMinutes(r.duration)});
   }
   document.getElementById("weekMinutes").innerText=formatMinutesToHoursText(wt);
   let mci=0,mw=0;
   if(attData){
     let now=new Date(),som=new Date(now.getFullYear(),now.getMonth(),1);
-    attData.forEach(r=>{let rd=new Date(r.attendance_date);if(rd>=som&&r.status==="Present"){mci++;if(r.workout)mw+=r.workout.split(",").length}});
+    attData.forEach(r=>{let rd=new Date(r.date);if(rd>=som){mci++;if(r.class)mw+=sessionParseClassField(r.class).length}});
   }
   document.getElementById("totalWorkout").innerText=mw;document.getElementById("checkinsMonth").innerText=mci;
   let xp=mci*50;
-  const{data:wd}=await db.from("workouts").select("*").eq("user_id",uid);
-  if(wd)wd.forEach(row=>{for(let i=1;i<=15;i++)if(row[`workout_${i}`])xp+=calculateVolumeXP(row[`workout_${i}`])});
+  if(attData)attData.forEach(row=>{sessionWorkoutsArray(row).forEach(entry=>{xp+=calculateVolumeXP(sessionWorkoutEntryToText(entry))})});
   const prevXP=parseInt(localStorage.getItem('gymbro_xp')||'0');localStorage.setItem('gymbro_xp',xp);
   updateXPDisplay(xp);
   document.getElementById("postCount").textContent=mw;
@@ -5582,14 +6053,16 @@ function toggleMuscleFromBody(regionId){
 
 /* ===================== CHECK-IN ===================== */
 async function processCheckIn(){
-  let uid=localStorage.getItem("user_id"),session=document.getElementById("session").value;
+  let uid=localStorage.getItem("user_id");
   let today=getLocalDateString();if(!uid)return;
-  const{data:ex}=await db.from("attendance").select("*").eq("user_id",uid).eq("attendance_date",today).eq("session",session);
-  if(ex&&ex.length>0){alert(`Already checked in for ${session} today.`);return}
+  const{data:ex}=await sessionFetchByUserDate(uid,today);
+  if(ex&&ex.some(r=>r.duration&&r.duration.startsWith("In Progress|"))){alert("You already have an active session in progress today.");return}
+  if(ex&&ex.length>=2){alert("Maximum 2 sessions per day reached.");return}
   const checkInISO=new Date().toISOString();activeSessionCheckInTimestamp=checkInISO;
-  const localCreatedAt=getLocalTimestampString();
-  const{error}=await db.from("attendance").insert([{user_id:uid,attendance_date:today,session,workout:"",status:"Present",duration:`In Progress|${checkInISO}`,created_at:localCreatedAt}]);
+  const localCreatedAt=new Date().toISOString();
+  const{data:inserted,error}=await sessionInsert({user_id:uid,date:today,class:"",duration:`In Progress|${checkInISO}`,workouts:[],created_at:localCreatedAt});
   if(error){alert(error.message);return}
+  activeSessionCreatedAt=(inserted&&inserted[0]&&inserted[0].created_at)||localCreatedAt;
   const btn=document.getElementById("submitCheckinBtn");btn.disabled=true;btn.textContent="✅ CHECKED IN — WORKOUT IN PROGRESS";
   chronometerSeconds=0;document.getElementById("clockBox").classList.add("visible");
   const banner=document.getElementById("resumedBanner");if(banner)banner.remove();
@@ -5615,12 +6088,16 @@ async function processCheckOut(){
   let fmt=hrs>0?`${hrs}Hr ${mins}min`:`${mins}min`;
   let sel=document.getElementById("workout");let selectedClasses=Array.from(sel.options).filter(o=>o.selected).map(o=>o.value);
   if(selectedClasses.length===0){alert("Please select at least one workout class before checking out.");return}
-  let workoutStr=selectedClasses.join(", ");
+  let workoutStr=sessionBuildClassField(selectedClasses);
   document.getElementById("gymDuration").innerText=`Today you spent ${hrs>0?hrs+'Hr ':''} ${mins}min at the gym 💪`;
-  let uid=localStorage.getItem("user_id"),today=getLocalDateString(),session=document.getElementById("session").value;
-  const{data:lr}=await db.from("attendance").select("id").eq("user_id",uid).eq("attendance_date",today).eq("session",session).like("duration","In Progress|%").order("created_at",{ascending:false}).limit(1);
-  if(lr&&lr.length>0)await db.from("attendance").update({duration:fmt,workout:workoutStr}).eq("id",lr[0].id);
-  activeSessionCheckInTimestamp=null;
+  let uid=localStorage.getItem("user_id"),today=getLocalDateString();
+  let createdAtKey=activeSessionCreatedAt;
+  if(!createdAtKey){
+    const{data:lr}=await sessionFindInProgress(uid,today);
+    if(lr&&lr.length>0)createdAtKey=lr[0].created_at;
+  }
+  if(createdAtKey)await sessionUpdateByKey(uid,today,createdAtKey,{duration:fmt,class:workoutStr});
+  activeSessionCheckInTimestamp=null;activeSessionCreatedAt=null;
   document.getElementById("clockBox").classList.remove("visible");document.getElementById("workoutSelectorArea").classList.remove("visible");
   const btn=document.getElementById("submitCheckinBtn");btn.disabled=false;btn.textContent="⚡ SUBMIT CHECK-IN (+50 XP)";
   Array.from(sel.options).forEach(o=>o.selected=false);document.querySelectorAll(".muscle-group").forEach(el=>el.style.fill="var(--muscle-idle)");
@@ -5700,7 +6177,7 @@ function toggleRestDayForDate(dateKey){
   const overrides=_getRestOverrides(uid);
   const restSettings=_getRestSettings(uid);
   const data=window.cachedAttendance||[];
-  const presentSet=new Set(data.filter(r=>r.status==='Present').map(r=>r.attendance_date));
+  const presentSet=new Set(data.map(r=>r.date));
   const dt=new Date(dateKey+'T00:00:00');
   const current=_resolveDayStatus(dt,presentSet,overrides,restSettings);
   if(current==='present')return;
@@ -5735,7 +6212,7 @@ function renderMonthCounts(year,month){
   const overrides=_getRestOverrides(uid);
   const restSettings=_getRestSettings(uid);
   const data=window.cachedAttendance||[];
-  const presentSet=new Set(data.filter(r=>r.status==='Present').map(r=>r.attendance_date));
+  const presentSet=new Set(data.map(r=>r.date));
   const lastDay=new Date(year,month+1,0).getDate();
   const todayMid=new Date();todayMid.setHours(0,0,0,0);
   let counts={present:0,rest:0,absent:0};
@@ -5758,9 +6235,9 @@ function _monthDayList(status){
   const overrides=_getRestOverrides(uid);
   const restSettings=_getRestSettings(uid);
   const data=window.cachedAttendance||[];
-  const presentSet=new Set(data.filter(r=>r.status==='Present').map(r=>r.attendance_date));
+  const presentSet=new Set(data.map(r=>r.date));
   const rowsByDate={};
-  data.forEach(r=>{if(r.status==='Present'){(rowsByDate[r.attendance_date]=rowsByDate[r.attendance_date]||[]).push(r)}});
+  data.forEach(r=>{(rowsByDate[r.date]=rowsByDate[r.date]||[]).push(r)});
   const lastDay=new Date(year,month+1,0).getDate();
   const todayMid=new Date();todayMid.setHours(0,0,0,0);
   let list=[];
@@ -5822,7 +6299,7 @@ function openHistStatusModal(status){
 
 async function loadAttendanceHistoryRecords(){
   let uid=localStorage.getItem("user_id");
-  const{data,error}=await db.from("attendance").select("*").eq("user_id",uid).order("attendance_date",{ascending:false});
+  const{data,error}=await sessionFetchAllForUser(uid,false);
   if(error)return;window.cachedAttendance=data;initHistoryMonthDropdown();
   histWeekAnchor=getMonday(new Date());
   {const n=new Date();_histLastMonthYM={year:n.getFullYear(),month:n.getMonth()};}
@@ -5840,13 +6317,13 @@ function renderAttendanceHistory(){
   const uid=settingsUid();
   const overrides=_getRestOverrides(uid);
   const restSettings=_getRestSettings(uid);
-  const presentSet=new Set(data.filter(r=>r.status==='Present').map(r=>r.attendance_date));
+  const presentSet=new Set(data.map(r=>r.date));
 
   let tbody=document.getElementById("historyTable");tbody.innerHTML="";
-  // Real attendance rows that fall inside the visible Mon–Sun week
-  let weekRows=data.filter(row=>{let d=new Date(row.attendance_date);return weekDates.some(wd=>sameDay(wd,d))});
-  const datesWithEntry=new Set(weekRows.map(row=>_fmtISODate(new Date(row.attendance_date))));
-  // Any past/today date in this week with NO attendance row at all is resolved to Rest Day or Absent
+  // Real Session rows that fall inside the visible Mon–Sun week
+  let weekRows=data.filter(row=>{let d=new Date(row.date);return weekDates.some(wd=>sameDay(wd,d))});
+  const datesWithEntry=new Set(weekRows.map(row=>_fmtISODate(new Date(row.date))));
+  // Any past/today date in this week with NO Session row at all is resolved to Rest Day or Absent
   // (future dates are left blank — the day hasn't happened yet, so it isn't a missed check-in).
   const todayMid=new Date();todayMid.setHours(0,0,0,0);
   weekDates.forEach(dt=>{
@@ -5855,12 +6332,16 @@ function renderAttendanceHistory(){
     if(datesWithEntry.has(key))return;
     const status=_resolveDayStatus(dt,presentSet,overrides,restSettings); // 'rest' | 'absent'
     const isPending=dt.getTime()===todayMid.getTime()&&status==='absent'; // today, not checked in yet — not final until the day ends (doesn't apply to default Rest Days)
-    weekRows.push({attendance_date:key,_placeholderStatus:status,_pending:isPending});
+    weekRows.push({date:key,_placeholderStatus:status,_pending:isPending});
   });
-  // Keep newest-first order, matching the original query sort
-  weekRows.sort((a,b)=>new Date(b.attendance_date)-new Date(a.attendance_date));
+  // Keep newest-first order, matching the original query sort (ties on the same date ordered by
+  // created_at ascending, so Session 1 / Session 2 for a same-day double session stay in order).
+  weekRows.sort((a,b)=>{const dc=new Date(b.date)-new Date(a.date);if(dc!==0)return dc;return new Date(a.created_at||0)-new Date(b.created_at||0)});
+  // Label same-day rows "Session 1" / "Session 2" (rare double-session days) since the old
+  // Morning/Evening slot is no longer persisted.
+  const _sessionOrdinal={};
   weekRows.forEach(row=>{
-    let d=new Date(row.attendance_date);
+    let d=new Date(row.date);
     let dn=d.toLocaleDateString('en-US',{weekday:'short'}),ds=d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
     let tr=document.createElement("tr");
     if(row._placeholderStatus){
@@ -5872,14 +6353,16 @@ function renderAttendanceHistory(){
       const isRest=row._placeholderStatus==='rest';
       const badgeCls=isRest?'rest':'absent',badgeTxt=isRest?'Rest Day':'Absent';
       const editTitle=isRest?'Change to Absent':'Change to Rest Day';
-      tr.innerHTML=`<td>${ds}, ${dn}</td><td><span class="badge ${badgeCls}" style="cursor:pointer" onclick="this.nextElementSibling.style.display=(this.nextElementSibling.style.display==='inline-block'?'none':'inline-block')" title="Tap to edit">${badgeTxt}</span> <button class="hist-edit-btn" style="display:none" onclick="toggleRestDayForDate('${row.attendance_date}')" title="${editTitle}">✏️</button></td><td style="font-size:12px">-</td><td>-</td><td style="font-size:11px;max-width:120px">-</td><td style="font-size:12px">-</td>`;
+      tr.innerHTML=`<td>${ds}, ${dn}</td><td><span class="badge ${badgeCls}" style="cursor:pointer" onclick="this.nextElementSibling.style.display=(this.nextElementSibling.style.display==='inline-block'?'none':'inline-block')" title="Tap to edit">${badgeTxt}</span> <button class="hist-edit-btn" style="display:none" onclick="toggleRestDayForDate('${row.date}')" title="${editTitle}">✏️</button></td><td style="font-size:12px">-</td><td>-</td><td style="font-size:11px;max-width:120px">-</td><td style="font-size:12px">-</td>`;
       tbody.appendChild(tr);
       return;
     }
-    let sc=row.status==="Present"?"present":"absent";
+    _sessionOrdinal[row.date]=(_sessionOrdinal[row.date]||0)+1;
+    const sessionLabel=_sessionOrdinal[row.date]>1||weekRows.filter(r=>r.date===row.date&&!r._placeholderStatus).length>1?`Session ${_sessionOrdinal[row.date]}`:'-';
+    let sc="present";
     let displayDuration=row.duration||'-';if(displayDuration.startsWith("In Progress|"))displayDuration="In Progress ⏱";
     let checkInTime=formatCheckInTime(row.created_at);
-    tr.innerHTML=`<td>${ds}, ${dn}</td><td><span class="badge ${sc}">${row.status||'Absent'}</span></td><td style="font-size:12px">${checkInTime}</td><td>${row.session||'-'}</td><td style="font-size:11px;max-width:120px">${row.workout||'-'}</td><td style="font-size:12px">${displayDuration}</td>`;
+    tr.innerHTML=`<td>${ds}, ${dn}</td><td><span class="badge ${sc}">Present</span></td><td style="font-size:12px">${checkInTime}</td><td>${sessionLabel}</td><td style="font-size:11px;max-width:120px">${sessionParseClassField(row.class).join(', ')||'-'}</td><td style="font-size:12px">${displayDuration}</td>`;
     tbody.appendChild(tr);
   });
   if(tbody.children.length===0)tbody.innerHTML=`<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:20px;font-family:var(--font-alt)">No records for this filter.</td></tr>`;
@@ -6431,7 +6914,7 @@ function _computeTrainedExtremes(countMap,mode){
 async function updateStatsChart(){
   if(durRangeMode!=='weekly'){await updateDurationLineChart();return}
   let uid=localStorage.getItem("user_id");if(!uid)return;
-  const{data,error}=await db.from("attendance").select("*").eq("user_id",uid).order("attendance_date",{ascending:true});
+  const{data,error}=await sessionFetchAllForUser(uid,true);
   if(error||!data)return;
   // Mon–Sun week window, anchored by durWeekAnchor (navigated via the < / > buttons)
   const{year:filterYear,month:filterMonth}=_selectedMonthYM(document.getElementById('statsMonth'));
@@ -6439,9 +6922,9 @@ async function updateStatsChart(){
   const weekStart=getMonday(durWeekAnchor);
   const weekDates=[];for(let i=0;i<7;i++)weekDates.push(addDays(weekStart,i));
   const sameDay=(a,b)=>a.getFullYear()===b.getFullYear()&&a.getMonth()===b.getMonth()&&a.getDate()===b.getDate();
-  let fd=data.filter(r=>{let d=new Date(r.attendance_date);return weekDates.some(wd=>sameDay(wd,d))});
+  let fd=data.filter(r=>{let d=new Date(r.date);return weekDates.some(wd=>sameDay(wd,d))});
   let dm={};weekDates.forEach((dt,idx)=>{dm[idx]={label:dt.getDate().toString(),dateObj:dt,dateLabel:`${dayNames[dt.getDay()]}, ${['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][dt.getMonth()]} ${dt.getDate()}`,duration:0,workout:'',classes:[]}});
-  fd.forEach(r=>{let d=new Date(r.attendance_date);const idx=weekDates.findIndex(wd=>sameDay(wd,d));if(idx<0)return;if(dm[idx]){dm[idx].duration+=parseDurationToMinutes(r.duration);if(r.workout&&r.workout.trim()!==""){if(dm[idx].workout)dm[idx].workout+=', '+r.workout;else dm[idx].workout=r.workout}}});
+  fd.forEach(r=>{let d=new Date(r.date);const idx=weekDates.findIndex(wd=>sameDay(wd,d));if(idx<0)return;if(dm[idx]){dm[idx].duration+=parseDurationToMinutes(r.duration);if(r.class&&r.class.trim()!==""){const decodedClasses=sessionParseClassField(r.class).join(', ');if(decodedClasses){if(dm[idx].workout)dm[idx].workout+=', '+decodedClasses;else dm[idx].workout=decodedClasses}}}});
   Object.values(dm).forEach(d=>{if(d.workout){let cls=[...new Set(d.workout.split(',').map(s=>s.trim()).filter(Boolean))].slice(0,3);d.classes=cls}});
   let days=Object.values(dm);statsChartDayData=days;
   // build day labels Mon-Sun style
@@ -6596,8 +7079,8 @@ async function updateDurationLineChart(){
   for(const{year,month}of months){
     const monthStr=`${year}-${String(month+1).padStart(2,'0')}`;
     const lastDay=new Date(year,month+1,0).getDate();
-    const{data,error}=await db.from('attendance').select('attendance_date,duration,workout').eq('user_id',uid)
-      .gte('attendance_date',`${monthStr}-01`).lte('attendance_date',`${monthStr}-${String(lastDay).padStart(2,'0')}`);
+    const{data,error}=await db.from(SESSION_TABLE).select('date,duration,class').eq('user_id',uid)
+      .gte('date',`${monthStr}-01`).lte('date',`${monthStr}-${String(lastDay).padStart(2,'0')}`);
     if(error){console.error(error);continue}
 
     let dm={};
@@ -6609,10 +7092,11 @@ async function updateDurationLineChart(){
     const monthCounts={};
     if(data){
       data.forEach(r=>{
-        const d=new Date(r.attendance_date);const day=d.getDate();if(!dm[day])return;
+        const d=new Date(r.date);const day=d.getDate();if(!dm[day])return;
         dm[day].duration+=parseDurationToMinutes(r.duration);
-        if(r.workout&&r.workout.trim()!==''){
-          if(dm[day].workout)dm[day].workout+=', '+r.workout;else dm[day].workout=r.workout;
+        if(r.class&&r.class.trim()!==''){
+          const decodedClasses=sessionParseClassField(r.class).join(', ');
+          if(decodedClasses){if(dm[day].workout)dm[day].workout+=', '+decodedClasses;else dm[day].workout=decodedClasses;}
         }
       });
     }
@@ -7073,15 +7557,15 @@ async function fetchAttendanceWorkouts(uid,monthStr){
   const key=uid+'|'+monthStr;
   if(_attWorkoutCache[key])return _attWorkoutCache[key];
   const lastDay=new Date(parseInt(monthStr.split('-')[0]),parseInt(monthStr.split('-')[1]),0).getDate();
-  const{data}=await db.from('attendance').select('attendance_date,workout').eq('user_id',uid)
-    .gte('attendance_date',`${monthStr}-01`).lte('attendance_date',`${monthStr}-${String(lastDay).padStart(2,'0')}`).eq('status','Present');
+  const{data}=await db.from(SESSION_TABLE).select('date,class').eq('user_id',uid)
+    .gte('date',`${monthStr}-01`).lte('date',`${monthStr}-${String(lastDay).padStart(2,'0')}`);
   const map={};
   if(data){
     data.forEach(r=>{
-      if(!r.workout||!r.workout.trim())return;
-      const day=parseInt(r.attendance_date.split('-')[2]);
+      if(!r.class||!r.class.trim())return;
+      const day=parseInt(r.date.split('-')[2]);
       if(!map[day])map[day]=new Set();
-      r.workout.split(',').map(s=>s.trim()).filter(Boolean).forEach(w=>map[day].add(w));
+      sessionParseClassField(r.class).forEach(w=>map[day].add(w));
     });
   }
   const result={};Object.keys(map).forEach(d=>{result[d]=[...map[d]]});
@@ -7095,15 +7579,15 @@ async function fetchAttendanceWorkouts(uid,monthStr){
 async function fetchAttendanceWorkoutsRange(uid,startStr,endStr){
   const key=uid+'|range|'+startStr+'|'+endStr;
   if(_attWorkoutCache[key])return _attWorkoutCache[key];
-  const{data}=await db.from('attendance').select('attendance_date,workout').eq('user_id',uid)
-    .gte('attendance_date',startStr).lte('attendance_date',endStr).eq('status','Present');
+  const{data}=await db.from(SESSION_TABLE).select('date,class').eq('user_id',uid)
+    .gte('date',startStr).lte('date',endStr);
   const map={};
   if(data){
     data.forEach(r=>{
-      if(!r.workout||!r.workout.trim())return;
-      const dkey=r.attendance_date;
+      if(!r.class||!r.class.trim())return;
+      const dkey=r.date;
       if(!map[dkey])map[dkey]=new Set();
-      r.workout.split(',').map(s=>s.trim()).filter(Boolean).forEach(w=>map[dkey].add(w));
+      sessionParseClassField(r.class).forEach(w=>map[dkey].add(w));
     });
   }
   const result={};Object.keys(map).forEach(d=>{result[d]=[...map[d]]});
@@ -7152,7 +7636,7 @@ async function updateVolumeChart(side='main'){
     const weekDates=[];for(let i=0;i<7;i++)weekDates.push(addDays(weekStart,i));
     const startStr=_fmtISODate(weekStart),endStr=_fmtISODate(weekDates[6]);
 
-    const{data,error}=await db.from('workouts').select('*').eq('user_id',uid).gte('date',startStr).lte('date',endStr);
+    const{data,error}=await db.from(SESSION_TABLE).select('date,workouts').eq('user_id',uid).gte('date',startStr).lte('date',endStr);
     if(error){console.error(error);return}
 
     const attWorkouts=await fetchAttendanceWorkoutsRange(uid,startStr,endStr);
@@ -7168,12 +7652,7 @@ async function updateVolumeChart(side='main'){
         const d=new Date(row.date);const key=_fmtISODate(d);
         const idx=weekDates.findIndex(wd=>_fmtISODate(wd)===key);
         if(idx<0)return;
-        for(let i=1;i<=15;i++){
-          const w=row[`workout_${i}`];if(!w)continue;
-          const vol=parseWorkoutVolume(w);
-          dm[idx].volume+=vol;
-          if(w.trim())dm[idx].workouts.push({name:w,vol});
-        }
+        _accumulateSessionRowVolume(dm[idx],row);
       });
     }
     days=Object.values(dm);
@@ -7189,7 +7668,7 @@ async function updateVolumeChart(side='main'){
     const monthStr=`${filterYear}-${String(filterMonth+1).padStart(2,'0')}`;
     const lastDay=new Date(filterYear,filterMonth+1,0).getDate();
 
-    const{data,error}=await db.from('workouts').select('*').eq('user_id',uid).gte('date',`${monthStr}-01`).lte('date',`${monthStr}-${String(lastDay).padStart(2,'0')}`);
+    const{data,error}=await db.from(SESSION_TABLE).select('date,workouts').eq('user_id',uid).gte('date',`${monthStr}-01`).lte('date',`${monthStr}-${String(lastDay).padStart(2,'0')}`);
     if(error){console.error(error);return}
 
     const attWorkouts=await fetchAttendanceWorkouts(uid,monthStr);
@@ -7203,12 +7682,7 @@ async function updateVolumeChart(side='main'){
     if(data){
       data.forEach(row=>{
         const d=new Date(row.date);const day=d.getDate();if(!dm[day])return;
-        for(let i=1;i<=15;i++){
-          const w=row[`workout_${i}`];if(!w)continue;
-          const vol=parseWorkoutVolume(w);
-          dm[day].volume+=vol;
-          if(w.trim())dm[day].workouts.push({name:w,vol});
-        }
+        _accumulateSessionRowVolume(dm[day],row);
       });
     }
     days=Object.values(dm);
@@ -7480,7 +7954,7 @@ async function updateVolumeLineChart(){
   for(const{year,month}of months){
     const monthStr=`${year}-${String(month+1).padStart(2,'0')}`;
     const lastDay=new Date(year,month+1,0).getDate();
-    const{data,error}=await db.from('workouts').select('*').eq('user_id',uid).gte('date',`${monthStr}-01`).lte('date',`${monthStr}-${String(lastDay).padStart(2,'0')}`);
+    const{data,error}=await db.from(SESSION_TABLE).select('date,workouts').eq('user_id',uid).gte('date',`${monthStr}-01`).lte('date',`${monthStr}-${String(lastDay).padStart(2,'0')}`);
     if(error){console.error(error);continue}
     const attWorkouts=await fetchAttendanceWorkouts(uid,monthStr);
 
@@ -7493,12 +7967,7 @@ async function updateVolumeLineChart(){
     if(data){
       data.forEach(row=>{
         const d=new Date(row.date);const day=d.getDate();if(!dm[day])return;
-        for(let i=1;i<=15;i++){
-          const w=row[`workout_${i}`];if(!w)continue;
-          const vol=parseWorkoutVolume(w);
-          dm[day].volume+=vol;
-          if(w.trim())dm[day].workouts.push({name:w,vol});
-        }
+        _accumulateSessionRowVolume(dm[day],row);
       });
     }
     allDays=allDays.concat(Object.values(dm));
@@ -7914,22 +8383,18 @@ let _volCurrentIdx=0;            // For arrow nav
 let _volTotalBars=0;
 let _volWeeklyChartInstance=null;// Ref to current weekly bar chart (stacked mode)
 
-/* Extract class from exercise name stored as "ExName (Class): ..." */
+/* Extract class from an exercise name. Legacy entries may still have the Class saved directly in
+   the trailing "(...)" (from before custom exercises switched to the "(Equipment)" convention), so
+   that's checked first for backward compatibility. Everything else — built-in catalog exercises AND
+   custom exercises with a designated Class saved in the registry — is resolved via getExerciseClass,
+   so the Volume page's Class Breakdown and the entry list badge always agree with what was actually
+   picked when the exercise was created. */
 function extractClassFromWorkoutName(rawName){
   if(!rawName)return'Unknown';
   const nameOnly=rawName.split(':')[0].trim();
   const m=nameOnly.match(/\(([^)]+)\)\s*$/);
-  if(m){
-    const cls=m[1];
-    if(CLASS_COLORS[cls])return cls;
-  }
-  // fallback: check EXERCISE_CATALOG by base name
-  const baseName=nameOnly.replace(/\s*\([^)]+\)\s*$/,'').trim();
-  const found=EXERCISE_CATALOG.find(e=>{
-    const en=e.name.replace(/\s*\([^)]+\)\s*$/,'').trim();
-    return en.toLowerCase()===baseName.toLowerCase();
-  });
-  return(found&&found.class!=='multi')?found.class:'Unknown';
+  if(m&&CLASS_COLORS[m[1]])return m[1];
+  return getExerciseClass(nameOnly);
 }
 
 /* Build per-class volume breakdown for a day's workouts */
@@ -8346,7 +8811,12 @@ function _showClassPickerForInput(inputId,baseName,mode){
 }
 window._pickExClass=function(inputId,baseName,cls,mode){
   document.getElementById('_classPickerModal').remove();
-  const fullName=`${baseName} (${cls})`;
+  // Class is stored as its own field, never appended into the visible name — the trailing "(...)"
+  // on a name is reserved for Equipment (see _pickExEquipment) so every custom exercise ends up
+  // formatted exactly like the built-in catalog: "Name (Equipment)", with Class kept separate.
+  // Preserve any equipment already chosen for this name so picking Class second doesn't erase it.
+  const eq=mode==='nonlive'?window._selectedWorkoutEquipment:window._selectedLiveWorkoutEquipment;
+  const fullName=eq?`${baseName} (${eq})`:baseName;
   document.getElementById(inputId).value=fullName;
   // Hide the inline class button after selection
   const btnId=mode==='nonlive'?'_inlineClassBtnNonLive':'_inlineClassBtnLive';
@@ -8355,23 +8825,28 @@ window._pickExClass=function(inputId,baseName,cls,mode){
   if(mode==='nonlive'){
     window._selectedWorkoutClass=cls;
     fetchPrevPerformance(fullName,'nonlive');
+    _updateInlineEquipBtn(inputId,'_inlineEquipBtnNonLive','nonlive');
   } else {
     window._selectedLiveWorkoutClass=cls;
     fetchPrevPerformance(fullName,'live');
+    _updateInlineEquipBtn(inputId,'_inlineEquipBtnLive','live');
   }
   updateTrackWorkoutBtnVisibility(mode);
 };
 
-/* Show/hide the inline class button based on whether there's typed text without a class already */
+/* Show/hide the inline class button. Hidden once: the box is empty, the name already resolves to a
+   known exercise (built-in catalog OR a previously-saved custom exercise — it already has a
+   designated Class, no need to ask again), or a Class has already been picked this session. */
 function _updateInlineClassBtn(inputId,btnId,mode){
   const input=document.getElementById(inputId);const btn=document.getElementById(btnId);
   if(!input||!btn)return;
   const val=input.value.trim();
-  const hasClass=val.match(/\([^)]+\)\s*$/);
-  // Show button only when there's text and no class suffix already
-  btn.style.display=(val&&!hasClass)?'block':'none';
-  // Also update button label to reflect current name
-  if(val&&!hasClass)btn.textContent=`🏷 Choose Class for "${val}" (optional)`;
+  const baseName=stripExerciseClass(val);
+  const isCustom=!!baseName&&!_isKnownCatalogExerciseName(val);
+  const cls=mode==='nonlive'?window._selectedWorkoutClass:window._selectedLiveWorkoutClass;
+  if(!val||!isCustom||cls){btn.style.display='none';return;}
+  btn.style.display='block';
+  btn.textContent=`🏷 Choose Class for "${baseName}" (required)`;
 }
 
 function _triggerInlineClassPicker(inputId,mode){
@@ -8379,6 +8854,153 @@ function _triggerInlineClassPicker(inputId,mode){
   if(!val)return;
   const baseName=val.replace(/\s*\([^)]+\)\s*$/,'').trim();
   _showClassPickerForInput(inputId,baseName,mode);
+}
+
+/* ===================== CUSTOM EXERCISES: EQUIPMENT PICKER ===================== */
+/* Mirrors the "Choose Class" picker above, but for Equipment — only relevant for exercise names
+   the person typed themselves (not already known), since catalog exercises already carry a fixed,
+   known equipment tag and previously-saved custom exercises already carry their own remembered
+   equipment. Selected equipment IS appended into the visible name text (the trailing "(...)" slot
+   on a name is reserved for Equipment — see stripExerciseClass / getExerciseClass — matching how
+   every built-in catalog exercise is formatted, e.g. "Bench Press (Barbell)"). It's also remembered
+   in window._selectedWorkoutEquipment / window._selectedLiveWorkoutEquipment and persisted into the
+   custom-exercise registry when the entry is saved, so both the Equipment filter dropdown/autosuggest
+   AND the saved name itself stay consistent for this exercise in future sessions. */
+/* True once this name (base, "(...)" suffix stripped) is already a known exercise — either a
+   built-in catalog exercise, or a custom exercise the person has already saved before. Once known,
+   it already has a designated Class/Equipment, so the picker buttons no longer need to be offered. */
+function _isKnownCatalogExerciseName(rawName){
+  const base=stripExerciseClass((rawName||'').trim()).toLowerCase();
+  if(!base)return false;
+  if(EXERCISE_CATALOG.some(e=>stripExerciseClass(e.name).toLowerCase()===base))return true;
+  return getCustomExerciseCatalog().some(c=>c.name.toLowerCase()===base);
+}
+function _showEquipmentPickerForInput(inputId,baseName,mode){
+  let existing=document.getElementById('_equipPickerModal');
+  if(existing)existing.remove();
+  const modal=document.createElement('div');
+  modal.id='_equipPickerModal';
+  modal.style.cssText='position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.55);backdrop-filter:blur(4px)';
+  modal.innerHTML=`<div style="background:var(--bg-card);border:1.5px solid var(--border-col);border-radius:20px;padding:22px 20px;max-width:320px;width:92%;box-shadow:0 8px 40px rgba(0,0,0,0.3)">
+    <div style="font-family:var(--font-alt);font-size:15px;font-weight:800;color:var(--accent);margin-bottom:14px;letter-spacing:0.5px">🔧 Which equipment is <em style="color:var(--text-primary)">${baseName}</em> for?</div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;max-height:260px;overflow-y:auto">${EQUIPMENT_LIST.map(eq=>`<button onclick="window._pickExEquipment('${inputId}','${baseName.replace(/'/g,"\\'")}','${eq.replace(/'/g,"\\'")}','${mode}')" style="padding:8px 14px;border-radius:12px;border:2px solid var(--border-col);background:var(--bg-panel);color:var(--text-primary);font-family:var(--font-alt);font-weight:700;font-size:12px;cursor:pointer">${eq}</button>`).join('')}</div>
+    <button onclick="document.getElementById('_equipPickerModal').remove()" style="width:100%;padding:9px;border-radius:11px;border:1px solid var(--border-col);background:var(--bg-panel);color:var(--text-muted);font-family:var(--font-alt);font-weight:700;cursor:pointer">Cancel</button>
+  </div>`;
+  document.body.appendChild(modal);
+}
+window._pickExEquipment=function(inputId,baseName,eq,mode){
+  const m=document.getElementById('_equipPickerModal');if(m)m.remove();
+  const fullName=`${baseName} (${eq})`;
+  document.getElementById(inputId).value=fullName;
+  if(mode==='nonlive'){window._selectedWorkoutEquipment=eq;}else{window._selectedLiveWorkoutEquipment=eq;}
+  const btnId=mode==='nonlive'?'_inlineEquipBtnNonLive':'_inlineEquipBtnLive';
+  _updateInlineEquipBtn(inputId,btnId,mode);
+  _updateInlineClassBtn(inputId,mode==='nonlive'?'_inlineClassBtnNonLive':'_inlineClassBtnLive',mode);
+  fetchPrevPerformance(fullName,mode);
+};
+/* Show/hide the inline equipment button — shown whenever there's typed text that isn't already a
+   known exercise (built-in catalog or previously-saved custom — both already have a fixed
+   equipment, no need to pick one). Once the name is known (_isKnownCatalogExerciseName), this
+   button hides for good — including right after this exact custom exercise gets saved for the
+   first time, so it never resurfaces the picker for an exercise that's already designated. */
+function _updateInlineEquipBtn(inputId,btnId,mode){
+  const input=document.getElementById(inputId);const btn=document.getElementById(btnId);
+  if(!input||!btn)return;
+  const val=input.value.trim();
+  const baseName=stripExerciseClass(val);
+  const isCustom=!!baseName&&!_isKnownCatalogExerciseName(val);
+  if(!val||!isCustom){btn.style.display='none';return;}
+  const eq=mode==='nonlive'?window._selectedWorkoutEquipment:window._selectedLiveWorkoutEquipment;
+  btn.style.display='block';
+  btn.textContent=eq?`🔧 Equipment: ${eq} (change)`:`🔧 Choose Equipment for "${baseName}" (optional)`;
+}
+function _triggerInlineEquipPicker(inputId,mode){
+  const val=document.getElementById(inputId).value.trim();
+  if(!val)return;
+  const baseName=stripExerciseClass(val);
+  _showEquipmentPickerForInput(inputId,baseName,mode);
+}
+
+/* ===================== CUSTOM EXERCISES: SENTENCE CASE + PERSISTENT REGISTRY ===================== */
+/* Normalizes any user-typed exercise name to Sentence/Title Case — "side raise" -> "Side Raise",
+   "SIDE RAISE (shoulders)" -> "Side Raise (Shoulders)" — by lowercasing everything then capitalizing
+   the first letter after the start of the string, a space, "(", "/" or "-". Safe to run on names that
+   already carry a "(Class)" suffix since that gets title-cased too. Not applied to exact catalog
+   matches (see finalizeCustomExerciseName) so the hand-curated EXERCISE_CATALOG names/abbreviations
+   (e.g. "JM Press", "21s Bicep Curl") are never altered. */
+function toSentenceCaseWorkoutName(str){
+  if(!str)return str;
+  const lower=str.toLowerCase();
+  return lower.replace(/(^|[\s(\/-])([a-z])/g,(m,p1,p2)=>p1+p2.toUpperCase());
+}
+/* Per-user persistent library of custom (non-catalog) exercises the person has typed & saved before,
+   each remembering the Class/Equipment chosen for it (if any) so they resurface — with the same tags
+   — the next time the person types, taps the dropdown, or filters by Muscle/Equipment. Stored in
+   localStorage, scoped to the logged-in user. */
+function _customExerciseStorageKey(){
+  const uid=localStorage.getItem('user_id')||'guest';
+  return 'gymbro_custom_exercises_'+uid;
+}
+function getCustomExerciseCatalog(){
+  try{
+    const raw=localStorage.getItem(_customExerciseStorageKey());
+    if(!raw)return[];
+    const parsed=JSON.parse(raw);
+    return Array.isArray(parsed)?parsed:[];
+  }catch(e){return[];}
+}
+function _saveCustomExerciseCatalogList(list){
+  try{localStorage.setItem(_customExerciseStorageKey(),JSON.stringify(list));}
+  catch(e){console.log('[CustomExercise] save failed',e);}
+}
+/* Adds/updates one custom exercise's remembered Class + Equipment. Never overwrites a previously
+   remembered value with a blank one — e.g. saving the same custom name again without re-picking
+   Equipment keeps whatever Equipment was chosen for it last time. */
+function upsertCustomExercise(name,cls,equipment){
+  if(!name)return;
+  const list=getCustomExerciseCatalog();
+  const idx=list.findIndex(c=>c.name.toLowerCase()===name.toLowerCase());
+  if(idx>=0){
+    list[idx].name=name;
+    if(cls)list[idx].class=cls;
+    if(equipment)list[idx].equipment=equipment;
+  }else{
+    list.push({name,class:cls||'',equipment:equipment||''});
+  }
+  _saveCustomExerciseCatalogList(list);
+}
+/* Resolves the final exercise name to actually save for a log entry: leaves exact built-in catalog
+   matches completely untouched. Otherwise, Sentence-Cases the typed name, merges in whatever
+   Class/Equipment were just picked with anything already remembered for this exercise (so re-saving
+   without re-picking keeps the previous tags), registers/updates it in the custom-exercise registry,
+   and rebuilds the canonical "Name (Equipment)" display form from that registry — matching the
+   built-in catalog's own "Name (Equipment)" format — so the SAME custom exercise is always saved
+   with the exact same name everywhere (Workouts, Volume, Tracker, etc.), regardless of whether it
+   was typed fresh, picked from the dropdown, or edited later. */
+/* True when this typed name is a brand-new custom exercise that doesn't have a designated Class
+   yet — built-in catalog exercises always have one, and a custom exercise already saved before
+   keeps whatever Class it was given then. Used to make picking a Class compulsory (Equipment stays
+   optional) the first time a custom exercise is created. */
+function _customExerciseNeedsClass(rawName,selectedClass){
+  const trimmed=(rawName||'').trim();
+  if(!trimmed)return false;
+  if(selectedClass)return false;
+  const base=stripExerciseClass(trimmed).toLowerCase();
+  if(EXERCISE_CATALOG.some(e=>stripExerciseClass(e.name).toLowerCase()===base))return false;
+  const existing=getCustomExerciseCatalog().find(c=>c.name.toLowerCase()===base);
+  return!(existing&&existing.class);
+}
+function finalizeCustomExerciseName(rawName,selectedClass,selectedEquipment){
+  const trimmed=(rawName||'').trim();
+  if(!trimmed)return trimmed;
+  const catalogBase=stripExerciseClass(trimmed).toLowerCase();
+  if(EXERCISE_CATALOG.some(e=>stripExerciseClass(e.name).toLowerCase()===catalogBase))return trimmed;
+  const finalBase=toSentenceCaseWorkoutName(stripExerciseClass(trimmed));
+  const existing=getCustomExerciseCatalog().find(c=>c.name.toLowerCase()===finalBase.toLowerCase());
+  const cls=selectedClass||(existing&&existing.class)||null;
+  const equipment=selectedEquipment||(existing&&existing.equipment)||null;
+  upsertCustomExercise(finalBase,cls,equipment);
+  return equipment?`${finalBase} (${equipment})`:finalBase;
 }
 
 function toggleWorkoutNameDropdown(e){
@@ -8406,11 +9028,13 @@ function handleWorkoutSearchAuto(forceShow){
   document.getElementById("quickFillCopyAllBtn").classList.remove("visible");
   if(_prevPerfNonLiveTimer)clearTimeout(_prevPerfNonLiveTimer);
   window._selectedWorkoutClass=null;
+  window._selectedWorkoutEquipment=null;
   _updateInlineClassBtn('workoutNameInput','_inlineClassBtnNonLive','nonlive');
+  _updateInlineEquipBtn('workoutNameInput','_inlineEquipBtnNonLive','nonlive');
   // Show nothing only when there's no typed text AND no Muscle/Equipment filter selected AND the
   // dropdown icon wasn't clicked — choosing either dropdown (even with the text box empty), or
   // clicking the dropdown icon itself, should instantly show the (filtered) full list.
-  if(!forceShow&&!val&&!muscleVal&&!equipVal){const nb=document.getElementById('_inlineClassBtnNonLive');if(nb)nb.style.display='none';return;}
+  if(!forceShow&&!val&&!muscleVal&&!equipVal){const nb=document.getElementById('_inlineClassBtnNonLive');if(nb)nb.style.display='none';const eb=document.getElementById('_inlineEquipBtnNonLive');if(eb)eb.style.display='none';return;}
   let matches=ctmGetFilteredCatalog(muscleVal,equipVal,val,true);
   if(matches.length){
     box.style.display="block";
@@ -8419,14 +9043,24 @@ function handleWorkoutSearchAuto(forceShow){
       let div=document.createElement("div");
       const clr=CLASS_COLORS[item.class]||'var(--text-muted)';
       const classTag=item.class==='multi'?`<span style="background:#6366f1;color:#fff;border-radius:6px;padding:1px 6px;font-size:9px;font-weight:800;margin-left:4px">MULTI</span>`:`<span style="background:${clr};color:#fff;border-radius:6px;padding:1px 6px;font-size:9px;font-weight:800;margin-left:4px">${item.class}</span>`;
-      div.innerHTML=`<span>${item.name}</span>${classTag}`;
+      // item.name already carries the "(Equipment)" suffix for custom exercises that have one
+      // (see ctmGetFilteredCatalog), same as every built-in catalog exercise — no separate badge needed.
+      div.innerHTML=`<span>${item.name}${item.isCustom?' <span style="opacity:0.55;font-size:9px">(custom)</span>':''}</span><span>${classTag}</span>`;
       div.style.cssText='display:flex;align-items:center;justify-content:space-between;gap:6px';
       div.onclick=()=>{
         box.style.display="none";
         if(icon)icon.classList.remove("open");
         if(_prevPerfNonLiveTimer)clearTimeout(_prevPerfNonLiveTimer);
         const nb=document.getElementById('_inlineClassBtnNonLive');if(nb)nb.style.display='none';
-        if(item.class==='multi'){
+        if(item.isCustom){
+          // Already a known, designated exercise — restore its remembered Class/Equipment as-is,
+          // no need to prompt for either again.
+          document.getElementById("workoutNameInput").value=item.name;
+          window._selectedWorkoutClass=(item.class&&item.class!=='Unknown')?item.class:null;
+          window._selectedWorkoutEquipment=(item.equipment&&item.equipment!=='Unknown')?item.equipment:null;
+          _updateInlineEquipBtn('workoutNameInput','_inlineEquipBtnNonLive','nonlive');
+          fetchPrevPerformance(item.name,'nonlive');
+        } else if(item.class==='multi'){
           document.getElementById("workoutNameInput").value=item.name;
           updateTrackWorkoutBtnVisibility('nonlive');
           _showClassPickerForInput('workoutNameInput',item.name,'nonlive');
@@ -8443,6 +9077,7 @@ function handleWorkoutSearchAuto(forceShow){
   }
   // No auto class picker on pause — user uses the inline Choose Class button if needed
   _updateInlineClassBtn('workoutNameInput','_inlineClassBtnNonLive','nonlive');
+  _updateInlineEquipBtn('workoutNameInput','_inlineEquipBtnNonLive','nonlive');
 }
 document.addEventListener("click",e=>{
   if(e.target.id!=="workoutNameInput"&&e.target.id!=="workoutNameDropdownIcon"){document.getElementById("autoSuggestions").style.display="none";const wi=document.getElementById("workoutNameDropdownIcon");if(wi)wi.classList.remove("open");}
@@ -8732,6 +9367,18 @@ async function saveWorkoutLogEntry(){
   let td=document.getElementById("workoutCalendarFilter").value;
   let sc=parseInt(document.getElementById("setsCountSelect").value);
   if(!name){alert("Please specify an exercise name.");return}
+  // A brand-new custom exercise (not in the catalog, never saved before) must have a Class picked —
+  // Equipment stays optional — so it always shows its designated muscle group everywhere (Volume
+  // page breakdown, entry list, etc.) instead of falling back to "Unknown".
+  if(_customExerciseNeedsClass(name,window._selectedWorkoutClass)){
+    alert("Please choose a Class for this custom exercise before saving.");
+    _triggerInlineClassPicker('workoutNameInput','nonlive');
+    return;
+  }
+  // Custom (non-catalog) exercise names are normalized to Sentence Case and remembered — with
+  // whatever Class/Equipment were chosen — so they resurface in autosuggest + Muscle/Equipment
+  // filtering next time. Catalog exercises pass through untouched.
+  name=finalizeCustomExerciseName(name,window._selectedWorkoutClass,window._selectedWorkoutEquipment);
   const isBW=isBodyweightNoWeightExercise(name);
   let sd=[],tv=0;
   for(let i=1;i<=sc;i++){
@@ -8749,13 +9396,10 @@ async function saveWorkoutLogEntry(){
     }
   }
   let ser=`${name}: ${sd.join(", ")}`,xpe=Math.floor(tv/100)*10;
-  const{data:er}=await db.from("workouts").select("*").eq("user_id",uid).eq("date",td).maybeSingle();
-  let p={};
-  if(currentEditingIndex!==null){p[`workout_${currentEditingIndex}`]=ser;await db.from("workouts").update(p).eq("user_id",uid).eq("date",td)}
-  else{
-    if(er){let slot=null;for(let idx=1;idx<=15;idx++){if(!er[`workout_${idx}`]){slot=`workout_${idx}`;break}}if(!slot){alert("Daily capacity of 15 entries reached.");return}p[slot]=ser;await db.from("workouts").update(p).eq("user_id",uid).eq("date",td)}
-    else{p={user_id:uid,date:td,workout_1:ser};await db.from("workouts").insert([p])}
-  }
+  const entry=sessionMakeWorkoutEntry(name,sd.join(", "));
+  const slotRef=currentEditingIndex!==null?(window._workoutCiMap&&window._workoutCiMap[currentEditingIndex]):null;
+  const savedSlot=await sessionUpsertWorkoutEntry(uid,td,slotRef,entry);
+  if(!savedSlot){alert("Daily capacity of 15 entries reached for this session.");return}
   editOriginalDurations={};
   // Level Up check: highest Kg (or, for pure bodyweight, highest Reps) across all sets being saved,
   // compared vs ALL-time saved history for this exercise.
@@ -8852,16 +9496,14 @@ async function fetchPrevPerformance(exerciseName, mode){
   badgeEl.classList.add("visible");
   valueEl.innerHTML=`<span class="prev-perf-loading">Looking up history...</span>`;
   try{
-    const{data,error}=await db.from("workouts").select("*").eq("user_id",uid).order("date",{ascending:false}).limit(60);
+    const{data,error}=await db.from(SESSION_TABLE).select("date,workouts").eq("user_id",uid).order("date",{ascending:false}).limit(60);
     if(error||!data||!data.length){badgeEl.classList.remove("visible");return}
     const nameLower=exerciseName.toLowerCase().trim();
     let found=null,foundDate=null;
     outer:for(const row of data){
-      for(let i=1;i<=15;i++){
-        const cell=row[`workout_${i}`];if(!cell)continue;
-        const colonIdx=cell.indexOf(":");if(colonIdx===-1)continue;
-        const cellName=cell.substring(0,colonIdx).trim().toLowerCase();
-        if(cellName===nameLower){found=cell;foundDate=row.date;break outer}
+      for(const wEntry of sessionWorkoutsArray(row)){
+        const cellName=sessionDecodeWorkoutEntry(wEntry).name.toLowerCase();
+        if(cellName===nameLower){found=sessionWorkoutEntryToText(wEntry);foundDate=row.date;break outer}
       }
     }
     if(!found){badgeEl.classList.remove("visible");return}
@@ -8996,7 +9638,7 @@ async function checkAndShowLevelUp(exerciseName,currentKg,currentReps,currentVol
   // sets saved within the same day's session don't compare against themselves.
   const todayStr=getLocalDateString();
   try{
-    const{data,error}=await db.from('workouts').select('*').eq('user_id',uid).lt('date',todayStr).order('date',{ascending:false}).limit(500);
+    const{data,error}=await db.from(SESSION_TABLE).select('date,workouts').eq('user_id',uid).lt('date',todayStr).order('date',{ascending:false}).limit(500);
     if(error){console.warn('[LevelUp] DB error:',error);return}
     if(!data||!data.length){console.log('[LevelUp] No prior-day data found for uid',uid);return}
     const nameLower=exerciseName.toLowerCase().trim();
@@ -9007,11 +9649,10 @@ async function checkAndShowLevelUp(exerciseName,currentKg,currentReps,currentVol
       let bestKg=null,bestKgReps=null,bestKgDate=null;
       let bestVolume=null,bestVolumeDate=null;
       for(const row of data){
-        for(let i=1;i<=15;i++){
-          const cell=row[`workout_${i}`];if(!cell)continue;
-          const ci=cell.indexOf(':');if(ci===-1)continue;
-          if(cell.substring(0,ci).trim().toLowerCase()!==nameLower)continue;
-          const segs=cell.substring(ci+1).trim().split(',').map(s=>s.trim()).filter(Boolean);
+        for(const wEntryRaw of sessionWorkoutsArray(row)){
+          const wEntry=sessionDecodeWorkoutEntry(wEntryRaw);
+          if(wEntry.name.toLowerCase()!==nameLower)continue;
+          const segs=(wEntry.sets||'').split(',').map(s=>s.trim()).filter(Boolean);
           let entryVolume=0;
           for(const seg of segs){
             const m=seg.match(/([\d.]+)\s*[Kk][Gg]?\s*x\s*(\d+)/i);
@@ -9037,11 +9678,10 @@ async function checkAndShowLevelUp(exerciseName,currentKg,currentReps,currentVol
       // where every set was also bodyweight (no Kg) count toward the comparison.
       let bestTotalReps=null,bestTotalRepsDate=null;
       for(const row of data){
-        for(let i=1;i<=15;i++){
-          const cell=row[`workout_${i}`];if(!cell)continue;
-          const ci=cell.indexOf(':');if(ci===-1)continue;
-          if(cell.substring(0,ci).trim().toLowerCase()!==nameLower)continue;
-          const segs=cell.substring(ci+1).trim().split(',').map(s=>s.trim()).filter(Boolean);
+        for(const wEntryRaw of sessionWorkoutsArray(row)){
+          const wEntry=sessionDecodeWorkoutEntry(wEntryRaw);
+          if(wEntry.name.toLowerCase()!==nameLower)continue;
+          const segs=(wEntry.sets||'').split(',').map(s=>s.trim()).filter(Boolean);
           let entryTotalReps=0,entryHasKg=false;
           for(const seg of segs){
             const m=seg.match(/([\d.]+)\s*[Kk][Gg]?\s*x\s*(\d+)/i);
@@ -9168,12 +9808,16 @@ function showAddWorkoutForm(){
     document.getElementById("prevPerfBadgeLive").classList.remove("visible");
     updateTrackWorkoutBtnVisibility('live');
     liveCurrentSet=1;liveTotalSets=0;liveSetTimers={};liveSetSeconds={};liveSetTimerStartEpoch={};liveSetTimerAccumAtStart={};liveBreakTimers={};liveBreakSeconds={};liveBreakTotalSecs={};liveBreakStartEpoch={};liveBreakAccumAtStart={};liveSetResults=[];liveSessionSlot=null;
+    window._selectedLiveWorkoutClass=null;window._selectedLiveWorkoutEquipment=null;
+    _updateInlineClassBtn('liveWorkoutNameInput','_inlineClassBtnLive','live');
+    _updateInlineEquipBtn('liveWorkoutNameInput','_inlineEquipBtnLive','live');
     clearLiveDraft();
     applyLiveSetsCountMinConstraint();
   } else {
     document.getElementById("formActionTitle").innerText="LOG NEW ENTRY";
     document.getElementById("initialWorkoutBox").style.display="none";document.getElementById("workoutFormStructure").style.display="block";document.getElementById("liveWorkoutForm").style.display="none";
     applySetsCountMinConstraint();
+    window._selectedWorkoutClass=null;window._selectedWorkoutEquipment=null;
     // Restore a refresh-proof draft if the person had anything typed before an accidental reload
     const draft=loadNonLiveDraft();
     if(nonLiveDraftHasContent(draft)){
@@ -9187,6 +9831,8 @@ function showAddWorkoutForm(){
     document.getElementById("prevPerfBadgeNonLive").classList.remove("visible");
     document.getElementById("quickFillCopyAllBtn").classList.remove("visible");
     updateTrackWorkoutBtnVisibility('nonlive');
+    _updateInlineClassBtn('workoutNameInput','_inlineClassBtnNonLive','nonlive');
+    _updateInlineEquipBtn('workoutNameInput','_inlineEquipBtnNonLive','nonlive');
   }
 }
 function cancelWorkoutLogging(){
@@ -9234,10 +9880,12 @@ function handleLiveSearchAuto(forceShow){
   updateTrackWorkoutBtnVisibility('live');
   if(_prevPerfLiveTimer)clearTimeout(_prevPerfLiveTimer);
   window._selectedLiveWorkoutClass=null;
+  window._selectedLiveWorkoutEquipment=null;
   _updateInlineClassBtn('liveWorkoutNameInput','_inlineClassBtnLive','live');
+  _updateInlineEquipBtn('liveWorkoutNameInput','_inlineEquipBtnLive','live');
   // Show nothing only when there's no typed text AND no Muscle/Equipment filter selected AND the
   // dropdown icon wasn't clicked — mirrors the non-live Add Workout behavior exactly.
-  if(!forceShow&&!val&&!muscleVal&&!equipVal){const lb=document.getElementById('_inlineClassBtnLive');if(lb)lb.style.display='none';return;}
+  if(!forceShow&&!val&&!muscleVal&&!equipVal){const lb=document.getElementById('_inlineClassBtnLive');if(lb)lb.style.display='none';const eb=document.getElementById('_inlineEquipBtnLive');if(eb)eb.style.display='none';return;}
   let matches=ctmGetFilteredCatalog(muscleVal,equipVal,val,true);
   if(matches.length){
     box.style.display="block";
@@ -9246,14 +9894,24 @@ function handleLiveSearchAuto(forceShow){
       let div=document.createElement("div");
       const clr=CLASS_COLORS[item.class]||'var(--text-muted)';
       const classTag=item.class==='multi'?`<span style="background:#6366f1;color:#fff;border-radius:6px;padding:1px 6px;font-size:9px;font-weight:800;margin-left:4px">MULTI</span>`:`<span style="background:${clr};color:#fff;border-radius:6px;padding:1px 6px;font-size:9px;font-weight:800;margin-left:4px">${item.class}</span>`;
-      div.innerHTML=`<span>${item.name}</span>${classTag}`;
+      // item.name already carries the "(Equipment)" suffix for custom exercises that have one
+      // (see ctmGetFilteredCatalog), same as every built-in catalog exercise — no separate badge needed.
+      div.innerHTML=`<span>${item.name}${item.isCustom?' <span style="opacity:0.55;font-size:9px">(custom)</span>':''}</span><span>${classTag}</span>`;
       div.style.cssText='display:flex;align-items:center;justify-content:space-between;gap:6px';
       div.onclick=()=>{
         box.style.display="none";
         if(icon)icon.classList.remove("open");
         if(_prevPerfLiveTimer)clearTimeout(_prevPerfLiveTimer);
         const lb=document.getElementById('_inlineClassBtnLive');if(lb)lb.style.display='none';
-        if(item.class==='multi'){
+        if(item.isCustom){
+          // Already a known, designated exercise — restore its remembered Class/Equipment as-is,
+          // no need to prompt for either again.
+          document.getElementById("liveWorkoutNameInput").value=item.name;
+          window._selectedLiveWorkoutClass=(item.class&&item.class!=='Unknown')?item.class:null;
+          window._selectedLiveWorkoutEquipment=(item.equipment&&item.equipment!=='Unknown')?item.equipment:null;
+          _updateInlineEquipBtn('liveWorkoutNameInput','_inlineEquipBtnLive','live');
+          fetchPrevPerformance(item.name,'live');
+        } else if(item.class==='multi'){
           document.getElementById("liveWorkoutNameInput").value=item.name;
           updateTrackWorkoutBtnVisibility('live');
           _showClassPickerForInput('liveWorkoutNameInput',item.name,'live');
@@ -9269,9 +9927,10 @@ function handleLiveSearchAuto(forceShow){
       box.appendChild(div);
     });
   }
-  // No auto class picker on pause — user uses the inline Choose Class button
+  // No auto class/equipment picker on pause — user uses the inline buttons
   if(!document.getElementById("liveWorkoutNameInput").readOnly){
     _updateInlineClassBtn('liveWorkoutNameInput','_inlineClassBtnLive','live');
+    _updateInlineEquipBtn('liveWorkoutNameInput','_inlineEquipBtnLive','live');
   }
 }
 /* ===================== LIVE MODE DRAFT (survives an accidental browser refresh) =====================
@@ -9517,6 +10176,19 @@ function showResumeAlertsBanner(){
 function startLiveSession(){
   if(window._liveEditMode){startLiveEditNewSets();return;}
   let name=document.getElementById("liveWorkoutNameInput").value.trim();if(!name){alert("Please enter exercise name.");return}
+  // A brand-new custom exercise (not in the catalog, never saved before) must have a Class picked —
+  // Equipment stays optional — so it always shows its designated muscle group everywhere.
+  if(_customExerciseNeedsClass(name,window._selectedLiveWorkoutClass)){
+    alert("Please choose a Class for this custom exercise before starting.");
+    _triggerInlineClassPicker('liveWorkoutNameInput','live');
+    return;
+  }
+  // Custom (non-catalog) exercise names are normalized to Sentence Case and remembered — with
+  // whatever Class/Equipment were chosen — so they resurface in autosuggest + Muscle/Equipment
+  // filtering next time. Catalog exercises pass through untouched. The input is updated to match
+  // so every subsequent set saved this session uses the same finalized name.
+  name=finalizeCustomExerciseName(name,window._selectedLiveWorkoutClass,window._selectedLiveWorkoutEquipment);
+  document.getElementById("liveWorkoutNameInput").value=name;
   liveTotalSets=parseInt(document.getElementById("liveSetsCountSelect").value);liveCurrentSet=1;liveSetResults=[];liveSessionSlot=null;
   document.getElementById("liveSetupPanel").style.display="none";
   let titleEl=document.getElementById("liveSessionTitle");titleEl.textContent="🏋 "+name+" — "+liveTotalSets+" Set"+(liveTotalSets>1?"s":"");titleEl.style.display="block";
@@ -9601,10 +10273,10 @@ async function saveLiveSet(idx){
   let setStr=`${kg}Kg x ${reps} [${timeLabel}]`;liveSetResults.push(setStr);
   let name=document.getElementById("liveWorkoutNameInput").value.trim(),uid=getEffectiveUid(),td=document.getElementById("workoutCalendarFilter").value;
   let combinedEntry=`${name}: ${liveSetResults.join(", ")}`;
-  const{data:er}=await db.from("workouts").select("*").eq("user_id",uid).eq("date",td).maybeSingle();let p={};
-  if(liveSessionSlot){p[liveSessionSlot]=combinedEntry;await db.from("workouts").update(p).eq("user_id",uid).eq("date",td)}
-  else if(er){let slot=null;for(let i=1;i<=15;i++){if(!er[`workout_${i}`]){slot=`workout_${i}`;break}}if(!slot){alert("Daily capacity of 15 entries reached.");return}liveSessionSlot=slot;p[slot]=combinedEntry;await db.from("workouts").update(p).eq("user_id",uid).eq("date",td)}
-  else{liveSessionSlot="workout_1";p={user_id:uid,date:td,workout_1:combinedEntry};await db.from("workouts").insert([p])}
+  const entry=sessionMakeWorkoutEntry(name,liveSetResults.join(", "));
+  const savedSlot=await sessionUpsertWorkoutEntry(uid,td,liveSessionSlot,entry);
+  if(!savedSlot){alert("Daily capacity of 15 entries reached for this session.");return}
+  liveSessionSlot=savedSlot;
   document.getElementById(`liveSetSaveBtn_${idx}`).style.display="none";document.getElementById(`liveTimerRow_${idx}`).style.display="none";
   document.getElementById(`liveSetInputs_${idx}`).style.pointerEvents="none";document.getElementById(`liveSetInputs_${idx}`).style.opacity="0.6";
   let resultEl=document.getElementById(`liveSetResult_${idx}`);resultEl.textContent=`✓ ${setStr}`;resultEl.style.display="block";
@@ -9997,23 +10669,36 @@ async function performWorkoutReorder(newOrderCis){
   // if some future edge case fed a repeated ci into the DOM order.
   newOrderCis=newOrderCis.filter((v,i)=>Number.isFinite(v)&&newOrderCis.indexOf(v)===i);
   const uid=getEffectiveUid(),td=isRoomMemberModeActive()?getLocalDateString():document.getElementById("workoutCalendarFilter").value;
-  const{data,error}=await db.from("workouts").select("*").eq("user_id",uid).eq("date",td);
+  const ciMap=window._workoutCiMap||{};
+  const{data,error}=await sessionFetchByUserDate(uid,td);
   if(error||!data||!data.length)return;
-  const row=data[0];
-  let p={};
-  newOrderCis.forEach((oldCi,idx)=>{p[`workout_${idx+1}`]=row[`workout_${oldCi}`]??null});
-  for(let k=newOrderCis.length+1;k<=15;k++)p[`workout_${k}`]=null;
-  const{error:saveError}=await db.from("workouts").update(p).eq("user_id",uid).eq("date",td);
+  const rowsByCreatedAt={};data.forEach(r=>{rowsByCreatedAt[r.created_at]=r});
+  // A drag can only reorder entries — it can't move an entry from one Session row (session) to
+  // another — so group the new flattened order by each entry's ORIGINAL row, preserving the
+  // row's own relative order, and rebuild just that row's workouts array.
+  const newRowWorkouts={};
+  newOrderCis.forEach(ci=>{
+    const ref=ciMap[ci];if(!ref||!rowsByCreatedAt[ref.rowCreatedAt])return;
+    const entry=(rowsByCreatedAt[ref.rowCreatedAt].workouts||[])[ref.idx];
+    if(!entry)return;
+    if(!newRowWorkouts[ref.rowCreatedAt])newRowWorkouts[ref.rowCreatedAt]=[];
+    newRowWorkouts[ref.rowCreatedAt].push(entry);
+  });
   const container=document.getElementById("savedWorkoutLogsContainer");
-  if(saveError){
+  try{
+    for(const createdAt of Object.keys(newRowWorkouts)){
+      const{error:saveError}=await sessionUpdateByKey(uid,td,createdAt,{workouts:newRowWorkouts[createdAt]});
+      if(saveError)throw saveError;
+    }
+  }catch(e){
     // The save itself failed — reload from the server so the on-screen order can't silently
     // drift out of sync with what's actually saved (the drag already reordered the DOM locally).
     if(container)await loadWorkoutsForDate();
     return;
   }
-  // Saved successfully: relabel the already-reordered cards in place (no full reload, no toast —
-  // that round-trip was the visible flash that looked like a duplicate box appearing).
-  if(container)wcResyncCiAfterReorder(container);
+  // Reload from the server to rebuild the ci→{row,idx} map against the new array indices — safe
+  // to do since the reorder already committed successfully above.
+  if(container)await loadWorkoutsForDate();
 }
 /* Keeps each saved-workout card's baked-in "ci" references (data-ci plus the ci argument inside
    its onclick/onpointerdown/edit/delete handlers) pointed at the correct workout_N slot after an
@@ -10044,14 +10729,17 @@ async function loadWorkoutsForDate(){
   let uid=getEffectiveUid(),date=isRoomMemberModeActive()?getLocalDateString():document.getElementById("workoutCalendarFilter").value;
   let con=document.getElementById("savedWorkoutLogsContainer");
   con.innerHTML=`<p style="font-size:13px;color:var(--text-muted);text-align:center;padding:10px;font-family:var(--font-alt)">Loading...</p>`;
-  const{data,error}=await db.from("workouts").select("*").eq("user_id",uid).eq("date",date);
+  const{data,error}=await sessionFetchByUserDate(uid,date);
   const breakdownRow=document.getElementById("workoutBreakdownRow");
   if(error||!data||data.length===0){con.innerHTML=`<p style="font-size:13px;color:var(--text-muted);text-align:center;padding:10px;font-family:var(--font-alt)">No workouts logged for this date.</p>`;if(breakdownRow)breakdownRow.style.display="none";return}
   let html="",counter=1,classVolMap={},totalVolAll=0,anyEntry=false;
+  window._workoutCiMap={};
   data.forEach(row=>{
     window.currentWorkoutRowObject=row;
-    for(let ci=1;ci<=15;ci++){
-      let cell=row[`workout_${ci}`];if(!cell||cell.trim()==="")continue;
+    (sessionWorkoutsArray(row)).forEach((wEntry,arrIdx)=>{
+      let cell=sessionWorkoutEntryToText(wEntry);if(!cell||cell.trim()==="")return;
+      const ci=counter;
+      window._workoutCiMap[ci]={rowCreatedAt:row.created_at,idx:arrIdx};
       anyEntry=true;
       let ename=cell,tags="",hasDuration=false;if(cell.includes(":")){let pts=cell.split(":");ename=pts[0].trim();pts[1].trim().split(",").map(s=>s.trim()).filter(Boolean).forEach((s,si)=>{if(s.includes("["))hasDuration=true;tags+=`<span class="workout-tag">${formatSetTagLabel(s,si+1)}</span>`})}
       const tagGridClass=hasDuration?"workout-tag-grid tag-grid-2col":"workout-tag-grid";
@@ -10063,7 +10751,7 @@ async function loadWorkoutsForDate(){
       const classLabel=`<small class="wlc-class-label" style="color:${exColor}">${exCls}</small>`;
       const setsBlock=`<div class="${tagGridClass} wlc-sets-block${workoutBreakdownOn?"":" wlc-collapsed"}">${tags}</div>`;
       html+=`<div class="workout-log-card" data-ci="${ci}" tabindex="0" style="--wlc-glow:${exColor}55" onclick="handleWorkoutCardActivate(this,${ci},'${escapeHtml(cell)}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click()}" onpointerdown="wcPointerDown(event,this,${ci})"><div class="wlc-box" style="border-color:${exColor}55;border-left-color:${exColor}"><div class="wlc-body"><div class="wlc-header-row"><span class="wlc-dot" style="background:${exColor}"></span><div class="exercise-name"><span class="wlc-serial" style="color:var(--accent);margin-right:4px">${counter}.</span>${ename}${classLabel}</div>${volVal}</div>${setsBlock}</div></div><div class="workout-actions-overlay"><button class="action-icon-btn track" title="Track Workout" onclick="trackWorkoutFromCard(event,'${escapeHtml(ename)}')">${ICON_TRACK}</button><button class="action-icon-btn edit" title="Edit" onclick="initiateWorkoutEdit(event,${ci},'${escapeHtml(cell)}')">${ICON_EDIT}</button><button class="action-icon-btn delete" title="Delete" onclick="triggerWorkoutDelete(event,${ci})">${ICON_DELETE}</button></div></div>`;counter++;
-    }
+    });
   });
   if(!anyEntry){con.innerHTML=`<p style="font-size:13px;color:var(--text-muted);text-align:center;padding:10px;font-family:var(--font-alt)">No entries for this date.</p>`;if(breakdownRow)breakdownRow.style.display="none";return}
   if(breakdownRow)breakdownRow.style.display="flex";
@@ -10193,6 +10881,13 @@ function initiateWorkoutEdit(e,ci,rv){
   });
 
   document.getElementById("workoutNameInput").value=en;
+  // Resolve this entry's designated Class/Equipment (catalog or saved custom exercise) so re-saving
+  // it keeps the same tags, and refresh the inline picker buttons so they stay hidden for a name
+  // that's already known.
+  window._selectedWorkoutClass=getExerciseClass(en)!=='Unknown'?getExerciseClass(en):null;
+  window._selectedWorkoutEquipment=getExerciseEquipment(en)!=='Unknown'?getExerciseEquipment(en):null;
+  _updateInlineClassBtn('workoutNameInput','_inlineClassBtnNonLive','nonlive');
+  _updateInlineEquipBtn('workoutNameInput','_inlineEquipBtnNonLive','nonlive');
   document.getElementById("setsCountSelect").value=segs.length;
   editOriginalSetCount=segs.length;
   applySetsCountMinConstraint();
@@ -10241,8 +10936,9 @@ async function deleteNonLiveSavedSet(i){
   const name=document.getElementById("workoutNameInput").value.trim();
   const uid=getEffectiveUid();
   const td=document.getElementById("workoutCalendarFilter").value;
-  let p={};p[`workout_${currentEditingIndex}`]=`${name}: ${sd.join(", ")}`;
-  await db.from("workouts").update(p).eq("user_id",uid).eq("date",td);
+  const slotRef=window._workoutCiMap&&window._workoutCiMap[currentEditingIndex];
+  const entry=sessionMakeWorkoutEntry(name,sd.join(", "));
+  await sessionUpsertWorkoutEntry(uid,td,slotRef,entry);
 
   document.getElementById("setsCountSelect").value=String(newCnt);
   applySetsCountMinConstraint();
@@ -10295,7 +10991,7 @@ function startLiveEditSession(ci,exerciseName,setsStr,segs){
   if(typeof updateRoomTargetBadge==='function')updateRoomTargetBadge();
   bwKgRevealed.liveEditExisting=false;bwKgRevealed.liveEditNew=false;
   // Parse existing saved sets so we can re-build the combined entry on every save
-  liveEditSlot=`workout_${ci}`;
+  liveEditSlot=(window._workoutCiMap&&window._workoutCiMap[ci])||null;
   liveEditExistingResults=segs.map(s=>s.trim()).filter(Boolean);
   liveEditNewResults=[];
   liveEditTotalNewSets=0;liveEditCurrentNewSet=1;
@@ -10452,8 +11148,7 @@ async function updateLiveEditExistingSets(){
   let uid=getEffectiveUid();
   let td=document.getElementById("workoutCalendarFilter").value;
   let combinedEntry=`${exName}: ${rebuilt.join(", ")}`;
-  let p={};p[liveEditSlot]=combinedEntry;
-  await db.from("workouts").update(p).eq("user_id",uid).eq("date",td);
+  liveEditSlot=await sessionUpsertWorkoutEntry(uid,td,liveEditSlot,sessionMakeWorkoutEntry(exName,rebuilt.join(", ")));
   showToast("💾 Sets updated");
   // Level Up: highest Kg (or, for pure bodyweight, highest Reps) from the updated sets,
   // compared vs ALL-time saved history for this exercise.
@@ -10496,8 +11191,7 @@ async function deleteLiveEditSavedSet(i){
   const exName=document.getElementById("liveWorkoutNameInput").value.trim();
   const uid=getEffectiveUid();
   const td=document.getElementById("workoutCalendarFilter").value;
-  let p={};p[liveEditSlot]=`${exName}: ${newCommitted.join(", ")}`;
-  await db.from("workouts").update(p).eq("user_id",uid).eq("date",td);
+  liveEditSlot=await sessionUpsertWorkoutEntry(uid,td,liveEditSlot,sessionMakeWorkoutEntry(exName,newCommitted.join(", ")));
 
   // Snap the dropdown down to the new total so no surprise "new set" slot opens up
   const sel=document.getElementById("liveSetsCountSelect");
@@ -10585,8 +11279,7 @@ async function saveLiveEditSet(idx){
   let td=document.getElementById("workoutCalendarFilter").value;
   let allResults=[...liveEditExistingResults,...liveEditNewResults];
   let combinedEntry=`${exName}: ${allResults.join(", ")}`;
-  let p={};p[liveEditSlot]=combinedEntry;
-  await db.from("workouts").update(p).eq("user_id",uid).eq("date",td);
+  liveEditSlot=await sessionUpsertWorkoutEntry(uid,td,liveEditSlot,sessionMakeWorkoutEntry(exName,allResults.join(", ")));
 
   document.getElementById(`liveEditSetSaveBtn_${idx}`).style.display="none";
   document.getElementById(`liveEditTimerRow_${idx}`).style.display="none";
@@ -10719,7 +11412,8 @@ function cancelLiveEditWorkout(){
 async function triggerWorkoutDelete(e,ci){
   e.stopPropagation();if(!confirm("Delete this workout entry?"))return;
   let uid=getEffectiveUid(),td=document.getElementById("workoutCalendarFilter").value;
-  let cp={};cp[`workout_${ci}`]=null;await db.from("workouts").update(cp).eq("user_id",uid).eq("date",td);
+  const slotRef=window._workoutCiMap&&window._workoutCiMap[ci];
+  await sessionDeleteWorkoutEntry(uid,td,slotRef);
   alert("Entry deleted.");await loadWorkoutsForDate();await syncCoreDashboardMetrics();
 }
 /* ===================== WORKOUT ROOM (multi-user, shared-phone) ===================== */
@@ -12106,8 +12800,11 @@ async function openUserProfile(uid){
   // Fetch XP data for the user
   let userXp=0,userRank="Beginner",userRankEmoji="🥋",userLevel=1;
   try{
-    const{data:xpData}=await db.from("attendance").select("xp").eq("user_id",uid);
-    if(xpData&&xpData.length){userXp=xpData.reduce((s,r)=>s+(r.xp||0),0)}
+    const{data:xpData}=await db.from(SESSION_TABLE).select("class,workouts").eq("user_id",uid);
+    if(xpData&&xpData.length){
+      userXp=xpData.length*50;
+      xpData.forEach(row=>{sessionWorkoutsArray(row).forEach(entry=>{userXp+=calculateVolumeXP(sessionWorkoutEntryToText(entry))})});
+    }
     // Compute rank/level using same thresholds as main app
     const RANKS=[
       {name:"Beginner",emoji:"🥋",min:0},
@@ -12428,7 +13125,7 @@ async function runWorkoutTracker(){
   const fromDate=document.getElementById("trackerFromDate").value,toDate=document.getElementById("trackerToDate").value;
   if(!fromDate||!toDate){alert("Please select both From and To dates.");return}if(fromDate>toDate){alert("From Date must be before or equal to To Date.");return}
   const area=document.getElementById("trackerResultsArea");area.innerHTML=`<div class="tracker-loading">⏳ Fetching workout data...</div>`;closeTrackerAnalytics();
-  const{data,error}=await db.from("workouts").select("*").eq("user_id",uid).gte("date",fromDate).lte("date",toDate).order("date",{ascending:true});
+  const{data,error}=await db.from(SESSION_TABLE).select("date,workouts").eq("user_id",uid).gte("date",fromDate).lte("date",toDate).order("date",{ascending:true});
   if(error){area.innerHTML=`<div class="tracker-empty">❌ Error fetching data: ${error.message}</div>`;return}
   if(!data||data.length===0){
     trackerSortedList=[];trackerAllData={};
@@ -12441,10 +13138,10 @@ async function runWorkoutTracker(){
     return;
   }
   const exerciseMap={};
-  data.forEach(row=>{const rowDate=row.date;for(let ci=1;ci<=15;ci++){const cell=row[`workout_${ci}`];if(!cell||!cell.trim())continue;let exName='Unknown',setsRaw=[];if(cell.includes(':')){const ci2=cell.indexOf(':');exName=cell.substring(0,ci2).trim();setsRaw=cell.substring(ci2+1).split(',').map(s=>s.trim()).filter(Boolean)}else{exName=cell.trim()}if(!exerciseMap[exName])exerciseMap[exName]={frequency:0,sets:[],sessions:{}};exerciseMap[exName].frequency++;
+  data.forEach(row=>{const rowDate=row.date;sessionWorkoutsArray(row).forEach(wEntryRaw=>{const wEntry=sessionDecodeWorkoutEntry(wEntryRaw);const exName=wEntry.name||'Unknown';const setsRaw=(wEntry.sets||'').split(',').map(s=>s.trim()).filter(Boolean);if(!exerciseMap[exName])exerciseMap[exName]={frequency:0,sets:[],sessions:{}};exerciseMap[exName].frequency++;
     // Track per-session (per-date) groups of sets so we can show a full session breakdown (Recent / Highest / Lowest)
     if(!exerciseMap[exName].sessions[rowDate])exerciseMap[exName].sessions[rowDate]={date:rowDate,sets:[]};
-    setsRaw.forEach(setStr=>{const vol=parseSetVolume(setStr);const{weight,reps}=parseSetWeightReps(setStr);const setObj={date:rowDate,raw:setStr,vol,weight,reps};exerciseMap[exName].sets.push(setObj);exerciseMap[exName].sessions[rowDate].sets.push(setObj)})}});
+    setsRaw.forEach(setStr=>{const vol=parseSetVolume(setStr);const{weight,reps}=parseSetWeightReps(setStr);const setObj={date:rowDate,raw:setStr,vol,weight,reps};exerciseMap[exName].sets.push(setObj);exerciseMap[exName].sessions[rowDate].sets.push(setObj)})})});
   trackerSortedList=Object.entries(exerciseMap).sort((a,b)=>b[1].frequency-a[1].frequency).map(([name,data],idx)=>{
     const sessionList=Object.values(data.sessions).sort((a,b)=>a.date.localeCompare(b.date));
     // Recent session = the session with the latest date (most recent workout session for this exercise)
@@ -13713,7 +14410,7 @@ function updateLearnExercisePicker(){
   const eq=document.getElementById("learnEquipmentFilter").value;
   const pickerRow=document.getElementById("learnWorkoutPickerRow");const picker=document.getElementById("learnWorkoutPicker");
   if(!cls){pickerRow.style.display="none";return}
-  const list=ctmGetFilteredCatalog(cls,eq,'',false);
+  const list=ctmGetFilteredCatalog(cls,eq,'',false,false);
   picker.innerHTML=`<option value="">— Choose an exercise (${list.length}) —</option>`+list.map(e=>`<option value="${e.name.replace(/"/g,'&quot;')}">${e.name}</option>`).join("");
   pickerRow.style.display="block";document.getElementById("learnInfoCard").style.display="none";document.getElementById("learnEmptyState").style.display="block";
 }
