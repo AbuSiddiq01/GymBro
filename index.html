@@ -1219,12 +1219,11 @@ body.workout-edit-lock{overflow:hidden}
 /* ---- Homepage payment-received banner + receipt card (mirrors admin.html's billCard) ---- */
 .receiptBanner{background:linear-gradient(135deg,#25D366,#128C7E);color:#fff;border-radius:16px;padding:13px 16px;margin:12px 0;box-shadow:0 8px 24px rgba(18,140,126,0.35)}
 .receiptBannerHead{display:flex;align-items:center;gap:12px;cursor:pointer}
-.receiptBannerIco{font-size:22px;flex-shrink:0}
+.receiptBannerIco{font-size:22px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
 .receiptBannerText{flex:1;min-width:0}
 .receiptBannerTitle{font-weight:800;font-size:13.5px;font-family:var(--font-alt)}
 .receiptBannerSub{font-size:11.5px;opacity:0.9;margin-top:2px;line-height:1.55}
 .receiptBannerSub div{margin-top:1px}
-.receiptBannerArrow{font-size:22px;opacity:0.85;flex-shrink:0}
 .receiptBannerBody{overflow:hidden;max-height:200px;transition:max-height 0.25s ease,opacity 0.2s ease,margin-top 0.2s ease;margin-top:6px;opacity:1}
 .receiptBannerBody.folded{max-height:0;opacity:0;margin-top:0}
 /* ---- Fixed, non-cancellable, non-foldable FEE-DUE variant of the same homepage box (soon/today/overdue) ---- */
@@ -2006,11 +2005,10 @@ body.theme-godmode .levelup-toast{background:linear-gradient(135deg,#7a0006,#c00
       </div>
       <div class="receiptBanner" id="receiptBanner" style="display:none">
         <div class="receiptBannerHead" onclick="handleBillingBoxClick()">
-          <div class="receiptBannerIco" id="receiptBannerIco">🧾</div>
+          <div class="receiptBannerIco" id="receiptBannerIco"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="m9 15 2 2 4-4"/></svg></div>
           <div class="receiptBannerText">
-            <div class="receiptBannerTitle" id="receiptBannerTitle">Payment received</div>
+            <div class="receiptBannerTitle" id="receiptBannerTitle">Fees Paid</div>
           </div>
-          <div class="receiptBannerArrow" id="receiptBannerArrow">›</div>
           <button type="button" class="receiptBannerFold" id="receiptBannerFold" style="display:none" onclick="toggleReceiptFold(event)" title="Show/hide details" aria-label="Show/hide details">▲</button>
         </div>
         <div class="receiptBannerBody" id="receiptBannerBody">
@@ -4231,18 +4229,19 @@ function computeFeeDueStatus(user){
 function receiptFoldKey(user){return`gymbro_receipt_folded_${user.login_id||'x'}_${user.current_paid_date||'x'}`;}
 function isReceiptFolded(user){return user?localStorage.getItem(receiptFoldKey(user))==='1':false;}
 function setReceiptFolded(user,folded){if(user)localStorage.setItem(receiptFoldKey(user),folded?'1':'0');}
+const RECEIPT_ICO_SVG='<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="m9 15 2 2 4-4"/></svg>';
 function setupMemberBillingBox(user){
   lastReceiptUser=user||null;
   const banner=document.getElementById('receiptBanner');
   const foldBtn=document.getElementById('receiptBannerFold');
-  const arrow=document.getElementById('receiptBannerArrow');
   const ico=document.getElementById('receiptBannerIco');
   const body=document.getElementById('receiptBannerBody');
   banner.classList.remove('due-soon','due-today','due-overdue');
   if(!user){banner.style.display='none';return;}
   const due=computeFeeDueStatus(user);
   if(due){
-    // ---- DUE STATE: fixed, not foldable, no close button — includes Last Paid + Due Date ----
+    // ---- DUE STATE: fixed, not foldable, no close button — 2 lines: (1) Last Paid + Due Date,
+    // (2) Plan + amount + "Please pay at the front desk" — bold heading above shows overdue count. ----
     banner.classList.add(due.status==='overdue'?'due-overdue':due.status==='today'?'due-today':'due-soon');
     ico.textContent=due.status==='overdue'?'⚠️':'💰';
     const amountTxt=user.next_due_amount?('₹'+user.next_due_amount):'your membership fee';
@@ -4250,12 +4249,10 @@ function setupMemberBillingBox(user){
       ?`Fee overdue by ${Math.abs(due.diffDays)} day${Math.abs(due.diffDays)===1?'':'s'}`
       :due.status==='today'?'Your fee is due today'
       :`Fee due in ${due.diffDays} day${due.diffDays===1?'':'s'}`;
+    const lastPaidTxt=user.current_paid_date?formatDisplayDate(user.current_paid_date):'—';
     document.getElementById('receiptBannerSub').innerHTML=
-      `<div>${escapeHtml(user.plan||'Your plan')} · ${amountTxt}</div>`+
-      `<div>Last Paid: ${user.current_paid_date?formatDisplayDate(user.current_paid_date):'—'}</div>`+
-      `<div>Due Date: ${formatDisplayDate(user.next_due_date)}</div>`+
-      `<div>Please pay at the front desk</div>`;
-    arrow.style.display='none';
+      `<div>Last Paid: ${lastPaidTxt} · Due: ${formatDisplayDate(user.next_due_date)}</div>`+
+      `<div>${escapeHtml(user.plan||'Your plan')} · ${amountTxt} — Please pay at the front desk</div>`;
     foldBtn.style.display='none';
     body.classList.remove('folded');
     banner.style.display='block';
@@ -4263,13 +4260,10 @@ function setupMemberBillingBox(user){
   }
   // ---- No due pending: consider showing the RECEIPT state instead ----
   if(!user.current_paid_date){banner.style.display='none';return;}
-  const paidDate=new Date(user.current_paid_date+'T00:00:00');
-  const today=new Date(getLocalDateString()+'T00:00:00');
-  const daysSince=Math.round((today-paidDate)/86400000);
-  ico.textContent='🧾';
-  document.getElementById('receiptBannerTitle').textContent=daysSince<=2?'✅ Payment received!':'🧾 Your last receipt';
-  document.getElementById('receiptBannerSub').innerHTML=`<div>Paid on ${formatDisplayDate(user.current_paid_date)} · Tap to view</div>`;
-  arrow.style.display='';
+  ico.innerHTML=RECEIPT_ICO_SVG; // fixed real icon, no emoji, same regardless of how recently paid
+  document.getElementById('receiptBannerTitle').textContent='Fees Paid';
+  const nextDueTxt=user.next_due_date?formatDisplayDate(user.next_due_date):'—';
+  document.getElementById('receiptBannerSub').innerHTML=`<div>Paid on ${formatDisplayDate(user.current_paid_date)} · Next Due: ${nextDueTxt}</div>`;
   foldBtn.style.display='flex';
   const folded=isReceiptFolded(user); // defaults to false (revealed) the first time each new payment is seen
   body.classList.toggle('folded',folded);
@@ -4278,8 +4272,11 @@ function setupMemberBillingBox(user){
   banner.style.display='block';
 }
 function handleBillingBoxClick(){
-  // The DUE box isn't tappable (no arrow, nothing to open) — only the receipt box opens the modal.
+  // The DUE box isn't tappable — nothing to open. The receipt box only opens the bill once its
+  // details are revealed (unfolded); tapping while folded does nothing but reveal is required first.
   if(!lastReceiptUser||computeFeeDueStatus(lastReceiptUser))return;
+  const body=document.getElementById('receiptBannerBody');
+  if(body.classList.contains('folded'))return;
   openMemberReceiptModal();
 }
 function toggleReceiptFold(e){
