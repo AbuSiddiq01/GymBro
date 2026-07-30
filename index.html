@@ -543,8 +543,6 @@ body.theme-godmode .section-title{letter-spacing:1px}
 
 /* ===================== CHECK-IN ===================== */
 .checkin-flow-step{margin-top:14px}
-.checkin-session-row{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap}
-.checkin-session-row select{flex:1;min-width:160px;margin-top:0}
 .compact-checkin-wrapper{display:flex;gap:18px;align-items:flex-start;margin-top:14px}
 .checkin-left-controls{width:44%;display:flex;flex-direction:column;gap:10px}
 .checkin-right-body{width:52%;background:var(--checkin-right-bg);border-radius:16px;padding:10px;border:1px solid var(--border-col);transition:background 0.4s}
@@ -552,8 +550,6 @@ body.theme-godmode .section-title{letter-spacing:1px}
 #frontBody,#backBody{background:transparent;border:1px solid var(--border-col);border-radius:10px;padding:5px;width:100%;max-width:112px;height:auto;max-height:175px;transition:all 0.3s ease}
 .muscle-group{fill:var(--muscle-idle);transition:fill 0.3s cubic-bezier(0.4,0,0.2,1);cursor:pointer}
 .muscle-group:hover{opacity:0.8}
-#workoutSelectorArea{display:none;animation:fadeIn 0.4s ease}
-#workoutSelectorArea.visible{display:block}
 
 /* ===================== STOPWATCH ===================== */
 .stopwatch-container{text-align:center;margin:14px 0 0;padding:16px;background:var(--stopwatch-bg);border-radius:16px;border:2px dashed var(--stopwatch-border);display:none;opacity:0;transform:translateY(10px);transition:all 0.4s cubic-bezier(0.4,0,0.2,1)}
@@ -707,6 +703,50 @@ body.wlc-dragging-active,body.wlc-dragging-active *{user-select:none!important;-
 body.wlc-dragging-active .workout-log-card:not(.wlc-drag-source){cursor:grabbing}
 .workout-breakdown-row{display:flex;align-items:center;gap:9px;margin:12px 0 4px}
 .workout-breakdown-row>span{font-size:12px;font-weight:700;color:var(--text-muted);font-family:var(--font-alt);letter-spacing:0.5px;user-select:none}
+.wf-finish-btn{margin-left:auto;padding:6px 14px;border:none;border-radius:20px;cursor:pointer;font-family:var(--font-alt);font-size:11.5px;font-weight:800;letter-spacing:0.5px;color:#fff;background:linear-gradient(135deg,#16a34a,#15803d);box-shadow:0 2px 8px rgba(22,163,74,0.35);transition:transform 0.15s ease}
+.wf-finish-btn:active{transform:scale(0.94)}
+.workout-class-chips-row{display:flex;flex-wrap:wrap;gap:7px;margin:14px 0 10px}
+.workout-class-chip{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;background:var(--bg-panel);border:1px solid var(--border-col);font-family:var(--font-alt);font-size:10.5px;font-weight:700;color:var(--text-secondary);white-space:nowrap}
+.workout-class-chip-dot{width:8px;height:8px;border-radius:2px;display:inline-block;flex-shrink:0}
+/* Filterable class chip BUTTONS shown below the Workouts-page breakdown box. Sized and shaped to
+   match the small pill "legend" chips used on the Volume page's chart legend (same padding/
+   font-size/border-radius) — solid class-color background + white text, small and compact rather
+   than a big chunky button. Tapping one filters the day's workout cards down to just that class;
+   tapping the active one again clears the filter. */
+.workout-class-chip-btn{display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border-radius:20px;border:2px solid transparent;font-family:var(--font-alt);font-size:11px;font-weight:700;color:#fff;white-space:nowrap;cursor:pointer;letter-spacing:0.1px;text-shadow:0 1px 2px rgba(0,0,0,0.45);box-shadow:inset 0 0 0 999px rgba(0,0,0,0.10);transition:transform 0.15s ease,box-shadow 0.15s ease;-webkit-tap-highlight-color:transparent;user-select:none}
+.workout-class-chip-btn-dot{width:8px;height:8px;border-radius:3px;background:rgba(255,255,255,0.85);display:inline-block;flex-shrink:0}
+.workout-class-chip-btn:active{transform:scale(0.95)}
+.workout-class-chip-btn.active{border-color:#fff;transform:scale(1.04);box-shadow:inset 0 0 0 999px rgba(0,0,0,0.22),0 0 0 3px rgba(255,255,255,0.25)}
+.wf-modal-overlay{backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+/* The modal box itself no longer scrolls as a whole — .wf-modal-scroll (everything except the
+   footer) scrolls internally, while .wf-modal-footer (Save button + hint/streak) stays pinned in
+   view at all times, so Save is never something the person has to scroll to find, especially on
+   a short mobile viewport. */
+.wf-modal-box{max-width:360px;max-height:82vh;overflow:hidden;padding:20px 20px 0}
+.wf-modal-scroll{overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;flex:1;min-height:0}
+.wf-modal-footer{flex-shrink:0;padding:10px 0 18px;margin-top:2px;border-top:1px solid var(--border-col)}
+.wf-save-hint{text-align:center;font-size:10.5px;color:var(--text-muted);font-family:var(--font-alt);margin-top:7px}
+.wf-edit-toggle-btn{border:1px solid var(--border-col);background:var(--bg-panel);color:var(--text-secondary);font-family:var(--font-alt);font-size:10.5px;font-weight:700;padding:3px 9px;border-radius:14px;cursor:pointer;transition:all 0.2s ease}
+.wf-edit-toggle-btn.wf-editing{background:var(--accent);color:#fff;border-color:var(--accent)}
+.wf-modal-body-wrap{position:relative;display:flex;justify-content:center;align-items:flex-start;gap:6px;margin:4px 0 8px}
+.wf-modal-body-wrap svg{width:100%;max-width:86px;height:auto;max-height:135px;background:transparent;border:1px solid var(--border-col);border-radius:10px;padding:4px;transition:all 0.3s ease}
+.wf-modal-body-wrap .muscle-group{cursor:default}
+.wf-modal-body-wrap.wf-editing .muscle-group{cursor:pointer}
+/* Custom (non-native <select>) dropdown so it looks identical on every OS/browser — needed for
+   picking a class like Cardio/Full Body that has no muscle region on the body to tap. */
+.wf-class-dd-toggle{position:absolute;top:0;right:0;padding:4px 9px;border-radius:12px;border:1px solid var(--accent);background:var(--accent-soft);color:var(--accent);font-family:var(--font-alt);font-size:10px;font-weight:800;cursor:pointer;z-index:5}
+.wf-class-dd-list{position:absolute;top:26px;right:0;z-index:6;background:var(--bg-card);border:1px solid var(--border-col);border-radius:12px;box-shadow:0 6px 24px rgba(0,0,0,0.35);padding:6px;min-width:132px;max-height:190px;overflow-y:auto}
+.wf-class-dd-item{display:flex;align-items:center;gap:7px;padding:6px 8px;border-radius:8px;cursor:pointer;font-family:var(--font-alt);font-size:11.5px;font-weight:700;color:var(--text-secondary);white-space:nowrap}
+.wf-class-dd-item:hover{background:var(--bg-panel)}
+.wf-class-dd-item.wf-dd-selected{background:var(--accent-soft);color:var(--accent)}
+.wf-class-dd-dot{width:8px;height:8px;border-radius:2px;flex-shrink:0;display:inline-block}
+.wf-class-dd-check{margin-left:auto;font-size:11px}
+.wf-hint-text{font-size:10.5px;color:var(--text-muted);font-family:var(--font-alt);text-align:center;margin:0 0 8px}
+.wf-streak-note{margin-top:10px;padding:10px 12px;border-radius:12px;background:var(--accent-soft);border:1px solid var(--accent);font-family:var(--font-alt);font-size:12px;font-weight:700;color:var(--accent);line-height:1.45}
+.wf-vol-empty{font-size:11.5px;color:var(--text-muted);font-family:var(--font-alt);text-align:center;padding:6px 0}
+.wf-save-btn{width:100%;padding:11px;border:none;border-radius:13px;cursor:pointer;font-family:var(--font-alt);font-size:13px;font-weight:800;letter-spacing:0.5px;color:#fff;background:linear-gradient(135deg,#16a34a,#15803d);box-shadow:0 2px 8px rgba(22,163,74,0.35);transition:all 0.2s ease}
+.wf-save-btn:active{transform:scale(0.97)}
+.wf-save-btn.wf-saved{background:var(--bg-panel);color:var(--text-muted);box-shadow:none;border:1px solid var(--border-col)}
 @media (max-width:380px){
   .wlc-box{padding:9px 11px}
   .workout-log-card{margin-bottom:9px}
@@ -714,8 +754,9 @@ body.wlc-dragging-active .workout-log-card:not(.wlc-drag-source){cursor:grabbing
   .action-icon-btn{padding:5px 6px;font-size:11px}
   .workout-actions-overlay{right:-8px}
 }
-.stats-summary-row{display:flex;justify-content:space-between;align-items:center;background:var(--accent-soft);padding:10px 13px;border-radius:14px;font-size:12px;color:var(--text-secondary);margin-top:12px;border:1px solid var(--border-col);font-family:var(--font-alt);gap:8px;flex-wrap:nowrap;overflow:hidden}
-.stats-summary-row>div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.stats-summary-row{display:flex;justify-content:space-between;align-items:center;background:var(--accent-soft);padding:10px 13px;border-radius:14px;font-size:12px;color:var(--text-secondary);margin-top:12px;border:1px solid var(--border-col);font-family:var(--font-alt);gap:8px;flex-wrap:wrap;overflow:visible;word-break:break-word}
+.stats-summary-row>div{white-space:normal;overflow:visible;word-break:break-word;min-width:0;line-height:1.45}
+.stats-block-heading{font-family:var(--font-alt);font-size:11px;font-weight:800;color:var(--text-muted);letter-spacing:0.6px;margin-top:12px;margin-bottom:2px;text-transform:uppercase}
 .analytics-box{background:var(--accent-soft);padding:14px;border-radius:18px;border:1px solid var(--border-col);margin-top:8px}
 .graph-container{position:relative;height:320px;width:100%}
 
@@ -1666,7 +1707,6 @@ body.theme-godmode .session-resumed-banner .resume-dot{background:#c0000a}
   .headerRight{justify-content:center}
   .tracker-date-row{flex-direction:column}
   .tracker-track-btn{width:100%}
-  .checkin-session-row{flex-direction:column}
 }
 
 /* ===================== BOTTOM NAVIGATION BAR ===================== */
@@ -2037,13 +2077,8 @@ body.theme-godmode .levelup-toast{background:linear-gradient(135deg,#7a0006,#c00
       <div class="section glass" style="margin-top:18px">
         <div class="section-title">🏟 Gym Check-In</div>
         <div class="checkin-flow-step" id="checkinStep1">
-          <div class="checkin-session-row">
-            <select id="session" style="margin-top:0">
-              <option value="Morning">🌅 Morning Session</option>
-              <option value="Evening">🌆 Evening Session</option>
-            </select>
-          </div>
-          <button class="btn" id="submitCheckinBtn" onclick="processCheckIn()">⚡ SUBMIT CHECK-IN (+50 XP)</button>
+          <button class="btn" id="submitCheckinBtn" onclick="processCheckIn()">⚡ PUNCH IN</button>
+          <button class="btn" id="cancelPunchInBtn" style="display:none;background:var(--accent-soft);color:var(--text-secondary);margin-top:8px" onclick="cancelPunchIn()">✕ Cancel Punch In</button>
           <!-- Today's scheduled workout banner -->
           <div id="todayWorkoutBanner" style="display:none;position:relative" class="today-workout-banner">
             <div class="today-workout-text">
@@ -2064,113 +2099,9 @@ body.theme-godmode .levelup-toast{background:linear-gradient(135deg,#7a0006,#c00
         <div class="stopwatch-container" id="clockBox">
           <h3 id="stopwatch">00:00:00</h3>
           <div id="gymDuration" class="duration-display"></div>
-          <div id="workoutSelectorArea">
-            <div style="margin-top:14px;font-size:13px;font-weight:700;color:var(--accent);font-family:var(--font-alt);letter-spacing:0.5px;margin-bottom:8px">
-              💪 SELECT WORKOUT CLASSES
-            </div>
-            <div class="compact-checkin-wrapper" style="margin-top:0">
-              <div class="checkin-left-controls">
-                <select id="workout" multiple size="5" style="margin-top:0;height:130px;width:100%" onchange="handleClassSelection()">
-                  <option value="Chest">Chest</option>
-                  <option value="Biceps">Biceps</option>
-                  <option value="Triceps">Triceps</option>
-                  <option value="Shoulders">Shoulders</option>
-                  <option value="Lat/Back">Lat/Back</option>
-                  <option value="Legs">Legs</option>
-                  <option value="Abs">Abs</option>
-                  <option value="Cardio">Cardio</option>
-                </select>
-                <div style="font-size:11px;color:var(--text-muted);font-family:var(--font-alt);margin-top:4px">Hold Ctrl / Cmd to select up to 3 classes</div>
-              </div>
-              <div class="checkin-right-body">
-                <div class="bodyWrapper">
-                  <svg id="frontBody" viewBox="0 0 200 500">
-                    <text x="100" y="11" fill="var(--text-muted)" font-size="9" font-weight="700" font-family="Rajdhani" letter-spacing="1.5" text-anchor="middle">FRONT</text>
-                    <path d="M100,17 C109,17 115,24 115,33 C115,41 112,47 107,50 L107,55 C113,56 117,59 117,59 L83,59 C83,59 87,56 93,55 L93,50 C88,47 85,41 85,33 C85,24 91,17 100,17 Z" fill="none" stroke="var(--border-col)" stroke-width="1.3"/>
-                    <path d="M88,55 C92,59 108,59 112,55 L116,67 C110,73 90,73 84,67 Z" fill="var(--muscle-idle)" opacity="0.32" stroke="var(--border-col)" stroke-width="0.8"/>
-                    <path d="M84,67 C74,65 63,67 57,73 L65,81 C73,75 83,73 90,73 Z" fill="var(--muscle-idle)" opacity="0.55" stroke="var(--border-col)" stroke-width="0.7"/>
-                    <path d="M116,67 C126,65 137,67 143,73 L135,81 C127,75 117,73 110,73 Z" fill="var(--muscle-idle)" opacity="0.55" stroke="var(--border-col)" stroke-width="0.7"/>
-                    <path id="Shoulders_Left" class="muscle-group" onclick="toggleMuscleFromBody('Shoulders_Left')" fill="var(--muscle-idle)" stroke="var(--border-col)" stroke-width="1.1" d="M57,73 C41,69 23,76 18,94 C14,110 19,127 35,132 C48,136 61,128 62,112 C63,98 62,81 57,73 Z"/>
-                    <path id="Shoulders_Right" class="muscle-group" onclick="toggleMuscleFromBody('Shoulders_Right')" fill="var(--muscle-idle)" stroke="var(--border-col)" stroke-width="1.1" d="M143,73 C159,69 177,76 182,94 C186,110 181,127 165,132 C152,136 139,128 138,112 C137,98 138,81 143,73 Z"/>
-                    <path id="Chest_Left" class="muscle-group" onclick="toggleMuscleFromBody('Chest_Left')" fill="var(--muscle-idle)" stroke="var(--border-col)" stroke-width="1.1" d="M63,77 C50,73 40,81 39,97 C38,114 46,128 62,133 C75,137 90,133 97,123 C101,115 100,101 97,89 C93,78 78,72 68,74 C66,74.5 64,76 63,77 Z"/>
-                    <path id="Chest_Right" class="muscle-group" onclick="toggleMuscleFromBody('Chest_Right')" fill="var(--muscle-idle)" stroke="var(--border-col)" stroke-width="1.1" d="M137,77 C150,73 160,81 161,97 C162,114 154,128 138,133 C125,137 110,133 103,123 C99,115 100,101 103,89 C107,78 122,72 132,74 C134,74.5 136,76 137,77 Z"/>
-                    <path d="M55,113 C66,119 81,122 96,117" fill="none" stroke="var(--border-col)" stroke-width="0.7" opacity="0.4"/>
-                    <path d="M145,113 C134,119 119,122 104,117" fill="none" stroke="var(--border-col)" stroke-width="0.7" opacity="0.4"/>
-                    <line x1="100" y1="75" x2="100" y2="133" stroke="var(--border-col)" stroke-width="0.7" opacity="0.4"/>
-                    <path id="Biceps_Left" class="muscle-group" onclick="toggleMuscleFromBody('Biceps_Left')" fill="var(--muscle-idle)" stroke="var(--border-col)" stroke-width="1.1" d="M28,129 C20,134 16,147 18,165 C20,182 26,196 35,204 C42,210 51,207 52,194 C53,178 49,156 45,139 C43,130 36,125 28,129 Z"/>
-                    <path id="Biceps_Right" class="muscle-group" onclick="toggleMuscleFromBody('Biceps_Right')" fill="var(--muscle-idle)" stroke="var(--border-col)" stroke-width="1.1" d="M172,129 C180,134 184,147 182,165 C180,182 174,196 165,204 C158,210 149,207 148,194 C147,178 151,156 155,139 C157,130 164,125 172,129 Z"/>
-                    <path d="M33,145 C31,161 32,177 38,191" fill="none" stroke="var(--border-col)" stroke-width="0.6" opacity="0.35"/>
-                    <path d="M167,145 C169,161 168,177 162,191" fill="none" stroke="var(--border-col)" stroke-width="0.6" opacity="0.35"/>
-                    <path id="Triceps_Front_Left" class="muscle-group" onclick="toggleMuscleFromBody('Triceps_Front_Left')" fill="var(--muscle-idle)" opacity="0.85" stroke="var(--border-col)" stroke-width="1" d="M15,133 C9,141 7,155 10,173 C13,189 19,202 27,208 C31,210 35,208 34,201 C31,185 25,161 20,143 C19,137 17,133 15,133 Z"/>
-                    <path id="Triceps_Front_Right" class="muscle-group" onclick="toggleMuscleFromBody('Triceps_Front_Right')" fill="var(--muscle-idle)" opacity="0.85" stroke="var(--border-col)" stroke-width="1" d="M185,133 C191,141 193,155 190,173 C187,189 181,202 173,208 C169,210 165,208 166,201 C169,185 175,161 180,143 C181,137 183,133 185,133 Z"/>
-                    <path fill="var(--muscle-idle)" opacity="0.4" stroke="var(--border-col)" stroke-width="0.9" d="M17,206 C13,221 13,239 19,254 L33,250 C29,235 28,219 30,204 Z"/>
-                    <path fill="var(--muscle-idle)" opacity="0.4" stroke="var(--border-col)" stroke-width="0.9" d="M183,206 C187,221 187,239 181,254 L167,250 C171,235 172,219 170,204 Z"/>
-                    <ellipse cx="24" cy="263" rx="9" ry="13" fill="none" stroke="var(--border-col)" stroke-width="1.1"/>
-                    <ellipse cx="176" cy="263" rx="9" ry="13" fill="none" stroke="var(--border-col)" stroke-width="1.1"/>
-                    <path id="Abs" class="muscle-group" onclick="toggleMuscleFromBody('Abs')" fill="var(--muscle-idle)" stroke="var(--border-col)" stroke-width="1.1" d="M76,125 L124,125 C126,147 126,173 122,196 C120,212 114,227 106,235 C102,239 98,239 94,235 C86,227 80,212 78,196 C74,173 74,147 76,125 Z"/>
-                    <line x1="100" y1="125" x2="100" y2="236" stroke="var(--border-col)" stroke-width="0.7" opacity="0.5"/>
-                    <path d="M77,144 C87,149 113,149 123,144" fill="none" stroke="var(--border-col)" stroke-width="0.7" opacity="0.45"/>
-                    <path d="M76,166 C87,171 113,171 124,166" fill="none" stroke="var(--border-col)" stroke-width="0.7" opacity="0.45"/>
-                    <path d="M77,188 C88,193 112,193 123,188" fill="none" stroke="var(--border-col)" stroke-width="0.7" opacity="0.45"/>
-                    <path d="M84,211 C91,216 109,216 116,211" fill="none" stroke="var(--border-col)" stroke-width="0.6" opacity="0.4"/>
-                    <path fill="var(--muscle-idle)" opacity="0.55" stroke="var(--border-col)" stroke-width="0.8" d="M58,129 C51,141 49,159 54,177 C58,191 65,201 73,204 L74,184 C69,168 66,149 68,132 Z"/>
-                    <path fill="var(--muscle-idle)" opacity="0.55" stroke="var(--border-col)" stroke-width="0.8" d="M142,129 C149,141 151,159 146,177 C142,191 135,201 127,204 L126,184 C131,168 134,149 132,132 Z"/>
-                    <path fill="var(--muscle-idle)" opacity="0.3" stroke="var(--border-col)" stroke-width="0.7" d="M78,233 C86,243 114,243 122,233 C120,249 112,259 100,259 C88,259 80,249 78,233 Z"/>
-                    <path id="Legs_Front_L" class="muscle-group" onclick="toggleMuscleFromBody('Legs_Front_L')" fill="var(--muscle-idle)" stroke="var(--border-col)" stroke-width="1.1" d="M70,247 C58,253 51,273 53,309 C55,350 59,389 65,413 C68,423 79,426 85,416 C91,405 93,361 91,309 C89,276 84,256 78,249 C76,247 73,246 70,247 Z"/>
-                    <path d="M71,263 C67,301 68,349 72,406" fill="none" stroke="var(--border-col)" stroke-width="0.6" opacity="0.4"/>
-                    <path id="Legs_Front_R" class="muscle-group" onclick="toggleMuscleFromBody('Legs_Front_R')" fill="var(--muscle-idle)" stroke="var(--border-col)" stroke-width="1.1" d="M130,247 C142,253 149,273 147,309 C145,350 141,389 135,413 C132,423 121,426 115,416 C109,405 107,361 109,309 C111,276 116,256 122,249 C124,247 127,246 130,247 Z"/>
-                    <path d="M129,263 C133,301 132,349 128,406" fill="none" stroke="var(--border-col)" stroke-width="0.6" opacity="0.4"/>
-                    <ellipse cx="74" cy="419" rx="11" ry="7" fill="var(--muscle-idle)" opacity="0.4" stroke="var(--border-col)" stroke-width="0.7"/>
-                    <ellipse cx="126" cy="419" rx="11" ry="7" fill="var(--muscle-idle)" opacity="0.4" stroke="var(--border-col)" stroke-width="0.7"/>
-                    <path fill="var(--muscle-idle)" opacity="0.35" stroke="var(--border-col)" stroke-width="0.9" d="M65,425 C61,441 61,459 66,473 L83,470 C79,456 79,440 80,423 Z"/>
-                    <path fill="var(--muscle-idle)" opacity="0.35" stroke="var(--border-col)" stroke-width="0.9" d="M135,425 C139,441 139,459 134,473 L117,470 C121,456 121,440 120,423 Z"/>
-                    <path fill="none" stroke="var(--border-col)" stroke-width="1.2" d="M60,473 C57,480 58,487 65,490 C74,493 84,492 86,487 C87,483 84,479 80,477 L80,471 Z"/>
-                    <path fill="none" stroke="var(--border-col)" stroke-width="1.2" d="M140,473 C143,480 142,487 135,490 C126,493 116,492 114,487 C113,483 116,479 120,477 L120,471 Z"/>
-                  </svg>
-                  <svg id="backBody" viewBox="0 0 200 500">
-                    <text x="100" y="11" fill="var(--text-muted)" font-size="9" font-weight="700" font-family="Rajdhani" letter-spacing="1.5" text-anchor="middle">BACK</text>
-                    <path d="M100,17 C109,17 115,24 115,33 C115,41 112,47 107,50 L107,55 C113,56 117,59 117,59 L83,59 C83,59 87,56 93,55 L93,50 C88,47 85,41 85,33 C85,24 91,17 100,17 Z" fill="none" stroke="var(--border-col)" stroke-width="1.3"/>
-                    <path fill="var(--muscle-idle)" stroke="var(--border-col)" stroke-width="1" opacity="0.9" d="M100,57 C84,65 70,77 60,91 C67,100 76,107 85,111 C90,97 95,83 100,71 C105,83 110,97 115,111 C124,107 133,100 140,91 C130,77 116,65 100,57 Z M85,111 C89,133 93,157 98,178 L102,178 C107,157 111,133 115,111 L100,121 Z"/>
-                    <path d="M100,66 L100,116" fill="none" stroke="var(--border-col)" stroke-width="0.6" opacity="0.3"/>
-                    <path id="Shoulders_Back_Left" class="muscle-group" onclick="toggleMuscleFromBody('Shoulders_Back_Left')" fill="var(--muscle-idle)" stroke="var(--border-col)" stroke-width="1.1" d="M60,90 C46,85 28,90 22,105 C17,119 23,133 37,138 C49,142 61,135 62,121 C63,108 62,97 60,90 Z"/>
-                    <path id="Shoulders_Back_Right" class="muscle-group" onclick="toggleMuscleFromBody('Shoulders_Back_Right')" fill="var(--muscle-idle)" stroke="var(--border-col)" stroke-width="1.1" d="M140,90 C154,85 172,90 178,105 C183,119 177,133 163,138 C151,142 139,135 138,121 C137,108 138,97 140,90 Z"/>
-                    <path id="Lats_Left" class="muscle-group" onclick="toggleMuscleFromBody('Lats_Left')" fill="var(--muscle-idle)" stroke="var(--border-col)" stroke-width="1.1" d="M52,109 C39,117 33,139 38,167 C43,193 54,213 71,220 C82,224 88,214 84,196 C79,171 71,141 61,117 C59,113 56,108 52,109 Z"/>
-                    <path d="M47,126 C43,147 46,172 56,193" fill="none" stroke="var(--border-col)" stroke-width="0.7" opacity="0.4"/>
-                    <path id="Lats_Right" class="muscle-group" onclick="toggleMuscleFromBody('Lats_Right')" fill="var(--muscle-idle)" stroke="var(--border-col)" stroke-width="1.1" d="M148,109 C161,117 167,139 162,167 C157,193 146,213 129,220 C118,224 112,214 116,196 C121,171 129,141 139,117 C141,113 144,108 148,109 Z"/>
-                    <path d="M153,126 C157,147 154,172 144,193" fill="none" stroke="var(--border-col)" stroke-width="0.7" opacity="0.4"/>
-                    <path id="Triceps_Left" class="muscle-group" onclick="toggleMuscleFromBody('Triceps_Left')" fill="var(--muscle-idle)" stroke="var(--border-col)" stroke-width="1.1" d="M22,136 C14,142 12,155 14,174 C16,191 23,205 31,211 C38,216 45,212 45,201 C46,185 42,163 39,146 C37,138 29,132 22,136 Z"/>
-                    <path d="M25,155 C23,171 25,187 32,202" fill="none" stroke="var(--border-col)" stroke-width="0.7" opacity="0.4"/>
-                    <path id="Triceps_Right" class="muscle-group" onclick="toggleMuscleFromBody('Triceps_Right')" fill="var(--muscle-idle)" stroke="var(--border-col)" stroke-width="1.1" d="M178,136 C186,142 188,155 186,174 C184,191 177,205 169,211 C162,216 155,212 155,201 C154,185 158,163 161,146 C163,138 171,132 178,136 Z"/>
-                    <path d="M175,155 C177,171 175,187 168,202" fill="none" stroke="var(--border-col)" stroke-width="0.7" opacity="0.4"/>
-                    <path fill="var(--muscle-idle)" opacity="0.4" stroke="var(--border-col)" stroke-width="0.9" d="M14,213 C11,227 12,242 18,255 L31,252 C27,238 27,224 28,212 Z"/>
-                    <path fill="var(--muscle-idle)" opacity="0.4" stroke="var(--border-col)" stroke-width="0.9" d="M186,213 C189,227 188,242 182,255 L169,252 C173,238 173,224 172,212 Z"/>
-                    <ellipse cx="24" cy="263" rx="9" ry="13" fill="none" stroke="var(--border-col)" stroke-width="1.1"/>
-                    <ellipse cx="176" cy="263" rx="9" ry="13" fill="none" stroke="var(--border-col)" stroke-width="1.1"/>
-                    <path fill="var(--muscle-idle)" opacity="0.65" stroke="var(--border-col)" stroke-width="0.7" d="M92,119 C90,140 90,163 93,180 L98,180 C97,159 96,138 97,117 Z"/>
-                    <path fill="var(--muscle-idle)" opacity="0.65" stroke="var(--border-col)" stroke-width="0.7" d="M108,119 C110,140 110,163 107,180 L102,180 C103,159 104,138 103,117 Z"/>
-                    <path id="Lower_Back" class="muscle-group" onclick="toggleMuscleFromBody('Lower_Back')" fill="var(--muscle-idle)" stroke="var(--border-col)" stroke-width="1.1" d="M84,183 C79,191 77,205 81,218 C85,230 92,236 100,236 C108,236 115,230 119,218 C123,205 121,191 116,183 C109,177 91,177 84,183 Z"/>
-                    <path id="Glutes_Left" class="muscle-group" onclick="toggleMuscleFromBody('Glutes_Left')" fill="var(--muscle-idle)" stroke="var(--border-col)" stroke-width="1.1" d="M69,229 C56,233 50,251 56,269 C61,285 75,294 89,289 C97,286 99,274 95,260 C91,246 83,234 74,229 C72,228 71,228 69,229 Z"/>
-                    <path d="M59,257 C67,266 79,269 91,265" fill="none" stroke="var(--border-col)" stroke-width="0.6" opacity="0.35"/>
-                    <path id="Glutes_Right" class="muscle-group" onclick="toggleMuscleFromBody('Glutes_Right')" fill="var(--muscle-idle)" stroke="var(--border-col)" stroke-width="1.1" d="M131,229 C144,233 150,251 144,269 C139,285 125,294 111,289 C103,286 101,274 105,260 C109,246 117,234 126,229 C128,228 129,228 131,229 Z"/>
-                    <path d="M141,257 C133,266 121,269 109,265" fill="none" stroke="var(--border-col)" stroke-width="0.6" opacity="0.35"/>
-                    <path id="Legs_Back_L" class="muscle-group" onclick="toggleMuscleFromBody('Legs_Back_L')" fill="var(--muscle-idle)" stroke="var(--border-col)" stroke-width="1.1" d="M69,271 C59,278 55,297 58,327 C61,361 65,392 70,414 C72,423 81,427 86,419 C91,410 93,376 90,332 C89,303 86,282 80,274 C77,270 73,269 69,271 Z"/>
-                    <path d="M72,286 C69,323 71,364 76,411" fill="none" stroke="var(--border-col)" stroke-width="0.6" opacity="0.35"/>
-                    <path id="Legs_Back_R" class="muscle-group" onclick="toggleMuscleFromBody('Legs_Back_R')" fill="var(--muscle-idle)" stroke="var(--border-col)" stroke-width="1.1" d="M131,271 C141,278 145,297 142,327 C139,361 135,392 130,414 C128,423 119,427 114,419 C109,410 107,376 110,332 C111,303 114,282 120,274 C123,270 127,269 131,271 Z"/>
-                    <path d="M128,286 C131,323 129,364 124,411" fill="none" stroke="var(--border-col)" stroke-width="0.6" opacity="0.35"/>
-                    <ellipse cx="74" cy="419" rx="11" ry="7" fill="var(--muscle-idle)" opacity="0.4" stroke="var(--border-col)" stroke-width="0.7"/>
-                    <ellipse cx="126" cy="419" rx="11" ry="7" fill="var(--muscle-idle)" opacity="0.4" stroke="var(--border-col)" stroke-width="0.7"/>
-                    <path id="Calves_Left" class="muscle-group" onclick="toggleMuscleFromBody('Calves_Left')" fill="var(--muscle-idle)" stroke="var(--border-col)" stroke-width="1.1" d="M65,424 C58,435 57,453 62,469 C65,481 74,487 80,483 C87,478 89,463 87,446 C85,431 80,421 74,417 C71,416 67,420 65,424 Z"/>
-                    <path d="M74,425 L74,479" fill="none" stroke="var(--border-col)" stroke-width="0.6" opacity="0.35"/>
-                    <path id="Calves_Right" class="muscle-group" onclick="toggleMuscleFromBody('Calves_Right')" fill="var(--muscle-idle)" stroke="var(--border-col)" stroke-width="1.1" d="M135,424 C142,435 143,453 138,469 C135,481 126,487 120,483 C113,478 111,463 113,446 C115,431 120,421 126,417 C129,416 133,420 135,424 Z"/>
-                    <path d="M126,425 L126,479" fill="none" stroke="var(--border-col)" stroke-width="0.6" opacity="0.35"/>
-                    <path fill="none" stroke="var(--border-col)" stroke-width="1.2" d="M62,480 C59,486 60,491 66,493 C74,495 82,495 84,491 C85,488 83,485 79,483 L79,478 Z"/>
-                    <path fill="none" stroke="var(--border-col)" stroke-width="1.2" d="M138,480 C141,486 140,491 134,493 C126,495 118,495 116,491 C115,488 117,485 121,483 L121,478 Z"/>
-                  </svg>
-                </div>
-              </div>
-            </div>
-          </div>
-          <button class="btn" style="background:linear-gradient(135deg,#dc2626,#b91c1c);margin-top:14px;padding:10px" onclick="processCheckOut()">🏁 CHECK-OUT &amp; SAVE</button>
+          <!-- Class selection now lives on the Workouts page, auto-derived from logged workouts —
+               see #workoutClassChipsRow / openWorkoutFinishModal(). -->
+          <button class="btn" style="background:linear-gradient(135deg,#dc2626,#b91c1c);margin-top:14px;padding:10px" onclick="processCheckOut()">🏁 PUNCH OUT &amp; SAVE</button>
         </div>
       </div>
     </div>
@@ -2238,12 +2169,18 @@ body.theme-godmode .levelup-toast{background:linear-gradient(135deg,#7a0006,#c00
           <div style="font-size:11px;color:var(--text-muted);font-family:var(--font-alt);margin-top:6px" id="durHintText">
             💡 Hover or click a bar to see workout details &amp; duration
           </div>
-          <div class="stats-summary-row">
-            <div>Avg Time: <strong id="avgTimeLabel" style="color:var(--accent)">0 Mins</strong></div>
-            <div id="mostTrainedRow">Most Trained: <strong id="mostTrainedLabel" style="color:var(--accent)">None</strong></div>
+          <div class="stats-block-heading" id="durStatsHeading">WEEKLY STATS</div>
+          <div class="stats-summary-row" id="mostTrainedRow">
+            <div>Most Trained: <strong id="mostTrainedLabel" style="color:var(--accent)">None</strong></div>
           </div>
           <div class="stats-summary-row" id="lessTrainedRow" style="margin-top:6px;background:rgba(225,29,72,0.07);border-color:rgba(225,29,72,0.18)">
-            <div style="color:#e11d48">Weak Point: <strong id="lessTrainedLabel">None</strong></div>
+            <div style="color:#e11d48">Less Trained: <strong id="lessTrainedLabel">None</strong></div>
+          </div>
+          <div class="stats-summary-row" id="totalDurationRow" style="margin-top:6px;background:rgba(37,99,235,0.07);border-color:rgba(37,99,235,0.18)">
+            <div style="color:var(--accent)">Total Duration: <strong id="totalDurationLabel">0 Mins</strong></div>
+          </div>
+          <div class="stats-summary-row" style="margin-top:6px">
+            <div>Average Duration: <strong id="avgTimeLabel" style="color:var(--accent)">0 Mins</strong></div>
           </div>
         </div>
 
@@ -2327,14 +2264,15 @@ body.theme-godmode .levelup-toast{background:linear-gradient(135deg,#7a0006,#c00
                 <div class="vsp-track" id="vspTrack">
                   <!-- Panel 0: Volume Statistics -->
                   <div class="vsp-panel">
-                    <div class="stats-summary-row" style="margin-top:4px">
-                      <div id="highVolumeRow">High Volume: <strong id="highVolumeLabel" style="color:var(--accent)">None</strong></div>
+                    <div class="stats-block-heading" id="volStatsHeading">WEEKLY STATS</div>
+                    <div class="stats-summary-row">
+                      <div id="highVolumeRow">Highest Volume: <strong id="highVolumeLabel" style="color:var(--accent)">None</strong></div>
                     </div>
                     <div class="stats-summary-row" id="lowVolumeRow" style="margin-top:6px;background:rgba(225,29,72,0.07);border-color:rgba(225,29,72,0.18)">
-                      <div style="color:#e11d48">Low Volume: <strong id="lowVolumeLabel">None</strong></div>
+                      <div style="color:#e11d48">Lowest Volume: <strong id="lowVolumeLabel">None</strong></div>
                     </div>
                     <div class="stats-summary-row" id="totalVolumeRow" style="margin-top:6px;background:rgba(37,99,235,0.07);border-color:rgba(37,99,235,0.18);display:none">
-                      <div style="color:var(--accent)"><span id="totalVolumeLabel">Weekly Volume</span>: <strong id="totalVolumeValue">—</strong></div>
+                      <div style="color:var(--accent)"><span id="totalVolumeLabel">Total Volume</span>: <strong id="totalVolumeValue">—</strong></div>
                     </div>
                     <div class="stats-summary-row" id="avgVolumeRow" style="margin-top:6px;background:rgba(99,102,241,0.07);border-color:rgba(99,102,241,0.18);display:none">
                       <div style="color:#6366f1">Avg Volume: <strong id="avgVolumeLabel">—</strong></div>
@@ -2461,7 +2399,7 @@ body.theme-godmode .levelup-toast{background:linear-gradient(135deg,#7a0006,#c00
         </div>
         <div style="overflow-x:auto">
           <table class="table">
-            <thead><tr><th>Date</th><th>Status</th><th>Check-in</th><th>Session</th><th>Muscles</th><th>Duration</th></tr></thead>
+            <thead><tr><th>Date</th><th>Status</th><th>Check-in</th><th>Muscles</th><th>Duration</th></tr></thead>
             <tbody id="historyTable"></tbody>
           </table>
         </div>
@@ -2547,7 +2485,9 @@ body.theme-godmode .levelup-toast{background:linear-gradient(135deg,#7a0006,#c00
           <div class="live-toggle on" id="workoutBreakdownToggle" tabindex="0" role="switch" aria-checked="true" onclick="toggleWorkoutBreakdown()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleWorkoutBreakdown()}" style="width:36px;height:20px">
             <div class="live-toggle-knob"></div>
           </div>
+          <button type="button" class="wf-finish-btn" id="workoutFinishBtn" style="display:none" onclick="openWorkoutFinishModal()">✅ Finish</button>
         </div>
+        <div id="workoutClassChipsRow" class="workout-class-chips-row" style="display:none"></div>
         <div id="workoutFormStructure" class="workout-form-wrapper" style="display:none">
           <h4 id="formActionTitle">LOG NEW ENTRY</h4>
           <div class="ctm-muscle-eq-row entry-filter-row">
@@ -2567,6 +2507,7 @@ body.theme-godmode .levelup-toast{background:linear-gradient(135deg,#7a0006,#c00
             <span class="sugg-dropdown-icon" id="workoutNameDropdownIcon" onclick="toggleWorkoutNameDropdown(event)">▼</span>
             <div id="autoSuggestions" class="suggestions-list"></div>
           </div>
+          <button id="_addCustomBtnNonLive" type="button" style="display:none;margin-top:6px;padding:7px 14px;border-radius:11px;border:1.5px dashed var(--accent);background:transparent;color:var(--accent);font-family:var(--font-alt);font-size:12px;font-weight:800;cursor:pointer;letter-spacing:0.4px" onclick="_confirmAddCustomWorkout('nonlive')">➕ Add Custom Workout</button>
           <button id="_inlineClassBtnNonLive" type="button" style="display:none;margin-top:6px;margin-right:6px;padding:7px 14px;border-radius:11px;border:1.5px solid var(--accent);background:var(--accent-soft);color:var(--accent);font-family:var(--font-alt);font-size:12px;font-weight:800;cursor:pointer;letter-spacing:0.4px" onclick="_triggerInlineClassPicker('workoutNameInput','nonlive')">🏷 Choose Class (required)</button>
           <button id="_inlineEquipBtnNonLive" type="button" style="display:none;margin-top:6px;padding:7px 14px;border-radius:11px;border:1.5px solid var(--accent);background:var(--accent-soft);color:var(--accent);font-family:var(--font-alt);font-size:12px;font-weight:800;cursor:pointer;letter-spacing:0.4px" onclick="_triggerInlineEquipPicker('workoutNameInput','nonlive')">🔧 Choose Equipment (optional)</button>
           <!-- Previous Performance Badge (Non-Live) -->
@@ -2616,6 +2557,7 @@ body.theme-godmode .levelup-toast{background:linear-gradient(135deg,#7a0006,#c00
               <span class="sugg-dropdown-icon" id="liveWorkoutNameDropdownIcon" onclick="toggleLiveNameDropdown(event)">▼</span>
               <div id="liveAutoSuggestions" class="suggestions-list"></div>
             </div>
+            <button id="_addCustomBtnLive" type="button" style="display:none;margin-top:6px;padding:7px 14px;border-radius:11px;border:1.5px dashed var(--accent);background:transparent;color:var(--accent);font-family:var(--font-alt);font-size:12px;font-weight:800;cursor:pointer;letter-spacing:0.4px" onclick="_confirmAddCustomWorkout('live')">➕ Add Custom Workout</button>
             <button id="_inlineClassBtnLive" type="button" style="display:none;margin-top:6px;margin-right:6px;padding:7px 14px;border-radius:11px;border:1.5px solid var(--accent);background:var(--accent-soft);color:var(--accent);font-family:var(--font-alt);font-size:12px;font-weight:800;cursor:pointer;letter-spacing:0.4px" onclick="_triggerInlineClassPicker('liveWorkoutNameInput','live')">🏷 Choose Class (required)</button>
             <button id="_inlineEquipBtnLive" type="button" style="display:none;margin-top:6px;padding:7px 14px;border-radius:11px;border:1.5px solid var(--accent);background:var(--accent-soft);color:var(--accent);font-family:var(--font-alt);font-size:12px;font-weight:800;cursor:pointer;letter-spacing:0.4px" onclick="_triggerInlineEquipPicker('liveWorkoutNameInput','live')">🔧 Choose Equipment (optional)</button>
             <!-- Previous Performance Badge (Live) -->
@@ -3198,7 +3140,7 @@ body.theme-godmode .levelup-toast{background:linear-gradient(135deg,#7a0006,#c00
                 </div>
                 <div class="ctm-demo-box">
                   <div class="ctm-demo-section-title">🏟 Gym Check-In</div>
-                  <div class="ctm-demo-btn">⚡ SUBMIT CHECK-IN</div>
+                  <div class="ctm-demo-btn">⚡ PUNCH IN</div>
                 </div>
               </div>
             </div>
@@ -4037,6 +3979,36 @@ function formatMinutesToHoursText(m){
   if(!m)return "0";let h=Math.floor(m/60),mn=m%60;return h>0?`${h}h ${mn}m`:`${mn}m`;
 }
 
+/* ===================== SHARED CLASS-FILTER HIDE BEHAVIOR (Duration + Volume) =====================
+   One common set of helpers drives "select a class in Detailed View" on BOTH the Duration and Volume
+   pages — bar charts (Weekly) and line charts (Monthly/3-Month) alike — so the two pages always look
+   and behave identically instead of drifting apart. When a class is selected, everything that isn't
+   that class is pushed down to CLASS_FILTER_HIDDEN_ALPHA (near-zero) instead of merely dimmed, so it
+   reads as "hidden" rather than "tinted/greyed" — the only visibly colored part of the graph is the
+   selected class. */
+const CLASS_FILTER_HIDDEN_ALPHA=0.05;
+function classFilterBarAlpha(selectedClass,barHasClass){
+  return(selectedClass&&!barHasClass)?CLASS_FILTER_HIDDEN_ALPHA:1;
+}
+function classFilterSegmentAlpha(selectedClass,segClass){
+  return(selectedClass&&selectedClass!==segClass)?CLASS_FILTER_HIDDEN_ALPHA:1;
+}
+/* Builds a Chart.js `segment.borderColor` callback for a Monthly/3-Month LINE chart so the connecting
+   line itself also hides between any two points that aren't both part of the selected class (matches
+   the bar-chart hide behavior instead of leaving the full-color line visible under greyed-out points).
+   dataCache[i] must expose the day's trained classes via getClasses(dataCache[i]). Returns undefined
+   (default line color, unchanged) when no class is selected. */
+function buildClassFilterSegmentColor(selectedClass,dataCache,getClasses,baseColor){
+  if(!selectedClass)return undefined;
+  const activeColor=CLASS_COLORS[selectedClass]||baseColor;
+  const hiddenColor=`rgba(148,163,184,${CLASS_FILTER_HIDDEN_ALPHA})`;
+  return(ctx)=>{
+    const d0=dataCache[ctx.p0DataIndex],d1=dataCache[ctx.p1DataIndex];
+    const has=(d)=>{const c=d?getClasses(d):null;return c&&c.includes(selectedClass)};
+    return(has(d0)&&has(d1))?activeColor:hiddenColor;
+  };
+}
+
 /* ===================== STACKED BAR CHART ENGINE ===================== */
 const stackedMusclePlugin={
   id:'stackedMusclePlugin',
@@ -4068,9 +4040,9 @@ const stackedMusclePlugin={
       let classes=[];
       if(workoutStr&&workoutStr!=='Rest'&&workoutStr!==''){classes=workoutStr.split(',').map(s=>s.trim()).filter(Boolean).slice(0,3)}
 
-      // Dim bars that don't contain the selected class
+      // Hide bars that don't contain the selected class (near-invisible, not just dimmed)
       const barHasClass=selectedClass?classes.includes(selectedClass):true;
-      const globalAlpha=selectedClass&&!barHasClass?0.22:1;
+      const globalAlpha=classFilterBarAlpha(selectedClass,barHasClass);
       ctx.globalAlpha=globalAlpha;
 
       if(classes.length===0){
@@ -4080,7 +4052,7 @@ const stackedMusclePlugin={
       const segH=bh/classes.length;
       classes.forEach((muscle,idx)=>{
         const color=CLASS_COLORS[muscle]||CLASS_COLORS['Unknown'];const sy=bBase-(idx+1)*segH;
-        const segAlpha=(selectedClass&&selectedClass!==muscle)?0.18:1;
+        const segAlpha=classFilterSegmentAlpha(selectedClass,muscle);
         ctx.save();ctx.globalAlpha=globalAlpha*segAlpha;
         ctx.fillStyle=color;ctx.beginPath();
         if(idx===0&&idx===classes.length-1){ctx.roundRect(bx-bw/2,sy,bw,segH,4)}
@@ -4139,7 +4111,13 @@ if(!CanvasRenderingContext2D.prototype.roundRect){
 </script>
 
 <script>
-/* ===================== LOCAL DATE HELPERS (Fix timezone mismatch) ===================== */
+/* ===================== LOCAL DATE/TIME HELPERS (device clock, 12-hour AM/PM format) =====================
+   Uses the device's own current time directly — no external time API call (that was causing
+   connection errors for some users/networks). "Today", Punch In gating, created_at, and the
+   Duration "In Progress|<...>" marker are all built from the same `new Date()` instant, and
+   every place that displays a check-in/session time (Homepage timer, History page, Stats page)
+   formats it the same way: 12-hour clock with AM/PM, exactly matching whatever the device's
+   clock actually reads at that moment (e.g. Punch In at 8:03 PM shows and stores as 8:03 PM). */
 function getLocalDateString(){
   const now=new Date();
   const y=now.getFullYear();
@@ -4147,17 +4125,17 @@ function getLocalDateString(){
   const d=String(now.getDate()).padStart(2,'0');
   return `${y}-${m}-${d}`;
 }
+/* Formats an arbitrary already-computed Date object (not "now") as YYYY-MM-DD using its own
+   fields — used for schedule/date-picker math built off a JS Date elsewhere in the app. */
 function getLocalDateStringFor(dateObj){
   const y=dateObj.getFullYear();
   const m=String(dateObj.getMonth()+1).padStart(2,'0');
   const d=String(dateObj.getDate()).padStart(2,'0');
   return `${y}-${m}-${d}`;
 }
-/* Returns the CURRENT DEVICE's local wall-clock time as "YYYY-MM-DDTHH:mm:ss" (no
-   timezone suffix). Since attendance.created_at is `timestamp without time zone`,
-   Postgres stores exactly these literal numbers with no UTC conversion — so whatever
-   time the device clock shows (IST for Indian users) is exactly what gets saved and
-   later displayed back. */
+/* Returns the device's current wall-clock time as "YYYY-MM-DDTHH:mm:ss" (24-hour, no timezone
+   suffix) — used only as a raw storage-format helper; display formatting always goes through
+   formatCheckInTime() below for the 12-hour AM/PM version. */
 function getLocalTimestampString(){
   const now=new Date();
   const y=now.getFullYear();
@@ -4168,11 +4146,10 @@ function getLocalTimestampString(){
   const s=String(now.getSeconds()).padStart(2,'0');
   return `${y}-${mo}-${d}T${h}:${mi}:${s}`;
 }
-/* Formats a Session row's created_at (a real timestamptz UTC instant) into a human check-in
-   time like "6:45 AM", converted to THIS device's local timezone. Uses real Date parsing +
-   toLocaleTimeString so it's correct regardless of which device/timezone is viewing it —
-   unlike a raw string/regex read, which would just echo back whatever timezone the value
-   happened to be written in. */
+/* Formats a Session row's created_at (or any stored ISO instant) into a human check-in time
+   like "8:03 PM" — 12-hour format with AM/PM, using the device's own current timezone
+   interpretation (no forced/external timezone conversion). Used everywhere a check-in/session
+   time is shown: Homepage session timer, History page, Stats page. */
 function formatCheckInTime(tsStr){
   if(!tsStr)return'-';
   const dt=new Date(tsStr);
@@ -4183,7 +4160,33 @@ function formatCheckInTime(tsStr){
 /* ===================== SUPABASE + APP CORE ===================== */
 const SUPABASE_URL="https://zyoxwguvpcvqplucserh.supabase.co";
 const SUPABASE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp5b3h3Z3V2cGN2cXBsdWNzZXJoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA0MDk5NzQsImV4cCI6MjA5NTk4NTk3NH0.xHjWAMzggUGNaiA-kE0CNUVYUH0zMq-_OVB-InQ0V5A";
-const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+/* ===== SUPABASE SERVER-CLOCK SYNC (no external time API, no schema/RPC changes) =====
+   Every HTTP response — from Supabase or any server — carries a standard `Date` response
+   header showing the SERVER's own clock at the moment it replied. We piggyback on that
+   header on every single Supabase API call this app already makes, and keep a running
+   `_supabaseClockOffsetMs` = (Supabase server time) − (this device's clock) at that instant.
+   getServerNow() then just applies that offset to the device's own clock, giving an
+   estimate of Supabase's real time accurate to typical request latency (well under a
+   second) — good enough for a minute-level 12-hour Punch In time, with zero extra network
+   calls and zero dependency on the device's time/timezone settings being correct.
+   Falls back to the device clock (offset 0) until the very first response arrives, and
+   never throws even if a browser blocks/hides the header for some reason. */
+let _supabaseClockOffsetMs=0;
+function _captureSupabaseServerTime(res){
+  try{
+    const dateHeader=res&&res.headers&&res.headers.get&&res.headers.get('date');
+    if(dateHeader){
+      const serverMs=new Date(dateHeader).getTime();
+      if(!isNaN(serverMs))_supabaseClockOffsetMs=serverMs-Date.now();
+    }
+  }catch(e){/* ignore — keep last known (or 0) offset */}
+  return res;
+}
+/* Best current estimate of Supabase's real server time, as a Date object. */
+function getServerNow(){return new Date(Date.now()+_supabaseClockOffsetMs);}
+const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{
+  global:{fetch:(...args)=>fetch(...args).then(_captureSupabaseServerTime)}
+});
 let activeWorkoutTimer=null,chronometerSeconds=0,userStatsInstanceChart=null,currentEditingIndex=null;
 let activeSessionCheckInTimestamp=null;
 let activeSessionCreatedAt=null; // created_at of the in-progress Session row (part of its composite PK)
@@ -4407,6 +4410,41 @@ function decodeClassCode(codeOrName){
   return s;
 }
 
+/* ===================== REAL PUNCH-IN CHECK-IN TIME (vs. row created_at) =====================
+   A Session row's `duration` field carries an embedded "|<ISO>" suffix holding the EXACT
+   Supabase-server instant the user pressed Punch In:
+     - while the session is running:            "In Progress|<ISO>"
+     - after Check-Out (added by processCheckOut): "<friendly duration text>|<ISO>"
+   That ISO is the true check-in time to show, because the row's own created_at can instead be
+   the moment an earlier WORKOUT was logged (before the user remembered to Punch In) — created_at
+   never changes afterwards since it's part of the table's primary key. Rows where the user never
+   Punched In at all that day (workout-only, duration left blank) have no such marker, so the
+   fallback is simply the row's created_at, exactly as before. */
+function sessionRealCheckInISO(row){
+  const d=row&&row.duration;
+  if(!d||!d.trim())return null;
+  const idx=d.indexOf('|');
+  if(idx===-1)return null; // no embedded Punch-In marker — user never Punched In this row
+  const iso=d.substring(idx+1).trim();
+  if(!iso)return null;
+  return isNaN(new Date(iso).getTime())?null:iso;
+}
+/* The check-in time to DISPLAY for a Session row — real Punch In instant when one exists,
+   otherwise (workout-only day, no Punch In) the row's created_at, unchanged from before. */
+function sessionDisplayCheckInISO(row){
+  return sessionRealCheckInISO(row)||(row&&row.created_at);
+}
+/* The human-readable Duration text for a Session row — strips the internal "|<ISO>" Punch-In
+   marker (see above) so the History/Stats UI keeps showing plain text like "1Hr 20min" or
+   "In Progress ⏱", never the raw timestamp suffix. */
+function sessionDisplayDurationText(row){
+  const d=(row&&row.duration)||'';
+  if(!d)return'-';
+  if(d.startsWith('In Progress|'))return'In Progress ⏱';
+  const idx=d.indexOf('|');
+  return idx===-1?d:d.substring(0,idx);
+}
+
 /* Build the "class" text field (comma-joined CODES) from an array of selected class/muscle names. */
 function sessionBuildClassField(classNames){return(classNames||[]).filter(Boolean).map(encodeClassName).join(',')}
 /* Parse the "class" text field back into an array of readable class/muscle names. */
@@ -4479,6 +4517,18 @@ async function sessionFetchByUserDate(uid,date){
   const{data,error}=await db.from(SESSION_TABLE).select('*').eq('user_id',uid).eq('date',date).order('created_at',{ascending:true});
   return{data:data||[],error};
 }
+/* Informational-only notice for the "log a workout before Punching In" case: adding a workout
+   never requires Punching In first (it still saves and marks the user Present either way), but
+   we let them know so it doesn't look like Punch In was silently skipped. Only fires for the
+   member's own device on TODAY's date — never for a Room entry made on someone else's behalf
+   (that's explicitly fine, no notice needed there) and never while editing a past date. */
+async function maybeNotifyNotPunchedIn(uid,date){
+  if(typeof isRoomMemberModeActive==='function'&&isRoomMemberModeActive())return;
+  if(date!==getLocalDateString())return;
+  const{data}=await sessionFetchByUserDate(uid,date);
+  const alreadyPunchedIn=data&&data.some(r=>r.duration&&r.duration.trim()!=="");
+  if(!alreadyPunchedIn)showToast("⏰ Note: you haven't Punched In yet today.");
+}
 /* All Session rows for a user across an inclusive date range, oldest→newest by default. */
 async function sessionFetchRange(uid,startStr,endStr,ascending=true){
   return await db.from(SESSION_TABLE).select('*').eq('user_id',uid).gte('date',startStr).lte('date',endStr).order('date',{ascending}).order('created_at',{ascending:true});
@@ -4503,40 +4553,79 @@ async function sessionFetchRowByKey(uid,date,createdAt){
 async function sessionGetOrCreateTargetRow(uid,date){
   const{data}=await sessionFetchByUserDate(uid,date);
   if(data&&data.length)return data[data.length-1];
-  const localCreatedAt=new Date().toISOString();
-  const{data:inserted}=await sessionInsert({user_id:uid,date,class:'',duration:'',workouts:[],created_at:localCreatedAt});
-  return(inserted&&inserted[0])?inserted[0]:{user_id:uid,date,class:'',duration:'',workouts:[],created_at:localCreatedAt};
+  // No created_at passed in — the database assigns it via its own `default now()`, so this
+  // row's created_at is always Supabase's exact real server time, never the device clock.
+  const{data:inserted}=await sessionInsert({user_id:uid,date,class:'',duration:'',workouts:[]});
+  const fallbackNow=getServerNow().toISOString();
+  return(inserted&&inserted[0])?inserted[0]:{user_id:uid,date,class:'',duration:'',workouts:[],created_at:fallbackNow};
 }
 /* Create or update a single compact workout entry within a Session row's "workouts" jsonb array.
    slotRef: null (create a new entry, appended to the target row) OR {rowCreatedAt,idx} (overwrite an
    existing entry in place — used both for saving in-progress live sets and for editing a saved entry).
    Returns the resulting slotRef, or null if the target row's 15-entry capacity is full. */
 async function sessionUpsertWorkoutEntry(uid,date,slotRef,entry){
+  let resultSlot=null;
   if(slotRef&&slotRef.rowCreatedAt){
     const row=await sessionFetchRowByKey(uid,date,slotRef.rowCreatedAt);
     if(row){
       const arr=sessionWorkoutsArray(row).slice();
       arr[slotRef.idx]=entry;
       await sessionUpdateByKey(uid,date,slotRef.rowCreatedAt,{workouts:arr});
-      return slotRef;
+      resultSlot=slotRef;
     }
   }
-  const row=await sessionGetOrCreateTargetRow(uid,date);
-  const arr=sessionWorkoutsArray(row).slice();
-  if(arr.length>=15)return null; // capacity reached for this session
-  const idx=arr.length;
-  arr.push(entry);
-  await sessionUpdateByKey(uid,date,row.created_at,{workouts:arr});
-  return{rowCreatedAt:row.created_at,idx};
+  if(!resultSlot){
+    const row=await sessionGetOrCreateTargetRow(uid,date);
+    const arr=sessionWorkoutsArray(row).slice();
+    if(arr.length>=15)return null; // capacity reached for this session
+    const idx=arr.length;
+    arr.push(entry);
+    await sessionUpdateByKey(uid,date,row.created_at,{workouts:arr});
+    resultSlot={rowCreatedAt:row.created_at,idx};
+  }
+  return resultSlot;
 }
-/* Delete a single workout entry (by its resolved {rowCreatedAt,idx}) from its Session row's array. */
+/* Delete a single workout entry (by its resolved {rowCreatedAt,idx}) from its Session row's array.
+   If that was the LAST workout entry AND the row has no Punch In data either (empty duration —
+   never punched in, or an in-progress/finished punch was already cleared), nothing ties the user
+   to that day anymore, so the whole row is deleted instead of left behind as an empty husk. That
+   correctly flips the day back to Absent (no row for that date = Absent) rather than leaving a
+   phantom "Present with nothing in it" record. */
 async function sessionDeleteWorkoutEntry(uid,date,slotRef){
   if(!slotRef||!slotRef.rowCreatedAt)return;
   const row=await sessionFetchRowByKey(uid,date,slotRef.rowCreatedAt);
   if(!row)return;
   const arr=sessionWorkoutsArray(row).slice();
   arr.splice(slotRef.idx,1);
-  await sessionUpdateByKey(uid,date,slotRef.rowCreatedAt,{workouts:arr});
+  const hasPunchData=row.duration&&row.duration.trim()!=="";
+  if(arr.length===0&&!hasPunchData){
+    await sessionDeleteByKey(uid,date,slotRef.rowCreatedAt);
+  }else{
+    await sessionUpdateByKey(uid,date,slotRef.rowCreatedAt,{workouts:arr});
+  }
+}
+/* ===================== AUTO-DETECTED CLASS FOR WORKOUT ENTRIES (suggestion only) =====================
+   Nothing here writes to the database. This just computes which real muscle-group Classes a set
+   of Session rows' workouts suggest for the day — used to populate the Workouts page's chip row
+   and to pre-fill the Finish modal's suggestions. The actual Session.class field is only ever
+   written when the user reviews and taps Save inside the Finish modal (see wfSaveClasses()).
+   "Warmup" and "Unknown" are deliberately excluded: plain bodyweight moves like Push Up, Pull Up,
+   and Chest Dip are commonly done as a warmup before the day's real working sets, and were
+   otherwise wrongly showing up as the day's Class (e.g. a warmup Pull Up falsely marking the day
+   as "Lat/Back" on top of the Biceps workout actually being done). Those exercises are tagged
+   class:"Warmup" in the catalog so they're excluded here, while still tracked under their own
+   "Warmup" bucket everywhere volume is broken down by class. */
+function deriveDayClasses(dataRows){
+  const classes=[];
+  (dataRows||[]).forEach(row=>{
+    sessionWorkoutsArray(row).forEach(entry=>{
+      const text=sessionWorkoutEntryToText(entry);
+      if(!text)return;
+      const cls=extractClassFromWorkoutName(text);
+      if(cls&&cls!=='Unknown'&&cls!=='Warmup'&&!classes.includes(cls))classes.push(cls);
+    });
+  });
+  return classes;
 }
 
 const RANK_TIERS=[
@@ -4616,7 +4705,7 @@ const EXERCISE_CATALOG=[
   {name:"Chest Fly (Machine)",class:"Chest",equipment:"Machine"},{name:"Chest Fly (Band)",class:"Chest",equipment:"Band"},
   {name:"Chest Fly (Suspension)",class:"Chest",equipment:"Suspension"},{name:"Decline Chest Fly (Dumbbell)",class:"Chest",equipment:"Dumbbell"},
   {name:"Incline Chest Fly (Dumbbell)",class:"Chest",equipment:"Dumbbell"},{name:"Seated Chest Flys (Cable)",class:"Chest",equipment:"Cable"},
-  {name:"Assisted Chest Dip (Machine)",class:"Chest",equipment:"Machine"},{name:"Chest Dip (Bodyweight)",class:"Chest",equipment:"Bodyweight"},
+  {name:"Assisted Chest Dip (Machine)",class:"Chest",equipment:"Machine"},{name:"Chest Dip (Bodyweight)",class:"Warmup",equipment:"Bodyweight"},
   {name:"Weighted Chest Dip (Bodyweight)",class:"Chest",equipment:"Bodyweight"},{name:"Chest Press (Machine)",class:"Chest",equipment:"Machine"},
   {name:"Chest Press (Band)",class:"Chest",equipment:"Band"},{name:"Incline Chest Press (Machine)",class:"Chest",equipment:"Machine"},
   {name:"Iso-Lateral Chest Press (Machine)",class:"Chest",equipment:"Machine"},{name:"Pec Deck Butterfly (Machine)",class:"Chest",equipment:"Machine"},
@@ -4628,7 +4717,7 @@ const EXERCISE_CATALOG=[
   {name:"Svend Press Plate Squeeze (Dumbbell)",class:"Chest",equipment:"Dumbbell"},{name:"Clap Push Ups (Bodyweight)",class:"Chest",equipment:"Bodyweight"},
   {name:"Decline Push Up (Bodyweight)",class:"Chest",equipment:"Bodyweight"},{name:"Incline Push Ups (Bodyweight)",class:"Chest",equipment:"Bodyweight"},
   {name:"Kneeling Push Up (Bodyweight)",class:"Chest",equipment:"Bodyweight"},{name:"One Arm Push Up (Bodyweight)",class:"Chest",equipment:"Bodyweight"},
-  {name:"Plank Pushup (Bodyweight)",class:"Chest",equipment:"Bodyweight"},{name:"Push Up (Bodyweight)",class:"Chest",equipment:"Bodyweight"},
+  {name:"Plank Pushup (Bodyweight)",class:"Chest",equipment:"Bodyweight"},
   {name:"Push Up - Close Grip (Bodyweight)",class:"Chest",equipment:"Bodyweight"},{name:"Ring Push Up (Bodyweight)",class:"Chest",equipment:"Bodyweight"},
   {name:"Weighted Push Up (Bodyweight)",class:"Chest",equipment:"Bodyweight"},
   // Biceps (36)
@@ -4692,7 +4781,7 @@ const EXERCISE_CATALOG=[
   // Lat/Back (52)
   {name:"Assisted Pull Up (Machine)",class:"Lat/Back",equipment:"Machine"},{name:"Gironda Sternum Pull up (Bodyweight)",class:"Lat/Back",equipment:"Bodyweight"},
   {name:"Kipping Pull Up (Bodyweight)",class:"Lat/Back",equipment:"Bodyweight"},{name:"Negative Pull Up (Bodyweight)",class:"Lat/Back",equipment:"Bodyweight"},
-  {name:"Pull Up (Band)",class:"Lat/Back",equipment:"Band"},{name:"Pull Up (Bodyweight)",class:"Lat/Back",equipment:"Bodyweight"},
+  {name:"Pull Up (Band)",class:"Lat/Back",equipment:"Band"},{name:"Pull Up (Bodyweight)",class:"Warmup",equipment:"Bodyweight"},
   {name:"Ring Pull Up (Bodyweight)",class:"Lat/Back",equipment:"Bodyweight"},{name:"Scapular Pull Ups (Bodyweight)",class:"Lat/Back",equipment:"Bodyweight"},
   {name:"Weighted Pull Up (Bodyweight)",class:"Lat/Back",equipment:"Bodyweight"},{name:"Wide Pull Up (Bodyweight)",class:"Lat/Back",equipment:"Bodyweight"},
   {name:"Lat Pulldown (Cable)",class:"Lat/Back",equipment:"Cable"},{name:"Lat Pulldown (Machine)",class:"Lat/Back",equipment:"Machine"},
@@ -5038,6 +5127,18 @@ function ctmGetFilteredCatalog(muscleVal,equipmentVal,textVal,includeMulti,inclu
     });
     list=list.concat(customList);
   }
+  if(text){
+    // Explicit fast-pick priority: typing "push"/"pull" should instantly surface the plain
+    // bodyweight warmup move first, not a less common variant that happens to also match.
+    const PRIORITY_NAMES=["Push Up (Bodyweight)","Pull Up (Bodyweight)"];
+    list=list.slice().sort((a,b)=>{
+      const aP=PRIORITY_NAMES.indexOf(a.name),bP=PRIORITY_NAMES.indexOf(b.name);
+      if(aP!==-1||bP!==-1)return(aP===-1?999:aP)-(bP===-1?999:bP);
+      const aStarts=a.name.toLowerCase().startsWith(text),bStarts=b.name.toLowerCase().startsWith(text);
+      if(aStarts!==bStarts)return aStarts?-1:1;
+      return a.name.length-b.name.length;
+    });
+  }
   return list;
 }
 function _unusedFreqSort(list){
@@ -5184,6 +5285,16 @@ window.addEventListener('load', async function(){
 });
 
 /* ===================== RESUME ACTIVE SESSION ON LOGIN ===================== */
+/* Shows the green "Session In Progress" banner — used both right when the user Punches In
+   (instantly, no refresh needed) and when an already-in-progress session is restored after a
+   page refresh/re-login. Same banner, same look, just one shared source of truth for its text. */
+function showSessionInProgressBanner(checkInISO){
+  const existingBanner=document.getElementById("resumedBanner");
+  if(existingBanner)return;
+  const banner=document.createElement("div");banner.id="resumedBanner";banner.className="session-resumed-banner";
+  banner.innerHTML=`<div class="resume-dot"></div>Session In Progress — timer running since ${formatCheckInTime(checkInISO)}`;
+  document.getElementById("checkinStep1").appendChild(banner);
+}
 async function resumeActiveSession(uid){
   const today=getLocalDateString();
   const{data,error}=await sessionFindInProgress(uid,today);
@@ -5193,17 +5304,10 @@ async function resumeActiveSession(uid){
   activeSessionCheckInTimestamp=checkInISO;
   activeSessionCreatedAt=row.created_at;
   const elapsedMs=Date.now()-checkInTime.getTime();chronometerSeconds=Math.max(0,Math.floor(elapsedMs/1000));
-  const btn=document.getElementById("submitCheckinBtn");btn.disabled=true;btn.textContent="✅ CHECKED IN — WORKOUT IN PROGRESS";
-  const workoutSel=document.getElementById("workout");
-  const restoredClasses=sessionParseClassField(row.class);
-  if(workoutSel&&restoredClasses.length)Array.from(workoutSel.options).forEach(o=>{if(restoredClasses.includes(o.value))o.selected=true});
-  document.getElementById("clockBox").classList.add("visible");document.getElementById("workoutSelectorArea").classList.add("visible");
-  const existingBanner=document.getElementById("resumedBanner");
-  if(!existingBanner){
-    const banner=document.createElement("div");banner.id="resumedBanner";banner.className="session-resumed-banner";
-    banner.innerHTML=`<div class="resume-dot"></div>Session Resumed — timer running since ${checkInTime.toLocaleTimeString()}`;
-    document.getElementById("checkinStep1").appendChild(banner);
-  }
+  const btn=document.getElementById("submitCheckinBtn");btn.disabled=true;btn.style.display="none";
+  const cancelBtn=document.getElementById("cancelPunchInBtn");if(cancelBtn)cancelBtn.style.display="block";
+  document.getElementById("clockBox").classList.add("visible");
+  showSessionInProgressBanner(checkInISO);
   startStopwatch();
 }
 
@@ -5900,9 +6004,10 @@ function logoutUser(){
   document.getElementById("loginPassword").value="";
   document.getElementById("loginId").value="";
   document.getElementById("submitCheckinBtn").disabled=false;
-  document.getElementById("submitCheckinBtn").textContent="⚡ SUBMIT CHECK-IN (+50 XP)";
+  document.getElementById("submitCheckinBtn").style.display="";
+  document.getElementById("submitCheckinBtn").textContent="⚡ PUNCH IN";
+  const cancelPunchBtn=document.getElementById("cancelPunchInBtn");if(cancelPunchBtn)cancelPunchBtn.style.display="none";
   document.getElementById("clockBox").classList.remove("visible");
-  document.getElementById("workoutSelectorArea").classList.remove("visible");
   const banner=document.getElementById("resumedBanner");if(banner)banner.remove();
   // Reset dashboard display values to defaults
   document.getElementById("memberWelcome").innerText="Welcome Back, GymBro";
@@ -5916,10 +6021,6 @@ function logoutUser(){
   document.getElementById("totalWorkout").innerText="0";
   document.getElementById("checkinsMonth").innerText="0";
   document.getElementById("stopwatch").innerText="00:00:00";
-  // Reset workout selector
-  const sel=document.getElementById("workout");
-  if(sel)Array.from(sel.options).forEach(o=>o.selected=false);
-  document.querySelectorAll(".muscle-group").forEach(el=>el.style.fill="var(--muscle-idle)");
 }
 function toggleMenu(){document.getElementById("adminMenu").classList.toggle("active")}
 function toggleMemberMenu(){let s=document.getElementById("memberSubMenu");s.style.display=s.style.display==="block"?"none":"block"}
@@ -6015,56 +6116,60 @@ async function syncCoreDashboardMetrics(){
   renderTodayWorkoutBanner();
 }
 
-/* ===================== MUSCLE HIGHLIGHT =====================
+/* ===================== MUSCLE HIGHLIGHT (used by the Workouts page Finish widget) =====================
    Simple, reliable id-based fill on a hand-drawn inline SVG body (no external image,
    no canvas, nothing to fail to load). Reuses the app's existing CLASS_COLORS map. */
 const MUSCLE_CLASS_MAP={Chest:["Chest_Left","Chest_Right"],Biceps:["Biceps_Left","Biceps_Right"],Triceps:["Triceps_Left","Triceps_Right","Triceps_Front_Left","Triceps_Front_Right"],Shoulders:["Shoulders_Left","Shoulders_Right","Shoulders_Back_Left","Shoulders_Back_Right"],"Lat/Back":["Lats_Left","Lats_Right","Lower_Back"],Legs:["Legs_Front_L","Legs_Front_R","Legs_Back_L","Legs_Back_R","Glutes_Left","Glutes_Right","Calves_Left","Calves_Right"],Abs:["Abs"]};
-function handleClassSelection(){
-  document.querySelectorAll(".muscle-group").forEach(el=>el.style.fill="var(--muscle-idle)");
-  let sel=document.getElementById("workout");
-  let selected=Array.from(sel.options).filter(o=>o.selected).map(o=>o.value);
-  if(selected.length>3){
-    alert("Maximum 3 classes at once.");
-    for(let i=sel.options.length-1;i>=0;i--){if(sel.options[i].selected){sel.options[i].selected=false;break}}
-    return handleClassSelection();
-  }
-  selected.forEach(val=>{if(MUSCLE_CLASS_MAP[val])MUSCLE_CLASS_MAP[val].forEach(id=>{let el=document.getElementById(id);if(el)el.style.fill=CLASS_COLORS[val]||"#2563eb"})});
-}
-/* Lets the user tap/click directly on a muscle in the body diagram instead of only using the dropdown. */
-function toggleMuscleFromBody(regionId){
-  let targetClass=null;
-  for(const cls in MUSCLE_CLASS_MAP){if(MUSCLE_CLASS_MAP[cls].includes(regionId)){targetClass=cls;break}}
-  if(!targetClass)return;
-  const sel=document.getElementById("workout");
-  const opt=Array.from(sel.options).find(o=>o.value===targetClass);
-  if(!opt)return;
-  if(opt.selected){
-    opt.selected=false;
-  }else{
-    const selectedCount=Array.from(sel.options).filter(o=>o.selected).length;
-    if(selectedCount>=3){alert("Maximum 3 classes at once.");return}
-    opt.selected=true;
-  }
-  handleClassSelection();
-}
 
-/* ===================== CHECK-IN ===================== */
+/* ===================== CHECK-IN (PUNCH IN) =====================
+   Rule: exactly ONE Punch In per user per calendar day (device's local 12:00 AM – 11:59:59 PM).
+   NOTE (future): when multiple Punch Ins/day are supported, the "already punched in today"
+   block below is the single check to relax — everything else (row reuse, Cancel, Checkout)
+   already works per-row via its created_at key and doesn't assume a 1-row-per-day limit.
+
+   A Session row for today may already exist with an EMPTY duration — that happens when the
+   user logged a workout (directly, or via a Room from someone else's phone) before ever
+   Punching In. That row already marks them Present for the day; Punching In must UPDATE that
+   SAME row's duration rather than inserting a second row for the same date. */
 async function processCheckIn(){
-  let uid=localStorage.getItem("user_id");
-  let today=getLocalDateString();if(!uid)return;
+  let uid=localStorage.getItem("user_id");if(!uid)return;
+  let today=getLocalDateString();
   const{data:ex}=await sessionFetchByUserDate(uid,today);
-  if(ex&&ex.some(r=>r.duration&&r.duration.startsWith("In Progress|"))){alert("You already have an active session in progress today.");return}
-  if(ex&&ex.length>=2){alert("Maximum 2 sessions per day reached.");return}
-  const checkInISO=new Date().toISOString();activeSessionCheckInTimestamp=checkInISO;
-  const localCreatedAt=new Date().toISOString();
-  const{data:inserted,error}=await sessionInsert({user_id:uid,date:today,class:"",duration:`In Progress|${checkInISO}`,workouts:[],created_at:localCreatedAt});
-  if(error){alert(error.message);return}
-  activeSessionCreatedAt=(inserted&&inserted[0]&&inserted[0].created_at)||localCreatedAt;
-  const btn=document.getElementById("submitCheckinBtn");btn.disabled=true;btn.textContent="✅ CHECKED IN — WORKOUT IN PROGRESS";
+  const inProgressRow=ex&&ex.find(r=>r.duration&&r.duration.startsWith("In Progress|"));
+  if(inProgressRow){alert("You already have an active session in progress today.");return}
+  const finishedRow=ex&&ex.find(r=>r.duration&&r.duration.trim()!=="");
+  if(finishedRow){alert("You have already Punched In today. Only 1 Punch In is allowed per day.");return}
+  // Reuse today's existing (workout-only, no-duration) row if one exists, instead of inserting a duplicate.
+  const workoutOnlyRow=ex&&ex.length?ex[ex.length-1]:null;
+  let checkInISO;
+  if(workoutOnlyRow){
+    // Row already exists (created earlier for a workout logged before Punching In) — its
+    // created_at can't be changed (it's part of the primary key), so the real Punch In instant
+    // is Supabase's clock-synced "now" (getServerNow(), NOT the device clock), embedded into
+    // duration. History/Stats always prefer this embedded time over created_at (see
+    // sessionDisplayCheckInISO), so the correct Punch In time shows everywhere regardless.
+    checkInISO=getServerNow().toISOString();
+    await sessionUpdateByKey(uid,today,workoutOnlyRow.created_at,{duration:`In Progress|${checkInISO}`});
+    activeSessionCreatedAt=workoutOnlyRow.created_at;
+  }else{
+    // Brand-new row: let the database itself assign created_at via its own `default now()` —
+    // never a device-clock value — then read that exact server-generated instant straight back
+    // and reuse it as the Punch In time too, so created_at and the Punch In marker always agree,
+    // both being the database's own real time (no separate round trip needed to "measure" it).
+    const{data:inserted,error}=await sessionInsert({user_id:uid,date:today,class:"",duration:"In Progress",workouts:[]});
+    if(error){alert(error.message);return}
+    const newRow=inserted&&inserted[0];
+    activeSessionCreatedAt=newRow?newRow.created_at:getServerNow().toISOString();
+    checkInISO=activeSessionCreatedAt;
+    await sessionUpdateByKey(uid,today,activeSessionCreatedAt,{duration:`In Progress|${checkInISO}`});
+  }
+  activeSessionCheckInTimestamp=checkInISO;
+  const btn=document.getElementById("submitCheckinBtn");btn.disabled=true;btn.style.display="none";
+  const cancelBtn=document.getElementById("cancelPunchInBtn");if(cancelBtn)cancelBtn.style.display="block";
   chronometerSeconds=0;document.getElementById("clockBox").classList.add("visible");
-  const banner=document.getElementById("resumedBanner");if(banner)banner.remove();
-  startStopwatch();document.getElementById("workoutSelectorArea").classList.add("visible");
-  await syncCoreDashboardMetrics();
+  showSessionInProgressBanner(checkInISO);
+  startStopwatch();
+  await loadAttendanceHistoryRecords();await syncCoreDashboardMetrics();
 }
 function startStopwatch(){
   if(activeWorkoutTimer)clearInterval(activeWorkoutTimer);
@@ -6074,18 +6179,131 @@ function startStopwatch(){
     document.getElementById("stopwatch").innerText=`${h}:${m}:${s}`;
   },1000);
 }
+/* Shared UI reset for both Cancel and Check-Out — clears the timer, re-enables Punch In, hides Cancel. */
+function _resetPunchInUI(){
+  if(activeWorkoutTimer){clearInterval(activeWorkoutTimer);activeWorkoutTimer=null}
+  activeSessionCheckInTimestamp=null;activeSessionCreatedAt=null;chronometerSeconds=0;
+  document.getElementById("clockBox").classList.remove("visible");
+  const btn=document.getElementById("submitCheckinBtn");btn.disabled=false;btn.style.display="";btn.textContent="⚡ PUNCH IN";
+  const cancelBtn=document.getElementById("cancelPunchInBtn");if(cancelBtn)cancelBtn.style.display="none";
+  const banner=document.getElementById("resumedBanner");if(banner)banner.remove();
+  document.getElementById("stopwatch").innerText="00:00:00";
+}
+/* ===================== CANCEL PUNCH IN =====================
+   Discards an in-progress Punch In. If the day's record already has real workout data logged
+   against it, ONLY the Duration is cleared (the record stays — the user is still Present for
+   the day from those workouts). If the record has no workouts at all, the whole row is deleted
+   since Punch In was the only reason it existed. */
+async function cancelPunchIn(){
+  if(!activeWorkoutTimer&&!activeSessionCheckInTimestamp){alert("No active Punch In to cancel.");return}
+  if(!confirm("Cancel the Punch In? This will delete this session's duration. Are you sure you want to cancel?"))return;
+  const uid=localStorage.getItem("user_id");const today=getLocalDateString();
+  let createdAtKey=activeSessionCreatedAt;
+  if(!createdAtKey){
+    const{data:lr}=await sessionFindInProgress(uid,today);
+    if(lr&&lr.length>0)createdAtKey=lr[0].created_at;
+  }
+  if(createdAtKey){
+    const row=await sessionFetchRowByKey(uid,today,createdAtKey);
+    const hasWorkouts=row&&sessionWorkoutsArray(row).length>0;
+    if(hasWorkouts)await sessionUpdateByKey(uid,today,createdAtKey,{duration:''});
+    else await sessionDeleteByKey(uid,today,createdAtKey);
+  }
+  _resetPunchInUI();
+  showToast("Punch In cancelled.");
+  await loadAttendanceHistoryRecords();await syncCoreDashboardMetrics();
+}
+/* Punch Out no longer asks the user to pick Classes — the day's Class is always auto-derived
+   from whatever workouts were logged (see syncAutoClassForDate), so Punch Out only needs to
+   record the elapsed Duration. */
+/* ===================== PUNCH OUT: NOTIFY + CONFIRM FLOW =====================
+   Tapping "PUNCH OUT & SAVE" no longer punches out immediately. It first checks today's workout
+   state and, when there's something the person should look at, shows a small modal BEFORE the
+   final "are you sure" confirmation:
+     • No workouts logged today at all           → "You did not added workouts today." + OK
+     • Workouts logged but Finish box not Saved   → "...did not finish..." + Finish Workouts / OK
+       (covers both "never opened Finish" and "saved once, then added another class and forgot
+       to save again" — both leave the day's saved Class field stale vs. what's actually logged)
+     • Everything already logged AND saved        → goes straight to the final confirm, no extra nag
+   "Finish Workouts" jumps straight into the Finish box so the person can Save right there — Punch
+   Out itself is deliberately NOT performed in that path, so they always finish first. Either "OK"
+   path continues to a final "Are you sure you want to Punch Out?" step with OK/Cancel; only OK
+   there actually performs the Punch Out. */
+async function _getTodayWorkoutFinishState(){
+  try{
+    const uid=localStorage.getItem("user_id"),today=getLocalDateString();
+    const{data}=await sessionFetchByUserDate(uid,today);
+    if(!data||data.length===0)return{hasWorkouts:false,unsaved:false};
+    const row=data[data.length-1];
+    const hasWorkouts=!!row&&sessionWorkoutsArray(row).length>0;
+    if(!hasWorkouts)return{hasWorkouts:false,unsaved:false};
+    const savedClasses=sessionParseClassField(row.class);
+    const suggested=deriveDayClasses(data);
+    const unsaved=suggested.some(c=>!savedClasses.includes(c));
+    return{hasWorkouts:true,unsaved};
+  }catch(e){
+    // Never let this check block Punch Out — fail open, straight to the final confirm.
+    return{hasWorkouts:true,unsaved:false};
+  }
+}
+const _PO_BTN_PRIMARY='width:100%;padding:12px;border:none;border-radius:12px;cursor:pointer;font-family:var(--font-alt);font-size:13.5px;font-weight:800;letter-spacing:0.3px;background:var(--btn-bg);color:var(--follow-btn-text);box-shadow:var(--btn-shadow)';
+const _PO_BTN_GHOST='width:100%;padding:11px;border-radius:12px;border:1px solid var(--border-col);background:var(--bg-panel);color:var(--text-secondary);font-family:var(--font-alt);font-weight:700;font-size:13px;cursor:pointer';
+const _PO_BTN_DANGER='width:100%;padding:12px;border:none;border-radius:12px;cursor:pointer;font-family:var(--font-alt);font-size:13.5px;font-weight:800;letter-spacing:0.3px;background:linear-gradient(135deg,#dc2626,#b91c1c);color:#fff;box-shadow:0 4px 14px rgba(220,38,38,0.35)';
+function _closePunchOutModal(){
+  const ov=document.getElementById('_punchOutModalOverlay');if(ov)ov.remove();
+}
+function _renderPunchOutModal(emoji,title,message,buttonsHtml){
+  _closePunchOutModal();
+  const overlay=document.createElement('div');
+  overlay.id='_punchOutModalOverlay';
+  overlay.className='hist-status-modal-overlay';
+  overlay.innerHTML=`<div class="hist-status-modal-box" style="max-width:340px;text-align:center;padding:26px 22px">
+    <div style="font-size:34px;margin-bottom:10px">${emoji}</div>
+    <div class="hist-status-modal-title" style="padding-right:0;font-size:16px;margin-bottom:8px">${title}</div>
+    <div style="font-size:13px;color:var(--text-secondary);font-family:var(--font-alt);line-height:1.5;margin-bottom:18px">${message}</div>
+    <div style="display:flex;flex-direction:column;gap:9px">${buttonsHtml}</div>
+  </div>`;
+  document.body.appendChild(overlay);
+}
+function _showPunchOutNotifyModal(kind){
+  if(kind==='no_workouts'){
+    _renderPunchOutModal('🗒️',"No Workouts Logged","You did not added workouts today.",
+      `<button type="button" onclick="_showPunchOutConfirmModal()" style="${_PO_BTN_PRIMARY}">OK</button>`);
+  } else {
+    _renderPunchOutModal('⚠️',"Workouts Not Finished","You did not finish your today's workouts. Save them in the Finish box first, or continue to Punch Out anyway.",
+      `<button type="button" onclick="_punchOutGoFinishWorkouts()" style="${_PO_BTN_PRIMARY}">📋 Finish Workouts</button>
+       <button type="button" onclick="_showPunchOutConfirmModal()" style="${_PO_BTN_GHOST}">OK</button>`);
+  }
+}
+function _punchOutGoFinishWorkouts(){
+  _closePunchOutModal();
+  openWorkoutFinishModal(); // jump straight into the Finish box so it can be reviewed and Saved
+}
+function _showPunchOutConfirmModal(){
+  _renderPunchOutModal('🏁',"Punch Out?","Are you sure you want to Punch Out?",
+    `<button type="button" onclick="_punchOutConfirmed()" style="${_PO_BTN_DANGER}">🏁 OK, Punch Out</button>
+     <button type="button" onclick="_closePunchOutModal()" style="${_PO_BTN_GHOST}">Cancel</button>`);
+}
+async function _punchOutConfirmed(){
+  _closePunchOutModal();
+  await _doPunchOut();
+}
 async function processCheckOut(){
   if(!activeWorkoutTimer&&!activeSessionCheckInTimestamp){alert("No active session.");return}
-  if(activeWorkoutTimer){clearInterval(activeWorkoutTimer);activeWorkoutTimer=null}
+  const state=await _getTodayWorkoutFinishState();
+  if(!state.hasWorkouts){_showPunchOutNotifyModal('no_workouts');return}
+  if(state.unsaved){_showPunchOutNotifyModal('unsaved');return}
+  _showPunchOutConfirmModal();
+}
+/* Actual Punch Out work — unchanged from before, just now only ever run after the person has
+   confirmed via _punchOutConfirmed(). */
+async function _doPunchOut(){
   let hrs,mins;
   if(activeSessionCheckInTimestamp){
-    const elapsed=Math.max(0,Math.floor((Date.now()-new Date(activeSessionCheckInTimestamp).getTime())/1000));
+    const elapsed=Math.max(0,Math.floor((getServerNow().getTime()-new Date(activeSessionCheckInTimestamp).getTime())/1000));
     hrs=Math.floor(elapsed/3600);mins=Math.floor((elapsed%3600)/60);
   } else {hrs=Math.floor(chronometerSeconds/3600);mins=Math.floor((chronometerSeconds%3600)/60)}
   let fmt=hrs>0?`${hrs}Hr ${mins}min`:`${mins}min`;
-  let sel=document.getElementById("workout");let selectedClasses=Array.from(sel.options).filter(o=>o.selected).map(o=>o.value);
-  if(selectedClasses.length===0){alert("Please select at least one workout class before checking out.");return}
-  let workoutStr=sessionBuildClassField(selectedClasses);
   document.getElementById("gymDuration").innerText=`Today you spent ${hrs>0?hrs+'Hr ':''} ${mins}min at the gym 💪`;
   let uid=localStorage.getItem("user_id"),today=getLocalDateString();
   let createdAtKey=activeSessionCreatedAt;
@@ -6093,13 +6311,18 @@ async function processCheckOut(){
     const{data:lr}=await sessionFindInProgress(uid,today);
     if(lr&&lr.length>0)createdAtKey=lr[0].created_at;
   }
-  if(createdAtKey)await sessionUpdateByKey(uid,today,createdAtKey,{duration:fmt,class:workoutStr});
-  activeSessionCheckInTimestamp=null;activeSessionCreatedAt=null;
-  document.getElementById("clockBox").classList.remove("visible");document.getElementById("workoutSelectorArea").classList.remove("visible");
-  const btn=document.getElementById("submitCheckinBtn");btn.disabled=false;btn.textContent="⚡ SUBMIT CHECK-IN (+50 XP)";
-  Array.from(sel.options).forEach(o=>o.selected=false);document.querySelectorAll(".muscle-group").forEach(el=>el.style.fill="var(--muscle-idle)");
-  const banner=document.getElementById("resumedBanner");if(banner)banner.remove();
-  alert(`✅ Check-Out saved! Duration: ${fmt}`);
+  // Keep the real Punch In instant alive inside duration ("<friendly text>|<ISO>") instead of
+  // discarding it — this is what lets History/Stats keep showing the ACTUAL Punch In time even
+  // after Check-Out, regardless of whether created_at reflects an earlier workout log instead.
+  let checkInISOToSave=activeSessionCheckInTimestamp;
+  if(!checkInISOToSave&&createdAtKey){
+    const liveRow=await sessionFetchRowByKey(uid,today,createdAtKey);
+    checkInISOToSave=sessionRealCheckInISO(liveRow);
+  }
+  const durationToSave=checkInISOToSave?`${fmt}|${checkInISOToSave}`:fmt;
+  if(createdAtKey)await sessionUpdateByKey(uid,today,createdAtKey,{duration:durationToSave});
+  _resetPunchInUI();
+  alert(`✅ Punch Out saved! Duration: ${fmt}`);
   await loadAttendanceHistoryRecords();await syncCoreDashboardMetrics();
 }
 
@@ -6274,10 +6497,10 @@ function openHistStatusModal(status){
       const ds=item.dt.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
       if(status==='present'&&item.rows.length){
         const rowsHtml=item.rows.map(r=>{
-          const t=formatCheckInTime(r.created_at);
-          let dur=r.duration||'-';if(dur.startsWith('In Progress|'))dur='In Progress ⏱';
+          const t=formatCheckInTime(sessionDisplayCheckInISO(r));
+          let dur=sessionDisplayDurationText(r);
           const muscleHtml=r.workout?`<div class="hist-status-modal-muscle">💪 ${r.workout}</div>`:'';
-          return `<div class="hist-status-modal-subrow"><span>${t}</span><span>${r.session||'-'}</span><span>${dur}</span></div>${muscleHtml}`;
+          return `<div class="hist-status-modal-subrow"><span>${t}</span><span>${dur}</span></div>${muscleHtml}`;
         }).join('');
         return `<div class="hist-status-modal-item"><div class="hist-status-modal-date">${ds}, ${dn}</div>${rowsHtml}</div>`;
       }
@@ -6332,37 +6555,32 @@ function renderAttendanceHistory(){
     weekRows.push({date:key,_placeholderStatus:status,_pending:isPending});
   });
   // Keep newest-first order, matching the original query sort (ties on the same date ordered by
-  // created_at ascending, so Session 1 / Session 2 for a same-day double session stay in order).
+  // created_at ascending, so same-day double-session rows still stay in a stable order).
   weekRows.sort((a,b)=>{const dc=new Date(b.date)-new Date(a.date);if(dc!==0)return dc;return new Date(a.created_at||0)-new Date(b.created_at||0)});
-  // Label same-day rows "Session 1" / "Session 2" (rare double-session days) since the old
-  // Morning/Evening slot is no longer persisted.
-  const _sessionOrdinal={};
   weekRows.forEach(row=>{
     let d=new Date(row.date);
     let dn=d.toLocaleDateString('en-US',{weekday:'short'}),ds=d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
     let tr=document.createElement("tr");
     if(row._placeholderStatus){
       if(row._pending){
-        tr.innerHTML=`<td>${ds}, ${dn}</td><td><span class="badge pending">Not Checked In</span></td><td style="font-size:12px">-</td><td>-</td><td style="font-size:11px;max-width:120px">-</td><td style="font-size:12px">-</td>`;
+        tr.innerHTML=`<td>${ds}, ${dn}</td><td><span class="badge pending">Not Checked In</span></td><td style="font-size:12px">-</td><td style="font-size:11px;max-width:120px">-</td><td style="font-size:12px">-</td>`;
         tbody.appendChild(tr);
         return;
       }
       const isRest=row._placeholderStatus==='rest';
       const badgeCls=isRest?'rest':'absent',badgeTxt=isRest?'Rest Day':'Absent';
       const editTitle=isRest?'Change to Absent':'Change to Rest Day';
-      tr.innerHTML=`<td>${ds}, ${dn}</td><td><span class="badge ${badgeCls}" style="cursor:pointer" onclick="this.nextElementSibling.style.display=(this.nextElementSibling.style.display==='inline-block'?'none':'inline-block')" title="Tap to edit">${badgeTxt}</span> <button class="hist-edit-btn" style="display:none" onclick="toggleRestDayForDate('${row.date}')" title="${editTitle}">✏️</button></td><td style="font-size:12px">-</td><td>-</td><td style="font-size:11px;max-width:120px">-</td><td style="font-size:12px">-</td>`;
+      tr.innerHTML=`<td>${ds}, ${dn}</td><td><span class="badge ${badgeCls}" style="cursor:pointer" onclick="this.nextElementSibling.style.display=(this.nextElementSibling.style.display==='inline-block'?'none':'inline-block')" title="Tap to edit">${badgeTxt}</span> <button class="hist-edit-btn" style="display:none" onclick="toggleRestDayForDate('${row.date}')" title="${editTitle}">✏️</button></td><td style="font-size:12px">-</td><td style="font-size:11px;max-width:120px">-</td><td style="font-size:12px">-</td>`;
       tbody.appendChild(tr);
       return;
     }
-    _sessionOrdinal[row.date]=(_sessionOrdinal[row.date]||0)+1;
-    const sessionLabel=_sessionOrdinal[row.date]>1||weekRows.filter(r=>r.date===row.date&&!r._placeholderStatus).length>1?`Session ${_sessionOrdinal[row.date]}`:'-';
     let sc="present";
-    let displayDuration=row.duration||'-';if(displayDuration.startsWith("In Progress|"))displayDuration="In Progress ⏱";
-    let checkInTime=formatCheckInTime(row.created_at);
-    tr.innerHTML=`<td>${ds}, ${dn}</td><td><span class="badge ${sc}">Present</span></td><td style="font-size:12px">${checkInTime}</td><td>${sessionLabel}</td><td style="font-size:11px;max-width:120px">${sessionParseClassField(row.class).join(', ')||'-'}</td><td style="font-size:12px">${displayDuration}</td>`;
+    let displayDuration=sessionDisplayDurationText(row);
+    let checkInTime=formatCheckInTime(sessionDisplayCheckInISO(row));
+    tr.innerHTML=`<td>${ds}, ${dn}</td><td><span class="badge ${sc}">Present</span></td><td style="font-size:12px">${checkInTime}</td><td style="font-size:11px;max-width:120px">${sessionParseClassField(row.class).join(', ')||'-'}</td><td style="font-size:12px">${displayDuration}</td>`;
     tbody.appendChild(tr);
   });
-  if(tbody.children.length===0)tbody.innerHTML=`<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:20px;font-family:var(--font-alt)">No records for this filter.</td></tr>`;
+  if(tbody.children.length===0)tbody.innerHTML=`<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:20px;font-family:var(--font-alt)">No records for this filter.</td></tr>`;
 
   // Refresh the "Week N: <range>" label + show/hide the "<" / ">" nav buttons
   const{min:_hMin,max:_hMax}=_monthWeekBounds(filterYear,filterMonth);
@@ -6706,14 +6924,15 @@ function _durHighlightLinePoint(selectedIdx){
   const borders=new Array(n).fill('#fff');
 
   if(durSelectedClass){
-    // Dim everything, then brighten matched-class points, then make the currently selected point biggest
+    // Hide everything (near-invisible), then brighten matched-class points, then make the currently
+    // selected point biggest — same CLASS_FILTER_HIDDEN_ALPHA used by the bar-chart hide behavior.
     for(let i=0;i<n;i++){
       if(durDataCache[i].classes&&durDataCache[i].classes.includes(durSelectedClass)){
         colors[i]=CLASS_COLORS[durSelectedClass]||base;
         radii[i]=5;
         borders[i]='rgba(255,255,255,0.9)';
       } else {
-        colors[i]='rgba(148,163,184,0.2)';
+        colors[i]=`rgba(148,163,184,${CLASS_FILTER_HIDDEN_ALPHA})`;
         radii[i]=2;
         borders[i]='transparent';
       }
@@ -6728,6 +6947,9 @@ function _durHighlightLinePoint(selectedIdx){
   ds.pointBorderColor=borders;
   ds.pointRadius=radii;
   ds.pointHoverRadius=radii.map((r,i)=>i===selectedIdx?11:r+2);
+  // Hide the connecting line itself between any two points that aren't both the selected class —
+  // matches Volume's line chart via the same shared helper (buildClassFilterSegmentColor).
+  ds.segment={borderColor:buildClassFilterSegmentColor(durSelectedClass,durDataCache,d=>d.classes,base)};
   chart.update('none');
 }
 
@@ -6782,7 +7004,7 @@ function buildStatsLegend(classes){
     const color=CLASS_COLORS[c]||CLASS_COLORS['Unknown'];
     const freq=durClassFreqMap[c]||0;
     const isActive=durSelectedClass===c;
-    html+=`<div class="dur-legend-item${isActive?' active':''}" data-cls="${c}" onclick="durSelectClass('${c}')" style="display:inline-flex;align-items:center;gap:5px;font-family:var(--font-alt);font-size:11px;font-weight:700;color:${isActive?'#fff':'var(--text-secondary)'};cursor:pointer;padding:5px 9px;border-radius:20px;border:2px solid ${isActive?color:'var(--border-col)'};background:${isActive?color:'var(--bg-card)'};transition:all 0.15s;-webkit-tap-highlight-color:transparent"><span style="width:9px;height:9px;border-radius:3px;background:${isActive?'rgba(255,255,255,0.8)':color};display:inline-block;flex-shrink:0"></span>${c}<span style="background:${isActive?'rgba(255,255,255,0.25)':color+'33'};color:${isActive?'#fff':color};border-radius:10px;padding:1px 6px;font-size:9px;font-weight:800;min-width:16px;text-align:center">${freq}</span></div>`;
+    html+=`<div class="dur-legend-item${isActive?' active':''}" data-cls="${c}" onclick="durSelectClass('${c}')" style="display:inline-flex;align-items:center;gap:4px;font-family:var(--font-alt);font-size:10.5px;font-weight:700;color:#fff;cursor:pointer;padding:4px 8px;border-radius:14px;border:2px solid ${isActive?'#fff':color};background:${color};box-shadow:${isActive?'0 0 6px rgba(0,0,0,0.35)':'none'};transition:all 0.15s;-webkit-tap-highlight-color:transparent;white-space:nowrap">${c}<span style="background:rgba(255,255,255,0.28);color:#fff;border-radius:9px;padding:1px 5px;font-size:9px;font-weight:800;min-width:14px;text-align:center">${freq}</span></div>`;
   });
   if(!html)html=`<span style="font-size:11px;color:var(--text-muted);font-family:var(--font-alt)">No workouts in this range</span>`;
   el.innerHTML=html;
@@ -6890,21 +7112,20 @@ function _durResolveMonths(){
 
 /* Computes Most Trained / Less Trained from a {className: count} map, per spec:
    - Ties are fully supported: every class sharing the top (or bottom) count is included.
-   - mode 'weekly': Most Trained only shows if at least one class has a count > 1 (otherwise hidden
-     entirely); Less Trained NEVER shows on weekly, regardless of counts.
+   - mode 'weekly': Most Trained and Less Trained are NEVER shown on Weekly, period.
    - mode 'monthly'/'3month': both Most Trained and Less Trained always show (no minimum-count gate),
      with ties fully supported on both ends. */
+/* Maps internal range-mode strings to the compact period tag shown beside each stat label,
+   e.g. "Most Trained · WEEKLY", so it's always clear which duration the numbers reflect. */
+function _periodTag(mode){return mode==='monthly'?'Monthly':mode==='3month'?'3-Month':'Weekly';}
 function _computeTrainedExtremes(countMap,mode){
+  if(mode==='weekly')return{most:[],less:[]}; // Weekly: neither row ever shows
   const entries=Object.entries(countMap);
   if(!entries.length)return{most:[],less:[]};
   const maxCount=Math.max(...entries.map(e=>e[1]));
   const minCount=Math.min(...entries.map(e=>e[1]));
-  let most=entries.filter(e=>e[1]===maxCount).map(e=>e[0]);
-  let less=entries.filter(e=>e[1]===minCount).map(e=>e[0]);
-  if(mode==='weekly'){
-    if(maxCount<=1)most=[]; // Weekly: only show Most Trained if a class trained MORE than once
-    less=[]; // Weekly: Less Trained never shows
-  }
+  const most=entries.filter(e=>e[1]===maxCount).map(e=>e[0]);
+  const less=entries.filter(e=>e[1]===minCount).map(e=>e[0]);
   return{most,less};
 }
 
@@ -6925,7 +7146,7 @@ async function updateStatsChart(){
   Object.values(dm).forEach(d=>{if(d.workout){let cls=[...new Set(d.workout.split(',').map(s=>s.trim()).filter(Boolean))].slice(0,3);d.classes=cls}});
   let days=Object.values(dm);statsChartDayData=days;
   // build day labels Mon-Sun style
-  let labels=days.map(d=>`${d.label} ${dayNames[d.dateObj.getDay()]}`);
+  let labels=days.map(d=>[d.label, dayNames[d.dateObj.getDay()]]);
   let durations=days.map(d=>d.duration||0);
   let chartData=durations.map((v,i)=>{if(v===0&&days[i].classes.length>0)return 30;return v||0});
   let rawWorkouts=days.map(d=>d.classes.join(', '));
@@ -6950,7 +7171,7 @@ async function updateStatsChart(){
       responsive:true,maintainAspectRatio:false,
       layout:{padding:{top:78,right:6,left:2,bottom:2}},
       plugins:{legend:{display:false},tooltip:{enabled:false}},
-      scales:{y:{beginAtZero:true,suggestedMax:durSuggestedMax,grid:{color:'rgba(128,128,128,0.08)'},ticks:{color:'#6b7280',font:{family:'Rajdhani',size:12},callback(v){return v+'m'}}},x:{grid:{display:false},ticks:{color:'#6b7280',font:{family:'Rajdhani',size:12}}}},
+      scales:{y:{beginAtZero:true,suggestedMax:durSuggestedMax,grid:{color:'rgba(128,128,128,0.08)'},ticks:{color:'#6b7280',font:{family:'Rajdhani',size:12},callback(v){return v+'m'}}},x:{grid:{display:false},ticks:{color:'#6b7280',font:{family:'Rajdhani',size:11},autoSkip:false,maxRotation:0,minRotation:0}}},
       onHover(evt,elements){canvas.style.cursor=elements.length?'pointer':'default'}
     },
     plugins:[stackedMusclePlugin]
@@ -7024,7 +7245,20 @@ async function updateStatsChart(){
   buildStatsLegend(allClasses);
   let nz=days.filter(d=>d.duration>0),avg=nz.length?Math.round(nz.reduce((s,d)=>s+d.duration,0)/nz.length):0;
   document.getElementById("avgTimeLabel").textContent=formatMinutesToDuration(avg);
+  _renderDurationTotals(days,'weekly');
   _renderTrainedExtremes(mc,'weekly');
+}
+
+/* Renders the Total Duration row (sum of minutes across active days) and stamps the Weekly/Monthly/
+   3-Month period tag onto both the Total Duration and Average Duration rows. Average Duration itself
+   is still computed by each caller (weekly vs monthly/3-month use slightly different day arrays). */
+function _renderDurationTotals(days,mode){
+  const nz=days.filter(d=>d.duration>0);
+  const total=nz.reduce((s,d)=>s+d.duration,0);
+  const totalEl=document.getElementById('totalDurationLabel');
+  if(totalEl)totalEl.textContent=`${formatMinutesToDuration(total)} / ${nz.length} active day${nz.length!==1?'s':''}`;
+  const headingEl=document.getElementById('durStatsHeading');
+  if(headingEl)headingEl.textContent=`${_periodTag(mode).toUpperCase()} STATS`;
 }
 
 /* Renders the Most Trained / Less Trained rows from a {className:count} map, per the active mode's
@@ -7036,13 +7270,13 @@ function _renderTrainedExtremes(countMap,mode){
   const mostLabel=document.getElementById('mostTrainedLabel');
   const lessLabel=document.getElementById('lessTrainedLabel');
   if(most.length){
-    mostLabel.textContent=most.join(', ');
+    mostLabel.textContent=most.map(c=>`${c} x${countMap[c]}`).join(', ');
     if(mostRow)mostRow.style.display='';
   } else {
     if(mostRow)mostRow.style.display='none';
   }
   if(less.length){
-    lessLabel.textContent=less.join(', ');
+    lessLabel.textContent=less.map(c=>`${c} x${countMap[c]}`).join(', ');
     if(lessRow)lessRow.style.display='';
   } else {
     if(lessRow)lessRow.style.display='none';
@@ -7231,6 +7465,7 @@ async function updateDurationLineChart(){
 
   let nz=allDays.filter(d=>d.duration>0),avg=nz.length?Math.round(nz.reduce((s,d)=>s+d.duration,0)/nz.length):0;
   document.getElementById('avgTimeLabel').textContent=formatMinutesToDuration(avg);
+  _renderDurationTotals(allDays,durRangeMode);
 
   _renderTrainedExtremes(mergedFreqMap,durRangeMode);
 }
@@ -7246,24 +7481,15 @@ function parseWorkoutVolume(str){
   return total;
 }
 
-/* Accumulates a single day's total training volume into a {className:volume} map, attributing it to
-   every class actually logged for that day (from attendance.workout) split evenly across them — e.g.
-   a day with 300 volume logged as "Chest, Biceps" contributes 150 to each class's running total. This
-   is the same per-day class attribution the Duration graph already uses for its stacked bars, applied
-   here to volume instead of duration so High/Low Volume stays consistent with the rest of the app. */
-function _accumulateClassVolume(volumeMap,dayVolume,attendanceClasses){
-  if(!dayVolume||!attendanceClasses||!attendanceClasses.length)return;
-  const share=dayVolume/attendanceClasses.length;
-  attendanceClasses.forEach(c=>{volumeMap[c]=(volumeMap[c]||0)+share});
-}
-
 /* Computes High Volume / Low Volume from a {className:volume} map, per spec: whichever class(es) have
    the HIGHEST total volume for the selected range is High Volume; whichever have the LOWEST is Low
-   Volume. Ties are fully supported on both ends — every class sharing the extreme value is included.
-   Unlike Duration's weekly gating, High/Low Volume always shows (Weekly, Monthly, 3-Month alike) as
-   long as there's at least one class with logged volume. */
+   Volume. Ties are fully supported on both ends — every class sharing the extreme value is included,
+   but ONLY on an exact tie (within floating-point rounding); if one class's sum is even slightly
+   higher/lower than the rest, it alone is shown. Unlike Duration's weekly gating, High/Low Volume
+   always shows (Weekly, Monthly, 3-Month alike) as long as there's at least one class with logged
+   volume. Non muscle-group buckets (Rest/Unknown/Warmup) are excluded, matching the legend pills. */
 function _computeVolumeExtremes(volumeMap){
-  const entries=Object.entries(volumeMap).filter(e=>e[1]>0);
+  const entries=Object.entries(volumeMap).filter(e=>e[1]>0&&e[0]!=='Rest'&&e[0]!=='Unknown'&&e[0]!=='Warmup');
   if(!entries.length)return{high:[],low:[]};
   const maxVol=Math.max(...entries.map(e=>e[1]));
   const minVol=Math.min(...entries.map(e=>e[1]));
@@ -7281,14 +7507,16 @@ function _renderVolumeExtremes(volumeMap){
   const highLabel=document.getElementById('highVolumeLabel');
   const lowLabel=document.getElementById('lowVolumeLabel');
   if(!highRow||!lowRow||!highLabel||!lowLabel)return;
+  const headingEl=document.getElementById('volStatsHeading');
+  if(headingEl)headingEl.textContent=`${_periodTag(volRangeMode).toUpperCase()} STATS`;
   if(high.length){
-    highLabel.textContent=high.join(', ');
+    highLabel.textContent=high.map(c=>`${c}: ${Math.round(volumeMap[c]).toLocaleString()} Kg-Reps`).join(', ');
     highRow.style.display='';
   } else {
     highRow.style.display='none';
   }
   if(low.length){
-    lowLabel.textContent=low.join(', ');
+    lowLabel.textContent=low.map(c=>`${c}: ${Math.round(volumeMap[c]).toLocaleString()} Kg-Reps`).join(', ');
     lowRow.style.display='';
   } else {
     lowRow.style.display='none';
@@ -7311,8 +7539,7 @@ function _renderVolumeAverage(days){
   // Total volume row
   if(totalRow&&totalLbl&&totalVal){
     const totalVol=activeDays.reduce((s,d)=>s+d.volume,0);
-    const periodName=volRangeMode==='monthly'?'Monthly Volume':volRangeMode==='3month'?'3-Month Volume':'Weekly Volume';
-    totalLbl.textContent=periodName;
+    totalLbl.textContent='Total Volume';
     totalVal.textContent=`${Math.round(totalVol).toLocaleString()} Kg-Reps / ${activeDays.length} active day${activeDays.length!==1?'s':''}`;
     totalRow.style.display='';
   }
@@ -7440,6 +7667,16 @@ let durLineDataCache=[]; // cache of {label,dateLabel,duration,classes,year,mont
 /* ── Detailed View state per panel ── */
 let _detailView={main:false,left:false,right:false};
 let _lastDrillDay={main:null,left:null,right:null};
+// Tracks which individual exercise rows in the Volume Breakdown panel are expanded, independent of
+// the global BREAKDOWN toggle — any number of rows can be open at once. Keyed by panel+day+rowIdx so
+// selections don't leak between different days.
+let _expandedVolRowKeys=new Set();
+function _volDayKey(day){
+  if(!day)return'';
+  if(day.dateObj)return String(day.dateObj.getTime());
+  if(day.year!==undefined&&day.month!==undefined&&day.day!==undefined)return`${day.year}-${day.month}-${day.day}`;
+  return String(day.label||'');
+}
 
 function toggleDetailedView(panel){
   _detailView[panel]=!_detailView[panel];
@@ -7691,15 +7928,10 @@ async function updateVolumeChart(side='main'){
   // Weekly: find the single highest/lowest class volume on any single day (per-day max/min).
   // A day with Chest:1000, Bicep:800 → Chest is high for that day. Compare across all days.
   if(side==='main'){
-    // High/Low Volume: always sum each class's total volume across all days in the range,
-    // then compare those sums — highest sum = High Volume, lowest sum = Low Volume.
-    const classVolMap={};
-    days.forEach(d=>_accumulateClassVolume(classVolMap,d.volume,d.attendanceWorkouts));
-    _renderVolumeExtremes(classVolMap);
     _renderVolumeAverage(days);
   }
 
-  const labels=days.map(d=>d.label);
+  const labels=days.map(d=>{const parts=(d.label||'').split(' ');return parts.length>1?[parts[0],parts[1]]:[d.label]});
   const volumes=days.map(d=>Math.round(d.volume));
 
   if(side==='left'&&volChartInstanceL){volChartInstanceL.destroy();volChartInstanceL=null}
@@ -7730,6 +7962,10 @@ async function updateVolumeChart(side='main'){
       });
     });
     volClassFreqMap=freqMap;volClassVolumeMap=volMap;
+    // High/Low Volume: use this exact same per-class volume map that feeds the legend pills above,
+    // so "High Volume"/"Low Volume" always exactly matches what's shown in the class pills — no
+    // separate evenly-split approximation that could disagree with the displayed per-class totals.
+    _renderVolumeExtremes(volMap);
     // Reset class filter and nav arrows on every weekly chart load
     volSelectedClass=null;
     _volCurrentIdx=0;
@@ -7758,8 +7994,8 @@ async function updateVolumeChart(side='main'){
         data:volumes,
         backgroundColor:barBg,
         hoverBackgroundColor:barHover,
-        borderColor:isMain?solidColor:getVolBorderColor(side),
-        borderWidth:1.5,borderRadius:10,barPercentage:0.65,categoryPercentage:0.8,
+        borderColor:isMain?(volDetailViewOn?'transparent':solidColor):getVolBorderColor(side),
+        borderWidth:isMain?(volDetailViewOn?0:1.5):1.5,borderRadius:10,barPercentage:0.65,categoryPercentage:0.8,
         _selectedClass:volSelectedClass,
         _selectedIdx:-1,
         _classVols:classVolsPerBar||[],
@@ -7772,7 +8008,7 @@ async function updateVolumeChart(side='main'){
       plugins:{legend:{display:false},tooltip:{enabled:false}},
       scales:{
         y:{beginAtZero:true,suggestedMax:volSuggestedMax,grid:{color:'rgba(128,128,128,0.08)'},ticks:{color:'#6b7280',font:{family:'Rajdhani',size:11},callback(v){return v>=1000?(v/1000).toFixed(1)+'k':v}}},
-        x:{grid:{display:false},ticks:{color:'#6b7280',font:{family:'Rajdhani',size:10},maxRotation:0}}
+        x:{grid:{display:false},ticks:{color:'#6b7280',font:{family:'Rajdhani',size:10},autoSkip:false,maxRotation:0,minRotation:0}}
       },
       onHover(evt,els){canvas.style.cursor=els.length?'pointer':'default'}
     },
@@ -7987,14 +8223,20 @@ async function updateVolumeLineChart(){
   volSelectedClass=null;
   buildVolLegend();
 
-  // High Volume / Low Volume — sum each class's attributed volume across the ENTIRE selected window
-  // (the whole month for Monthly, all 3 months for 3-Month), then find the highest/lowest summed class.
-  const classVolMap={};
-  allDays.forEach(d=>_accumulateClassVolume(classVolMap,d.volume,d.attendanceWorkouts));
-  _renderVolumeExtremes(classVolMap);
+  // High Volume / Low Volume — sum each class's exact attributed volume across the ENTIRE selected
+  // window (the whole month for Monthly, all 3 months for 3-Month) using the same volMapLine that
+  // feeds the legend pills above, then find the highest/lowest summed class. Using the same source
+  // as the pills guarantees High/Low Volume always exactly matches what's displayed there.
+  _renderVolumeExtremes(volMapLine);
   _renderVolumeAverage(allDays);
 
   const volumes=allDays.map(d=>Math.round(d.volume));
+  // Fixed height-ratio safety: computed Y-axis max leaves headroom above the tallest point for the
+  // fixed top-right detail box — same constrained-ratio approach as Duration's line chart, so the
+  // line and its markers can never run underneath / get interrupted by the detail box, no matter how
+  // high the line goes.
+  const volLineMaxVal=Math.max(0,...volumes);
+  const volLineSuggestedMax=volLineMaxVal>0?Math.ceil((volLineMaxVal*1.45)/10)*10:100;
 
   // X-axis anchor labels (per task spec): Monthly mode shows "Week 1".."Week 4" at the start of each
   // calendar week within the month; 3-Month mode shows each month's short name at its first day.
@@ -8053,7 +8295,7 @@ async function updateVolumeLineChart(){
       interaction:{mode:'index',intersect:false},
       plugins:{legend:{display:false},tooltip:{enabled:false}},
       scales:{
-        y:{beginAtZero:true,grid:{color:'rgba(128,128,128,0.08)'},ticks:{color:'#6b7280',font:{family:'Rajdhani',size:11},callback(v){return v>=1000?(v/1000).toFixed(1)+'k':v}}},
+        y:{beginAtZero:true,suggestedMax:volLineSuggestedMax,grid:{color:'rgba(128,128,128,0.08)'},ticks:{color:'#6b7280',font:{family:'Rajdhani',size:11},callback(v){return v>=1000?(v/1000).toFixed(1)+'k':v}}},
         // X-axis: Weekly default keeps day labels hidden (detail box carries that info). Monthly/3-Month
         // show the sparse Week-N / month-name anchors built above — empty-string ticks are skipped by
         // Chart.js automatically so the axis never looks cluttered, even on narrow mobile screens.
@@ -8306,6 +8548,7 @@ function renderVolDrilldown(day,titleId,bodyId,panel){
 
   const detailOn=_detailView[panel]||false;
   const uid=panel==='left'?'L':panel==='right'?'R':panel;
+  const dayKey=_volDayKey(day);
 
   let html='';
   day.workouts.forEach((w,idx)=>{
@@ -8315,13 +8558,14 @@ function renderVolDrilldown(day,titleId,bodyId,panel){
     const vt=formatExerciseVolTotal(w,sets);
     const setsId=`volSets_${uid}_${idx}`;
     const rowId=`volRow_${uid}_${idx}`;
-    const isOpen=detailOn;
+    const rowKey=`${panel}::${dayKey}::${idx}`;
+    const isOpen=detailOn||_expandedVolRowKeys.has(rowKey);
     const chevron=isOpen?'▼':'▶';
     const openClass=isOpen?'open':'';
     const topRadius=isOpen?'10px 10px 0 0':'10px';
     const borderBottom=isOpen?'none':'';
 
-    html+=`<div class="vol-drill-row${isOpen?' expanded':''}" id="${rowId}" onclick="toggleVolSets('${rowId}','${setsId}')"
+    html+=`<div class="vol-drill-row${isOpen?' expanded':''}" id="${rowId}" onclick="toggleVolSets('${rowKey}','${rowId}','${setsId}')"
       style="border-radius:${topRadius};margin-bottom:0;border:1px solid var(--border-col);${borderBottom?'border-bottom:none;':''}padding:10px 14px;display:flex;align-items:center;gap:10px;background:var(--bg-card);cursor:pointer">
       <span class="vol-drill-name" style="flex:1">${exName}</span>
       <span class="vol-drill-val">${vt.primary} <small style="font-size:10px;opacity:0.65">${vt.unit}</small></span>
@@ -8347,12 +8591,15 @@ function renderVolDrilldown(day,titleId,bodyId,panel){
   bodyEl.innerHTML=html;
 }
 
-function toggleVolSets(rowId,setsId){
+function toggleVolSets(rowKey,rowId,setsId){
+  // Back-compat: older callers may still pass just (rowId,setsId) with no rowKey
+  if(setsId===undefined){setsId=rowId;rowId=rowKey;rowKey=null;}
   const row=document.getElementById(rowId);
   const sets=document.getElementById(setsId);
   if(!row||!sets)return;
   const isOpen=sets.classList.contains('open');
   const chev=document.getElementById('chev_'+rowId);
+  if(rowKey){if(isOpen)_expandedVolRowKeys.delete(rowKey);else _expandedVolRowKeys.add(rowKey);}
   if(isOpen){
     sets.classList.remove('open');
     row.classList.remove('expanded');
@@ -8441,7 +8688,7 @@ function _volHighlightLinePoint(selectedIdx){
         radii[i]=5;
         borders[i]='rgba(255,255,255,0.9)';
       } else {
-        colors[i]='rgba(148,163,184,0.2)';
+        colors[i]=`rgba(148,163,184,${CLASS_FILTER_HIDDEN_ALPHA})`;
         radii[i]=2;
         borders[i]='transparent';
       }
@@ -8456,6 +8703,9 @@ function _volHighlightLinePoint(selectedIdx){
   ds.pointBorderColor=borders;
   ds.pointRadius=radii;
   ds.pointHoverRadius=radii.map((r,i)=>i===selectedIdx?11:r+2);
+  // Hide the connecting line itself between any two points that aren't both the selected class —
+  // matches Duration's line chart via the same shared helper (buildClassFilterSegmentColor).
+  ds.segment={borderColor:buildClassFilterSegmentColor(volSelectedClass,volLineDataCache,d=>d.attendanceWorkouts,base)};
   chart.update('none');
 }
 
@@ -8530,9 +8780,9 @@ function buildVolLegend(){
     const totalVol=Math.round(volClassVolumeMap[c]||0);
     const volStr=totalVol.toLocaleString()+' Kg';
     const isActive=volSelectedClass===c;
-    html+=`<div onclick="volSelectClass('${c}')" style="display:inline-flex;flex-direction:column;align-items:center;gap:2px;font-family:var(--font-alt);font-size:11px;font-weight:700;color:${isActive?'#fff':'var(--text-secondary)'};cursor:pointer;padding:5px 9px;border-radius:20px;border:2px solid ${isActive?color:'var(--border-col)'};background:${isActive?color:'var(--bg-card)'};transition:all 0.15s;-webkit-tap-highlight-color:transparent">
-      <div style="display:flex;align-items:center;gap:5px"><span style="width:9px;height:9px;border-radius:3px;background:${isActive?'rgba(255,255,255,0.8)':color};display:inline-block;flex-shrink:0"></span>${c}<span style="background:${isActive?'rgba(255,255,255,0.25)':color+'33'};color:${isActive?'#fff':color};border-radius:10px;padding:1px 6px;font-size:9px;font-weight:800;min-width:16px;text-align:center">${freq}</span></div>
-      <div style="font-size:9px;font-weight:700;color:${isActive?'rgba(255,255,255,0.85)':color};letter-spacing:0.2px;margin-top:1px">${volStr}</div>
+    html+=`<div onclick="volSelectClass('${c}')" style="display:inline-flex;flex-direction:column;align-items:center;gap:1px;font-family:var(--font-alt);font-weight:700;color:#fff;cursor:pointer;padding:4px 8px;border-radius:14px;border:2px solid ${isActive?'#fff':color};background:${color};box-shadow:${isActive?'0 0 6px rgba(0,0,0,0.35)':'none'};transition:all 0.15s;-webkit-tap-highlight-color:transparent;white-space:nowrap">
+      <div style="display:flex;align-items:center;gap:4px;font-size:10.5px">${c}<span style="background:rgba(255,255,255,0.28);color:#fff;border-radius:9px;padding:1px 5px;font-size:9px;font-weight:800;min-width:14px;text-align:center">${freq}</span></div>
+      <div style="font-size:9px;font-weight:700;color:rgba(255,255,255,0.9);letter-spacing:0.2px">${volStr}</div>
     </div>`;
   });
   if(!html)html=`<span style="font-size:11px;color:var(--text-muted);font-family:var(--font-alt)">No workouts in this range</span>`;
@@ -8582,7 +8832,7 @@ const volStackedPlugin={
       const attNames=attWorkoutsPerBar[i]||[];
       if(attNames.length===0)return;
       const barHasClass=selectedClass?attNames.includes(selectedClass):true;
-      const globalAlpha=selectedClass&&!barHasClass?0.22:1;
+      const globalAlpha=classFilterBarAlpha(selectedClass,barHasClass);
       ctx.globalAlpha=globalAlpha;
       const total=attNames.length;
       let drawnH=0;
@@ -8592,7 +8842,7 @@ const volStackedPlugin={
         const sy=bBase-drawnH-segH;
         drawnH+=segH;
         const color=CLASS_COLORS[cls]||CLASS_COLORS['Unknown'];
-        const segAlpha=(selectedClass&&selectedClass!==cls)?0.18:1;
+        const segAlpha=classFilterSegmentAlpha(selectedClass,cls);
         ctx.save();ctx.globalAlpha=globalAlpha*segAlpha;
         ctx.fillStyle=color;ctx.beginPath();
         if(idx===0&&idx===attNames.length-1){ctx.roundRect(bx-bw/2,sy,bw,segH,4)}
@@ -8694,9 +8944,12 @@ function renderVolDrilldownEnhanced(day,titleId,bodyId,panel){
     return;
   }
 
-  // breakdownOn = "Breakdown" toggle — shows individual set values per exercise
+  // breakdownOn = "Breakdown" toggle — expands ALL exercise rows to show individual set values.
+  // Independently of that, any single row can be clicked to reveal just its own detail view —
+  // any number of rows can be expanded at once, keyed per-day so state doesn't leak across days.
   const breakdownOn=_detailView[panel]||false;
   const uid=panel==='left'?'L':panel==='right'?'R':panel;
+  const dayKey=_volDayKey(day);
   const totalVol=day.volume||1;
 
   // Build per-class volume using attendance classes as source of truth
@@ -8729,34 +8982,29 @@ function renderVolDrilldownEnhanced(day,titleId,bodyId,panel){
     const vt=formatExerciseVolTotal(w,sets);
     const setsId=`volSets_${uid}_${idx}`;
     const rowId=`volRow_${uid}_${idx}`;
+    const rowKey=`${panel}::${dayKey}::${idx}`;
+    const isOpen=breakdownOn||_expandedVolRowKeys.has(rowKey);
+    const chevron=isOpen?'▼':'▶';
 
-    if(breakdownOn){
-      // Expanded: show set rows below each exercise
-      html+=`<div class="vol-drill-row expanded" id="${rowId}" onclick="toggleVolSets('${rowId}','${setsId}')"
-        style="border-radius:10px 10px 0 0;margin-bottom:0;border:1px solid ${exColor}55;border-left:3px solid ${exColor};border-bottom:none;padding:10px 14px;display:flex;align-items:center;gap:8px;background:var(--bg-card);cursor:pointer">
-        <span style="width:7px;height:7px;border-radius:2px;background:${exColor};flex-shrink:0"></span>
-        <span class="vol-drill-name" style="flex:1;font-size:12px">${exName}<small style="font-size:9px;color:${exColor};margin-left:5px;font-family:var(--font-alt);font-weight:700">${exClass}</small></span>
-        <span class="vol-drill-val">${vt.primary} <small style="font-size:9px;opacity:0.65">${vt.unit}</small></span>
-        <span class="vol-drill-chevron" id="chev_${rowId}">▼</span>
-      </div>`;
-      html+=`<div class="vol-drill-sets open" id="${setsId}" style="border-radius:0 0 10px 10px;margin-bottom:6px">`;
-      if(sets.length===0){
-        html+=`<div class="vol-set-line"><span class="vol-set-desc" style="color:var(--text-muted)">No set data found</span></div>`;
-      } else {
-        sets.forEach((s,si)=>{
-          html+=`<div class="vol-set-line"><span class="vol-set-desc">Set ${si+1} · ${s.desc}</span><span class="vol-set-vol">${s.isBW?'':s.vol.toLocaleString()+' kg'}</span></div>`;
-        });
-        html+=`<div class="vol-sets-total"><span>Total</span><strong>${vt.primary} ${vt.unit}</strong></div>`;
-      }
-      html+=`</div>`;
+    // Row is always clickable — any number of rows can be independently expanded,
+    // whether or not the global BREAKDOWN toggle is on.
+    html+=`<div class="vol-drill-row${isOpen?' expanded':''}" id="${rowId}" onclick="toggleVolSets('${rowKey}','${rowId}','${setsId}')"
+      style="border-radius:${isOpen?'10px 10px 0 0':'10px'};margin-bottom:${isOpen?'0':'5px'};border:1px solid ${exColor}${isOpen?'55':'33'};border-left:3px solid ${exColor};${isOpen?'border-bottom:none;':''}padding:8px 12px;display:flex;align-items:center;gap:8px;background:var(--bg-card);cursor:pointer">
+      <span style="width:7px;height:7px;border-radius:2px;background:${exColor};flex-shrink:0"></span>
+      <span class="vol-drill-name" style="flex:1;font-size:12px">${exName}<small style="font-size:9px;color:${exColor};margin-left:5px;font-family:var(--font-alt);font-weight:700">${exClass}</small></span>
+      <span class="vol-drill-val">${vt.primary} <small style="font-size:9px;opacity:0.65">${vt.unit}</small></span>
+      <span class="vol-drill-chevron" id="chev_${rowId}">${chevron}</span>
+    </div>`;
+    html+=`<div class="vol-drill-sets${isOpen?' open':''}" id="${setsId}" style="border-radius:0 0 10px 10px;margin-bottom:6px">`;
+    if(sets.length===0){
+      html+=`<div class="vol-set-line"><span class="vol-set-desc" style="color:var(--text-muted)">No set data found</span></div>`;
     } else {
-      // Collapsed: just exercise name + volume, no sets
-      html+=`<div style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:8px;border:1px solid ${exColor}33;border-left:3px solid ${exColor};background:var(--bg-card);margin-bottom:5px">
-        <span style="width:7px;height:7px;border-radius:2px;background:${exColor};flex-shrink:0"></span>
-        <span style="flex:1;font-family:var(--font-alt);font-size:12px;font-weight:600;color:var(--text-primary)">${exName}<small style="font-size:9px;color:${exColor};margin-left:5px;font-weight:700">${exClass}</small></span>
-        <span style="font-family:var(--font-alt);font-size:12px;font-weight:700;color:var(--text-secondary)">${vt.primary} <small style="font-size:9px;opacity:0.65">${vt.unit}</small></span>
-      </div>`;
+      sets.forEach((s,si)=>{
+        html+=`<div class="vol-set-line"><span class="vol-set-desc">Set ${si+1} · ${s.desc}</span><span class="vol-set-vol">${s.isBW?'':s.vol.toLocaleString()+' kg'}</span></div>`;
+      });
+      html+=`<div class="vol-sets-total"><span>Total</span><strong>${vt.primary} ${vt.unit}</strong></div>`;
     }
+    html+=`</div>`;
   });
   html+=`</div>`;
 
@@ -8808,6 +9056,8 @@ function _showClassPickerForInput(inputId,baseName,mode){
 }
 window._pickExClass=function(inputId,baseName,cls,mode){
   document.getElementById('_classPickerModal').remove();
+  if(!window._customConfirmedName)window._customConfirmedName={};
+  window._customConfirmedName[mode]=(baseName||'').toLowerCase();
   // Class is stored as its own field, never appended into the visible name — the trailing "(...)"
   // on a name is reserved for Equipment (see _pickExEquipment) so every custom exercise ends up
   // formatted exactly like the built-in catalog: "Name (Equipment)", with Class kept separate.
@@ -8834,16 +9084,51 @@ window._pickExClass=function(inputId,baseName,cls,mode){
 /* Show/hide the inline class button. Hidden once: the box is empty, the name already resolves to a
    known exercise (built-in catalog OR a previously-saved custom exercise — it already has a
    designated Class, no need to ask again), or a Class has already been picked this session. */
+/* Tracks, per mode, the (lowercased) base exercise name the person has explicitly confirmed via
+   the "➕ Add Custom Workout" button — Choose Class/Equipment only reveal once that's been tapped
+   for the CURRENT typed name (any further edit to the text changes baseName and this naturally
+   un-confirms it again, requiring a fresh tap). This stops those fields from popping up the
+   instant any unrecognized text is typed, before the person has actually said they want to add it. */
+window._customConfirmedName={nonlive:null,live:null};
+function _isCustomConfirmed(mode,baseName){
+  const stored=window._customConfirmedName&&window._customConfirmedName[mode];
+  return !!stored&&!!baseName&&stored===baseName.toLowerCase();
+}
 function _updateInlineClassBtn(inputId,btnId,mode){
+  const input=document.getElementById(inputId);const btn=document.getElementById(btnId);
+  if(!input||!btn)return;
+  _updateAddCustomBtn(inputId,mode==='nonlive'?'_addCustomBtnNonLive':'_addCustomBtnLive',mode);
+  const val=input.value.trim();
+  const baseName=stripExerciseClass(val);
+  const isCustom=!!baseName&&!_isKnownCatalogExerciseName(val);
+  const cls=mode==='nonlive'?window._selectedWorkoutClass:window._selectedLiveWorkoutClass;
+  if(!val||!isCustom||cls||!_isCustomConfirmed(mode,baseName)){btn.style.display='none';return;}
+  btn.style.display='block';
+  btn.textContent=`🏷 Choose Class for "${baseName}" (required)`;
+}
+/* The "➕ Add Custom Workout" prompt itself — shown in place of Choose Class/Equipment whenever
+   there's typed text that isn't a recognized exercise yet and hasn't been confirmed as custom. */
+function _updateAddCustomBtn(inputId,btnId,mode){
   const input=document.getElementById(inputId);const btn=document.getElementById(btnId);
   if(!input||!btn)return;
   const val=input.value.trim();
   const baseName=stripExerciseClass(val);
   const isCustom=!!baseName&&!_isKnownCatalogExerciseName(val);
-  const cls=mode==='nonlive'?window._selectedWorkoutClass:window._selectedLiveWorkoutClass;
-  if(!val||!isCustom||cls){btn.style.display='none';return;}
+  if(!val||!isCustom||_isCustomConfirmed(mode,baseName)){btn.style.display='none';return;}
   btn.style.display='block';
-  btn.textContent=`🏷 Choose Class for "${baseName}" (required)`;
+  btn.textContent=`➕ Add "${baseName}" as Custom Workout`;
+}
+/* Tapping "➕ Add Custom Workout" confirms intent for the CURRENT typed name and reveals the
+   Choose Class (required) / Choose Equipment (optional) fields for it. */
+function _confirmAddCustomWorkout(mode){
+  const inputId=mode==='nonlive'?'workoutNameInput':'liveWorkoutNameInput';
+  const val=document.getElementById(inputId).value.trim();
+  const baseName=stripExerciseClass(val);
+  if(!baseName)return;
+  window._customConfirmedName[mode]=baseName.toLowerCase();
+  _updateAddCustomBtn(inputId,mode==='nonlive'?'_addCustomBtnNonLive':'_addCustomBtnLive',mode);
+  _updateInlineClassBtn(inputId,mode==='nonlive'?'_inlineClassBtnNonLive':'_inlineClassBtnLive',mode);
+  _updateInlineEquipBtn(inputId,mode==='nonlive'?'_inlineEquipBtnNonLive':'_inlineEquipBtnLive',mode);
 }
 
 function _triggerInlineClassPicker(inputId,mode){
@@ -8903,10 +9188,11 @@ window._pickExEquipment=function(inputId,baseName,eq,mode){
 function _updateInlineEquipBtn(inputId,btnId,mode){
   const input=document.getElementById(inputId);const btn=document.getElementById(btnId);
   if(!input||!btn)return;
+  _updateAddCustomBtn(inputId,mode==='nonlive'?'_addCustomBtnNonLive':'_addCustomBtnLive',mode);
   const val=input.value.trim();
   const baseName=stripExerciseClass(val);
   const isCustom=!!baseName&&!_isKnownCatalogExerciseName(val);
-  if(!val||!isCustom){btn.style.display='none';return;}
+  if(!val||!isCustom||!_isCustomConfirmed(mode,baseName)){btn.style.display='none';return;}
   const eq=mode==='nonlive'?window._selectedWorkoutEquipment:window._selectedLiveWorkoutEquipment;
   btn.style.display='block';
   btn.textContent=eq?`🔧 Equipment: ${eq} (change)`:`🔧 Choose Equipment for "${baseName}" (optional)`;
@@ -9049,6 +9335,12 @@ function handleWorkoutSearchAuto(forceShow){
         if(icon)icon.classList.remove("open");
         if(_prevPerfNonLiveTimer)clearTimeout(_prevPerfNonLiveTimer);
         const nb=document.getElementById('_inlineClassBtnNonLive');if(nb)nb.style.display='none';
+        const eb0=document.getElementById('_inlineEquipBtnNonLive');if(eb0)eb0.style.display='none';
+        // Selecting a real match from the dropdown means the typed text is no longer an unresolved
+        // custom name — clear any pending "confirmed custom" state and hide the "Add ... as Custom
+        // Workout" prompt so it doesn't keep showing the stale typed text after a valid pick.
+        window._customConfirmedName['nonlive']=null;
+        const acb0=document.getElementById('_addCustomBtnNonLive');if(acb0)acb0.style.display='none';
         if(item.isCustom){
           // Already a known, designated exercise — restore its remembered Class/Equipment as-is,
           // no need to prompt for either again.
@@ -9395,6 +9687,7 @@ async function saveWorkoutLogEntry(){
   let ser=`${name}: ${sd.join(", ")}`,xpe=Math.floor(tv/100)*10;
   const entry=sessionMakeWorkoutEntry(name,sd.join(", "));
   const slotRef=currentEditingIndex!==null?(window._workoutCiMap&&window._workoutCiMap[currentEditingIndex]):null;
+  if(!slotRef)await maybeNotifyNotPunchedIn(uid,td); // brand-new entry, not an edit — only worth the notice here
   const savedSlot=await sessionUpsertWorkoutEntry(uid,td,slotRef,entry);
   if(!savedSlot){alert("Daily capacity of 15 entries reached for this session.");return}
   editOriginalDurations={};
@@ -9900,6 +10193,12 @@ function handleLiveSearchAuto(forceShow){
         if(icon)icon.classList.remove("open");
         if(_prevPerfLiveTimer)clearTimeout(_prevPerfLiveTimer);
         const lb=document.getElementById('_inlineClassBtnLive');if(lb)lb.style.display='none';
+        const eb1=document.getElementById('_inlineEquipBtnLive');if(eb1)eb1.style.display='none';
+        // Selecting a real match from the dropdown means the typed text is no longer an unresolved
+        // custom name — clear any pending "confirmed custom" state and hide the "Add ... as Custom
+        // Workout" prompt so it doesn't keep showing the stale typed text after a valid pick.
+        window._customConfirmedName['live']=null;
+        const acb1=document.getElementById('_addCustomBtnLive');if(acb1)acb1.style.display='none';
         if(item.isCustom){
           // Already a known, designated exercise — restore its remembered Class/Equipment as-is,
           // no need to prompt for either again.
@@ -10271,6 +10570,7 @@ async function saveLiveSet(idx){
   let name=document.getElementById("liveWorkoutNameInput").value.trim(),uid=getEffectiveUid(),td=document.getElementById("workoutCalendarFilter").value;
   let combinedEntry=`${name}: ${liveSetResults.join(", ")}`;
   const entry=sessionMakeWorkoutEntry(name,liveSetResults.join(", "));
+  if(!liveSessionSlot)await maybeNotifyNotPunchedIn(uid,td); // first set of a brand-new live entry
   const savedSlot=await sessionUpsertWorkoutEntry(uid,td,liveSessionSlot,entry);
   if(!savedSlot){alert("Daily capacity of 15 entries reached for this session.");return}
   liveSessionSlot=savedSlot;
@@ -10728,7 +11028,7 @@ async function loadWorkoutsForDate(){
   con.innerHTML=`<p style="font-size:13px;color:var(--text-muted);text-align:center;padding:10px;font-family:var(--font-alt)">Loading...</p>`;
   const{data,error}=await sessionFetchByUserDate(uid,date);
   const breakdownRow=document.getElementById("workoutBreakdownRow");
-  if(error||!data||data.length===0){con.innerHTML=`<p style="font-size:13px;color:var(--text-muted);text-align:center;padding:10px;font-family:var(--font-alt)">No workouts logged for this date.</p>`;if(breakdownRow)breakdownRow.style.display="none";return}
+  if(error||!data||data.length===0){con.innerHTML=`<p style="font-size:13px;color:var(--text-muted);text-align:center;padding:10px;font-family:var(--font-alt)">No workouts logged for this date.</p>`;if(breakdownRow)breakdownRow.style.display="none";renderWorkoutClassChipsRow(null,0,false);return}
   let html="",counter=1,classVolMap={},totalVolAll=0,anyEntry=false;
   window._workoutCiMap={};
   data.forEach(row=>{
@@ -10747,11 +11047,12 @@ async function loadWorkoutsForDate(){
       const volVal=`<span class="wlc-vol-val">${vt.primary} <small>${vt.unit}</small></span>`;
       const classLabel=`<small class="wlc-class-label" style="color:${exColor}">${exCls}</small>`;
       const setsBlock=`<div class="${tagGridClass} wlc-sets-block${workoutBreakdownOn?"":" wlc-collapsed"}">${tags}</div>`;
-      html+=`<div class="workout-log-card" data-ci="${ci}" tabindex="0" style="--wlc-glow:${exColor}55" onclick="handleWorkoutCardActivate(this,${ci},'${escapeHtml(cell)}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click()}" onpointerdown="wcPointerDown(event,this,${ci})"><div class="wlc-box" style="border-color:${exColor}55;border-left-color:${exColor}"><div class="wlc-body"><div class="wlc-header-row"><span class="wlc-dot" style="background:${exColor}"></span><div class="exercise-name"><span class="wlc-serial" style="color:var(--accent);margin-right:4px">${counter}.</span>${ename}${classLabel}</div>${volVal}</div>${setsBlock}</div></div><div class="workout-actions-overlay"><button class="action-icon-btn track" title="Track Workout" onclick="trackWorkoutFromCard(event,'${escapeHtml(ename)}')">${ICON_TRACK}</button><button class="action-icon-btn edit" title="Edit" onclick="initiateWorkoutEdit(event,${ci},'${escapeHtml(cell)}')">${ICON_EDIT}</button><button class="action-icon-btn delete" title="Delete" onclick="triggerWorkoutDelete(event,${ci})">${ICON_DELETE}</button></div></div>`;counter++;
+      html+=`<div class="workout-log-card" data-ci="${ci}" data-class="${escapeHtml(exCls)}" tabindex="0" style="--wlc-glow:${exColor}55" onclick="handleWorkoutCardActivate(this,${ci},'${escapeHtml(cell)}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click()}" onpointerdown="wcPointerDown(event,this,${ci})"><div class="wlc-box" style="border-color:${exColor}55;border-left-color:${exColor}"><div class="wlc-body"><div class="wlc-header-row"><span class="wlc-dot" style="background:${exColor}"></span><div class="exercise-name"><span class="wlc-serial" style="color:var(--accent);margin-right:4px">${counter}.</span>${ename}${classLabel}</div>${volVal}</div>${setsBlock}</div></div><div class="workout-actions-overlay"><button class="action-icon-btn track" title="Track Workout" onclick="trackWorkoutFromCard(event,'${escapeHtml(ename)}')">${ICON_TRACK}</button><button class="action-icon-btn edit" title="Edit" onclick="initiateWorkoutEdit(event,${ci},'${escapeHtml(cell)}')">${ICON_EDIT}</button><button class="action-icon-btn delete" title="Delete" onclick="triggerWorkoutDelete(event,${ci})">${ICON_DELETE}</button></div></div>`;counter++;
     });
   });
-  if(!anyEntry){con.innerHTML=`<p style="font-size:13px;color:var(--text-muted);text-align:center;padding:10px;font-family:var(--font-alt)">No entries for this date.</p>`;if(breakdownRow)breakdownRow.style.display="none";return}
+  if(!anyEntry){con.innerHTML=`<p style="font-size:13px;color:var(--text-muted);text-align:center;padding:10px;font-family:var(--font-alt)">No entries for this date.</p>`;if(breakdownRow)breakdownRow.style.display="none";renderWorkoutClassChipsRow(null,0,false);return}
   if(breakdownRow)breakdownRow.style.display="flex";
+  renderWorkoutClassChipsRow(classVolMap,totalVolAll,true);
   // ── Class Breakdown + Daily Total summary, styled exactly like the Volume Breakdown panel ──
   const classKeys=Object.keys(classVolMap).filter(c=>classVolMap[c]>0);
   if(classKeys.length>0){
@@ -10777,6 +11078,435 @@ async function loadWorkoutsForDate(){
   con.innerHTML=html;
   wcInitScrollGlow();
 }
+
+/* ===================== WORKOUTS PAGE: AUTO CLASS CHIPS + FINISH WIDGET =====================
+   Class is now fully auto-derived from logged workouts (see syncAutoClassForDate) — nothing to
+   pick by hand anywhere. This chip row gives an at-a-glance view of which muscle groups were
+   hit for the date currently shown on the Workouts page, and the Finish button (shown once at
+   least one workout is logged for that date) opens a compact summary: the same body diagram the
+   app used to show at Punch Out, now read-only/auto-highlighted, with a small pencil toggle for
+   the rare case the auto-detected classes need a manual correction. */
+function renderWorkoutClassChipsRow(classVolMap,totalVolAll,anyEntry){
+  const chipsRow=document.getElementById("workoutClassChipsRow");
+  const finishBtn=document.getElementById("workoutFinishBtn");
+  if(!chipsRow||!finishBtn)return;
+  // Finish button: shown whenever ANY workout is logged for the date, Warmup-only days included —
+  // the user still gets to open the summary and confirm there's simply nothing to classify.
+  finishBtn.style.display=anyEntry?"inline-flex":"none";
+  // Chip row: only real muscle-group classes, Warmup/Unknown excluded (see deriveDayClasses).
+  // Order = the order each class was FIRST added to the day (classVolMap is built by iterating the
+  // day's workouts in logged order, and JS preserves string-key insertion order), NOT sorted by
+  // volume — e.g. Biceps logged before Triceps always shows Biceps first, Triceps second.
+  const classKeys=anyEntry&&classVolMap?Object.keys(classVolMap).filter(c=>c!=='Warmup'&&c!=='Unknown'&&classVolMap[c]>0):[];
+  if(classKeys.length===0){
+    chipsRow.style.display="none";chipsRow.innerHTML="";
+    window._workoutClassFilterActive=null;
+    filterWorkoutCardsByClass(null,true);
+    return;
+  }
+  // Reset any active filter that no longer has a matching class chip (e.g. that class's only
+  // workout was deleted, or a new date was loaded).
+  if(window._workoutClassFilterActive&&!classKeys.includes(window._workoutClassFilterActive)){
+    window._workoutClassFilterActive=null;
+  }
+  chipsRow.innerHTML=classKeys.map(c=>{
+    const col=CLASS_COLORS[c]||CLASS_COLORS['Unknown'];
+    const isActive=window._workoutClassFilterActive===c;
+    return `<button type="button" class="workout-class-chip-btn${isActive?' active':''}" style="background:${col}" data-class="${c}" onclick="filterWorkoutCardsByClass('${c.replace(/'/g,"\\'")}')"><span class="workout-class-chip-btn-dot"></span>${c}</button>`;
+  }).join('');
+  chipsRow.style.display="flex";
+  // Re-apply whatever filter was active (e.g. after a re-render triggered by a new/edited/deleted
+  // workout) so the person doesn't lose their filtered view.
+  filterWorkoutCardsByClass(window._workoutClassFilterActive,true);
+}
+/* Tapping a class chip button filters the day's workout-log-cards down to just that class.
+   Tapping the already-active chip again (or passing null) clears the filter and shows everything.
+   `keepState`=true re-applies the currently stored filter without toggling it off (used internally
+   after a re-render, so the filter survives adding/editing/deleting a workout). */
+function filterWorkoutCardsByClass(cls,keepState){
+  if(!keepState){
+    window._workoutClassFilterActive=(window._workoutClassFilterActive===cls)?null:cls;
+  }
+  const active=window._workoutClassFilterActive;
+  const chipsRow=document.getElementById("workoutClassChipsRow");
+  if(chipsRow){
+    chipsRow.querySelectorAll('.workout-class-chip-btn').forEach(btn=>{
+      btn.classList.toggle('active',!!active&&btn.getAttribute('data-class')===active);
+    });
+  }
+  const con=document.getElementById("savedWorkoutLogsContainer");
+  if(!con)return;
+  const cards=con.querySelectorAll('.workout-log-card');
+  let visibleCount=0;
+  cards.forEach(card=>{
+    const show=!active||card.getAttribute('data-class')===active;
+    card.style.display=show?"":"none";
+    if(show)visibleCount++;
+  });
+  // Friendly empty-state when a filter hides every card (shouldn't normally happen since the chip
+  // itself only appears for classes with at least one workout, but kept for safety).
+  let emptyMsg=con.querySelector('.wlc-filter-empty');
+  if(active&&visibleCount===0){
+    if(!emptyMsg){
+      emptyMsg=document.createElement('p');
+      emptyMsg.className='wlc-filter-empty';
+      emptyMsg.style.cssText='font-size:13px;color:var(--text-muted);text-align:center;padding:10px;font-family:var(--font-alt)';
+      con.insertBefore(emptyMsg,con.firstChild);
+    }
+    emptyMsg.textContent=`No ${active} workouts logged for this date.`;
+    emptyMsg.style.display="";
+  } else if(emptyMsg){
+    emptyMsg.style.display="none";
+  }
+}
+/* The exact body-diagram markup formerly shown at Punch Out — same ids, same MUSCLE_CLASS_MAP,
+   same CLASS_COLORS — now reused inside the Finish modal only, compact-sized via CSS. */
+const WF_BODY_SVG_MARKUP=`
+                <div class="bodyWrapper">
+                  <svg id="frontBody" viewBox="0 0 200 500">
+                    <text x="100" y="11" fill="var(--text-muted)" font-size="9" font-weight="700" font-family="Rajdhani" letter-spacing="1.5" text-anchor="middle">FRONT</text>
+                    <path d="M100,17 C109,17 115,24 115,33 C115,41 112,47 107,50 L107,55 C113,56 117,59 117,59 L83,59 C83,59 87,56 93,55 L93,50 C88,47 85,41 85,33 C85,24 91,17 100,17 Z" fill="none" stroke="var(--border-col)" stroke-width="1.3"/>
+                    <path d="M88,55 C92,59 108,59 112,55 L116,67 C110,73 90,73 84,67 Z" fill="var(--muscle-idle)" opacity="0.32" stroke="var(--border-col)" stroke-width="0.8"/>
+                    <path d="M84,67 C74,65 63,67 57,73 L65,81 C73,75 83,73 90,73 Z" fill="var(--muscle-idle)" opacity="0.55" stroke="var(--border-col)" stroke-width="0.7"/>
+                    <path d="M116,67 C126,65 137,67 143,73 L135,81 C127,75 117,73 110,73 Z" fill="var(--muscle-idle)" opacity="0.55" stroke="var(--border-col)" stroke-width="0.7"/>
+                    <path id="Shoulders_Left" class="muscle-group" onclick="wfToggleMuscle('Shoulders_Left')" fill="var(--muscle-idle)" stroke="var(--border-col)" stroke-width="1.1" d="M57,73 C41,69 23,76 18,94 C14,110 19,127 35,132 C48,136 61,128 62,112 C63,98 62,81 57,73 Z"/>
+                    <path id="Shoulders_Right" class="muscle-group" onclick="wfToggleMuscle('Shoulders_Right')" fill="var(--muscle-idle)" stroke="var(--border-col)" stroke-width="1.1" d="M143,73 C159,69 177,76 182,94 C186,110 181,127 165,132 C152,136 139,128 138,112 C137,98 138,81 143,73 Z"/>
+                    <path id="Chest_Left" class="muscle-group" onclick="wfToggleMuscle('Chest_Left')" fill="var(--muscle-idle)" stroke="var(--border-col)" stroke-width="1.1" d="M63,77 C50,73 40,81 39,97 C38,114 46,128 62,133 C75,137 90,133 97,123 C101,115 100,101 97,89 C93,78 78,72 68,74 C66,74.5 64,76 63,77 Z"/>
+                    <path id="Chest_Right" class="muscle-group" onclick="wfToggleMuscle('Chest_Right')" fill="var(--muscle-idle)" stroke="var(--border-col)" stroke-width="1.1" d="M137,77 C150,73 160,81 161,97 C162,114 154,128 138,133 C125,137 110,133 103,123 C99,115 100,101 103,89 C107,78 122,72 132,74 C134,74.5 136,76 137,77 Z"/>
+                    <path d="M55,113 C66,119 81,122 96,117" fill="none" stroke="var(--border-col)" stroke-width="0.7" opacity="0.4"/>
+                    <path d="M145,113 C134,119 119,122 104,117" fill="none" stroke="var(--border-col)" stroke-width="0.7" opacity="0.4"/>
+                    <line x1="100" y1="75" x2="100" y2="133" stroke="var(--border-col)" stroke-width="0.7" opacity="0.4"/>
+                    <path id="Biceps_Left" class="muscle-group" onclick="wfToggleMuscle('Biceps_Left')" fill="var(--muscle-idle)" stroke="var(--border-col)" stroke-width="1.1" d="M28,129 C20,134 16,147 18,165 C20,182 26,196 35,204 C42,210 51,207 52,194 C53,178 49,156 45,139 C43,130 36,125 28,129 Z"/>
+                    <path id="Biceps_Right" class="muscle-group" onclick="wfToggleMuscle('Biceps_Right')" fill="var(--muscle-idle)" stroke="var(--border-col)" stroke-width="1.1" d="M172,129 C180,134 184,147 182,165 C180,182 174,196 165,204 C158,210 149,207 148,194 C147,178 151,156 155,139 C157,130 164,125 172,129 Z"/>
+                    <path d="M33,145 C31,161 32,177 38,191" fill="none" stroke="var(--border-col)" stroke-width="0.6" opacity="0.35"/>
+                    <path d="M167,145 C169,161 168,177 162,191" fill="none" stroke="var(--border-col)" stroke-width="0.6" opacity="0.35"/>
+                    <path id="Triceps_Front_Left" class="muscle-group" onclick="wfToggleMuscle('Triceps_Front_Left')" fill="var(--muscle-idle)" opacity="0.85" stroke="var(--border-col)" stroke-width="1" d="M15,133 C9,141 7,155 10,173 C13,189 19,202 27,208 C31,210 35,208 34,201 C31,185 25,161 20,143 C19,137 17,133 15,133 Z"/>
+                    <path id="Triceps_Front_Right" class="muscle-group" onclick="wfToggleMuscle('Triceps_Front_Right')" fill="var(--muscle-idle)" opacity="0.85" stroke="var(--border-col)" stroke-width="1" d="M185,133 C191,141 193,155 190,173 C187,189 181,202 173,208 C169,210 165,208 166,201 C169,185 175,161 180,143 C181,137 183,133 185,133 Z"/>
+                    <path fill="var(--muscle-idle)" opacity="0.4" stroke="var(--border-col)" stroke-width="0.9" d="M17,206 C13,221 13,239 19,254 L33,250 C29,235 28,219 30,204 Z"/>
+                    <path fill="var(--muscle-idle)" opacity="0.4" stroke="var(--border-col)" stroke-width="0.9" d="M183,206 C187,221 187,239 181,254 L167,250 C171,235 172,219 170,204 Z"/>
+                    <ellipse cx="24" cy="263" rx="9" ry="13" fill="none" stroke="var(--border-col)" stroke-width="1.1"/>
+                    <ellipse cx="176" cy="263" rx="9" ry="13" fill="none" stroke="var(--border-col)" stroke-width="1.1"/>
+                    <path id="Abs" class="muscle-group" onclick="wfToggleMuscle('Abs')" fill="var(--muscle-idle)" stroke="var(--border-col)" stroke-width="1.1" d="M76,125 L124,125 C126,147 126,173 122,196 C120,212 114,227 106,235 C102,239 98,239 94,235 C86,227 80,212 78,196 C74,173 74,147 76,125 Z"/>
+                    <line x1="100" y1="125" x2="100" y2="236" stroke="var(--border-col)" stroke-width="0.7" opacity="0.5"/>
+                    <path d="M77,144 C87,149 113,149 123,144" fill="none" stroke="var(--border-col)" stroke-width="0.7" opacity="0.45"/>
+                    <path d="M76,166 C87,171 113,171 124,166" fill="none" stroke="var(--border-col)" stroke-width="0.7" opacity="0.45"/>
+                    <path d="M77,188 C88,193 112,193 123,188" fill="none" stroke="var(--border-col)" stroke-width="0.7" opacity="0.45"/>
+                    <path d="M84,211 C91,216 109,216 116,211" fill="none" stroke="var(--border-col)" stroke-width="0.6" opacity="0.4"/>
+                    <path fill="var(--muscle-idle)" opacity="0.55" stroke="var(--border-col)" stroke-width="0.8" d="M58,129 C51,141 49,159 54,177 C58,191 65,201 73,204 L74,184 C69,168 66,149 68,132 Z"/>
+                    <path fill="var(--muscle-idle)" opacity="0.55" stroke="var(--border-col)" stroke-width="0.8" d="M142,129 C149,141 151,159 146,177 C142,191 135,201 127,204 L126,184 C131,168 134,149 132,132 Z"/>
+                    <path fill="var(--muscle-idle)" opacity="0.3" stroke="var(--border-col)" stroke-width="0.7" d="M78,233 C86,243 114,243 122,233 C120,249 112,259 100,259 C88,259 80,249 78,233 Z"/>
+                    <path id="Legs_Front_L" class="muscle-group" onclick="wfToggleMuscle('Legs_Front_L')" fill="var(--muscle-idle)" stroke="var(--border-col)" stroke-width="1.1" d="M70,247 C58,253 51,273 53,309 C55,350 59,389 65,413 C68,423 79,426 85,416 C91,405 93,361 91,309 C89,276 84,256 78,249 C76,247 73,246 70,247 Z"/>
+                    <path d="M71,263 C67,301 68,349 72,406" fill="none" stroke="var(--border-col)" stroke-width="0.6" opacity="0.4"/>
+                    <path id="Legs_Front_R" class="muscle-group" onclick="wfToggleMuscle('Legs_Front_R')" fill="var(--muscle-idle)" stroke="var(--border-col)" stroke-width="1.1" d="M130,247 C142,253 149,273 147,309 C145,350 141,389 135,413 C132,423 121,426 115,416 C109,405 107,361 109,309 C111,276 116,256 122,249 C124,247 127,246 130,247 Z"/>
+                    <path d="M129,263 C133,301 132,349 128,406" fill="none" stroke="var(--border-col)" stroke-width="0.6" opacity="0.4"/>
+                    <ellipse cx="74" cy="419" rx="11" ry="7" fill="var(--muscle-idle)" opacity="0.4" stroke="var(--border-col)" stroke-width="0.7"/>
+                    <ellipse cx="126" cy="419" rx="11" ry="7" fill="var(--muscle-idle)" opacity="0.4" stroke="var(--border-col)" stroke-width="0.7"/>
+                    <path fill="var(--muscle-idle)" opacity="0.35" stroke="var(--border-col)" stroke-width="0.9" d="M65,425 C61,441 61,459 66,473 L83,470 C79,456 79,440 80,423 Z"/>
+                    <path fill="var(--muscle-idle)" opacity="0.35" stroke="var(--border-col)" stroke-width="0.9" d="M135,425 C139,441 139,459 134,473 L117,470 C121,456 121,440 120,423 Z"/>
+                    <path fill="none" stroke="var(--border-col)" stroke-width="1.2" d="M60,473 C57,480 58,487 65,490 C74,493 84,492 86,487 C87,483 84,479 80,477 L80,471 Z"/>
+                    <path fill="none" stroke="var(--border-col)" stroke-width="1.2" d="M140,473 C143,480 142,487 135,490 C126,493 116,492 114,487 C113,483 116,479 120,477 L120,471 Z"/>
+                  </svg>
+                  <svg id="backBody" viewBox="0 0 200 500">
+                    <text x="100" y="11" fill="var(--text-muted)" font-size="9" font-weight="700" font-family="Rajdhani" letter-spacing="1.5" text-anchor="middle">BACK</text>
+                    <path d="M100,17 C109,17 115,24 115,33 C115,41 112,47 107,50 L107,55 C113,56 117,59 117,59 L83,59 C83,59 87,56 93,55 L93,50 C88,47 85,41 85,33 C85,24 91,17 100,17 Z" fill="none" stroke="var(--border-col)" stroke-width="1.3"/>
+                    <path fill="var(--muscle-idle)" stroke="var(--border-col)" stroke-width="1" opacity="0.9" d="M100,57 C84,65 70,77 60,91 C67,100 76,107 85,111 C90,97 95,83 100,71 C105,83 110,97 115,111 C124,107 133,100 140,91 C130,77 116,65 100,57 Z M85,111 C89,133 93,157 98,178 L102,178 C107,157 111,133 115,111 L100,121 Z"/>
+                    <path d="M100,66 L100,116" fill="none" stroke="var(--border-col)" stroke-width="0.6" opacity="0.3"/>
+                    <path id="Shoulders_Back_Left" class="muscle-group" onclick="wfToggleMuscle('Shoulders_Back_Left')" fill="var(--muscle-idle)" stroke="var(--border-col)" stroke-width="1.1" d="M60,90 C46,85 28,90 22,105 C17,119 23,133 37,138 C49,142 61,135 62,121 C63,108 62,97 60,90 Z"/>
+                    <path id="Shoulders_Back_Right" class="muscle-group" onclick="wfToggleMuscle('Shoulders_Back_Right')" fill="var(--muscle-idle)" stroke="var(--border-col)" stroke-width="1.1" d="M140,90 C154,85 172,90 178,105 C183,119 177,133 163,138 C151,142 139,135 138,121 C137,108 138,97 140,90 Z"/>
+                    <path id="Lats_Left" class="muscle-group" onclick="wfToggleMuscle('Lats_Left')" fill="var(--muscle-idle)" stroke="var(--border-col)" stroke-width="1.1" d="M52,109 C39,117 33,139 38,167 C43,193 54,213 71,220 C82,224 88,214 84,196 C79,171 71,141 61,117 C59,113 56,108 52,109 Z"/>
+                    <path d="M47,126 C43,147 46,172 56,193" fill="none" stroke="var(--border-col)" stroke-width="0.7" opacity="0.4"/>
+                    <path id="Lats_Right" class="muscle-group" onclick="wfToggleMuscle('Lats_Right')" fill="var(--muscle-idle)" stroke="var(--border-col)" stroke-width="1.1" d="M148,109 C161,117 167,139 162,167 C157,193 146,213 129,220 C118,224 112,214 116,196 C121,171 129,141 139,117 C141,113 144,108 148,109 Z"/>
+                    <path d="M153,126 C157,147 154,172 144,193" fill="none" stroke="var(--border-col)" stroke-width="0.7" opacity="0.4"/>
+                    <path id="Triceps_Left" class="muscle-group" onclick="wfToggleMuscle('Triceps_Left')" fill="var(--muscle-idle)" stroke="var(--border-col)" stroke-width="1.1" d="M22,136 C14,142 12,155 14,174 C16,191 23,205 31,211 C38,216 45,212 45,201 C46,185 42,163 39,146 C37,138 29,132 22,136 Z"/>
+                    <path d="M25,155 C23,171 25,187 32,202" fill="none" stroke="var(--border-col)" stroke-width="0.7" opacity="0.4"/>
+                    <path id="Triceps_Right" class="muscle-group" onclick="wfToggleMuscle('Triceps_Right')" fill="var(--muscle-idle)" stroke="var(--border-col)" stroke-width="1.1" d="M178,136 C186,142 188,155 186,174 C184,191 177,205 169,211 C162,216 155,212 155,201 C154,185 158,163 161,146 C163,138 171,132 178,136 Z"/>
+                    <path d="M175,155 C177,171 175,187 168,202" fill="none" stroke="var(--border-col)" stroke-width="0.7" opacity="0.4"/>
+                    <path fill="var(--muscle-idle)" opacity="0.4" stroke="var(--border-col)" stroke-width="0.9" d="M14,213 C11,227 12,242 18,255 L31,252 C27,238 27,224 28,212 Z"/>
+                    <path fill="var(--muscle-idle)" opacity="0.4" stroke="var(--border-col)" stroke-width="0.9" d="M186,213 C189,227 188,242 182,255 L169,252 C173,238 173,224 172,212 Z"/>
+                    <ellipse cx="24" cy="263" rx="9" ry="13" fill="none" stroke="var(--border-col)" stroke-width="1.1"/>
+                    <ellipse cx="176" cy="263" rx="9" ry="13" fill="none" stroke="var(--border-col)" stroke-width="1.1"/>
+                    <path fill="var(--muscle-idle)" opacity="0.65" stroke="var(--border-col)" stroke-width="0.7" d="M92,119 C90,140 90,163 93,180 L98,180 C97,159 96,138 97,117 Z"/>
+                    <path fill="var(--muscle-idle)" opacity="0.65" stroke="var(--border-col)" stroke-width="0.7" d="M108,119 C110,140 110,163 107,180 L102,180 C103,159 104,138 103,117 Z"/>
+                    <path id="Lower_Back" class="muscle-group" onclick="wfToggleMuscle('Lower_Back')" fill="var(--muscle-idle)" stroke="var(--border-col)" stroke-width="1.1" d="M84,183 C79,191 77,205 81,218 C85,230 92,236 100,236 C108,236 115,230 119,218 C123,205 121,191 116,183 C109,177 91,177 84,183 Z"/>
+                    <path id="Glutes_Left" class="muscle-group" onclick="wfToggleMuscle('Glutes_Left')" fill="var(--muscle-idle)" stroke="var(--border-col)" stroke-width="1.1" d="M69,229 C56,233 50,251 56,269 C61,285 75,294 89,289 C97,286 99,274 95,260 C91,246 83,234 74,229 C72,228 71,228 69,229 Z"/>
+                    <path d="M59,257 C67,266 79,269 91,265" fill="none" stroke="var(--border-col)" stroke-width="0.6" opacity="0.35"/>
+                    <path id="Glutes_Right" class="muscle-group" onclick="wfToggleMuscle('Glutes_Right')" fill="var(--muscle-idle)" stroke="var(--border-col)" stroke-width="1.1" d="M131,229 C144,233 150,251 144,269 C139,285 125,294 111,289 C103,286 101,274 105,260 C109,246 117,234 126,229 C128,228 129,228 131,229 Z"/>
+                    <path d="M141,257 C133,266 121,269 109,265" fill="none" stroke="var(--border-col)" stroke-width="0.6" opacity="0.35"/>
+                    <path id="Legs_Back_L" class="muscle-group" onclick="wfToggleMuscle('Legs_Back_L')" fill="var(--muscle-idle)" stroke="var(--border-col)" stroke-width="1.1" d="M69,271 C59,278 55,297 58,327 C61,361 65,392 70,414 C72,423 81,427 86,419 C91,410 93,376 90,332 C89,303 86,282 80,274 C77,270 73,269 69,271 Z"/>
+                    <path d="M72,286 C69,323 71,364 76,411" fill="none" stroke="var(--border-col)" stroke-width="0.6" opacity="0.35"/>
+                    <path id="Legs_Back_R" class="muscle-group" onclick="wfToggleMuscle('Legs_Back_R')" fill="var(--muscle-idle)" stroke="var(--border-col)" stroke-width="1.1" d="M131,271 C141,278 145,297 142,327 C139,361 135,392 130,414 C128,423 119,427 114,419 C109,410 107,376 110,332 C111,303 114,282 120,274 C123,270 127,269 131,271 Z"/>
+                    <path d="M128,286 C131,323 129,364 124,411" fill="none" stroke="var(--border-col)" stroke-width="0.6" opacity="0.35"/>
+                    <ellipse cx="74" cy="419" rx="11" ry="7" fill="var(--muscle-idle)" opacity="0.4" stroke="var(--border-col)" stroke-width="0.7"/>
+                    <ellipse cx="126" cy="419" rx="11" ry="7" fill="var(--muscle-idle)" opacity="0.4" stroke="var(--border-col)" stroke-width="0.7"/>
+                    <path id="Calves_Left" class="muscle-group" onclick="wfToggleMuscle('Calves_Left')" fill="var(--muscle-idle)" stroke="var(--border-col)" stroke-width="1.1" d="M65,424 C58,435 57,453 62,469 C65,481 74,487 80,483 C87,478 89,463 87,446 C85,431 80,421 74,417 C71,416 67,420 65,424 Z"/>
+                    <path d="M74,425 L74,479" fill="none" stroke="var(--border-col)" stroke-width="0.6" opacity="0.35"/>
+                    <path id="Calves_Right" class="muscle-group" onclick="wfToggleMuscle('Calves_Right')" fill="var(--muscle-idle)" stroke="var(--border-col)" stroke-width="1.1" d="M135,424 C142,435 143,453 138,469 C135,481 126,487 120,483 C113,478 111,463 113,446 C115,431 120,421 126,417 C129,416 133,420 135,424 Z"/>
+                    <path d="M126,425 L126,479" fill="none" stroke="var(--border-col)" stroke-width="0.6" opacity="0.35"/>
+                    <path fill="none" stroke="var(--border-col)" stroke-width="1.2" d="M62,480 C59,486 60,491 66,493 C74,495 82,495 84,491 C85,488 83,485 79,483 L79,478 Z"/>
+                    <path fill="none" stroke="var(--border-col)" stroke-width="1.2" d="M138,480 C141,486 140,491 134,493 C126,495 118,495 116,491 C115,488 117,485 121,483 L121,478 Z"/>
+                  </svg>
+                </div>
+`;
+/* Highlights (or clears) the body-diagram muscle paths for the given list of Class names. */
+function wfApplyHighlight(classes){
+  const scope=document.getElementById('workoutFinishModalOverlay');
+  if(!scope)return;
+  scope.querySelectorAll(".muscle-group").forEach(el=>el.style.fill="var(--muscle-idle)");
+  (classes||[]).forEach(val=>{
+    if(MUSCLE_CLASS_MAP[val])MUSCLE_CLASS_MAP[val].forEach(id=>{
+      const el=document.getElementById(id);
+      if(el)el.style.fill=CLASS_COLORS[val]||"#2563eb";
+    });
+  });
+}
+/* Direct muscle click on the body — only does anything while Edit mode is on. Toggles that
+   muscle's Class in/out of the CURRENT (unsaved) working list and re-renders the highlight/chips/
+   volume — nothing is written to the database here. The user reviews the result and taps the
+   Save button below to actually persist it (see wfSaveClasses()). */
+function wfToggleMuscle(regionId){
+  if(!window._wfEditMode)return;
+  let targetClass=null;
+  for(const cls in MUSCLE_CLASS_MAP){if(MUSCLE_CLASS_MAP[cls].includes(regionId)){targetClass=cls;break}}
+  if(!targetClass)return;
+  const idx=window._wfClasses.indexOf(targetClass);
+  if(idx>=0)window._wfClasses.splice(idx,1);
+  else{
+    if(window._wfClasses.length>=3){showToast("Maximum 3 classes at once.");return}
+    window._wfClasses.push(targetClass);
+  }
+  window._wfDirty=true;
+  wfApplyHighlight(window._wfClasses);
+  wfRenderChipsAndVolume();
+  wfUpdateSaveButtonState();
+}
+function wfToggleEditMode(){
+  window._wfEditMode=!window._wfEditMode;
+  const btn=document.getElementById("wfEditToggleBtn");
+  const wrap=document.getElementById("wfBodyWrap");
+  const ddToggle=document.getElementById("wfClassDdToggle");
+  const ddList=document.getElementById("wfClassDdList");
+  if(btn){btn.classList.toggle("wf-editing",window._wfEditMode);btn.textContent=window._wfEditMode?"✓ Done":"✏️ Edit";}
+  if(wrap)wrap.classList.toggle("wf-editing",window._wfEditMode);
+  if(ddToggle)ddToggle.style.display=window._wfEditMode?"inline-flex":"none";
+  if(ddList&&!window._wfEditMode)ddList.style.display="none";
+  const hint=document.getElementById("wfHintText");
+  if(hint)hint.style.display=window._wfEditMode?"block":"none";
+}
+/* Small custom (non-native, same look on every OS/browser) dropdown for picking a Class by name
+   instead of tapping the body — needed for Cardio (and Full Body), which have no muscle region to
+   tap. Only shown while Edit mode is on. Selecting an already-selected class removes it, same
+   toggle behavior as tapping a muscle; nothing here writes to the database until Save is tapped. */
+function wfToggleClassDropdown(e){
+  if(e)e.stopPropagation();
+  const list=document.getElementById('wfClassDdList');
+  if(!list)return;
+  if(list.style.display==='block'){list.style.display='none';return;}
+  wfRenderClassDropdownList();
+  list.style.display='block';
+}
+function wfRenderClassDropdownList(){
+  const list=document.getElementById('wfClassDdList');
+  if(!list)return;
+  const options=WORKOUT_CLASSES.filter(c=>c!=='Warmup');
+  list.innerHTML=options.map(c=>{
+    const col=CLASS_COLORS[c]||CLASS_COLORS['Unknown'];
+    const selected=(window._wfClasses||[]).includes(c);
+    return `<div class="wf-class-dd-item${selected?' wf-dd-selected':''}" onclick="wfToggleClassFromDropdown('${c}')"><span class="wf-class-dd-dot" style="background:${col}"></span>${c}${selected?'<span class="wf-class-dd-check">✓</span>':''}</div>`;
+  }).join('');
+}
+function wfToggleClassFromDropdown(cls){
+  const idx=window._wfClasses.indexOf(cls);
+  if(idx>=0)window._wfClasses.splice(idx,1);
+  else{
+    if(window._wfClasses.length>=3){showToast("Maximum 3 classes at once.");return}
+    window._wfClasses.push(cls);
+  }
+  window._wfDirty=true;
+  wfApplyHighlight(window._wfClasses);
+  wfRenderChipsAndVolume();
+  wfUpdateSaveButtonState();
+  wfRenderClassDropdownList(); // refresh checkmarks, keep the list open for picking more than one
+}
+document.addEventListener('click',function(e){
+  const list=document.getElementById('wfClassDdList');
+  const toggle=document.getElementById('wfClassDdToggle');
+  if(!list||list.style.display!=='block')return;
+  if(e.target===toggle||toggle&&toggle.contains(e.target)||list.contains(e.target))return;
+  list.style.display='none';
+});
+/* Renders the chip list + per-class volume% bars + daily total inside the Finish modal — same
+   math/markup style as the Workouts page's own Class Breakdown box, just addressed differently.
+   The chip list reflects window._wfClasses (the working, not-yet-saved list); the volume bars
+   below always show every class actually trained that day (Warmup included) for full context. */
+function wfRenderChipsAndVolume(){
+  const chipsEl=document.getElementById("wfClassChipsRow");
+  const volEl=document.getElementById("wfVolumeBreakdown");
+  if(!chipsEl||!volEl)return;
+  const classes=window._wfClasses||[];
+  chipsEl.innerHTML=classes.length?classes.map(c=>{
+    const col=CLASS_COLORS[c]||CLASS_COLORS['Unknown'];
+    return `<span class="workout-class-chip"><span class="workout-class-chip-dot" style="background:${col}"></span>${c}</span>`;
+  }).join(''):`<span class="wf-vol-empty">No classes detected yet — log a workout, or tap the pencil to set one.</span>`;
+  const classVolMap=window._wfClassVolMap||{};
+  const totalVolAll=window._wfTotalVol||0;
+  const classKeys=Object.keys(classVolMap).filter(c=>classVolMap[c]>0).sort((a,b)=>classVolMap[b]-classVolMap[a]);
+  if(classKeys.length===0){volEl.innerHTML=`<div class="wf-vol-empty">No volume logged for this date yet.</div>`;return}
+  let html=`<div style="font-family:var(--font-alt);font-size:11px;font-weight:800;color:var(--text-muted);margin:10px 0 8px;letter-spacing:0.5px">📊 CLASS VOLUME</div>`;
+  classKeys.forEach(c=>{
+    const pct=totalVolAll>0?Math.round((classVolMap[c]/totalVolAll)*100):0;
+    const col=CLASS_COLORS[c]||CLASS_COLORS['Unknown'];
+    html+=`<div style="margin-bottom:8px">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:3px">
+        <div style="display:flex;align-items:center;gap:5px;min-width:0;flex:1">
+          <span style="width:9px;height:9px;border-radius:2px;background:${col};flex-shrink:0;display:inline-block"></span>
+          <span style="font-family:var(--font-alt);font-size:11px;font-weight:700;color:${col};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${c}</span>
+        </div>
+        <span style="font-family:var(--font-alt);font-size:10px;font-weight:700;color:var(--text-secondary);white-space:nowrap;flex-shrink:0">${Math.round(classVolMap[c]).toLocaleString()} Kg (${pct}%)</span>
+      </div>
+      <div style="width:100%;height:8px;border-radius:4px;background:var(--border-col);overflow:hidden"><div style="height:100%;width:${pct}%;background:${col};border-radius:4px;transition:width 0.3s ease"></div></div>
+    </div>`;
+  });
+  html+=`<div class="vol-drill-total"><span>📦 Daily Total</span><strong>${Math.round(totalVolAll).toLocaleString()} kg·reps</strong></div>`;
+  volEl.innerHTML=html;
+}
+/* Consecutive-day streak ending on (and including) the given date — walks backward day by day
+   through the user's Present dates. Works for TODAY or any past date the Finish modal is opened
+   for, unlike the dashboard's own streak counter which is always anchored to "today". */
+async function computeStreakEndingOnDate(uid,dateStr){
+  const{data:attData}=await sessionFetchAllForUser(uid,false);
+  const presentDates=new Set();
+  if(attData)attData.forEach(r=>presentDates.add(r.date));
+  presentDates.add(dateStr); // the day just finished always counts, even if its write hasn't landed in attData's cache yet
+  let streak=0;
+  let d=new Date(dateStr+'T00:00:00');
+  while(presentDates.has(getLocalDateStringFor(d))){
+    streak++;
+    d.setDate(d.getDate()-1);
+  }
+  return streak;
+}
+/* A short, professional note on the day's consistency — only ever revealed AFTER Save is tapped
+   (see wfUpdateSaveButtonState), never before, so it doesn't clutter the box while the person is
+   still reviewing/editing. */
+function buildStreakMessage(streak){
+  if(streak<=1)return `🔥 Streak started — Day 1. Keep this momentum going tomorrow.`;
+  return `🔥 Day ${streak} of your workout streak — nice consistency, keep it going.`;
+}
+/* Reflects unsaved-vs-saved state on the sticky Save button/hint, and reveals the streak message
+   in its place ONLY once Save has actually been tapped at least once this time the modal is open —
+   editing further after that re-hides the streak and brings the hint back until Saved again. */
+function wfUpdateSaveButtonState(){
+  const btn=document.getElementById("wfSaveBtn");
+  const hint=document.getElementById("wfSaveHint");
+  const streakEl=document.getElementById("wfStreakNote");
+  if(!btn)return;
+  if(window._wfDirty){
+    btn.textContent="💾 Save";btn.classList.remove("wf-saved");
+    if(hint)hint.style.display="block";
+    if(streakEl)streakEl.style.display="none";
+  }else{
+    btn.textContent="✅ Saved";btn.classList.add("wf-saved");
+    if(hint)hint.style.display=window._wfHasSavedOnce?"none":"block";
+    if(streakEl)streakEl.style.display=window._wfHasSavedOnce?"block":"none";
+  }
+}
+/* The ONLY place Session.class ever gets written to the database. Persists the reviewed/edited
+   working list (window._wfClasses), reveals the streak note, then instantly refreshes the
+   Workouts page chips, the History page, and the dashboard/Stats numbers so the change is
+   reflected everywhere at once. */
+async function wfSaveClasses(){
+  if(!window._wfUid||!window._wfDate||!window._wfRowCreatedAt)return;
+  const btn=document.getElementById("wfSaveBtn");
+  if(btn){btn.disabled=true;btn.textContent="Saving...";}
+  await sessionUpdateByKey(window._wfUid,window._wfDate,window._wfRowCreatedAt,{class:sessionBuildClassField(window._wfClasses)});
+  window._wfDirty=false;
+  window._wfHasSavedOnce=true;
+  if(btn)btn.disabled=false;
+  const streakEl=document.getElementById('wfStreakNote');
+  if(streakEl)streakEl.textContent=window._wfStreakMsg||'';
+  wfUpdateSaveButtonState();
+  showToast("Classes saved for the day ✅");
+  await loadWorkoutsForDate();          // Workouts page chips
+  await loadAttendanceHistoryRecords(); // History page
+  await syncCoreDashboardMetrics();     // dashboard + any Stats numbers currently on screen
+}
+async function openWorkoutFinishModal(){
+  closeWorkoutFinishModal();
+  const uid=getEffectiveUid();
+  const date=isRoomMemberModeActive()?getLocalDateString():document.getElementById("workoutCalendarFilter").value;
+  const{data}=await sessionFetchByUserDate(uid,date);
+  const row=data&&data.length?data[data.length-1]:null;
+  if(!row||sessionWorkoutsArray(row).length===0){showToast("No workouts logged for this date yet.");return}
+  window._wfUid=uid;window._wfDate=date;window._wfRowCreatedAt=row.created_at;
+  // Start from whatever was already saved for the day, PLUS any freshly-derived class the saved
+  // list doesn't have yet (e.g. a workout logged since the last Save) — nothing here writes to
+  // the database; it's only ever written when the user taps Save below.
+  const savedClasses=sessionParseClassField(row.class);
+  const suggested=deriveDayClasses(data);
+  window._wfClasses=savedClasses.slice();
+  suggested.forEach(c=>{if(window._wfClasses.length<3&&!window._wfClasses.includes(c))window._wfClasses.push(c)});
+  window._wfEditMode=false;
+  window._wfDirty=false;
+  window._wfHasSavedOnce=false;
+  let classVolMap={},totalVolAll=0;
+  (data||[]).forEach(r=>{
+    sessionWorkoutsArray(r).forEach(entry=>{
+      const text=sessionWorkoutEntryToText(entry);if(!text)return;
+      const cls=extractClassFromWorkoutName(text);
+      const vol=parseWorkoutVolume(text);
+      classVolMap[cls]=(classVolMap[cls]||0)+vol;totalVolAll+=vol;
+    });
+  });
+  window._wfClassVolMap=classVolMap;window._wfTotalVol=totalVolAll;
+  const streak=await computeStreakEndingOnDate(uid,date);
+  window._wfStreakMsg=buildStreakMessage(streak);
+  const dLabel=new Date(date+'T00:00:00').toLocaleDateString('en-US',{weekday:'long',month:'short',day:'numeric'});
+  // Lock the background page in place while the modal is open — otherwise a scroll/swipe over the
+  // modal was scrolling the Workouts page behind it instead, and the modal's own content (streak
+  // note included) could get clipped with no way to scroll down to see the rest of it.
+  document.documentElement.style.overflow="hidden";document.body.style.overflow="hidden";
+  const overlay=document.createElement('div');
+  overlay.className='hist-status-modal-overlay wf-modal-overlay';overlay.id='workoutFinishModalOverlay';
+  overlay.onclick=function(e){if(e.target===overlay)closeWorkoutFinishModal()};
+  overlay.innerHTML=`<div class="hist-status-modal-box wf-modal-box">
+    <button type="button" class="hist-status-modal-close" onclick="closeWorkoutFinishModal()">✕</button>
+    <div class="wf-modal-scroll">
+      <div class="hist-status-modal-title" style="color:var(--accent)">✅ Workout Finished</div>
+      <div class="hist-status-modal-count">${dLabel}</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin:6px 0 4px">
+        <span style="font-family:var(--font-alt);font-size:11px;font-weight:800;color:var(--text-muted);letter-spacing:0.5px">MUSCLES WORKED</span>
+        <button type="button" class="wf-edit-toggle-btn" id="wfEditToggleBtn" onclick="wfToggleEditMode()">✏️ Edit</button>
+      </div>
+      <div class="wf-modal-body-wrap" id="wfBodyWrap">
+        ${WF_BODY_SVG_MARKUP}
+        <button type="button" class="wf-class-dd-toggle" id="wfClassDdToggle" style="display:none" onclick="wfToggleClassDropdown(event)">＋ Class ▾</button>
+        <div class="wf-class-dd-list" id="wfClassDdList" style="display:none"></div>
+      </div>
+      <div class="wf-hint-text" id="wfHintText" style="display:none">Tap a muscle, or use the Class dropdown (e.g. for Cardio), to add/remove it.</div>
+      <div class="workout-class-chips-row" id="wfClassChipsRow"></div>
+      <div id="wfVolumeBreakdown"></div>
+    </div>
+    <div class="wf-modal-footer">
+      <button type="button" class="wf-save-btn" id="wfSaveBtn" onclick="wfSaveClasses()">✅ Saved</button>
+      <div class="wf-save-hint" id="wfSaveHint">Click save to finish today's workouts</div>
+      <div class="wf-streak-note" id="wfStreakNote" style="display:none"></div>
+    </div>
+  </div>`;
+  document.body.appendChild(overlay);
+  wfApplyHighlight(window._wfClasses);
+  wfRenderChipsAndVolume();
+  // If the merged suggestion differs from what's currently saved, surface that as a pending change.
+  if(sessionBuildClassField(window._wfClasses)!==(row.class||''))window._wfDirty=true;
+  wfUpdateSaveButtonState();
+  document.addEventListener('keydown',_wfModalEscHandler);
+}
+function _wfModalEscHandler(e){if(e.key==='Escape')closeWorkoutFinishModal()}
+function closeWorkoutFinishModal(){
+  const ov=document.getElementById('workoutFinishModalOverlay');if(ov)ov.remove();
+  document.removeEventListener('keydown',_wfModalEscHandler);
+  document.documentElement.style.overflow="";document.body.style.overflow="";
+}
+
 /* ===================== WLC SCROLL GLOW (per-card colored glow while scrolling) =====================
    As the page scrolls (finger-scroll on mobile now works again since .workout-log-card uses
    touch-action:pan-y instead of :none — see WLC DRAG REORDER notes above), each saved-workout card
