@@ -8,7 +8,7 @@
 <script src="https://cdn.jsdelivr.net/npm/browser-image-compression@2.0.2/dist/browser-image-compression.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <title>GymBro 2026</title>
-<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Bebas+Neue&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Bebas+Neue&family=Anton&family=Cinzel:wght@600;700;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 /* ===================== CSS VARIABLES / THEME ENGINE ===================== */
 :root {
@@ -30,6 +30,7 @@
   --follow-btn-bg:linear-gradient(135deg,#2563eb,#1d4ed8);--follow-btn-text:#fff;
   --feed-like-col:#e11d48;--section-title-col:#1e3a8a;
   --font-display:'Bebas Neue',sans-serif;--font-body:'Inter',sans-serif;--font-alt:'Rajdhani',sans-serif;
+  --font-godmode:'Anton','Bebas Neue',sans-serif;--font-godmode-alt:'Cinzel','Rajdhani',serif;
 }
 
 /* ===================== BATMAN THEME ===================== */
@@ -164,7 +165,69 @@ body.theme-custom.has-bg-image .custom-theme-modal{
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
 html{scroll-behavior:smooth}
 body{background:var(--bg-base);min-height:100vh;color:var(--text-primary);font-family:var(--font-body);overflow-x:hidden;transition:background 0.5s ease,color 0.5s ease}
-body.theme-godmode{background-image:radial-gradient(ellipse at 20% 50%,rgba(140,0,0,0.07) 0%,transparent 60%),radial-gradient(ellipse at 80% 20%,rgba(100,0,0,0.06) 0%,transparent 60%)}
+body.theme-godmode{
+  background-color:#050000;
+  background-image:
+    /* rising fire glow from the bottom, like the Karuppu poster's blaze */
+    radial-gradient(ellipse 90% 55% at 50% 108%,rgba(255,70,0,0.30) 0%,rgba(192,0,10,0.16) 35%,transparent 68%),
+    radial-gradient(ellipse at 15% 30%,rgba(160,0,0,0.10) 0%,transparent 55%),
+    radial-gradient(ellipse at 85% 15%,rgba(120,0,0,0.09) 0%,transparent 55%),
+    /* drifting smoke wisps */
+    radial-gradient(ellipse 60% 40% at 30% 75%,rgba(40,0,0,0.35) 0%,transparent 70%),
+    radial-gradient(ellipse 50% 35% at 75% 85%,rgba(30,0,0,0.3) 0%,transparent 70%),
+    /* faint iron chain-link texture repeating in the background */
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 60'%3E%3Cg fill='none' stroke='%23c0000a' stroke-width='3' opacity='0.05'%3E%3Cellipse cx='20' cy='20' rx='14' ry='9'/%3E%3Cellipse cx='40' cy='20' rx='14' ry='9'/%3E%3Cellipse cx='60' cy='40' rx='14' ry='9'/%3E%3Cellipse cx='80' cy='40' rx='14' ry='9'/%3E%3Cellipse cx='100' cy='20' rx='14' ry='9'/%3E%3C/g%3E%3C/svg%3E"),
+    /* rising embers/sparks field */
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 300'%3E%3Cg fill='%23ff5a1f'%3E%3Ccircle cx='30' cy='260' r='1.6' opacity='0.55'/%3E%3Ccircle cx='95' cy='210' r='1.1' opacity='0.4'/%3E%3Ccircle cx='160' cy='270' r='1.8' opacity='0.5'/%3E%3Ccircle cx='210' cy='190' r='1.2' opacity='0.45'/%3E%3Ccircle cx='255' cy='250' r='1.5' opacity='0.5'/%3E%3Ccircle cx='55' cy='140' r='1' opacity='0.3'/%3E%3Ccircle cx='180' cy='120' r='1' opacity='0.3'/%3E%3Ccircle cx='270' cy='90' r='0.9' opacity='0.25'/%3E%3C/g%3E%3C/svg%3E");
+  background-repeat:no-repeat,no-repeat,no-repeat,no-repeat,no-repeat,repeat,repeat;
+  background-size:100% 100%,100% 100%,100% 100%,100% 100%,100% 100%,240px 120px,300px 300px;
+  background-position:center,center,center,center,center,center,center;
+  background-attachment:fixed,fixed,fixed,fixed,fixed,fixed,fixed;
+  animation:godmodeEmbersDrift 14s linear infinite;
+}
+@keyframes godmodeEmbersDrift{
+  0%{background-position:center,center,center,center,center,center,center}
+  100%{background-position:center,center,center,center,center,240px 0,300px -300px}
+}
+/* Rising spark/ember particles drifting up over the whole app */
+body.theme-godmode::before{
+  content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:
+    radial-gradient(circle,rgba(255,120,20,0.9) 0%,rgba(255,120,20,0) 70%),
+    radial-gradient(circle,rgba(255,60,10,0.85) 0%,rgba(255,60,10,0) 70%),
+    radial-gradient(circle,rgba(255,150,40,0.8) 0%,rgba(255,150,40,0) 70%),
+    radial-gradient(circle,rgba(255,90,10,0.85) 0%,rgba(255,90,10,0) 70%),
+    radial-gradient(circle,rgba(255,140,30,0.75) 0%,rgba(255,140,30,0) 70%);
+  background-size:3px 3px,2px 2px,4px 4px,2px 2px,3px 3px;
+  background-repeat:no-repeat;
+  background-position:12% 95%,32% 92%,58% 97%,76% 90%,90% 96%;
+  animation:godmodeSparksRise 7s linear infinite;
+  opacity:0.8;
+}
+@keyframes godmodeSparksRise{
+  0%{background-position:12% 95%,32% 92%,58% 97%,76% 90%,90% 96%;opacity:0}
+  10%{opacity:0.9}
+  90%{opacity:0.5}
+  100%{background-position:14% -10%,28% -15%,62% -5%,72% -20%,88% -8%;opacity:0}
+}
+/* ===== GOD MODE — giant poster-style "GOD / MODE" backdrop lettering ===== */
+/* Hidden by default; only shown behind the app while God Mode is active */
+#godmodeBgText{display:none}
+body.theme-godmode #godmodeBgText{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  position:fixed;inset:0;z-index:-1;pointer-events:none;overflow:hidden;
+  gap:0;
+}
+body.theme-godmode #godmodeBgText span{
+  font-family:var(--font-godmode);font-weight:400;
+  font-size:min(30vw,220px);line-height:0.86;
+  letter-spacing:2px;
+  color:#4a0000;
+  -webkit-text-stroke:1px rgba(192,0,10,0.35);
+  text-shadow:0 0 40px rgba(192,0,10,0.35);
+  opacity:0.55;
+  white-space:nowrap;
+}
 body.theme-batman{
   background-image:
     radial-gradient(ellipse at 50% 100%,rgba(245,200,0,0.05) 0%,transparent 65%),
@@ -193,13 +256,65 @@ body.theme-godmode .levelup-toast::after,body.theme-godmode .session-resumed-ban
   background:linear-gradient(135deg,#ff2020 0%,#7a0006 100%);
   clip-path:polygon(100% 0,0 0,100% 100%);
 }
-/* Bat watermark icon on the brand banner (Batman mode only) */
-body.theme-batman .gymbroBrandWrap h2::before{
-  content:'🦇';font-size:22px;line-height:1;filter:drop-shadow(0 0 6px rgba(245,200,0,0.7));
+body.theme-godmode .glass::after,body.theme-godmode .card::after,body.theme-godmode .section::after,
+body.theme-godmode .xp-panel::after,body.theme-godmode .auth-box::after,body.theme-godmode .gymbroTopSolo::after,
+body.theme-godmode .levelup-toast::after,body.theme-godmode .session-resumed-banner::after{
+  background:linear-gradient(135deg,#ffb020 0%,#ff2020 45%,#5c0000 100%);
+  animation:godmodeEmberCorner 2.8s ease-in-out infinite;
 }
-/* God Mode — white/red combo text finish on boxes & content */
+@keyframes godmodeEmberCorner{
+  0%,100%{opacity:1}
+  50%{opacity:0.7}
+}
+/* Bat watermark icon on the brand banner (Batman mode only) — removed per request, no emoji shown */
+body.theme-batman .gymbroBrandWrap h2::before{
+  content:'';
+}
+/* ===== GOD MODE — Karuppu-inspired poster banner ===== */
+/* Flaming-horse watermark — removed per request, no emoji shown */
+body.theme-godmode .gymbroBrandWrap h2::before{
+  content:'';
+}
+/* Weightlifting emoji in the GymBro banner is hidden for Batman and God Mode (banner stays icon-free) */
+body.theme-batman .gymbroLiftEmoji,
+body.theme-godmode .gymbroLiftEmoji{
+  display:none;
+}
+/* Chunky, high-impact poster lettering (same feel as the "GOD MODE" key-art title) */
+body.theme-godmode .gymbroTopSolo .gymbroBrandWrap h2{
+  font-family:var(--font-godmode);font-weight:400;font-size:32px;letter-spacing:2px;
+  color:#f5e6e6;
+  text-shadow:
+    0 0 4px #fff,
+    0 0 14px rgba(255,90,0,0.95),
+    0 0 26px rgba(192,0,10,0.9),
+    0 3px 0 #4a0000;
+  animation:godmodeTitleFlicker 3.4s ease-in-out infinite;
+}
+body.theme-godmode .gymbroTopSolo .gymbroBrandWrap p{
+  font-family:var(--font-godmode-alt);font-weight:700;letter-spacing:3px;color:#e8a5a5;
+  text-shadow:0 0 8px rgba(192,0,10,0.6);
+}
+@keyframes godmodeTitleFlicker{
+  0%,100%{text-shadow:0 0 4px #fff,0 0 14px rgba(255,90,0,0.95),0 0 26px rgba(192,0,10,0.9),0 3px 0 #4a0000}
+  50%{text-shadow:0 0 6px #fff,0 0 20px rgba(255,110,0,1),0 0 36px rgba(192,0,10,1),0 3px 0 #4a0000}
+}
+/* Iron chain-link accent bar in place of the plain gradient underline */
+body.theme-godmode .gymbroAccentBar{
+  width:74px;height:10px;background:none;box-shadow:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 74 10'%3E%3Cg fill='none' stroke='%23d43030' stroke-width='2'%3E%3Cellipse cx='9' cy='5' rx='7' ry='4'/%3E%3Cellipse cx='23' cy='5' rx='7' ry='4'/%3E%3Cellipse cx='37' cy='5' rx='7' ry='4'/%3E%3Cellipse cx='51' cy='5' rx='7' ry='4'/%3E%3Cellipse cx='65' cy='5' rx='7' ry='4'/%3E%3C/g%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-size:contain;background-position:center;
+  filter:drop-shadow(0 0 5px rgba(192,0,10,0.75));
+  animation:godmodeChainSway 2.6s ease-in-out infinite;
+}
+@keyframes godmodeChainSway{
+  0%,100%{transform:rotate(0deg)}
+  25%{transform:rotate(-2deg)}
+  75%{transform:rotate(2deg)}
+}
+/* God Mode — dark red text finish on Homepage boxes & content */
 body.theme-godmode .card h3,body.theme-godmode .xp-value,body.theme-godmode .rank-badge{
-  color:#fff!important;text-shadow:0 0 8px rgba(192,0,10,0.9),0 0 2px #fff;
+  color:#8b0000!important;text-shadow:0 0 8px rgba(192,0,10,0.55),0 1px 0 #2a0000;
 }
 body.theme-godmode .section-title{color:#fff!important;text-shadow:0 0 6px rgba(192,0,10,0.85)}
 body.theme-godmode .card .card-label,body.theme-godmode .xp-label{color:#e8b8b8}
@@ -1915,6 +2030,11 @@ body.theme-godmode .levelup-toast{background:linear-gradient(135deg,#7a0006,#c00
      from a mobile browser's address bar hiding/showing or a desktop scrollbar appearing on click. -->
 <div id="ctmBgLayer"></div>
 
+<!-- God Mode poster backdrop: giant stacked "GOD / MODE" block lettering behind all content,
+     echoing the key-art title treatment in the reference poster. Purely decorative, so it's
+     aria-hidden and only ever shown while body.theme-godmode is active (see CSS). -->
+<div id="godmodeBgText" aria-hidden="true"><span>GOD</span><span>MODE</span></div>
+
 <!-- ===================== BAT TRANSITION OVERLAY ===================== -->
 <div id="batTransitionOverlay">
   <div id="batTransitionBg"></div>
@@ -2023,7 +2143,7 @@ body.theme-godmode .levelup-toast{background:linear-gradient(135deg,#7a0006,#c00
         <span></span><span></span><span></span>
       </button>
       <div class="gymbroBrandWrap">
-        <h2>🏋 GYMBRO</h2>
+        <h2><span class="gymbroLiftEmoji">🏋</span> GYMBRO</h2>
         <p>TRACK · TRAIN · DOMINATE</p>
         <span class="gymbroAccentBar"></span>
       </div>
@@ -7754,15 +7874,15 @@ function makeVolGradients(ctx,side){
     hoverGrad.addColorStop(0.65,isRight?'rgba(210,155,10,1)':'rgba(235,175,20,1)');
     hoverGrad.addColorStop(1,isRight?'rgba(150,105,0,1)':'rgba(175,120,0,1)');
   } else if(theme==='godmode'){
-    // Red/blood palette
-    grad.addColorStop(0,'rgba(210,0,10,1)');
-    grad.addColorStop(0.2,isRight?'rgba(170,0,8,1)':'rgba(192,0,10,1)');
-    grad.addColorStop(0.55,isRight?'rgba(130,0,5,1)':'rgba(155,0,8,1)');
-    grad.addColorStop(1,isRight?'rgba(80,0,3,1)':'rgba(100,0,5,1)');
-    hoverGrad.addColorStop(0,'rgba(255,40,40,1)');
-    hoverGrad.addColorStop(0.3,isRight?'rgba(220,10,10,1)':'rgba(240,20,20,1)');
-    hoverGrad.addColorStop(0.65,isRight?'rgba(175,0,5,1)':'rgba(200,0,8,1)');
-    hoverGrad.addColorStop(1,isRight?'rgba(110,0,3,1)':'rgba(130,0,5,1)');
+    // Fire/ember palette — hot orange flame-tip fading down through blood-red into charred black
+    grad.addColorStop(0,isRight?'rgba(255,140,20,1)':'rgba(255,160,30,1)');
+    grad.addColorStop(0.22,isRight?'rgba(220,40,10,1)':'rgba(235,60,10,1)');
+    grad.addColorStop(0.55,isRight?'rgba(150,0,8,1)':'rgba(175,0,8,1)');
+    grad.addColorStop(1,isRight?'rgba(40,0,2,1)':'rgba(55,0,3,1)');
+    hoverGrad.addColorStop(0,'rgba(255,200,80,1)');
+    hoverGrad.addColorStop(0.25,isRight?'rgba(255,90,10,1)':'rgba(255,110,10,1)');
+    hoverGrad.addColorStop(0.6,isRight?'rgba(200,10,5,1)':'rgba(220,15,5,1)');
+    hoverGrad.addColorStop(1,isRight?'rgba(70,0,3,1)':'rgba(90,0,5,1)');
   } else {
     // Blue palette (light mode)
     grad.addColorStop(0,isRight?'rgba(88,28,220,1)':'rgba(15,52,180,1)');
@@ -7781,7 +7901,7 @@ function makeVolGradients(ctx,side){
 function getVolBorderColor(side){
   const theme=getCurrentTheme();
   if(theme==='batman')return side==='right'?'rgba(210,160,0,0.7)':'rgba(255,210,40,0.7)';
-  if(theme==='godmode')return side==='right'?'rgba(170,0,5,0.7)':'rgba(210,10,10,0.7)';
+  if(theme==='godmode')return side==='right'?'rgba(220,60,10,0.75)':'rgba(255,110,10,0.75)';
   return side==='right'?'rgba(160,110,255,0.7)':'rgba(80,140,255,0.7)';
 }
 
