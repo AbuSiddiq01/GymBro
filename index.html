@@ -32,45 +32,26 @@
   --font-display:'Bebas Neue',sans-serif;--font-body:'Inter',sans-serif;--font-alt:'Rajdhani',sans-serif;
 }
 
-/* ===================== DARK MODE — bold glossy violet finish ===================== */
+/* ===================== DARK MODE ===================== */
 body.theme-dark {
-  --bg-base:#000000;--bg-card:rgba(26,20,36,0.95);--bg-panel:rgba(20,15,28,0.92);
-  --border-col:rgba(168,110,255,0.28);--text-primary:#f3eefb;--text-secondary:rgba(243,238,251,0.74);
-  --text-muted:rgba(243,238,251,0.46);--accent:#9d5cff;--accent2:#6d28d9;
-  --accent-glow:rgba(157,92,255,0.55);--accent-soft:rgba(157,92,255,0.14);
-  --btn-bg:linear-gradient(135deg,#b98bff 0%,#9d5cff 45%,#6d28d9 100%);--btn-shadow:0 6px 22px rgba(157,92,255,0.5);
-  --card-shadow:0 10px 34px rgba(0,0,0,0.6),0 0 22px rgba(157,92,255,0.08);
-  --header-bg:linear-gradient(135deg,#2a1258 0%,#5b21b6 55%,#9d5cff 100%);--header-text:#fff;
-  --muscle-idle:#2a2038;--rank-badge-bg:linear-gradient(135deg,#c4a2ff 0%,#9d5cff 50%,#6d28d9 100%);
-  --xp-bar-fill:linear-gradient(90deg,#9d5cff,#d946ef);
-  --stopwatch-bg:linear-gradient(135deg,#241a34,#160f22);--stopwatch-border:#9d5cff;
-  --toast-bg:linear-gradient(135deg,#5b21b6,#9d5cff);
-  --input-bg:#1b1526;--input-border:rgba(157,92,255,0.32);
-  --tab-active-bg:linear-gradient(135deg,#9d5cff,#6d28d9);--tab-text:rgba(243,238,251,0.65);
-  --checkin-right-bg:#1a1424;--workout-tag-bg:rgba(157,92,255,0.16);--workout-tag-col:#d0b3ff;
-  --set-row-bg:#1b1526;--social-grid-bg:#1a1424;
-  --follow-btn-bg:linear-gradient(135deg,#9d5cff,#6d28d9);--follow-btn-text:#fff;
-  --feed-like-col:#fb5aa8;--section-title-col:#c4a2ff;
+  --bg-base:#000000;--bg-card:rgba(20,22,28,0.95);--bg-panel:rgba(14,16,20,0.92);
+  --border-col:rgba(120,170,255,0.18);--text-primary:#e7e9ec;--text-secondary:rgba(231,233,236,0.72);
+  --text-muted:rgba(231,233,236,0.45);--accent:#4f8cff;--accent2:#2f63cc;
+  --accent-glow:rgba(79,140,255,0.35);--accent-soft:rgba(79,140,255,0.08);
+  --btn-bg:linear-gradient(135deg,#4f8cff,#2f63cc);--btn-shadow:0 4px 18px rgba(79,140,255,0.35);
+  --card-shadow:0 8px 32px rgba(0,0,0,0.5);
+  --header-bg:linear-gradient(135deg,#05060a 0%,#0d0f14 100%);--header-text:#fff;
+  --muscle-idle:#1b1d24;--rank-badge-bg:linear-gradient(135deg,#4f8cff,#7c3aed);
+  --xp-bar-fill:linear-gradient(90deg,#4f8cff,#7c3aed);
+  --stopwatch-bg:linear-gradient(135deg,#14161c,#0e1014);--stopwatch-border:#4f8cff;
+  --toast-bg:linear-gradient(135deg,#0a0b0f,#0d0f14);
+  --input-bg:#14161c;--input-border:rgba(79,140,255,0.22);
+  --tab-active-bg:linear-gradient(135deg,#4f8cff,#2f63cc);--tab-text:rgba(231,233,236,0.65);
+  --checkin-right-bg:#121319;--workout-tag-bg:rgba(79,140,255,0.12);--workout-tag-col:#8cb4ff;
+  --set-row-bg:#14161c;--social-grid-bg:#121319;
+  --follow-btn-bg:linear-gradient(135deg,#4f8cff,#2f63cc);--follow-btn-text:#fff;
+  --feed-like-col:#fb7185;--section-title-col:#8cb4ff;
 }
-/* Extra glossy-finish details for Dark mode: brighter banner glow, sheen highlight on
-   buttons/cards, and a richer pulse on the rank badge — keeps it feeling premium rather
-   than flat/dim. */
-body.theme-dark .gymbroTop,body.theme-dark .gymbroTopSolo{
-  box-shadow:0 12px 36px rgba(0,0,0,0.65),0 0 34px rgba(157,92,255,0.28),inset 0 1px 0 rgba(255,255,255,0.14)!important;
-  border-color:rgba(157,92,255,0.35)!important;
-}
-body.theme-dark .btn,body.theme-dark .logoutBtn,body.theme-dark .follow-btn,
-body.theme-dark .track-workout-btn,body.theme-dark .settings-save-btn{
-  box-shadow:var(--btn-shadow),inset 0 1px 0 rgba(255,255,255,0.18)!important;
-}
-body.theme-dark .glass,body.theme-dark .card,body.theme-dark .section,
-body.theme-dark .xp-panel,body.theme-dark .auth-box{
-  box-shadow:var(--card-shadow),inset 0 1px 0 rgba(255,255,255,0.05)!important;
-}
-body.theme-dark .rank-badge{
-  box-shadow:0 6px 20px rgba(157,92,255,0.55),inset 0 1px 0 rgba(255,255,255,0.25)!important;
-}
-body.theme-dark .themeBtn.active{background:rgba(157,92,255,0.32)!important;color:#e9d9ff!important}
 
 /* ===================== CUSTOM THEME (user-defined) ===================== */
 /* Fallback values only — the real colors are written in as inline CSS custom
@@ -710,7 +691,7 @@ body.wlc-dragging-active .workout-log-card:not(.wlc-drag-source){cursor:grabbing
    to a clean white/blue card so it reads correctly against the light/dark page. */
 .vol-graph-box{position:relative}
 .vol-graph-detail-box{position:absolute;top:8px;right:8px;z-index:5;max-width:46%;min-width:112px;max-height:calc(100% - 16px);overflow:hidden;background:rgba(15,23,42,0.95);border:1px solid rgba(255,255,255,0.1);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,0.3);padding:8px 10px;font-family:var(--font-alt);pointer-events:none;transition:all 0.15s ease;text-align:left;box-sizing:border-box}
-body.theme-dark .vol-graph-detail-box{background:rgba(16,10,24,0.97);border-color:rgba(157,92,255,0.35);box-shadow:0 8px 24px rgba(0,0,0,0.4),0 0 16px rgba(157,92,255,0.12)}
+body.theme-dark .vol-graph-detail-box{background:rgba(10,11,15,0.97);border-color:rgba(79,140,255,0.28)}
 body:not(.theme-dark) .vol-graph-detail-box{background:rgba(255,255,255,0.97);border-color:rgba(37,99,235,0.18);box-shadow:0 8px 24px rgba(37,99,235,0.12)}
 .vol-graph-detail-hint{font-size:10px;color:#94a3b8;letter-spacing:0.3px;white-space:nowrap}
 body:not(.theme-dark) .vol-graph-detail-hint{color:#64748b}
@@ -820,8 +801,6 @@ body:not(.theme-dark) .dur-graph-detail-divider strong{color:#1e3a8a}
 .vol-panel-badge{display:inline-flex;align-items:center;gap:6px;font-family:var(--font-alt);font-size:11px;font-weight:800;letter-spacing:0.8px;text-transform:uppercase;padding:5px 12px;border-radius:8px;margin-bottom:8px}
 .vol-panel-badge.left{background:rgba(37,99,235,0.13);color:#2563eb;border:1px solid rgba(37,99,235,0.3)}
 .vol-panel-badge.right{background:rgba(139,92,246,0.13);color:#7c3aed;border:1px solid rgba(139,92,246,0.3)}
-body.theme-dark .vol-panel-badge.left{background:rgba(157,92,255,0.16);color:#c4a2ff;border-color:rgba(157,92,255,0.4)}
-body.theme-dark .vol-panel-badge.right{background:rgba(217,70,239,0.16);color:#f0a8f5;border-color:rgba(217,70,239,0.4)}
 .vol-panel .stats-period-row{margin-bottom:10px}
 .vol-panel .volume-chart-wrap{height:240px}
 .vol-panel .vol-drilldown{min-height:60px}
@@ -935,8 +914,6 @@ body.theme-dark .vol-panel-badge.right{background:rgba(217,70,239,0.16);color:#f
 .crop-top-btn{background:none;border:none;font-size:14px;font-weight:700;font-family:var(--font-alt);letter-spacing:0.3px;cursor:pointer;padding:6px 10px;border-radius:8px;transition:background 0.15s}
 .crop-top-cancel{color:rgba(255,255,255,0.7)}.crop-top-cancel:hover{background:rgba(255,255,255,0.1)}
 .crop-top-done{color:#3b82f6;background:rgba(59,130,246,0.15)}.crop-top-done:hover{background:rgba(59,130,246,0.28)}
-body.theme-dark .crop-top-done{color:#c4a2ff;background:rgba(157,92,255,0.18)}
-body.theme-dark .crop-top-done:hover{background:rgba(157,92,255,0.3)}
 .crop-viewport{flex:1;position:relative;overflow:hidden;background:#000;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none}
 .crop-viewport.dragging{cursor:grabbing}
 #cropCanvas{position:absolute;top:0;left:0;will-change:transform}
@@ -945,7 +922,6 @@ body.theme-dark .crop-top-done:hover{background:rgba(157,92,255,0.3)}
 .crop-zoom-label{font-family:var(--font-alt);font-size:10px;font-weight:700;color:rgba(255,255,255,0.45);letter-spacing:0.8px;text-transform:uppercase;text-align:center}
 .crop-zoom-track{display:flex;align-items:center;gap:12px}
 .crop-zoom-track input[type=range]{flex:1;height:3px;accent-color:#3b82f6;cursor:pointer}
-body.theme-dark .crop-zoom-track input[type=range]{accent-color:#9d5cff}
 .crop-zoom-icon{font-size:14px;opacity:0.55;flex-shrink:0}
 /* lightbox */
 .avatar-lightbox{position:fixed;inset:0;background:rgba(0,0,0,0.9);z-index:999998;display:flex;flex-direction:column;align-items:center;justify-content:center;animation:fadeIn 0.2s ease;backdrop-filter:blur(10px)}
@@ -7443,38 +7419,24 @@ function getCurrentTheme(){
 
 /* ── Theme-aware gradient factory ── */
 function makeVolGradients(ctx,side){
-  const isDark=getCurrentTheme()==='dark';
   const isRight=side==='right';
   const grad=ctx.createLinearGradient(0,0,0,280);
   const hoverGrad=ctx.createLinearGradient(0,0,0,280);
 
-  if(isDark){
-    // Bold glossy violet/magenta palette for Dark mode
-    grad.addColorStop(0,isRight?'rgba(217,70,239,1)':'rgba(109,40,217,1)');
-    grad.addColorStop(0.18,isRight?'rgba(196,60,230,1)':'rgba(157,92,255,1)');
-    grad.addColorStop(0.45,isRight?'rgba(150,40,190,1)':'rgba(120,55,220,1)');
-    grad.addColorStop(1,isRight?'rgba(95,15,130,1)':'rgba(70,20,150,1)');
-    hoverGrad.addColorStop(0,isRight?'rgba(240,140,250,1)':'rgba(196,162,255,1)');
-    hoverGrad.addColorStop(0.22,isRight?'rgba(225,110,240,1)':'rgba(178,130,255,1)');
-    hoverGrad.addColorStop(0.55,isRight?'rgba(190,70,215,1)':'rgba(150,100,240,1)');
-    hoverGrad.addColorStop(1,isRight?'rgba(130,30,160,1)':'rgba(100,50,190,1)');
-  } else {
-    // Blue/violet palette for Light mode
-    grad.addColorStop(0,isRight?'rgba(88,28,220,1)':'rgba(15,52,180,1)');
-    grad.addColorStop(0.18,isRight?'rgba(120,50,255,1)':'rgba(37,99,235,1)');
-    grad.addColorStop(0.45,isRight?'rgba(90,20,200,1)':'rgba(24,72,200,1)');
-    grad.addColorStop(1,isRight?'rgba(55,10,140,1)':'rgba(10,40,140,1)');
-    hoverGrad.addColorStop(0,isRight?'rgba(168,100,255,1)':'rgba(70,140,255,1)');
-    hoverGrad.addColorStop(0.22,isRight?'rgba(140,70,240,1)':'rgba(50,110,240,1)');
-    hoverGrad.addColorStop(0.55,isRight?'rgba(110,40,210,1)':'rgba(30,80,210,1)');
-    hoverGrad.addColorStop(1,isRight?'rgba(75,15,170,1)':'rgba(15,50,170,1)');
-  }
+  // Blue/violet palette — reads clearly against both the light (white) and dark (charcoal) card backgrounds
+  grad.addColorStop(0,isRight?'rgba(88,28,220,1)':'rgba(15,52,180,1)');
+  grad.addColorStop(0.18,isRight?'rgba(120,50,255,1)':'rgba(37,99,235,1)');
+  grad.addColorStop(0.45,isRight?'rgba(90,20,200,1)':'rgba(24,72,200,1)');
+  grad.addColorStop(1,isRight?'rgba(55,10,140,1)':'rgba(10,40,140,1)');
+  hoverGrad.addColorStop(0,isRight?'rgba(168,100,255,1)':'rgba(70,140,255,1)');
+  hoverGrad.addColorStop(0.22,isRight?'rgba(140,70,240,1)':'rgba(50,110,240,1)');
+  hoverGrad.addColorStop(0.55,isRight?'rgba(110,40,210,1)':'rgba(30,80,210,1)');
+  hoverGrad.addColorStop(1,isRight?'rgba(75,15,170,1)':'rgba(15,50,170,1)');
   return{grad,hoverGrad};
 }
 
 /* ── Border color by theme ── */
 function getVolBorderColor(side){
-  if(getCurrentTheme()==='dark')return side==='right'?'rgba(217,70,239,0.75)':'rgba(157,92,255,0.75)';
   return side==='right'?'rgba(160,110,255,0.7)':'rgba(80,140,255,0.7)';
 }
 
@@ -7528,7 +7490,6 @@ function getVolSolidColor(){
   return getComputedStyle(document.body).getPropertyValue('--accent').trim()||'#2563eb';
 }
 function getVolSolidColorSoft(alpha){
-  if(getCurrentTheme()==='dark')return`rgba(157,92,255,${alpha})`;
   return`rgba(37,99,235,${alpha})`;
 }
 
