@@ -475,23 +475,61 @@ input::placeholder{color:var(--text-muted)}
 .set-new-timer-btn.running{background:#dc2626;color:#fff}
 .set-new-timer-label{font-size:10px;font-weight:700;color:var(--text-muted);font-family:var(--font-alt);letter-spacing:0.4px;text-transform:uppercase}
 .set-row span{font-weight:700;min-width:46px;font-size:13px;color:var(--accent);font-family:var(--font-alt)}
-.set-delete-btn{background:rgba(220,38,38,0.12);border:none;width:32px;height:32px;border-radius:9px;cursor:pointer;font-size:13px;display:none;align-items:center;justify-content:center;flex-shrink:0;transition:background 0.2s ease}
+/* Delete icon: hidden/collapsed (width 0) by default, revealed either by tapping the "Set N" label
+   (toggleSetRowSelection) or by swiping the row right-to-left (nlSetSwipeEnd) — see JS. Animating
+   width+transform (rather than the old display:none/flex snap) gives the classic "swipe to delete"
+   feel: the row folds to make room while the red delete button slides in from the right. */
+.set-delete-btn{background:rgba(220,38,38,0.12);border:none;width:0;height:32px;padding:0;margin:0;border-radius:9px;cursor:pointer;color:#dc2626;display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;opacity:0;transform:translateX(14px);transition:width 0.25s ease,opacity 0.2s ease,transform 0.25s ease,background 0.2s ease}
+.set-delete-btn svg{flex-shrink:0}
 .set-delete-btn:hover{background:rgba(220,38,38,0.25)}
-.set-row.set-selected .set-delete-btn{display:flex}
+.set-row.set-selected .set-delete-btn{width:34px;opacity:1;transform:translateX(0)}
 /* Per-set "copy previous set's values" icon + lock checkbox (non-live multi-set entry) */
-.set-copy-btn{background:var(--accent-soft);border:1px solid var(--accent);color:var(--accent);width:32px;height:32px;border-radius:9px;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background 0.2s ease}
+.set-copy-btn{background:var(--accent-soft);border:1px solid var(--accent);color:var(--accent);width:32px;height:32px;border-radius:9px;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background 0.2s ease,color 0.2s ease}
 .set-copy-btn:hover{background:var(--accent);color:#fff}
+/* "copied" = this icon just pasted the previous set's values in — tapping it again undoes the
+   paste instead of copying again (see copyFromPrevNonLiveSet/liveCopyFromPrevSet). Filled solid so
+   it's obviously in a different (undo-ready) state from the default outline look. */
+.set-copy-btn.copied{background:var(--accent);color:#fff}
 /* Cross-platform tick checkbox (SVG checkmark, not an emoji — renders identically on every OS/browser).
-   Also swipeable: swiping the whole set-row left-to-right ticks it too (see nlSetSwipeEnd in JS). */
+   Also swipeable: swiping the whole set-row left-to-right ticks it (locks the set), and swiping
+   right-to-left reveals that set's delete icon — see nlSetSwipeEnd in JS.
+   Unticked shows a faint placeholder checkmark (so the box's purpose reads at a glance); ticking it
+   turns that same checkmark bold and accent-blue rather than filling the whole box, so the change on
+   tap is unmistakable. */
 .set-lock-check{position:relative;display:flex;align-items:center;justify-content:center;width:32px;height:32px;flex-shrink:0}
 .set-lock-check input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer;z-index:2}
 .set-lock-box{width:22px;height:22px;border-radius:6px;border:2px solid var(--border-col);background:var(--bg-panel);display:flex;align-items:center;justify-content:center;transition:background 0.15s ease,border-color 0.15s ease;pointer-events:none}
-.set-lock-box svg{width:14px;height:14px;color:#fff;opacity:0;transform:scale(0.5);transition:opacity 0.15s ease,transform 0.15s ease}
-.set-lock-check input:checked~.set-lock-box{background:var(--accent);border-color:var(--accent)}
-.set-lock-check input:checked~.set-lock-box svg{opacity:1;transform:scale(1)}
+.set-lock-box svg{width:14px;height:14px;color:var(--text-muted);opacity:0.3;stroke-width:2.5;transform:scale(0.85);transition:opacity 0.15s ease,transform 0.15s ease,color 0.15s ease,stroke-width 0.15s ease}
+.set-lock-check input:checked~.set-lock-box{border-color:var(--accent)}
+.set-lock-check input:checked~.set-lock-box svg{opacity:1;transform:scale(1);color:var(--accent);stroke-width:3.5}
 .set-row.set-row-locked{background:var(--accent-soft);border-color:var(--accent)}
 .set-row.set-row-locked input[type="number"]{opacity:0.75;cursor:not-allowed}
 .set-row{touch-action:pan-y} /* keep vertical page scroll working while we read horizontal swipes ourselves */
+/* ===================== CARDIO SET INPUTS (Km + compact Duration picker) ===================== */
+.km-input{padding:9px 6px;margin-top:0;flex:0 0 60px;width:60px;text-align:center}
+/* Cardio set rows always use an explicit 2-line layout — Km on line 1, Duration/Copy/Lock/Delete
+   on line 2 — instead of relying on flex-wrap, so it looks identical whether logging a fresh entry
+   (Add) or editing a saved one (where the extra delete icon used to throw the wrap off and leave
+   the lock checkbox stranded alone on its own line). */
+.set-row.cardio-set-row{flex-direction:column;align-items:stretch}
+.cardio-set-row-line1,.cardio-set-row-line2{display:flex;align-items:center;gap:10px}
+.set-row .km-badge{font-size:10px;font-weight:700;color:var(--workout-tag-col);background:var(--workout-tag-bg);padding:4px 8px;border-radius:8px;white-space:nowrap}
+/* Non-live cardio inline stopwatch (line 2): ▶ starts a count-up, then swaps to a live MM:SS
+   readout plus ⏸ Pause / 💾 Save icons — Save writes the elapsed time into the Duration picker
+   sitting up in line 1. Reuses .set-copy-btn's circular sizing/coloring so it matches Copy/Tick. */
+.set-timer-ctrl{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.set-timer-btn{padding:0}
+.set-timer-btn.set-timer-pause{background:linear-gradient(135deg,#dc2626,#b91c1c);border-color:#dc2626;color:#fff}
+.set-timer-btn.set-timer-save{background:linear-gradient(135deg,#16a34a,#15803d);border-color:#15803d;color:#fff}
+.set-timer-display{font-family:var(--font-alt);font-weight:800;font-size:13px;color:var(--accent);letter-spacing:0.5px;min-width:38px;text-align:center;flex-shrink:0}
+/* Cardio duration reuses the compact .minsec-picker markup (same as Settings ▸ Default Break
+   Duration) rather than a bespoke widget, so it's already short/familiar. .msp-typing swaps the
+   single visible row for an inline number input when tapped — see setupMinSecScrollList(). */
+.minsec-scroll-list{position:relative}
+.minsec-type-input{position:absolute;top:0;left:0;width:100%;height:34px;text-align:center;border:1px solid var(--accent);border-radius:6px;background:var(--bg-card);color:var(--accent);font-family:var(--font-alt);font-weight:800;font-size:13px;padding:0;z-index:3;-moz-appearance:textfield}
+.minsec-type-input::-webkit-outer-spin-button,.minsec-type-input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.minsec-picker.msp-locked{opacity:0.6;pointer-events:none}
+.set-row .minsec-picker{flex:0 0 auto}
 .suggestion-box{position:relative;margin-bottom:8px}
 .suggestion-box input{padding-right:64px}
 .sugg-dropdown-icon{position:absolute;right:10px;top:0;bottom:0;width:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-muted);font-size:11px;user-select:none;transition:color 0.2s ease,transform 0.2s ease}
@@ -531,6 +569,13 @@ input::placeholder{color:var(--text-muted)}
 .workout-tag{font-size:clamp(7px,2.4vw,11px);line-height:1.3;background:var(--workout-tag-bg);color:var(--workout-tag-col);padding:clamp(4px,1.6vw,6px) clamp(3px,1.2vw,5px);border-radius:6px;font-family:var(--font-alt);font-weight:600;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;box-sizing:border-box;min-width:0;display:flex;align-items:center;justify-content:center}
 .workout-tag-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(4px,1.6vw,8px);align-items:stretch}
 .workout-tag-grid.tag-grid-2col{grid-template-columns:repeat(2,minmax(0,1fr))}
+/* Cardio sets ("0.50km x 30min 23sec") run much longer than a normal "20Kg x 10" tag, so they get
+   their own full-width, single-column row instead of squeezing into a 1/3-width grid cell where
+   the text would clip. white-space is allowed to wrap here (unlike the base .workout-tag, which
+   stays single-line+ellipsis for short Kg/Reps text) since even a full-width column can be
+   narrower than the text on small phones. */
+.workout-tag-grid.tag-grid-1col{grid-template-columns:1fr}
+.workout-tag-wide{white-space:normal;overflow:visible;text-overflow:clip;text-align:left;justify-content:flex-start;padding-left:10px;padding-right:10px}
 /* Icon column: a REAL flex sibling of the box (not absolutely positioned), living in the box's own
    gutter space. Width is 0 (no reserved space) until the row is selected/swap-armed, at which point
    it expands in-flow — so it can never float over or bleed into any other saved-workout box. */
@@ -1156,6 +1201,13 @@ body.workout-edit-lock{overflow:hidden}
 .live-break-timer-row{display:flex;align-items:center;gap:10px;margin-top:6px;flex-wrap:wrap}
 .live-break-edit-btn{padding:6px 12px;border:1px solid var(--border-col);border-radius:10px;background:var(--bg-card);color:var(--accent);font-size:11px;font-weight:700;font-family:var(--font-alt);cursor:pointer;letter-spacing:0.3px;transition:all 0.2s ease;display:none;align-items:center;gap:4px}
 .live-break-edit-btn:hover{background:var(--accent-soft)}
+/* Small pencil toggle next to the cardio Duration timer — reveals the same compact scrollable
+   min:sec picker used elsewhere in the app, so Duration can be typed/scrolled directly instead of
+   (or on top of) using the timer. */
+.live-dur-edit-btn{width:32px;height:32px;border-radius:9px;border:1px solid var(--border-col);background:var(--bg-card);color:var(--accent);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.2s ease}
+.live-dur-edit-btn:hover{background:var(--accent-soft)}
+.live-dur-edit-btn:disabled{opacity:0.4;cursor:not-allowed}
+.live-cardio-dur-edit{margin-top:8px}
 .live-break-edit-panel{margin-top:10px;padding:10px;background:var(--bg-panel);border:1px dashed var(--border-col);border-radius:10px;display:none;animation:fadeIn 0.2s ease}
 .live-break-edit-label{font-size:11px;color:var(--text-muted);font-family:var(--font-alt);margin-bottom:8px;letter-spacing:0.3px}
 .live-break-edit-actions{display:flex;gap:8px;margin-top:10px}
@@ -1185,6 +1237,7 @@ body.workout-edit-lock{overflow:hidden}
 }
 .quick-fill-btn:hover{background:var(--accent-soft);border-style:solid}
 .quick-fill-btn.visible{display:block}
+.quick-fill-btn.copied{background:var(--accent);border-style:solid;color:#fff}
 
 /* ===================== TRACK WORKOUT BUTTON ===================== */
 .track-workout-btn{
@@ -1661,6 +1714,7 @@ body.tracker-fs-lock{overflow:hidden}
   margin-top:6px;
 }
 .live-copy-prev-btn:hover{background:var(--accent);color:#fff}
+.live-copy-prev-btn.copied{background:var(--accent);color:#fff}
 
 /* ===================== LEVEL UP NOTIFICATION ===================== */
 .levelup-toast{
@@ -2382,9 +2436,11 @@ body.tracker-fs-lock{overflow:hidden}
               <div class="tracker-graph-mode-wrap" id="trackerGraphModeWrap" style="display:none">
                 <label for="trackerGraphModeSelect">View</label>
                 <select class="tracker-graph-mode-select" id="trackerGraphModeSelect" onchange="changeTrackerGraphMode(this.value)">
-                  <option value="volume">Volume</option>
-                  <option value="weight">Weight</option>
-                  <option value="reps">Reps</option>
+                  <option value="volume" class="trk-opt-strength">Volume</option>
+                  <option value="weight" class="trk-opt-strength">Weight</option>
+                  <option value="reps" class="trk-opt-strength">Reps</option>
+                  <option value="duration" class="trk-opt-cardio">Duration</option>
+                  <option value="distance" class="trk-opt-cardio">Distance</option>
                 </select>
               </div>
               <button class="tracker-analytics-close" onclick="closeTrackerAnalytics()">✕ Close</button>
@@ -4346,9 +4402,13 @@ function showRankupOverlay(rank){
 }
 function closeRankupOverlay(){document.getElementById('rankupOverlay').classList.remove('show')}
 function calculateVolumeXP(s){
-  if(!s||!s.includes(':'))return 0;let t=0;
-  s.split(':')[1].split(',').forEach(seg=>{const m=seg.trim().match(/(\d+)\s*kg\s*x\s*(\d+)/i);if(m)t+=parseInt(m[1])*parseInt(m[2])});
-  return Math.floor(t/100)*10;
+  if(!s||!s.includes(':'))return 0;let t=0,cardioSec=0;
+  s.split(':')[1].split(',').forEach(seg=>{
+    seg=seg.trim();
+    if(isCardioSetString(seg)){cardioSec+=parseCardioSetSegment(seg).totalSec;return}
+    const m=seg.match(/(\d+)\s*kg\s*x\s*(\d+)/i);if(m)t+=parseInt(m[1])*parseInt(m[2]);
+  });
+  return Math.floor(t/100)*10+Math.floor(cardioSec/60)*10;
 }
 
 /* ===================== EXERCISE CATALOG — expanded with class labels ===================== */
@@ -4646,6 +4706,123 @@ function isBodyweightNoWeightExercise(nameRaw){
   if(getExerciseEquipment(nameRaw)!=='Bodyweight')return false;
   return !/^weighted\s/i.test(nameRaw.trim());
 }
+/* True for any exercise whose Class resolves to "Cardio" (catalog or custom-exercise registry).
+   Cardio exercises are logged by Distance(Km) + Duration(Time) instead of the standard Kg/Reps
+   pattern — see the Km/Time-picker set-row rendering in renderNonLiveSetsRows and the cardio
+   branch of the Track Workout graph (updateTrackerGraph). */
+function isCardioExercise(nameRaw){
+  if(!nameRaw)return false;
+  return getExerciseClass(nameRaw)==='Cardio';
+}
+
+/* Parses a saved "0.50Km x 30min 23sec" (or legacy "0.50Km x 05:30") segment into
+   {km,min,sec,totalSec}. Returns all-zero if the segment doesn't match (never throws — callers
+   treat a non-match as "no data"). */
+function parseCardioSetSegment(seg){
+  const s=(seg||'').trim();
+  let m=s.match(/^([\d.]+)\s*[Kk][Mm]\s*x\s*(\d+)\s*min\s*(\d+)\s*sec/i);
+  if(m)return{km:parseFloat(m[1])||0,min:parseInt(m[2])||0,sec:parseInt(m[3])||0,totalSec:(parseInt(m[2])||0)*60+(parseInt(m[3])||0)};
+  m=s.match(/^([\d.]+)\s*[Kk][Mm]\s*x\s*(\d+):(\d{2})/); // legacy mm:ss format, still readable
+  if(m)return{km:parseFloat(m[1])||0,min:parseInt(m[2])||0,sec:parseInt(m[3])||0,totalSec:(parseInt(m[2])||0)*60+(parseInt(m[3])||0)};
+  return{km:0,min:0,sec:0,totalSec:0};
+}
+/* Formats a cardio segment's distance+duration the way it should read everywhere in the UI:
+   workout list, edit form badges, Track Workout Recent/Highest/Lowest, tracker set breakdown. */
+function formatCardioSetDisplay(km,min,sec){
+  return `${(parseFloat(km)||0).toFixed(2)}km x ${min||0}min ${String(sec||0).padStart(2,'0')}sec`;
+}
+/* True if a saved set-string is a cardio (Km/duration) segment rather than a Kg/reps one. */
+function isCardioSetString(seg){
+  return /^[\d.]+\s*[Kk][Mm]\s*x\s*\d/.test((seg||'').trim());
+}
+
+/* ===================== CARDIO DURATION PICKER =====================
+   Reuses the exact compact "minsec-picker" widget from Settings ▸ Default Break Duration
+   (mountMinSecPicker/setupMinSecScrollList/getPickerSeconds — see there) so cardio Duration
+   inputs are visually identical and just as short. The one addition made to that shared
+   widget is tap-to-type: tapping the currently-visible value swaps it for an inline number
+   input (see setupMinSecScrollList's click handler) — no separate icon or external box. */
+function mountCardioDurationPicker(containerId,pickerKey,initMin,initSec,locked,onChange){
+  mountMinSecPicker(containerId,pickerKey,initMin,initSec,onChange);
+  setCardioPickerLocked(pickerKey,locked);
+}
+/* Keeps a Live-mode cardio set's timer readout (liveTimerDisplay_) in sync with its Duration
+   picker (liveSet_<idx>) whenever the picker changes for ANY reason — manual pencil-edit, or a
+   restored draft — not just when the timer itself ticks. */
+function syncLiveCardioDurDisplay(idx){
+  const t=getPickerSeconds(`liveSet_${idx}`);
+  const dispEl=document.getElementById(`liveTimerDisplay_${idx}`);if(dispEl)dispEl.textContent=String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0');
+  saveLiveDraft();
+}
+function setCardioPickerValue(pickerKey,min,sec){
+  const containerId=window._minsecMounts&&window._minsecMounts[pickerKey];
+  const mount=containerId?document.getElementById(containerId):null;if(!mount)return;
+  setMinSecListValue(`minsecMinList_${pickerKey}`,parseInt(min)||0);
+  setMinSecListValue(`minsecSecList_${pickerKey}`,parseInt(sec)||0);
+  mount.dataset.pickedMin=parseInt(min)||0;mount.dataset.pickedSec=parseInt(sec)||0;
+}
+function setMinSecListValue(listId,val){
+  const list=document.getElementById(listId);if(!list)return;
+  const itemHeight=34;
+  list.scrollTop=val*itemHeight;
+  list.querySelectorAll('.minsec-scroll-item').forEach(it=>it.classList.toggle('picked',parseInt(it.dataset.val)===val));
+}
+function setCardioPickerLocked(pickerKey,locked){
+  const containerId=window._minsecMounts&&window._minsecMounts[pickerKey];
+  const mount=containerId?document.getElementById(containerId):null;if(!mount)return;
+  mount.querySelector('.minsec-picker')?.classList.toggle('msp-locked',!!locked);
+}
+
+/* ===================== NON-LIVE CARDIO INLINE STOPWATCH =====================
+   A lightweight stopwatch shown in line 2 of a cardio set row (Add/Edit form only — Live Mode has
+   its own separate timer). Tapping ▶ starts counting up and swaps to a live "MM:SS" readout plus
+   ⏸ Pause / 💾 Save icons. Pause just stops the count (tapping ▶ again resumes it). Save writes the
+   elapsed time into that set's Duration picker up in line 1 (setCardioPickerValue) and resets the
+   control back to idle. Typing directly into the Duration picker (tap-to-type) still works exactly
+   as before — the stopwatch is just an alternative way to fill the same box. */
+window._nlSetTimers=window._nlSetTimers||{};
+window._nlSetSeconds=window._nlSetSeconds||{};
+function stopAllNlCardioTimers(){
+  Object.values(window._nlSetTimers).forEach(t=>clearInterval(t));
+  window._nlSetTimers={};window._nlSetSeconds={};
+}
+function toggleNlCardioTimer(i){
+  const locked=document.getElementById(`lock_set_${i}`)?.checked;
+  if(locked){showToast('🔒 Unlock this set to use the timer.');return}
+  const playBtn=document.getElementById(`nlTimerPlayBtn_${i}`),pauseBtn=document.getElementById(`nlTimerPauseBtn_${i}`),
+        saveBtn=document.getElementById(`nlTimerSaveBtn_${i}`),disp=document.getElementById(`nlTimerDisplay_${i}`);
+  if(!playBtn)return;
+  if(window._nlSetTimers[i]){
+    // Pause: stop counting, drop back to ▶ so it can be resumed — Save stays visible/available.
+    clearInterval(window._nlSetTimers[i]);delete window._nlSetTimers[i];
+    playBtn.style.display="flex";pauseBtn.style.display="none";
+  } else {
+    // Play (fresh start or resume from pause): begin/continue counting up.
+    if(window._nlSetSeconds[i]===undefined)window._nlSetSeconds[i]=0;
+    playBtn.style.display="none";pauseBtn.style.display="flex";saveBtn.style.display="flex";if(disp)disp.style.display="inline";
+    window._nlSetTimers[i]=setInterval(()=>{
+      window._nlSetSeconds[i]++;
+      const m=Math.floor(window._nlSetSeconds[i]/60),s=window._nlSetSeconds[i]%60;
+      if(disp)disp.textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+    },1000);
+  }
+}
+function saveNlCardioTimer(i){
+  if(window._nlSetTimers[i]){clearInterval(window._nlSetTimers[i]);delete window._nlSetTimers[i]}
+  const totalSec=window._nlSetSeconds[i]||0;
+  if(totalSec<=0){showToast('⚠️ Start the timer first.');return}
+  setCardioPickerValue(`nlSet_${i}`,Math.floor(totalSec/60),totalSec%60);
+  delete window._nlSetSeconds[i];
+  const playBtn=document.getElementById(`nlTimerPlayBtn_${i}`),pauseBtn=document.getElementById(`nlTimerPauseBtn_${i}`),
+        saveBtn=document.getElementById(`nlTimerSaveBtn_${i}`),disp=document.getElementById(`nlTimerDisplay_${i}`);
+  if(playBtn)playBtn.style.display="flex";
+  if(pauseBtn)pauseBtn.style.display="none";
+  if(saveBtn)saveBtn.style.display="none";
+  if(disp){disp.style.display="none";disp.textContent="00:00"}
+  handleNonLiveSetInputChange();
+  showToast(`⏱️ Time saved to Set ${i}!`);
+}
+
 /* Small "why is there no Kg box?" info icon shown next to the Reps box for bodyweight-only exercises */
 /* Tracks, per entry-form context, whether the person has opted IN to showing an optional Kg box
    on a bodyweight-only exercise's sets. false = Kg boxes stay hidden (the default for bodyweight
@@ -5157,7 +5334,7 @@ function formatMinSec(totalSecs){
 /* ===================== REUSABLE MIN:SEC SCROLL PICKER ===================== */
 /* Mounts a scrollable-only min/sec picker into the given container id.
    pickerKey is used to namespace the DOM ids so multiple pickers can co-exist on the page. */
-function mountMinSecPicker(containerId,pickerKey,initMin,initSec){
+function mountMinSecPicker(containerId,pickerKey,initMin,initSec,onChange){
   const mount=document.getElementById(containerId);
   if(!mount)return;
   initMin=initMin||0;initSec=initSec||0;
@@ -5178,18 +5355,20 @@ function mountMinSecPicker(containerId,pickerKey,initMin,initSec){
         </div>
       </div>
     </div>`;
-  setupMinSecScrollList(`minsecMinList_${pickerKey}`,initMin,(val)=>{mount.dataset.pickedMin=val});
-  setupMinSecScrollList(`minsecSecList_${pickerKey}`,initSec,(val)=>{mount.dataset.pickedSec=val});
+  setupMinSecScrollList(`minsecMinList_${pickerKey}`,initMin,(val)=>{mount.dataset.pickedMin=val;if(onChange)onChange()},60);
+  setupMinSecScrollList(`minsecSecList_${pickerKey}`,initSec,(val)=>{mount.dataset.pickedSec=val;if(onChange)onChange()},59);
   // store mount container id alongside pickerKey so getPickerSeconds can find it
   mount.dataset.pickerKey=pickerKey;
   if(!window._minsecMounts)window._minsecMounts={};
   window._minsecMounts[pickerKey]=containerId;
 }
 
-function setupMinSecScrollList(listId,initVal,onPick){
+/* maxVal caps tap-to-type entry (60 for the minute column, 59 for seconds). */
+function setupMinSecScrollList(listId,initVal,onPick,maxVal){
   const list=document.getElementById(listId);if(!list)return;
   const items=list.querySelectorAll('.minsec-scroll-item');
   const itemHeight=34;
+  maxVal=maxVal!==undefined?maxVal:(items.length-1);
   // scroll to initial value
   list.scrollTop=initVal*itemHeight;
   const markPicked=()=>{
@@ -5203,9 +5382,40 @@ function setupMinSecScrollList(listId,initVal,onPick){
     scrollDebounce=setTimeout(markPicked,120);
   });
   items.forEach((it,idx)=>{
-    it.addEventListener('click',()=>{list.scrollTo({top:idx*itemHeight,behavior:'smooth'});setTimeout(markPicked,150)});
+    it.addEventListener('click',()=>{
+      // Tapping the currently-visible/selected value opens inline typing (no separate icon or
+      // external box); tapping any other item (reachable only via keyboard/assistive nav, since
+      // non-visible items are scrolled out of the clickable viewport) just jumps to it as before.
+      const curIdx=Math.round(list.scrollTop/itemHeight);
+      if(idx===curIdx){openMinSecTypeInput(list,itemHeight,maxVal,markPicked);return}
+      list.scrollTo({top:idx*itemHeight,behavior:'smooth'});setTimeout(markPicked,150);
+    });
   });
   markPicked();
+}
+/* Swaps the single visible row for a plain number input the person can type into directly.
+   Committing (blur or Enter) removes the input and scrolls the wheel to the typed value — so
+   scrolling and typing both work through the exact same control, no separate UI needed. */
+function openMinSecTypeInput(list,itemHeight,maxVal,markPicked){
+  if(list.querySelector('.minsec-type-input'))return; // already open
+  const curVal=Math.round(list.scrollTop/itemHeight);
+  const inp=document.createElement('input');
+  inp.type='number';inp.inputMode='numeric';inp.min='0';inp.max=String(maxVal);
+  inp.value=String(curVal);
+  inp.className='minsec-type-input';
+  list.style.overflow='hidden';
+  list.appendChild(inp);
+  inp.focus();inp.select();
+  const commit=()=>{
+    let v=parseInt(inp.value);if(isNaN(v)||v<0)v=0;if(v>maxVal)v=maxVal;
+    inp.remove();
+    list.style.overflow='';
+    list.scrollTop=v*itemHeight;
+    markPicked();
+  };
+  inp.addEventListener('blur',commit);
+  inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();inp.blur()}else if(e.key==='Escape'){inp.value=String(curVal);inp.blur()}});
+  inp.addEventListener('click',e=>e.stopPropagation());
 }
 
 /* Reads the current min+sec value (in total seconds) from a mounted picker by key */
@@ -8149,6 +8359,10 @@ function parseWorkoutSets(rawStr){
   const setsStr=colonIdx>=0?rawStr.slice(colonIdx+1):rawStr;
   const sets=setsStr.split(',').map(s=>s.trim()).filter(Boolean);
   return sets.map(seg=>{
+    if(isCardioSetString(seg)){
+      const cp=parseCardioSetSegment(seg);
+      return{desc:formatCardioSetDisplay(cp.km,cp.min,cp.sec),vol:0,w:0,r:0,isBW:false,isCardio:true,km:cp.km,sec:cp.totalSec};
+    }
     const durMatch=seg.match(/\[(.*?)\]/);
     const duration=durMatch?durMatch[1].trim():null;
     const clean=seg.replace(/\[.*?\]/g,'').trim();
@@ -8160,7 +8374,7 @@ function parseWorkoutSets(rawStr){
     const isBW=w<0.5;
     const core=isBW?`${r} Reps`:`${w}Kg x ${r}`;
     const desc=duration?`${core} [${duration}]`:core;
-    return{desc,vol,w,r,isBW};
+    return{desc,vol,w,r,isBW,isCardio:false};
   });
 }
 /* Whether every set in a workout entry was logged with no Kg (a pure bodyweight exercise) — used
@@ -8168,9 +8382,34 @@ function parseWorkoutSets(rawStr){
 function isAllBodyweightSets(sets){
   return sets.length>0&&sets.every(s=>s.isBW);
 }
-/* Returns {primary, unit} for an exercise's total — reps-based for pure bodyweight entries,
-   kg·reps-based otherwise — used across the volume breakdown views. */
+/* Whether every set in a workout entry is a Cardio (Km/duration) set — these carry no Kg/reps at
+   all, so they're always routed to their own distance/duration total instead of Volume/Reps. */
+function isAllCardioSets(sets){
+  return sets.length>0&&sets.every(s=>s.isCardio);
+}
+/* Formats a total cardio duration (seconds) as "M:SS" (e.g. 600 → "10:00") — used anywhere a
+   Cardio exercise's total is shown, in place of the total distance in Km. */
+function formatTotalCardioTime(totalSec){
+  const t=Math.max(0,Math.round(totalSec||0));
+  const m=Math.floor(t/60),s=t%60;
+  return `${m}:${String(s).padStart(2,'0')}`;
+}
+/* Cardio-only footer total (Volume page's per-exercise "TOTAL" box) shows BOTH total distance
+   (Km) and total Duration (M:SS) together — everywhere else a Cardio total appears (the saved
+   workout card header, the collapsed drilldown row) stays Duration-only, per formatExerciseVolTotal. */
+function formatCardioTotalDetail(sets){
+  const totalKm=sets.reduce((a,s)=>a+(s.km||0),0);
+  const totalSec=sets.reduce((a,s)=>a+(s.sec||0),0);
+  return `${totalKm.toFixed(2)}km · ${formatTotalCardioTime(totalSec)}`;
+}
+/* Returns {primary, unit} for an exercise's total — total Duration (M:SS) for Cardio entries,
+   reps-based for pure bodyweight entries, kg·reps-based otherwise — used across the saved workout
+   list header and the Volume breakdown views. */
 function formatExerciseVolTotal(w,sets){
+  if(isAllCardioSets(sets)){
+    const totalSec=sets.reduce((a,s)=>a+(s.sec||0),0);
+    return{primary:formatTotalCardioTime(totalSec),unit:''};
+  }
   if(isAllBodyweightSets(sets)){
     const totalReps=sets.reduce((a,s)=>a+(s.r||0),0);
     return{primary:String(totalReps),unit:'Reps'};
@@ -8231,11 +8470,12 @@ function renderVolDrilldown(day,titleId,bodyId,panel){
       sets.forEach((s,si)=>{
         html+=`<div class="vol-set-line">
           <span class="vol-set-desc">Set ${si+1} &nbsp;·&nbsp; ${s.desc}</span>
-          <span class="vol-set-vol">${s.isBW?'':s.vol.toLocaleString()+' kg'}</span>
+          <span class="vol-set-vol">${(s.isBW||s.isCardio)?'':s.vol.toLocaleString()+' kg'}</span>
         </div>`;
 
       });
-      html+=`<div class="vol-sets-total"><span>Total Volume</span><strong>${vt.primary} ${vt.unit}</strong></div>`;
+      const totalDetail=isAllCardioSets(sets)?formatCardioTotalDetail(sets):`${vt.primary} ${vt.unit}`;
+      html+=`<div class="vol-sets-total"><span>Total Volume</span><strong>${totalDetail}</strong></div>`;
     }
     html+=`</div><div style="height:6px"></div>`;
   });
@@ -8652,9 +8892,10 @@ function renderVolDrilldownEnhanced(day,titleId,bodyId,panel){
       html+=`<div class="vol-set-line"><span class="vol-set-desc" style="color:var(--text-muted)">No set data found</span></div>`;
     } else {
       sets.forEach((s,si)=>{
-        html+=`<div class="vol-set-line"><span class="vol-set-desc">Set ${si+1} · ${s.desc}</span><span class="vol-set-vol">${s.isBW?'':s.vol.toLocaleString()+' kg'}</span></div>`;
+        html+=`<div class="vol-set-line"><span class="vol-set-desc">Set ${si+1} · ${s.desc}</span><span class="vol-set-vol">${(s.isBW||s.isCardio)?'':s.vol.toLocaleString()+' kg'}</span></div>`;
       });
-      html+=`<div class="vol-sets-total"><span>Total</span><strong>${vt.primary} ${vt.unit}</strong></div>`;
+      const totalDetail=isAllCardioSets(sets)?formatCardioTotalDetail(sets):`${vt.primary} ${vt.unit}`;
+      html+=`<div class="vol-sets-total"><span>Total</span><strong>${totalDetail}</strong></div>`;
     }
     html+=`</div>`;
   });
@@ -8708,6 +8949,9 @@ function _showClassPickerForInput(inputId,baseName,mode){
 }
 window._pickExClass=function(inputId,baseName,cls,mode){
   document.getElementById('_classPickerModal').remove();
+  // Live Mode never supports Cardio — resolving a multi-class exercise (e.g. Burpees) to Cardio here
+  // is blocked exactly like every other Cardio entry point.
+  if(mode==='live'&&cls==='Cardio'){_blockLiveModeCardio();return;}
   if(!window._customConfirmedName)window._customConfirmedName={};
   window._customConfirmedName[mode]=(baseName||'').toLowerCase();
   // Class is stored as its own field, never appended into the visible name — the trailing "(...)"
@@ -8961,6 +9205,7 @@ function handleWorkoutSearchAuto(forceShow){
   document.getElementById("prevPerfBadgeNonLive").classList.remove("visible");
   updateTrackWorkoutBtnVisibility('nonlive');
   document.getElementById("quickFillCopyAllBtn").classList.remove("visible");
+  resetNlCopyAllState();
   if(_prevPerfNonLiveTimer)clearTimeout(_prevPerfNonLiveTimer);
   window._selectedWorkoutClass=null;
   window._selectedWorkoutEquipment=null;
@@ -9092,13 +9337,21 @@ function buildSetsInputFields(){
   let cnt=parseInt(document.getElementById("setsCountSelect").value);
   let c=document.getElementById("dynamicSetsContainer");
   // Capture existing values (and lock state) before rebuilding
-  let existingWeights={},existingReps={},existingLocks={};
+  let existingWeights={},existingReps={},existingLocks={},existingKm={},existingMin={},existingSec={};
   c.querySelectorAll('[id^="weight_set_"]').forEach(el=>{const i=el.id.replace('weight_set_','');existingWeights[i]=el.value});
   c.querySelectorAll('[id^="reps_set_"]').forEach(el=>{const i=el.id.replace('reps_set_','');existingReps[i]=el.value});
   c.querySelectorAll('[id^="lock_set_"]').forEach(el=>{const i=el.id.replace('lock_set_','');existingLocks[i]=el.checked});
-  let weights=[],reps=[],locks=[];
-  for(let i=1;i<=cnt;i++){weights.push(existingWeights[i]||'');reps.push(existingReps[i]||'');locks.push(!!existingLocks[i])}
-  renderNonLiveSetsRows(weights,reps,locks);
+  c.querySelectorAll('[id^="km_set_"]').forEach(el=>{const i=el.id.replace('km_set_','');existingKm[i]=el.value});
+  // Duration lives in the compact picker widget (getPickerSeconds), not a plain input — read it
+  // before the rows below get wiped out, or every Sets-Structure change would silently reset
+  // Duration back to 0 while leaving Km untouched (Km survived because it's a plain input).
+  c.querySelectorAll('[id^="cardioDurMount_set_"]').forEach(el=>{const i=el.id.replace('cardioDurMount_set_','');const totalSec=getPickerSeconds(`nlSet_${i}`);existingMin[i]=Math.floor(totalSec/60);existingSec[i]=totalSec%60});
+  let weights=[],reps=[],locks=[],kms=[],mins=[],secs=[];
+  for(let i=1;i<=cnt;i++){
+    weights.push(existingWeights[i]||'');reps.push(existingReps[i]||'');locks.push(!!existingLocks[i]);
+    kms.push(existingKm[i]||'');mins.push(existingMin[i]!==undefined?existingMin[i]:'0');secs.push(existingSec[i]!==undefined?existingSec[i]:'0');
+  }
+  renderNonLiveSetsRows(weights,reps,locks,kms,mins,secs);
 }
 
 /* Renders the non-live "dynamicSetsContainer" rows from explicit weight/reps/lock arrays (1 entry per set, in order).
@@ -9109,32 +9362,57 @@ function buildSetsInputFields(){
    tapping the box or by swiping the row left-to-right — makes that set's Kg/Reps read-only, auto-
    advances focus to the next set, and persists the locked value in the draft so a browser refresh
    mid-entry doesn't lose it (see saveNonLiveDraft below). */
-function renderNonLiveSetsRows(weights,reps,locks){
+function renderNonLiveSetsRows(weights,reps,locks,kms,mins,secs){
+  window._nlSetCopiedFlags={};
+  stopAllNlCardioTimers();
+  resetNlCopyAllState();
   updateNonLiveSetsStructureVisibility();
   updateNameClearIconVisibility('workoutNameInput','workoutNameClearIcon');
   const c=document.getElementById("dynamicSetsContainer");
-  const n=weights.length;
+  kms=kms||[];mins=mins||[];secs=secs||[];
+  const n=Math.max(weights.length,kms.length);
   locks=locks||[];
   c.innerHTML="";
-  const isBW=isBodyweightNoWeightExercise(document.getElementById("workoutNameInput")?.value.trim());
+  const exName=document.getElementById("workoutNameInput")?.value.trim();
+  const isBW=isBodyweightNoWeightExercise(exName);
+  const isCardio=isCardioExercise(exName);
+  const mountList=[]; // cardio time-pickers need scrollTop set post-mount
   for(let i=1;i<=n;i++){
-    const w=weights[i-1]||'',r=reps[i-1]||'';
     const locked=!!locks[i-1];
-    const isTimeLockedSet=currentEditingIndex!==null&&editOriginalDurations[i];
-    let extraHtml='';
-    if(isTimeLockedSet){
-      extraHtml=`<span class="set-time-locked" title="Original duration is preserved and cannot be changed">⏱ ${editOriginalDurations[i]}</span>`;
-    }
     const showDelete=currentEditingIndex!==null&&i<=editOriginalSetCount;
-    const delBtn=showDelete?`<button type="button" class="set-delete-btn" title="Delete this set" onclick="deleteNonLiveSavedSet(${i})">🗑</button>`:'';
+    const delBtn=showDelete?`<button type="button" class="set-delete-btn" title="Delete this set" onclick="deleteNonLiveSavedSet(${i})">${ICON_DELETE}</button>`:'';
     const labelHtml=showDelete?`<span onclick="toggleSetRowSelection(this)" style="cursor:pointer" title="Tap to show delete option">Set ${i}</span>`:`<span>Set ${i}</span>`;
-    const copyBtn=i>=2?`<button type="button" class="set-copy-btn" title="Copy previous set's values" onclick="copyFromPrevNonLiveSet(${i})">📋</button>`:'';
+    const copyBtn=i>=2?`<button type="button" class="set-copy-btn" id="setCopyBtn_${i}" title="Copy previous set's values" onclick="copyFromPrevNonLiveSet(${i})">${ICON_COPY}</button>`:'';
     const lockHtml=`<label class="set-lock-check" title="Tick to lock this set's values (or swipe the row →)"><input type="checkbox" id="lock_set_${i}" ${locked?'checked':''} onchange="handleSetLockToggle(${i})"><span class="set-lock-box"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span></label>`;
-    const bwHidden=isBW&&!bwKgRevealed.nonlive;
-    const weightInputHtml=bwHidden?`<input type="number" id="weight_set_${i}" value="0" style="display:none">`:(isBW?`<input type="number" placeholder="Kgs (optional)" id="weight_set_${i}" min="0" step="0.5" value="${w}" ${locked?'readonly':''} style="margin-top:0;padding:9px;flex:1" oninput="handleNonLiveSetInputChange()">`:`<input type="number" placeholder="Kgs" id="weight_set_${i}" min="0.5" step="0.5" value="${w}" ${locked?'readonly':''} style="margin-top:0;padding:9px;flex:1" oninput="handleNonLiveSetInputChange()">`);
-    const bwIcon=(isBW&&i===1)?bwInfoIconHtml('nonlive'):'';
-    c.innerHTML+=`<div class="set-row${locked?' set-row-locked':''}" ontouchstart="nlSetSwipeStart(event)" ontouchend="nlSetSwipeEnd(event,${i})">${labelHtml}${weightInputHtml}<input type="number" placeholder="Reps" id="reps_set_${i}" min="1" value="${r}" ${locked?'readonly':''} style="margin-top:0;padding:9px;flex:1" oninput="handleNonLiveSetInputChange()">${bwIcon}${extraHtml}${copyBtn}${lockHtml}${delBtn}</div>`;
+    if(isCardio){
+      const km=kms[i-1]||'',min=mins[i-1]||'0',sec=secs[i-1]||'0';
+      const kmInputHtml=`<input type="number" placeholder="Km" id="km_set_${i}" min="0" step="0.01" value="${km}" ${locked?'readonly':''} class="km-input" oninput="handleNonLiveSetInputChange()">`;
+      // Stopwatch control: ▶ (idle) swaps to a live MM:SS readout + ⏸ Pause / 💾 Save once started.
+      // Save writes the elapsed time straight into the Duration picker up in line 1 (setCardioPickerValue) —
+      // see toggleNlCardioTimer/saveNlCardioTimer. Manual typing into the picker (tap-to-type) still works
+      // as an alternative to the stopwatch at any time.
+      const timerCtrl=`<div class="set-timer-ctrl" id="nlTimerCtrl_${i}">
+        <button type="button" class="set-copy-btn set-timer-btn" id="nlTimerPlayBtn_${i}" title="Start timer to auto-fill Time" onclick="toggleNlCardioTimer(${i})">${ICON_PLAY}</button>
+        <span class="set-timer-display" id="nlTimerDisplay_${i}" style="display:none">00:00</span>
+        <button type="button" class="set-copy-btn set-timer-btn set-timer-pause" id="nlTimerPauseBtn_${i}" title="Pause timer" onclick="toggleNlCardioTimer(${i})" style="display:none">${ICON_PAUSE}</button>
+        <button type="button" class="set-copy-btn set-timer-btn set-timer-save" id="nlTimerSaveBtn_${i}" title="Save timer's time to Time box" onclick="saveNlCardioTimer(${i})" style="display:none">${ICON_SAVE}</button>
+      </div>`;
+      c.innerHTML+=`<div class="set-row cardio-set-row${locked?' set-row-locked':''}" ontouchstart="nlSetSwipeStart(event)" ontouchend="nlSetSwipeEnd(event,${i})"><div class="cardio-set-row-line1">${labelHtml}${kmInputHtml}<div id="cardioDurMount_set_${i}"></div></div><div class="cardio-set-row-line2">${timerCtrl}${copyBtn}${lockHtml}${delBtn}</div></div>`;
+      mountList.push({i,min,sec,locked});
+    } else {
+      const w=weights[i-1]||'',r=reps[i-1]||'';
+      const isTimeLockedSet=currentEditingIndex!==null&&editOriginalDurations[i];
+      let extraHtml='';
+      if(isTimeLockedSet){
+        extraHtml=`<span class="set-time-locked" title="Original duration is preserved and cannot be changed">⏱ ${editOriginalDurations[i]}</span>`;
+      }
+      const bwHidden=isBW&&!bwKgRevealed.nonlive;
+      const weightInputHtml=bwHidden?`<input type="number" id="weight_set_${i}" value="0" style="display:none">`:(isBW?`<input type="number" placeholder="Kgs (optional)" id="weight_set_${i}" min="0" step="0.5" value="${w}" ${locked?'readonly':''} style="margin-top:0;padding:9px;flex:1" oninput="handleNonLiveSetInputChange()">`:`<input type="number" placeholder="Kgs" id="weight_set_${i}" min="0.5" step="0.5" value="${w}" ${locked?'readonly':''} style="margin-top:0;padding:9px;flex:1" oninput="handleNonLiveSetInputChange()">`);
+      const bwIcon=(isBW&&i===1)?bwInfoIconHtml('nonlive'):'';
+      c.innerHTML+=`<div class="set-row${locked?' set-row-locked':''}" ontouchstart="nlSetSwipeStart(event)" ontouchend="nlSetSwipeEnd(event,${i})">${labelHtml}${weightInputHtml}<input type="number" placeholder="Reps" id="reps_set_${i}" min="1" value="${r}" ${locked?'readonly':''} style="margin-top:0;padding:9px;flex:1" oninput="handleNonLiveSetInputChange()">${bwIcon}${extraHtml}${copyBtn}${lockHtml}${delBtn}</div>`;
+    }
   }
+  mountList.forEach(({i,min,sec,locked})=>mountCardioDurationPicker(`cardioDurMount_set_${i}`,`nlSet_${i}`,min,sec,locked,handleNonLiveSetInputChange));
   // Re-check Quick Fill visibility after rebuild
   checkQuickFillVisibility();
 }
@@ -9146,16 +9424,57 @@ function handleNonLiveSetInputChange(){
   saveNonLiveDraft();
 }
 
+/* Tracks, per set index, whether that set's values currently came from tapping its "copy previous
+   set" icon — lets a second tap on the SAME icon undo the paste instead of copying again. Reset
+   whenever the sets grid is rebuilt (see renderNonLiveSetsRows). */
+window._nlSetCopiedFlags={};
 /* Copies the immediately PRECEDING set's Kg/Reps into set `i` (not always Set 1). Available on
-   every set from Set 2 onward. Skips (leaves untouched) either field if that field is locked. */
+   every set from Set 2 onward. Skips (leaves untouched) either field if that field is locked.
+   Tapping the same icon again (while still in the "just copied" state) undoes it, clearing the
+   values it pasted instead of re-copying. */
 function copyFromPrevNonLiveSet(i){
-  const isBW=isBodyweightNoWeightExercise(document.getElementById("workoutNameInput")?.value.trim());
+  const exName=document.getElementById("workoutNameInput")?.value.trim();
+  const locked=document.getElementById(`lock_set_${i}`)?.checked;
+  if(window._nlSetCopiedFlags[i]){
+    // Undo: clear whatever this icon pasted in, then leave the set editable again.
+    if(isCardioExercise(exName)){
+      const kmEl=document.getElementById(`km_set_${i}`);if(kmEl&&!kmEl.readOnly)kmEl.value='';
+      if(!locked)setCardioPickerValue(`nlSet_${i}`,0,0);
+    } else {
+      const wEl=document.getElementById(`weight_set_${i}`),rEl=document.getElementById(`reps_set_${i}`);
+      if(wEl&&!wEl.readOnly)wEl.value='';
+      if(rEl&&!rEl.readOnly)rEl.value='';
+    }
+    window._nlSetCopiedFlags[i]=false;
+    document.getElementById(`setCopyBtn_${i}`)?.classList.remove('copied');
+    checkQuickFillVisibility();
+    saveNonLiveDraft();
+    showToast(`↩️ Set ${i} copy undone.`);
+    return;
+  }
+  if(isCardioExercise(exName)){
+    const kmPrev=parseFloat(document.getElementById(`km_set_${i-1}`)?.value)||0;
+    const secPrev=getPickerSeconds(`nlSet_${i-1}`);
+    if(kmPrev<=0&&secPrev<=0){showToast(`⚠️ Set ${i-1} must have Km/Time filled in first.`);return}
+    const kmEl=document.getElementById(`km_set_${i}`);
+    if(kmEl&&!kmEl.readOnly)kmEl.value=kmPrev;
+    if(!locked)setCardioPickerValue(`nlSet_${i}`,Math.floor(secPrev/60),secPrev%60);
+    window._nlSetCopiedFlags[i]=true;
+    document.getElementById(`setCopyBtn_${i}`)?.classList.add('copied');
+    checkQuickFillVisibility();
+    saveNonLiveDraft();
+    showToast(`⚡ Set ${i-1} values copied to Set ${i}!`);
+    return;
+  }
+  const isBW=isBodyweightNoWeightExercise(exName);
   const kgPrev=parseFloat(document.getElementById(`weight_set_${i-1}`)?.value)||0;
   const repsPrev=parseInt(document.getElementById(`reps_set_${i-1}`)?.value)||0;
   if((!isBW&&kgPrev<0.5)||repsPrev<1){showToast(`⚠️ Set ${i-1} must have ${isBW?'Reps':'Kgs and Reps'} filled in first.`);return}
   const wEl=document.getElementById(`weight_set_${i}`),rEl=document.getElementById(`reps_set_${i}`);
   if(wEl&&!wEl.readOnly)wEl.value=kgPrev;
   if(rEl&&!rEl.readOnly)rEl.value=repsPrev;
+  window._nlSetCopiedFlags[i]=true;
+  document.getElementById(`setCopyBtn_${i}`)?.classList.add('copied');
   checkQuickFillVisibility();
   saveNonLiveDraft();
   showToast(`⚡ Set ${i-1} values copied to Set ${i}!`);
@@ -9169,9 +9488,29 @@ function copyFromPrevNonLiveSet(i){
    involved, no JS needed to swap it. */
 function handleSetLockToggle(i){
   const cb=document.getElementById(`lock_set_${i}`);if(!cb)return;
-  const wEl=document.getElementById(`weight_set_${i}`),rEl=document.getElementById(`reps_set_${i}`);
   const locked=cb.checked;
-  const isBW=isBodyweightNoWeightExercise(document.getElementById("workoutNameInput")?.value.trim());
+  const exName=document.getElementById("workoutNameInput")?.value.trim();
+  const row=cb.closest('.set-row');
+  if(isCardioExercise(exName)){
+    const kmEl=document.getElementById(`km_set_${i}`);
+    const totalSec=getPickerSeconds(`nlSet_${i}`);
+    if(locked){
+      const km=parseFloat(kmEl?.value)||0;
+      if(km<=0&&totalSec<=0){alert(`Set ${i}: enter Km/Time before locking.`);cb.checked=false;return}
+    }
+    if(kmEl)kmEl.readOnly=locked;
+    setCardioPickerLocked(`nlSet_${i}`,locked);
+    if(row)row.classList.toggle('set-row-locked',locked);
+    saveNonLiveDraft();
+    if(locked){
+      showToast(`🔒 Set ${i} locked`);
+      const nextFocusEl=document.getElementById(`km_set_${i+1}`);
+      if(nextFocusEl)nextFocusEl.focus();
+    }
+    return;
+  }
+  const wEl=document.getElementById(`weight_set_${i}`),rEl=document.getElementById(`reps_set_${i}`);
+  const isBW=isBodyweightNoWeightExercise(exName);
   if(locked){
     const w=parseFloat(wEl?.value)||0,r=parseInt(rEl?.value)||0;
     if(isBW){if(r<1){alert(`Set ${i}: enter Reps before locking.`);cb.checked=false;return}}
@@ -9179,7 +9518,7 @@ function handleSetLockToggle(i){
   }
   if(wEl)wEl.readOnly=locked;
   if(rEl)rEl.readOnly=locked;
-  const row=cb.closest('.set-row');if(row)row.classList.toggle('set-row-locked',locked);
+  if(row)row.classList.toggle('set-row-locked',locked);
   saveNonLiveDraft();
   if(locked){
     showToast(`🔒 Set ${i} locked`);
@@ -9188,16 +9527,21 @@ function handleSetLockToggle(i){
   }
 }
 
-/* Swipe-to-lock: records the touch start point on a set-row... */
+/* Swipe-to-lock (left-to-right) / swipe-to-delete (right-to-left): records the touch start point
+   on a set-row... */
 function nlSetSwipeStart(evt){
   const t=evt.touches[0];if(!t)return;
   evt.currentTarget.dataset.swipeStartX=t.clientX;
   evt.currentTarget.dataset.swipeStartY=t.clientY;
 }
-/* ...and on release, if it was a clear, mostly-horizontal left-to-right drag (not a tap or a
-   vertical scroll), ticks that set's lock checkbox exactly as if the person had tapped it.
-   Swiping an already-locked row does nothing (swipe only locks, never unlocks, to avoid
-   accidentally wiping a locked set with a stray sideways scroll gesture). */
+/* ...and on release, if it was a clear, mostly-horizontal drag (not a tap or a vertical scroll):
+     - left-to-right (dx>60)  -> ticks that set's lock checkbox, same as tapping it. Swiping an
+       already-locked row does nothing (swipe only locks, never unlocks, to avoid accidentally
+       wiping a locked set with a stray sideways scroll gesture).
+     - right-to-left (dx<-60) -> reveals that set's delete icon (the row "folds" and the red
+       delete button slides in from the right), same toggle used when tapping the "Set N" label —
+       only does anything on rows that actually have a delete button (i.e. an already-saved set in
+       edit mode). Swiping again (or tapping the label) hides it. */
 function nlSetSwipeEnd(evt,i){
   const row=evt.currentTarget;
   const startX=parseFloat(row.dataset.swipeStartX),startY=parseFloat(row.dataset.swipeStartY);
@@ -9205,9 +9549,14 @@ function nlSetSwipeEnd(evt,i){
   if(isNaN(startX)||isNaN(startY))return;
   const t=evt.changedTouches[0];if(!t)return;
   const dx=t.clientX-startX,dy=t.clientY-startY;
-  if(dx<60||Math.abs(dy)>40)return; // not a clean enough left-to-right swipe
-  const cb=document.getElementById(`lock_set_${i}`);
-  if(cb&&!cb.checked){cb.checked=true;handleSetLockToggle(i)}
+  if(Math.abs(dy)>40)return; // vertical scroll, not a horizontal swipe — ignore
+  if(dx>60){
+    const cb=document.getElementById(`lock_set_${i}`);
+    if(cb&&!cb.checked){cb.checked=true;handleSetLockToggle(i)}
+  } else if(dx<-60){
+    if(!row.querySelector('.set-delete-btn'))return; // nothing to reveal on this set
+    toggleSetRowSelection(row);
+  }
 }
 
 /* ===================== NON-LIVE DRAFT (survives an accidental browser refresh) =====================
@@ -9223,15 +9572,25 @@ function saveNonLiveDraft(){
   if(currentEditingIndex!==null)return; // edits of already-saved entries aren't draft-persisted
   const name=document.getElementById("workoutNameInput")?.value||'';
   const cnt=parseInt(document.getElementById("setsCountSelect")?.value)||1;
+  const cardio=isCardioExercise(name.trim());
   const sets=[];
   for(let i=1;i<=cnt;i++){
-    sets.push({
-      w:document.getElementById(`weight_set_${i}`)?.value||'',
-      r:document.getElementById(`reps_set_${i}`)?.value||'',
-      locked:!!document.getElementById(`lock_set_${i}`)?.checked
-    });
+    if(cardio){
+      const totalSec=getPickerSeconds(`nlSet_${i}`);
+      sets.push({
+        km:document.getElementById(`km_set_${i}`)?.value||'',
+        min:Math.floor(totalSec/60),sec:totalSec%60,
+        locked:!!document.getElementById(`lock_set_${i}`)?.checked
+      });
+    } else {
+      sets.push({
+        w:document.getElementById(`weight_set_${i}`)?.value||'',
+        r:document.getElementById(`reps_set_${i}`)?.value||'',
+        locked:!!document.getElementById(`lock_set_${i}`)?.checked
+      });
+    }
   }
-  const hasContent=!!name||sets.some(s=>s.w||s.r);
+  const hasContent=!!name||sets.some(s=>s.w||s.r||s.km||s.min||s.sec);
   if(!hasContent){clearNonLiveDraft();return} // nothing worth keeping
   try{sessionStorage.setItem(getNonLiveDraftKey(),JSON.stringify({name,setsCount:cnt,sets}))}catch(e){}
 }
@@ -9242,7 +9601,7 @@ function clearNonLiveDraft(){
   try{sessionStorage.removeItem(getNonLiveDraftKey())}catch(e){}
 }
 function nonLiveDraftHasContent(d){
-  return!!(d&&d.sets&&d.sets.length&&(d.name||d.sets.some(s=>s.w||s.r)));
+  return!!(d&&d.sets&&d.sets.length&&(d.name||d.sets.some(s=>s.w||s.r||s.km||s.min||s.sec)));
 }
 
 /* ===================== TOP-LEVEL RESTORE ORCHESTRATOR =====================
@@ -9273,9 +9632,10 @@ async function restoreInProgressWorkoutFormIfAny(wasRefresh){
     applySetsCountMinConstraint();
     document.getElementById("workoutNameInput").value=nlDraft.name||"";
     document.getElementById("setsCountSelect").value=String(nlDraft.setsCount||nlDraft.sets.length||1);
-    renderNonLiveSetsRows(nlDraft.sets.map(s=>s.w),nlDraft.sets.map(s=>s.r),nlDraft.sets.map(s=>s.locked));
+    renderNonLiveSetsRows(nlDraft.sets.map(s=>s.w),nlDraft.sets.map(s=>s.r),nlDraft.sets.map(s=>s.locked),nlDraft.sets.map(s=>s.km),nlDraft.sets.map(s=>s.min),nlDraft.sets.map(s=>s.sec));
     document.getElementById("prevPerfBadgeNonLive").classList.remove("visible");
     document.getElementById("quickFillCopyAllBtn").classList.remove("visible");
+    resetNlCopyAllState();
     updateTrackWorkoutBtnVisibility('nonlive');
     showToast('🔄 Restored your in-progress workout entry after the refresh.');
   }
@@ -9321,8 +9681,18 @@ async function saveWorkoutLogEntry(){
   // filtering next time. Catalog exercises pass through untouched.
   name=finalizeCustomExerciseName(name,window._selectedWorkoutClass,window._selectedWorkoutEquipment);
   const isBW=isBodyweightNoWeightExercise(name);
-  let sd=[],tv=0;
+  const isCardio=isCardioExercise(name);
+  let sd=[],tv=0,totalCardioSec=0;
   for(let i=1;i<=sc;i++){
+    if(isCardio){
+      const km=parseFloat(document.getElementById(`km_set_${i}`)?.value)||0;
+      const totalSec=getPickerSeconds(`nlSet_${i}`);
+      if(km<=0){alert(`Set ${i}: Must have a Km (distance) greater than 0.`);return}
+      if(totalSec<=0){alert(`Set ${i}: Must have a Duration greater than 0.`);return}
+      totalCardioSec+=totalSec;
+      sd.push(formatCardioSetDisplay(km,Math.floor(totalSec/60),totalSec%60));
+      continue;
+    }
     let w=parseFloat(document.getElementById(`weight_set_${i}`).value)||0,r=parseInt(document.getElementById(`reps_set_${i}`).value)||0;
     if(isBW){if(r<1){alert(`Set ${i}: Must have at least 1 rep.`);return}}
     else if(w<0.5||r<1){alert(`Set ${i}: Must have at least 0.5kg and 1 rep.`);return}
@@ -9336,7 +9706,7 @@ async function saveWorkoutLogEntry(){
       sd.push(`${w}kg x ${r}`);
     }
   }
-  let ser=`${name}: ${sd.join(", ")}`,xpe=Math.floor(tv/100)*10;
+  let ser=`${name}: ${sd.join(", ")}`,xpe=isCardio?Math.floor(totalCardioSec/60)*10:Math.floor(tv/100)*10;
   const entry=sessionMakeWorkoutEntry(name,sd.join(", "));
   const slotRef=currentEditingIndex!==null?(window._workoutCiMap&&window._workoutCiMap[currentEditingIndex]):null;
   if(!slotRef)await maybeNotifyNotPunchedIn(uid,td); // brand-new entry, not an edit — only worth the notice here
@@ -9455,6 +9825,10 @@ async function fetchPrevPerformance(exerciseName, mode){
     const dateLabel=dateObj.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
     // Build a row for every set
     let setsHtml=segs.map((seg,si)=>{
+      if(isCardioSetString(seg)){
+        const cp=parseCardioSetSegment(seg);
+        return `<div style="display:flex;align-items:center;gap:6px;margin-top:3px"><span style="min-width:42px;font-size:10px;color:var(--text-muted);font-family:var(--font-alt);font-weight:700">Set ${si+1}</span><span style="font-size:13px;font-weight:700;color:var(--accent)">${formatCardioSetDisplay(cp.km,cp.min,cp.sec)}</span></div>`;
+      }
       const m=seg.match(/([\d.]+)\s*[Kk][Gg]?\s*x\s*(\d+)/i);
       const kg=m?m[1]:'?',reps=m?m[2]:'?';
       return `<div style="display:flex;align-items:center;gap:6px;margin-top:3px"><span style="min-width:42px;font-size:10px;color:var(--text-muted);font-family:var(--font-alt);font-weight:700">Set ${si+1}</span><span style="font-size:13px;font-weight:700;color:var(--accent)">${kg}kg × ${reps} reps</span></div>`;
@@ -9469,33 +9843,141 @@ function checkQuickFillVisibility(){
   const cnt=parseInt(document.getElementById("setsCountSelect")?.value)||1;
   const btn=document.getElementById("quickFillCopyAllBtn");if(!btn)return;
   if(cnt<2){btn.classList.remove("visible");return}
-  const isBW=isBodyweightNoWeightExercise(document.getElementById("workoutNameInput")?.value.trim());
+  const exName=document.getElementById("workoutNameInput")?.value.trim();
+  if(isCardioExercise(exName)){
+    const km1=parseFloat(document.getElementById("km_set_1")?.value)||0;
+    const sec1=getPickerSeconds('nlSet_1');
+    if(km1>0||sec1>0)btn.classList.add("visible");
+    else btn.classList.remove("visible");
+    return;
+  }
+  const isBW=isBodyweightNoWeightExercise(exName);
   const kg1=parseFloat(document.getElementById("weight_set_1")?.value)||0;
   const reps1=parseInt(document.getElementById("reps_set_1")?.value)||0;
   if((isBW||kg1>=0.5)&&reps1>=1)btn.classList.add("visible");
   else btn.classList.remove("visible");
 }
+/* Toggle for the non-live "copy set 1 to all sets" button (does NOT apply to live mode, which has
+   its own separate copy-from-previous-set toggle below, though the same pattern):
+     1st tap -> copies Set 1's values into every other set, remembering exactly what was in each
+                field beforehand (in edit mode that's real saved data for pre-existing sets, and
+                blank for any set freshly added during this edit)
+     2nd tap (while still in the "just copied" state) -> UNDOES it, restoring each field to
+                whatever it held right before the copy — NOT blanking every set, which would wipe
+                out real saved values on pre-existing sets when editing
+   Tapping again after that starts the cycle over (copies again). */
+window._nlCopyAllState=0;
+window._nlCopyAllOriginal=null;
+function resetNlCopyAllState(){
+  window._nlCopyAllState=0;
+  window._nlCopyAllOriginal=null;
+  document.getElementById("quickFillCopyAllBtn")?.classList.remove('copied');
+}
 function quickFillCopyAll(){
   const cnt=parseInt(document.getElementById("setsCountSelect").value)||1;
-  const isBW=isBodyweightNoWeightExercise(document.getElementById("workoutNameInput")?.value.trim());
+  const exName=document.getElementById("workoutNameInput")?.value.trim();
+  const isCardio=isCardioExercise(exName);
+  const btn=document.getElementById("quickFillCopyAllBtn");
+
+  // 2nd tap: undo — restore exactly what each field held before the copy
+  if(window._nlCopyAllState===1){
+    const orig=window._nlCopyAllOriginal||{};
+    for(let i=2;i<=cnt;i++){
+      const o=orig[i];if(!o)continue;
+      if(isCardio){
+        const kmEl=document.getElementById(`km_set_${i}`);
+        if(kmEl&&!kmEl.readOnly)kmEl.value=o.km;
+        const locked=document.getElementById(`lock_set_${i}`)?.checked;
+        if(!locked)setCardioPickerValue(`nlSet_${i}`,o.min,o.sec);
+      } else {
+        const wEl=document.getElementById(`weight_set_${i}`);
+        const rEl=document.getElementById(`reps_set_${i}`);
+        if(wEl&&!wEl.readOnly)wEl.value=o.w;
+        if(rEl&&!rEl.readOnly)rEl.value=o.r;
+      }
+    }
+    window._nlCopyAllState=0;
+    window._nlCopyAllOriginal=null;
+    btn?.classList.remove('copied');
+    saveNonLiveDraft();
+    showToast(`↩️ Copy undone.`);
+    return;
+  }
+
+  // 1st tap: capture each set's current value, then copy Set 1 into every other set
+  if(isCardio){
+    const km1=parseFloat(document.getElementById("km_set_1")?.value)||0;
+    const sec1=getPickerSeconds('nlSet_1');
+    if(km1<=0&&sec1<=0){alert("Please fill in Set 1 Km/Time first.");return}
+    const orig={};
+    for(let i=2;i<=cnt;i++){
+      const kmEl=document.getElementById(`km_set_${i}`);
+      const secI=getPickerSeconds(`nlSet_${i}`);
+      orig[i]={km:kmEl?kmEl.value:'',min:Math.floor(secI/60),sec:secI%60};
+      if(kmEl&&!kmEl.readOnly)kmEl.value=km1;
+      const locked=document.getElementById(`lock_set_${i}`)?.checked;
+      if(!locked)setCardioPickerValue(`nlSet_${i}`,Math.floor(sec1/60),sec1%60);
+    }
+    window._nlCopyAllOriginal=orig;
+    window._nlCopyAllState=1;
+    btn?.classList.add('copied');
+    saveNonLiveDraft();
+    showToast(`⚡ Set 1 values copied to all ${cnt} sets!`);
+    return;
+  }
+  const isBW=isBodyweightNoWeightExercise(exName);
   const kg1=parseFloat(document.getElementById("weight_set_1").value)||0;
   const reps1=parseInt(document.getElementById("reps_set_1").value)||0;
   if((!isBW&&kg1<0.5)||reps1<1){alert(isBW?"Please fill in Set 1 Reps first.":"Please fill in Set 1 Kgs and Reps first.");return}
+  const orig={};
   for(let i=2;i<=cnt;i++){
     const wEl=document.getElementById(`weight_set_${i}`);
     const rEl=document.getElementById(`reps_set_${i}`);
+    orig[i]={w:wEl?wEl.value:'',r:rEl?rEl.value:''};
     if(wEl&&!wEl.readOnly)wEl.value=kg1;
     if(rEl&&!rEl.readOnly)rEl.value=reps1;
   }
+  window._nlCopyAllOriginal=orig;
+  window._nlCopyAllState=1;
+  btn?.classList.add('copied');
   saveNonLiveDraft();
   showToast(`⚡ Set 1 values copied to all ${cnt} sets!`);
 }
 
 /* ===================== LIVE SET: COPY FROM PREVIOUS ===================== */
+/* Same "tap again to undo" tracking as the non-live copy icon — see window._nlSetCopiedFlags. */
+window._liveSetCopiedFlags={};
 /* Copies Kg and Reps from the immediately PRECEDING set (idx-1) into the target set (idx >= 2) —
-   not always Set 1. Only fires if that previous set has valid data. */
+   not always Set 1. Only fires if that previous set has valid data. Tapping again while still in
+   the "just copied" state undoes it, clearing the values it pasted instead of re-copying. */
 function liveCopyFromPrevSet(idx){
-  const isBW=isBodyweightNoWeightExercise(document.getElementById("liveWorkoutNameInput")?.value.trim());
+  const exName=document.getElementById("liveWorkoutNameInput")?.value.trim();
+  if(window._liveSetCopiedFlags[idx]){
+    if(isCardioExercise(exName)){
+      const kmEl=document.getElementById(`liveKm_${idx}`);if(kmEl)kmEl.value='';
+      setCardioPickerValue(`liveSet_${idx}`,0,0);
+    } else {
+      const kgEl=document.getElementById(`liveKg_${idx}`),repsEl=document.getElementById(`liveReps_${idx}`);
+      if(kgEl)kgEl.value='';
+      if(repsEl)repsEl.value='';
+    }
+    window._liveSetCopiedFlags[idx]=false;
+    document.getElementById(`liveCopyPrevBtn_${idx}`)?.classList.remove('copied');
+    showToast(`↩️ Set ${idx} copy undone.`);
+    return;
+  }
+  if(isCardioExercise(exName)){
+    const kmPrev=parseFloat(document.getElementById(`liveKm_${idx-1}`)?.value)||0;
+    const secPrev=getPickerSeconds(`liveSet_${idx-1}`);
+    if(kmPrev<=0&&secPrev<=0){showToast(`⚠️ Set ${idx-1} must have Km/Time filled in first.`);return}
+    const kmEl=document.getElementById(`liveKm_${idx}`);if(kmEl)kmEl.value=kmPrev;
+    setCardioPickerValue(`liveSet_${idx}`,Math.floor(secPrev/60),secPrev%60);
+    window._liveSetCopiedFlags[idx]=true;
+    document.getElementById(`liveCopyPrevBtn_${idx}`)?.classList.add('copied');
+    showToast(`⚡ Set ${idx-1} values copied to Set ${idx}!`);
+    return;
+  }
+  const isBW=isBodyweightNoWeightExercise(exName);
   const kgPrev=parseFloat(document.getElementById(`liveKg_${idx-1}`)?.value)||0;
   const repsPrev=parseInt(document.getElementById(`liveReps_${idx-1}`)?.value)||0;
   if((!isBW&&kgPrev<0.5)||repsPrev<1){showToast(`⚠️ Set ${idx-1} must have ${isBW?'Reps':'Kgs and Reps'} filled in first.`);return}
@@ -9503,6 +9985,8 @@ function liveCopyFromPrevSet(idx){
   const repsEl=document.getElementById(`liveReps_${idx}`);
   if(kgEl)kgEl.value=kgPrev;
   if(repsEl)repsEl.value=repsPrev;
+  window._liveSetCopiedFlags[idx]=true;
+  document.getElementById(`liveCopyPrevBtn_${idx}`)?.classList.add('copied');
   showToast(`⚡ Set ${idx-1} values copied to Set ${idx}!`);
 }
 
@@ -9510,8 +9994,18 @@ function liveCopyFromPrevSet(idx){
    For the first new set (idx===1), "previous" is the last already-saved set, which lives as a plain
    string segment (e.g. "20Kg x 10 [30 sec]") rather than a live input — parsed via parseSetSegment.
    For idx>=2, "previous" is the new set just before it (liveEditKg/Reps_${idx-1}). */
+window._liveEditSetCopiedFlags={};
 function liveEditCopyFromPrevSet(idx){
   const committedCount=liveEditExistingResults.length+liveEditNewResults.length;
+  if(window._liveEditSetCopiedFlags[idx]){
+    const kgEl=document.getElementById(`liveEditKg_${idx}`),repsEl=document.getElementById(`liveEditReps_${idx}`);
+    if(kgEl)kgEl.value='';
+    if(repsEl)repsEl.value='';
+    window._liveEditSetCopiedFlags[idx]=false;
+    document.getElementById(`liveEditCopyPrevBtn_${idx}`)?.classList.remove('copied');
+    showToast(`↩️ Set ${committedCount+idx} copy undone.`);
+    return;
+  }
   let kgPrev,repsPrev,prevLabel;
   if(idx===1){
     const committed=getLiveEditCommittedSegments();
@@ -9530,6 +10024,8 @@ function liveEditCopyFromPrevSet(idx){
   const repsEl=document.getElementById(`liveEditReps_${idx}`);
   if(kgEl)kgEl.value=kgPrev;
   if(repsEl)repsEl.value=repsPrev;
+  window._liveEditSetCopiedFlags[idx]=true;
+  document.getElementById(`liveEditCopyPrevBtn_${idx}`)?.classList.add('copied');
   showToast(`⚡ ${prevLabel} values copied to Set ${committedCount+idx}!`);
 }
 
@@ -9765,13 +10261,14 @@ function showAddWorkoutForm(){
     if(nonLiveDraftHasContent(draft)){
       document.getElementById("workoutNameInput").value=draft.name||"";
       document.getElementById("setsCountSelect").value=String(draft.setsCount||draft.sets.length||1);
-      renderNonLiveSetsRows(draft.sets.map(s=>s.w),draft.sets.map(s=>s.r),draft.sets.map(s=>s.locked));
+      renderNonLiveSetsRows(draft.sets.map(s=>s.w),draft.sets.map(s=>s.r),draft.sets.map(s=>s.locked),draft.sets.map(s=>s.km),draft.sets.map(s=>s.min),draft.sets.map(s=>s.sec));
       showToast('🔄 Restored your entry from before the refresh.');
     } else {
       document.getElementById("setsCountSelect").value="1";buildSetsInputFields();
     }
     document.getElementById("prevPerfBadgeNonLive").classList.remove("visible");
     document.getElementById("quickFillCopyAllBtn").classList.remove("visible");
+    resetNlCopyAllState();
     updateTrackWorkoutBtnVisibility('nonlive');
     _updateInlineClassBtn('workoutNameInput','_inlineClassBtnNonLive','nonlive');
     _updateInlineEquipBtn('workoutNameInput','_inlineEquipBtnNonLive','nonlive');
@@ -9782,6 +10279,7 @@ function cancelWorkoutLogging(){
   bwKgRevealed.nonlive=false;
   updateTrackWorkoutBtnVisibility('nonlive');
   editOriginalDurations={};editOriginalSetCount=0;applySetsCountMinConstraint();
+  stopAllNlCardioTimers();
   document.getElementById("dynamicSetsContainer").innerHTML=""; // wipe old set rows so the next "Add Workout" starts blank, not pre-filled
   updateNonLiveSetsStructureVisibility();
   updateNameClearIconVisibility('workoutNameInput','workoutNameClearIcon');
@@ -9809,12 +10307,23 @@ function toggleLiveNameDropdown(e){
     if(icon)icon.classList.add("open");
   }
 }
+/* Live Mode never supports Cardio (Distance/Duration) exercises — shown via toast, and blocked at
+   every entry point: picking "Cardio" from the Muscle/Class filter dropdown, selecting a Cardio
+   exercise from the autosuggest list, typing a Cardio exercise's exact name into the search box, or
+   resolving a "multi" exercise (e.g. Burpees) to the Cardio class via the class-picker modal. */
+function _blockLiveModeCardio(){
+  showToast('⛔ Live Mode is not available for Cardio workouts');
+}
 function handleLiveSearchAuto(forceShow){
   saveLiveDraft();
   let val=document.getElementById("liveWorkoutNameInput").value.toLowerCase();
   updateLiveSetsStructureVisibility();
   updateNameClearIconVisibility('liveWorkoutNameInput','liveWorkoutNameClearIcon');
-  const muscleVal=document.getElementById("liveWorkoutMuscleFilter")?document.getElementById("liveWorkoutMuscleFilter").value:"";
+  // "Cardio" may be typed, searched, or scrolled to in the Muscle/Class filter and autosuggest
+  // dropdown like any other class — browsing is fine. Only actually SELECTING a Cardio exercise
+  // (a click in the dropdown, choosing "Cardio" for a multi-class exercise, or pressing Start Live
+  // Session with one typed) is blocked — see the div.onclick below, _pickExClass, and startLiveSession.
+  let muscleVal=document.getElementById("liveWorkoutMuscleFilter")?document.getElementById("liveWorkoutMuscleFilter").value:"";
   const equipVal=document.getElementById("liveWorkoutEquipmentFilter")?document.getElementById("liveWorkoutEquipmentFilter").value:"";
   let box=document.getElementById("liveAutoSuggestions");box.innerHTML="";box.style.display="none";
   const icon=document.getElementById("liveWorkoutNameDropdownIcon");if(icon)icon.classList.remove("open");
@@ -9841,6 +10350,14 @@ function handleLiveSearchAuto(forceShow){
       div.innerHTML=`<span>${item.name}${item.isCustom?' <span style="opacity:0.55;font-size:9px">(custom)</span>':''}</span><span>${classTag}</span>`;
       div.style.cssText='display:flex;align-items:center;justify-content:space-between;gap:6px';
       div.onclick=()=>{
+        // Cardio exercises stay visible/searchable in this dropdown, but Live Mode never supports
+        // them — selecting one notifies instead of setting it as the exercise name.
+        if(item.class==='Cardio'){
+          box.style.display="none";
+          if(icon)icon.classList.remove("open");
+          _blockLiveModeCardio();
+          return;
+        }
         box.style.display="none";
         if(icon)icon.classList.remove("open");
         if(_prevPerfLiveTimer)clearTimeout(_prevPerfLiveTimer);
@@ -9906,8 +10423,15 @@ function saveLiveDraft(){
     return;
   }
   if(!name){clearLiveDraft();return}
+  const isCardio=isCardioExercise(name);
   const sets={};
   for(let i=1;i<=liveTotalSets;i++){
+    if(isCardio){
+      const kmEl=document.getElementById(`liveKm_${i}`);if(!kmEl)continue;
+      const totalSec=getPickerSeconds(`liveSet_${i}`);
+      sets[i]={km:kmEl.value||'',min:Math.floor(totalSec/60),sec:totalSec%60};
+      continue;
+    }
     const kgEl=document.getElementById(`liveKg_${i}`);if(!kgEl)continue;
     const repsEl=document.getElementById(`liveReps_${i}`);
     const running=!!liveSetTimers[i];
@@ -10007,7 +10531,9 @@ function restoreLiveSessionUI(draft){
     breakStillPending=breakElapsedNow<draft.liveBreak.total;
   }
   const activeIdxForBuild=breakStillPending?-1:nextActiveIdx;
+  const isCardioLive=isCardioExercise(draft.name);
   for(let i=1;i<=liveTotalSets;i++)container.innerHTML+=buildLiveSetHTML(i,i===activeIdxForBuild);
+  if(isCardioLive)for(let i=1;i<=liveTotalSets;i++)mountCardioDurationPicker(`liveCardioDurMount_${i}`,`liveSet_${i}`,0,0,false,()=>syncLiveCardioDurDisplay(i));
   const hasDefault=getDefaultBreakSeconds()>0;
   if(!hasDefault)for(let i=1;i<=liveTotalSets;i++)mountMinSecPicker(`liveBreakPickerMount_${i}`,`liveBreak_${i}`,0,0);
 
@@ -10015,28 +10541,39 @@ function restoreLiveSessionUI(draft){
   for(let i=1;i<=liveSetResults.length;i++){
     const resultStr=liveSetResults[i-1];
     document.getElementById(`liveSetSaveBtn_${i}`).style.display="none";
-    document.getElementById(`liveTimerRow_${i}`).style.display="none";
+    const timerRowEl=document.getElementById(`liveTimerRow_${i}`);if(timerRowEl)timerRowEl.style.display="none";
     document.getElementById(`liveSetInputs_${i}`).style.pointerEvents="none";
     document.getElementById(`liveSetInputs_${i}`).style.opacity="0.6";
     const resultEl=document.getElementById(`liveSetResult_${i}`);resultEl.textContent=`✓ ${resultStr}`;resultEl.style.display="block";
     document.getElementById(`liveSetDoneBadge_${i}`).style.display="inline-block";
     document.getElementById(`liveSetBlock_${i}`).classList.remove("set-active");document.getElementById(`liveSetBlock_${i}`).classList.add("set-done");
-    // Re-populate this done set's Kg/Reps inputs from its saved result string. The fresh
-    // buildLiveSetHTML() call above always renders empty inputs, so without this a refresh would
-    // silently wipe the values out of the DOM — breaking "Copy from previous set" on the next set
-    // (it reads liveKg_/liveReps_ of the set before it) even though the result line still shows fine.
-    const _m=resultStr.match(/([\d.]+)\s*[Kk][Gg]?\s*x\s*(\d+)/i);
-    if(_m){
-      const kgEl=document.getElementById(`liveKg_${i}`),repsEl=document.getElementById(`liveReps_${i}`);
-      if(kgEl)kgEl.value=_m[1];
-      if(repsEl)repsEl.value=_m[2];
+    // Re-populate this done set's inputs from its saved result string. The fresh buildLiveSetHTML()
+    // call above always renders empty inputs, so without this a refresh would silently wipe the
+    // values out of the DOM — breaking "Copy from previous set" on the next set (it reads the set
+    // before it) even though the result line still shows fine.
+    if(isCardioLive){
+      const cp=parseCardioSetSegment(resultStr);
+      const kmEl=document.getElementById(`liveKm_${i}`);if(kmEl)kmEl.value=cp.km||'';
+      setCardioPickerValue(`liveSet_${i}`,cp.min,cp.sec);
+    } else {
+      const _m=resultStr.match(/([\d.]+)\s*[Kk][Gg]?\s*x\s*(\d+)/i);
+      if(_m){
+        const kgEl=document.getElementById(`liveKg_${i}`),repsEl=document.getElementById(`liveReps_${i}`);
+        if(kgEl)kgEl.value=_m[1];
+        if(repsEl)repsEl.value=_m[2];
+      }
     }
   }
 
-  // Restore in-progress typed Kg/Reps + stopwatch state for not-yet-saved sets
+  // Restore in-progress typed values + stopwatch state for not-yet-saved sets
   Object.keys(draft.sets||{}).forEach(k=>{
     const i=parseInt(k);if(i<=liveSetResults.length)return;
     const s=draft.sets[k];
+    if(isCardioLive){
+      const kmEl=document.getElementById(`liveKm_${i}`);if(kmEl)kmEl.value=s.km||'';
+      setCardioPickerValue(`liveSet_${i}`,s.min,s.sec);
+      return;
+    }
     const kgEl=document.getElementById(`liveKg_${i}`),repsEl=document.getElementById(`liveReps_${i}`);
     if(kgEl)kgEl.value=s.kg||'';if(repsEl)repsEl.value=s.reps||'';
     if(s.timerRunning){
@@ -10124,6 +10661,7 @@ function showResumeAlertsBanner(){
 function startLiveSession(){
   if(window._liveEditMode){startLiveEditNewSets();return;}
   let name=document.getElementById("liveWorkoutNameInput").value.trim();if(!name){alert("Please enter exercise name.");return}
+  if(isCardioExercise(name)){_blockLiveModeCardio();return;}
   // A brand-new custom exercise (not in the catalog, never saved before) must have a Class picked —
   // Equipment stays optional — so it always shows its designated muscle group everywhere.
   if(_customExerciseNeedsClass(name,window._selectedLiveWorkoutClass)){
@@ -10137,11 +10675,12 @@ function startLiveSession(){
   // so every subsequent set saved this session uses the same finalized name.
   name=finalizeCustomExerciseName(name,window._selectedLiveWorkoutClass,window._selectedLiveWorkoutEquipment);
   document.getElementById("liveWorkoutNameInput").value=name;
-  liveTotalSets=parseInt(document.getElementById("liveSetsCountSelect").value);liveCurrentSet=1;liveSetResults=[];liveSessionSlot=null;
+  liveTotalSets=parseInt(document.getElementById("liveSetsCountSelect").value);liveCurrentSet=1;liveSetResults=[];liveSessionSlot=null;window._liveSetCopiedFlags={};
   document.getElementById("liveSetupPanel").style.display="none";
   let titleEl=document.getElementById("liveSessionTitle");titleEl.textContent="🏋 "+name+" — "+liveTotalSets+" Set"+(liveTotalSets>1?"s":"");titleEl.style.display="block";
   const container=document.getElementById("liveSetsContainer");container.innerHTML="";
   for(let i=1;i<=liveTotalSets;i++){container.innerHTML+=buildLiveSetHTML(i,i===1)}
+  if(isCardioExercise(name))for(let i=1;i<=liveTotalSets;i++)mountCardioDurationPicker(`liveCardioDurMount_${i}`,`liveSet_${i}`,0,0,false,()=>syncLiveCardioDurDisplay(i));
   // Only mount the manual scrollable picker when the user has NOT configured a default break time.
   // If a default is set, the break auto-runs silently after each set — no manual UI needed.
   const hasDefault=getDefaultBreakSeconds()>0;
@@ -10153,8 +10692,51 @@ function startLiveSession(){
   saveLiveDraft();
 }
 function buildLiveSetHTML(idx,active){
-  const isBW=isBodyweightNoWeightExercise(document.getElementById("liveWorkoutNameInput")?.value.trim());
-  const copyBtn=idx>=2?`<button class="live-copy-prev-btn" id="liveCopyPrevBtn_${idx}" onclick="liveCopyFromPrevSet(${idx})" title="Auto-fill from the previous set's values">⚡ Copy from previous set</button>`:'';
+  const exName=document.getElementById("liveWorkoutNameInput")?.value.trim();
+  const isBW=isBodyweightNoWeightExercise(exName);
+  const isCardio=isCardioExercise(exName);
+  const copyBtn=idx>=2?`<button class="live-copy-prev-btn" id="liveCopyPrevBtn_${idx}" onclick="liveCopyFromPrevSet(${idx})" title="Auto-fill from the previous set's values">${ICON_COPY} Copy from previous set</button>`:'';
+  if(isCardio){
+    return `<div class="live-set-block${active?' set-active':''}" id="liveSetBlock_${idx}">
+    <div class="live-set-header"><span class="live-set-title">SET ${idx}</span><span class="live-set-done-badge" id="liveSetDoneBadge_${idx}" style="display:none">✓ DONE</span></div>
+    <div class="live-set-inputs" id="liveSetInputs_${idx}" ${!active?'style="opacity:0.4;pointer-events:none"':''}>
+      <input type="number" id="liveKm_${idx}" placeholder="Km" min="0" step="0.01" class="km-input" oninput="saveLiveDraft()">
+      ${copyBtn}
+    </div>
+    <div class="live-timer-row" id="liveTimerRow_${idx}" ${!active?'style="display:none"':''}>
+      <div class="live-timer-display" id="liveTimerDisplay_${idx}">00:00</div>
+      <button class="live-timer-btn start" id="liveTimerBtn_${idx}" onclick="toggleLiveSetTimer(${idx})" title="Start timer to auto-fill Duration">▶</button>
+      <button class="live-dur-edit-btn" id="liveDurEditBtn_${idx}" onclick="toggleLiveCardioDurEdit(${idx})" title="Manually set Duration">${ICON_EDIT}</button>
+    </div>
+    <div class="live-cardio-dur-edit" id="liveCardioDurEditWrap_${idx}" style="display:none">
+      <div id="liveCardioDurMount_${idx}"></div>
+    </div>
+    <div class="live-set-result" id="liveSetResult_${idx}"></div>
+    <button class="live-set-save-btn" id="liveSetSaveBtn_${idx}" onclick="saveLiveSet(${idx})" ${active?'style="display:block"':''}>💾 SAVE SET ${idx}</button>
+    <div class="live-break-row" id="liveBreakRow_${idx}">
+      <div class="live-break-title" id="liveBreakTitle_${idx}">⏸ BREAK TIME (optional)</div>
+      <div class="live-break-inputs" id="liveBreakInputsRow_${idx}">
+        <div id="liveBreakPickerMount_${idx}"></div>
+        <button class="live-break-btn start" onclick="startLiveBreak(${idx})">START BREAK</button>
+        <button class="live-break-btn" style="background:var(--accent-soft);color:var(--text-secondary)" onclick="skipLiveBreak(${idx})">SKIP</button>
+      </div>
+      <div class="live-break-timer-row">
+        <div class="live-break-timer" id="liveBreakTimer_${idx}">00:00</div>
+        <button class="live-break-edit-btn" id="liveBreakEditBtn_${idx}" onclick="toggleEditBreakPanel(${idx})">✏️ Edit Break</button>
+      </div>
+      <div class="live-break-edit-panel" id="liveBreakEditPanel_${idx}">
+        <div class="live-break-edit-label">⏸ Auto Break paused — pick a new time for THIS set only. Your default Auto Break in Settings won't change.</div>
+        <div id="liveBreakEditPickerMount_${idx}"></div>
+        <div class="live-break-edit-actions">
+          <button class="live-break-btn start" onclick="applyBreakTimeEdit(${idx})">SET BREAK TIME</button>
+          <button class="live-break-btn" style="background:var(--accent-soft);color:var(--text-secondary)" onclick="toggleEditBreakPanel(${idx})">CANCEL</button>
+        </div>
+      </div>
+      <div class="live-break-msg" id="liveBreakMsg_${idx}"></div>
+      <button class="live-break-btn" id="liveBreakAutoSkip_${idx}" style="display:none;background:var(--accent-soft);color:var(--text-secondary);margin-top:8px" onclick="skipLiveBreak(${idx})">SKIP BREAK</button>
+    </div>
+  </div>`;
+  }
   const bwHidden=isBW&&!bwKgRevealed.live;
   const weightInputHtml=bwHidden?`<input type="number" id="liveKg_${idx}" value="0" style="display:none">`:(isBW?`<input type="number" id="liveKg_${idx}" placeholder="Kgs (optional)" min="0" step="0.5" style="margin-top:0;padding:9px" oninput="saveLiveDraft()">`:`<input type="number" id="liveKg_${idx}" placeholder="Kgs" min="0.5" step="0.5" style="margin-top:0;padding:9px" oninput="saveLiveDraft()">`);
   const bwIcon=(isBW&&idx===1)?bwInfoIconHtml('live'):'';
@@ -10196,29 +10778,71 @@ function buildLiveSetHTML(idx,active){
     </div>
   </div>`;
 }
+/* Toggles the small scrollable min:sec picker for a Live-mode cardio set — the pencil icon next
+   to the timer. Mounted lazily (only on first open) with whatever's currently on the timer
+   display, so opening it mid-way through a timed set doesn't lose progress. */
+function toggleLiveCardioDurEdit(idx){
+  const wrap=document.getElementById(`liveCardioDurEditWrap_${idx}`);if(!wrap)return;
+  const opening=wrap.style.display==="none"||!wrap.style.display;
+  if(opening){
+    const mount=document.getElementById(`liveCardioDurMount_${idx}`);
+    // Safety net only — every cardio set's picker is already mounted (see startLiveSession /
+    // restoreLiveSessionUI) so this normally never fires, but covers any DOM edge case cleanly.
+    if(mount&&!mount.dataset.pickerKey){
+      const curSec=liveSetSeconds[idx]||0;
+      mountCardioDurationPicker(`liveCardioDurMount_${idx}`,`liveSet_${idx}`,Math.floor(curSec/60),curSec%60,false,()=>syncLiveCardioDurDisplay(idx));
+    }
+    wrap.style.display="block";
+  } else {
+    wrap.style.display="none";
+  }
+}
 function toggleLiveSetTimer(idx){
   const btn=document.getElementById(`liveTimerBtn_${idx}`);
+  const isCardio=isCardioExercise(document.getElementById("liveWorkoutNameInput")?.value.trim());
   if(liveSetTimers[idx]){
     clearInterval(liveSetTimers[idx]);delete liveSetTimers[idx];delete liveSetTimerStartEpoch[idx];
     btn.textContent="▶";btn.className="live-timer-btn start";document.getElementById(`liveSetSaveBtn_${idx}`).style.display="block";
+    // Cardio: the stopped timer IS the Duration — auto-fill the picker so Save reads the correct
+    // value, whether or not the person ever opens the manual edit picker.
+    if(isCardio){
+      const totalSec=liveSetSeconds[idx]||0;
+      setCardioPickerValue(`liveSet_${idx}`,Math.floor(totalSec/60),totalSec%60);
+      const editBtn=document.getElementById(`liveDurEditBtn_${idx}`);if(editBtn)editBtn.disabled=false;
+    }
   }
   else{
     if(!liveSetSeconds[idx])liveSetSeconds[idx]=0;
     liveSetTimerAccumAtStart[idx]=liveSetSeconds[idx];liveSetTimerStartEpoch[idx]=Date.now();
     btn.textContent="⏹";btn.className="live-timer-btn stop";document.getElementById(`liveSetSaveBtn_${idx}`).style.display="none";
+    if(isCardio){const editBtn=document.getElementById(`liveDurEditBtn_${idx}`);if(editBtn)editBtn.disabled=true;}
     liveSetTimers[idx]=setInterval(()=>{liveSetSeconds[idx]++;let m=Math.floor(liveSetSeconds[idx]/60),s=liveSetSeconds[idx]%60;document.getElementById(`liveTimerDisplay_${idx}`).textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0')},1000);
   }
   saveLiveDraft();
 }
 async function saveLiveSet(idx){
-  const isBW=isBodyweightNoWeightExercise(document.getElementById("liveWorkoutNameInput")?.value.trim());
-  let kg=parseFloat(document.getElementById(`liveKg_${idx}`).value)||0,reps=parseInt(document.getElementById(`liveReps_${idx}`).value)||0;
-  if(isBW){if(reps<1){alert(`Set ${idx}: Please enter Reps before saving.`);return}}
-  else if(kg<0.5||reps<1){alert(`Set ${idx}: Please enter Kgs and Reps before saving.`);return}
-  if(liveSetTimers[idx]){clearInterval(liveSetTimers[idx]);delete liveSetTimers[idx]}
-  delete liveSetTimerStartEpoch[idx];delete liveSetTimerAccumAtStart[idx];
-  let secs=liveSetSeconds[idx]||0;let timeLabel=secs===0?"0 sec":secs<60?`${secs} sec`:secs%60>0?`${Math.floor(secs/60)} min ${secs%60} sec`:`${Math.floor(secs/60)} min`;
-  let setStr=`${kg}Kg x ${reps} [${timeLabel}]`;liveSetResults.push(setStr);
+  const exName=document.getElementById("liveWorkoutNameInput")?.value.trim();
+  const isBW=isBodyweightNoWeightExercise(exName);
+  const isCardio=isCardioExercise(exName);
+  let setStr;
+  if(isCardio){
+    const km=parseFloat(document.getElementById(`liveKm_${idx}`)?.value)||0;
+    const totalSec=getPickerSeconds(`liveSet_${idx}`);
+    if(km<=0){alert(`Set ${idx}: Please enter a Km (distance) greater than 0.`);return}
+    if(totalSec<=0){alert(`Set ${idx}: Please enter a Duration greater than 0 — start the timer or tap the ✏️ icon to set it manually.`);return}
+    if(liveSetTimers[idx]){clearInterval(liveSetTimers[idx]);delete liveSetTimers[idx]}
+    delete liveSetTimerStartEpoch[idx];delete liveSetTimerAccumAtStart[idx];
+    setStr=formatCardioSetDisplay(km,Math.floor(totalSec/60),totalSec%60);
+  } else {
+    let kg=parseFloat(document.getElementById(`liveKg_${idx}`).value)||0,reps=parseInt(document.getElementById(`liveReps_${idx}`).value)||0;
+    if(isBW){if(reps<1){alert(`Set ${idx}: Please enter Reps before saving.`);return}}
+    else if(kg<0.5||reps<1){alert(`Set ${idx}: Please enter Kgs and Reps before saving.`);return}
+    if(liveSetTimers[idx]){clearInterval(liveSetTimers[idx]);delete liveSetTimers[idx]}
+    delete liveSetTimerStartEpoch[idx];delete liveSetTimerAccumAtStart[idx];
+    let secs=liveSetSeconds[idx]||0;let timeLabel=secs===0?"0 sec":secs<60?`${secs} sec`:secs%60>0?`${Math.floor(secs/60)} min ${secs%60} sec`:`${Math.floor(secs/60)} min`;
+    setStr=`${kg}Kg x ${reps} [${timeLabel}]`;
+  }
+  liveSetResults.push(setStr);
   let name=document.getElementById("liveWorkoutNameInput").value.trim(),uid=getEffectiveUid(),td=document.getElementById("workoutCalendarFilter").value;
   let combinedEntry=`${name}: ${liveSetResults.join(", ")}`;
   const entry=sessionMakeWorkoutEntry(name,liveSetResults.join(", "));
@@ -10226,7 +10850,7 @@ async function saveLiveSet(idx){
   const savedSlot=await sessionUpsertWorkoutEntry(uid,td,liveSessionSlot,entry);
   if(!savedSlot){alert("Daily capacity of 15 entries reached for this session.");return}
   liveSessionSlot=savedSlot;
-  document.getElementById(`liveSetSaveBtn_${idx}`).style.display="none";document.getElementById(`liveTimerRow_${idx}`).style.display="none";
+  document.getElementById(`liveSetSaveBtn_${idx}`).style.display="none";const timerRowEl=document.getElementById(`liveTimerRow_${idx}`);if(timerRowEl)timerRowEl.style.display="none";
   document.getElementById(`liveSetInputs_${idx}`).style.pointerEvents="none";document.getElementById(`liveSetInputs_${idx}`).style.opacity="0.6";
   let resultEl=document.getElementById(`liveSetResult_${idx}`);resultEl.textContent=`✓ ${setStr}`;resultEl.style.display="block";
   document.getElementById(`liveSetDoneBadge_${idx}`).style.display="inline-block";
@@ -10372,7 +10996,9 @@ function playBreakAlertSound(){
 }
 function activateNextLiveSet(idx){
   if(idx>liveTotalSets)return;const block=document.getElementById(`liveSetBlock_${idx}`);if(!block)return;
-  block.classList.add("set-active");document.getElementById(`liveSetInputs_${idx}`).style.opacity="1";document.getElementById(`liveSetInputs_${idx}`).style.pointerEvents="auto";document.getElementById(`liveTimerRow_${idx}`).style.display="flex";block.scrollIntoView({behavior:"smooth",block:"center"});
+  block.classList.add("set-active");document.getElementById(`liveSetInputs_${idx}`).style.opacity="1";document.getElementById(`liveSetInputs_${idx}`).style.pointerEvents="auto";const timerRowEl=document.getElementById(`liveTimerRow_${idx}`);if(timerRowEl)timerRowEl.style.display="flex";
+  if(isCardioExercise(document.getElementById("liveWorkoutNameInput")?.value.trim())){const saveBtn=document.getElementById(`liveSetSaveBtn_${idx}`);if(saveBtn)saveBtn.style.display="block"}
+  block.scrollIntoView({behavior:"smooth",block:"center"});
 }
 function finishLiveSession(name){
   // Level Up: highest Kg (or, for pure bodyweight, highest Reps) across all sets this session,
@@ -10391,6 +11017,15 @@ function finishLiveSession(name){
 const ICON_EDIT='<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>';
 const ICON_DELETE='<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>';
 const ICON_TRACK='<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 17 9 11 13 15 21 7"/><polyline points="14 7 21 7 21 14"/></svg>';
+/* Fixed SVG "copy" icon (two overlapping rectangles) — replaces the 📋 copy emoji everywhere a
+   "copy previous set's values" control appears (Add/Edit, Live/Non-Live), so it renders identically
+   on every device/OS instead of relying on the platform's emoji glyph. */
+const ICON_COPY='<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
+/* Non-live cardio inline stopwatch icons (line 2 of a cardio set row — see renderNonLiveSetsRows /
+   toggleNlCardioTimer / saveNlCardioTimer). */
+const ICON_PLAY='<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M8 5.5v13l11-6.5z"/></svg>';
+const ICON_PAUSE='<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>';
+const ICON_SAVE='<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z"/><path d="M17 21v-8H7v8"/><path d="M7 3v5h8"/></svg>';
 // Breakdown toggle preference persists across refreshes/tab switches — stored per user so it stays
 // exactly as the person left it until they manually flip it again. Falls back to ON only the very
 // first time (nothing saved yet); any saved '0'/'1' always wins after that.
@@ -10690,8 +11325,8 @@ async function loadWorkoutsForDate(){
       const ci=counter;
       window._workoutCiMap[ci]={rowCreatedAt:row.created_at,idx:arrIdx};
       anyEntry=true;
-      let ename=cell,tags="",hasDuration=false;if(cell.includes(":")){let pts=cell.split(":");ename=pts[0].trim();pts[1].trim().split(",").map(s=>s.trim()).filter(Boolean).forEach((s,si)=>{if(s.includes("["))hasDuration=true;tags+=`<span class="workout-tag">${formatSetTagLabel(s,si+1)}</span>`})}
-      const tagGridClass=hasDuration?"workout-tag-grid tag-grid-2col":"workout-tag-grid";
+      let ename=cell,tags="",hasDuration=false,isCardioRow=false;if(cell.includes(":")){let pts=cell.split(":");ename=pts[0].trim();isCardioRow=isCardioExercise(ename);pts[1].trim().split(",").map(s=>s.trim()).filter(Boolean).forEach((s,si)=>{if(s.includes("["))hasDuration=true;tags+=`<span class="workout-tag${isCardioRow?' workout-tag-wide':''}">${formatSetTagLabel(s,si+1)}</span>`})}
+      const tagGridClass=(isCardioRow||hasDuration)?"workout-tag-grid tag-grid-2col":"workout-tag-grid";
       const exCls=extractClassFromWorkoutName(cell),exColor=CLASS_COLORS[exCls]||CLASS_COLORS['Unknown'];
       const cellVol=parseWorkoutVolume(cell);
       classVolMap[exCls]=(classVolMap[exCls]||0)+cellVol;totalVolAll+=cellVol;
@@ -10749,7 +11384,11 @@ function renderWorkoutClassChipsRow(classVolMap,totalVolAll,anyEntry){
   // Order = the order each class was FIRST added to the day (classVolMap is built by iterating the
   // day's workouts in logged order, and JS preserves string-key insertion order), NOT sorted by
   // volume — e.g. Biceps logged before Triceps always shows Biceps first, Triceps second.
-  const classKeys=anyEntry&&classVolMap?Object.keys(classVolMap).filter(c=>c!=='Warmup'&&c!=='Unknown'&&classVolMap[c]>0):[];
+  // Note: cardio sets are Km/duration based and always contribute 0 kg of "volume", so a class
+  // key can legitimately be present with value 0 (Cardio-only day). Check presence in the map
+  // (i.e. at least one workout of that class was actually logged), not classVolMap[c]>0, or
+  // Cardio would never get a chip even when Cardio workouts were saved for the day.
+  const classKeys=anyEntry&&classVolMap?Object.keys(classVolMap).filter(c=>c!=='Warmup'&&c!=='Unknown'):[];
   if(classKeys.length===0){
     chipsRow.style.display="none";chipsRow.innerHTML="";
     window._workoutClassFilterActive=null;
@@ -11250,7 +11889,12 @@ function initiateWorkoutEdit(e,ci,rv){
   document.getElementById("liveWorkoutForm").style.display="none";
   openWorkoutEditOverlay(document.getElementById("workoutFormStructure"));
 
+  const cardio=isCardioExercise(en);
   let parsedSets=segs.map((seg,i)=>{
+    if(cardio){
+      const p=parseCardioSetSegment(seg);
+      return{km:p.km||'',min:p.min,sec:p.sec};
+    }
     let durMatch=seg.match(/\[(.*?)\]/);
     if(durMatch)editOriginalDurations[i+1]=durMatch[1].trim();
     let clean=seg.replace(/\[.*?\]/g,'').trim();
@@ -11279,7 +11923,11 @@ function initiateWorkoutEdit(e,ci,rv){
   if(_prevPerfNonLiveTimer){clearTimeout(_prevPerfNonLiveTimer);_prevPerfNonLiveTimer=null;}
   updateTrackWorkoutBtnVisibility('nonlive');
 
-  renderNonLiveSetsRows(parsedSets.map(ps=>ps.w),parsedSets.map(ps=>ps.r));
+  if(cardio){
+    renderNonLiveSetsRows([],[],[],parsedSets.map(ps=>ps.km),parsedSets.map(ps=>ps.min),parsedSets.map(ps=>ps.sec));
+  } else {
+    renderNonLiveSetsRows(parsedSets.map(ps=>ps.w),parsedSets.map(ps=>ps.r));
+  }
 }
 
 /* Deletes one specific already-saved set from a non-live entry being edited, persists the change
@@ -11289,11 +11937,18 @@ async function deleteNonLiveSavedSet(i){
   if(!confirm(`Delete Set ${i}? This will permanently remove it from this saved entry.`))return;
   if(editOriginalSetCount<=1){alert("This entry has only one saved set. Use the 🗑 icon on the workout card to delete the whole entry instead.");return}
   const cnt=parseInt(document.getElementById("setsCountSelect").value)||editOriginalSetCount;
-  let weights=[],reps=[];
+  const cardio=isCardioExercise(document.getElementById("workoutNameInput")?.value.trim());
+  let weights=[],reps=[],kms=[],mins=[],secs=[];
   for(let k=1;k<=cnt;k++){
     if(k===i)continue;
-    weights.push(document.getElementById(`weight_set_${k}`)?.value||'');
-    reps.push(document.getElementById(`reps_set_${k}`)?.value||'');
+    if(cardio){
+      const totalSec=getPickerSeconds(`nlSet_${k}`);
+      kms.push(document.getElementById(`km_set_${k}`)?.value||'');
+      mins.push(Math.floor(totalSec/60));secs.push(totalSec%60);
+    } else {
+      weights.push(document.getElementById(`weight_set_${k}`)?.value||'');
+      reps.push(document.getElementById(`reps_set_${k}`)?.value||'');
+    }
   }
   // Re-index any locked durations, shifting everything after the deleted set down by one
   let newDur={};
@@ -11309,8 +11964,13 @@ async function deleteNonLiveSavedSet(i){
   // Persist only the (now-shifted) originally-saved sets to the database
   let sd=[];
   for(let k=0;k<editOriginalSetCount;k++){
-    const w=parseFloat(weights[k])||0,r=parseInt(reps[k])||0;
-    sd.push(editOriginalDurations[k+1]?`${w}Kg x ${r} [${editOriginalDurations[k+1]}]`:`${w}kg x ${r}`);
+    if(cardio){
+      const km=parseFloat(kms[k])||0;
+      sd.push(formatCardioSetDisplay(km,mins[k]||0,secs[k]||0));
+    } else {
+      const w=parseFloat(weights[k])||0,r=parseInt(reps[k])||0;
+      sd.push(editOriginalDurations[k+1]?`${w}Kg x ${r} [${editOriginalDurations[k+1]}]`:`${w}kg x ${r}`);
+    }
   }
   const name=document.getElementById("workoutNameInput").value.trim();
   const uid=getEffectiveUid();
@@ -11321,7 +11981,7 @@ async function deleteNonLiveSavedSet(i){
 
   document.getElementById("setsCountSelect").value=String(newCnt);
   applySetsCountMinConstraint();
-  renderNonLiveSetsRows(weights,reps);
+  if(cardio){renderNonLiveSetsRows([],[],[],kms,mins,secs)}else{renderNonLiveSetsRows(weights,reps)}
   showToast(`🗑 Set ${i} deleted`);
   await loadWorkoutsForDate();
 }
@@ -11355,6 +12015,10 @@ function parseSetSegment(seg){
    or "Set1: 15 Reps" when no Kg was logged (bodyweight sets saved as 0Kg). Duration (from live
    sets) is preserved when present. */
 function formatSetTagLabel(seg,idx){
+  if(isCardioSetString(seg)){
+    const cp=parseCardioSetSegment(seg);
+    return `Set${idx}: ${formatCardioSetDisplay(cp.km,cp.min,cp.sec)}`;
+  }
   const p=parseSetSegment(seg);
   const w=parseFloat(p.w)||0,r=p.r||'0';
   const core=w<0.5?`${r} Reps`:`${w}Kg x ${r}`;
@@ -11373,7 +12037,7 @@ function startLiveEditSession(ci,exerciseName,setsStr,segs){
   liveEditSlot=(window._workoutCiMap&&window._workoutCiMap[ci])||null;
   liveEditExistingResults=segs.map(s=>s.trim()).filter(Boolean);
   liveEditNewResults=[];
-  liveEditTotalNewSets=0;liveEditCurrentNewSet=1;
+  liveEditTotalNewSets=0;liveEditCurrentNewSet=1;window._liveEditSetCopiedFlags={};
   liveEditSetTimers={};liveEditSetSeconds={};
   liveEditBreakTimers={};liveEditBreakSeconds={};liveEditBreakTotalSecs={};
   liveEditValueOverrides={};
@@ -11457,7 +12121,7 @@ function renderLiveEditSetsUI(){
     const bwHidden=isBWExisting&&!bwKgRevealed.liveEditExisting;
     const weightInputHtml=bwHidden?`<input type="number" id="liveEditExistKg_${i}" value="0" style="display:none">`:(isBWExisting?`<input type="number" placeholder="Kgs (optional)" id="liveEditExistKg_${i}" min="0" step="0.5" value="${w}" style="margin-top:0;padding:9px;flex:1">`:`<input type="number" placeholder="Kgs" id="liveEditExistKg_${i}" min="0.5" step="0.5" value="${w}" style="margin-top:0;padding:9px;flex:1">`);
     const bwIcon=(isBWExisting&&i===1)?bwInfoIconHtml('liveEditExisting'):'';
-    html+=`<div class="set-row" style="margin-top:8px"><span onclick="toggleSetRowSelection(this)" style="cursor:pointer" title="Tap to show delete option">Set ${i}</span>${weightInputHtml}<input type="number" placeholder="Reps" id="liveEditExistReps_${i}" min="1" value="${r}" style="margin-top:0;padding:9px;flex:1">${bwIcon}${durTag}<button type="button" class="set-delete-btn" title="Delete this set" onclick="deleteLiveEditSavedSet(${i})">🗑</button></div>`;
+    html+=`<div class="set-row" style="margin-top:8px" ontouchstart="nlSetSwipeStart(event)" ontouchend="nlSetSwipeEnd(event,${i})"><span onclick="toggleSetRowSelection(this)" style="cursor:pointer" title="Tap to show delete option">Set ${i}</span>${weightInputHtml}<input type="number" placeholder="Reps" id="liveEditExistReps_${i}" min="1" value="${r}" style="margin-top:0;padding:9px;flex:1">${bwIcon}${durTag}<button type="button" class="set-delete-btn" title="Delete this set" onclick="deleteLiveEditSavedSet(${i})">${ICON_DELETE}</button></div>`;
   }
   html+=`<button class="workout-form-action-btn" onclick="updateLiveEditExistingSets()">💾 SAVE ENTRY</button>
   </div>`;
@@ -11591,7 +12255,7 @@ function buildLiveEditSetHTML(idx,active){
   // In edit mode there's always at least one already-saved set before any new set being added here,
   // so "copy from previous" always has something to pull from — see liveEditCopyFromPrevSet above.
   const isBW=isBodyweightNoWeightExercise(document.getElementById("liveWorkoutNameInput")?.value.trim());
-  const copyBtn=`<button class="live-copy-prev-btn" id="liveEditCopyPrevBtn_${idx}" onclick="liveEditCopyFromPrevSet(${idx})" title="Auto-fill from the previous set's values">⚡ Copy from previous set</button>`;
+  const copyBtn=`<button class="live-copy-prev-btn" id="liveEditCopyPrevBtn_${idx}" onclick="liveEditCopyFromPrevSet(${idx})" title="Auto-fill from the previous set's values">${ICON_COPY} Copy from previous set</button>`;
   const bwHidden=isBW&&!bwKgRevealed.liveEditNew;
   const weightInputHtml=bwHidden?`<input type="number" id="liveEditKg_${idx}" value="0" style="display:none">`:(isBW?`<input type="number" id="liveEditKg_${idx}" placeholder="Kgs (optional)" min="0" step="0.5" style="margin-top:0;padding:9px">`:`<input type="number" id="liveEditKg_${idx}" placeholder="Kgs" min="0.5" step="0.5" style="margin-top:0;padding:9px">`);
   const bwIcon=(isBW&&displayIdx===1)?bwInfoIconHtml('liveEditNew'):'';
@@ -13475,6 +14139,8 @@ function formatSetDisplay(setStr,showDuration){
 }
 // Compares two sets purely by weight (kg) first, then by reps at equal weight. Returns >0 if a is "more" than b.
 function compareSetByWeight(a,b){if(a.weight!==b.weight)return a.weight-b.weight;return a.reps-b.reps}
+// Cardio equivalent: compares two sets purely by logged duration (seconds). Returns >0 if a is "more" than b.
+function compareSetByDuration(a,b){return(a.sec||0)-(b.sec||0)}
 // Compares two SESSIONS (each an array of sets) as a whole: sort each session's sets best-to-worst (by weight, then reps),
 // then compare position-by-position so a session with a stronger overall spread of sets wins, not just a single matching top set.
 // e.g. session [8.5x15, 8x15, 8x15] beats [8.5x15, 7x15, 7x15] because after the tied top set, 8x15 > 7x15.
@@ -13488,6 +14154,21 @@ function compareSessionByWeight(sessionA,sessionB){
     if(!sa)return -1; // fewer sets than b at this position -> treat as lesser
     if(!sb)return 1;
     const c=compareSetByWeight(sa,sb);
+    if(c!==0)return c;
+  }
+  return 0;
+}
+// Cardio equivalent of compareSessionByWeight: same position-by-position spread comparison, but by duration.
+function compareSessionByDuration(sessionA,sessionB){
+  const a=[...sessionA.sets].sort((x,y)=>compareSetByDuration(y,x));
+  const b=[...sessionB.sets].sort((x,y)=>compareSetByDuration(y,x));
+  const len=Math.max(a.length,b.length);
+  for(let i=0;i<len;i++){
+    const sa=a[i],sb=b[i];
+    if(!sa&&!sb)continue;
+    if(!sa)return -1;
+    if(!sb)return 1;
+    const c=compareSetByDuration(sa,sb);
     if(c!==0)return c;
   }
   return 0;
@@ -13517,22 +14198,25 @@ async function runWorkoutTracker(){
   data.forEach(row=>{const rowDate=row.date;sessionWorkoutsArray(row).forEach(wEntryRaw=>{const wEntry=sessionDecodeWorkoutEntry(wEntryRaw);const exName=wEntry.name||'Unknown';const setsRaw=(wEntry.sets||'').split(',').map(s=>s.trim()).filter(Boolean);if(!exerciseMap[exName])exerciseMap[exName]={frequency:0,sets:[],sessions:{}};exerciseMap[exName].frequency++;
     // Track per-session (per-date) groups of sets so we can show a full session breakdown (Recent / Highest / Lowest)
     if(!exerciseMap[exName].sessions[rowDate])exerciseMap[exName].sessions[rowDate]={date:rowDate,sets:[]};
-    setsRaw.forEach(setStr=>{const vol=parseSetVolume(setStr);const{weight,reps}=parseSetWeightReps(setStr);const setObj={date:rowDate,raw:setStr,vol,weight,reps};exerciseMap[exName].sets.push(setObj);exerciseMap[exName].sessions[rowDate].sets.push(setObj)})})});
+    setsRaw.forEach(setStr=>{const vol=parseSetVolume(setStr);const{weight,reps}=parseSetWeightReps(setStr);const cardioP=parseCardioSetSegment(setStr);const setObj={date:rowDate,raw:setStr,vol,weight,reps,km:cardioP.km,sec:cardioP.totalSec,isCardioSet:isCardioSetString(setStr)};exerciseMap[exName].sets.push(setObj);exerciseMap[exName].sessions[rowDate].sets.push(setObj)})})});
   trackerSortedList=Object.entries(exerciseMap).sort((a,b)=>b[1].frequency-a[1].frequency).map(([name,data],idx)=>{
+    const isCardio=isCardioExercise(name);
     const sessionList=Object.values(data.sessions).sort((a,b)=>a.date.localeCompare(b.date));
     // Recent session = the session with the latest date (most recent workout session for this exercise)
     const recentSession=sessionList.length?sessionList[sessionList.length-1]:null;
-    // Highest/Lowest session found across ALL history — compares each session as a whole (weight-first, then reps,
-    // looking at every set in the session, not just the top one) so a session with stronger secondary sets wins ties.
+    // Highest/Lowest session found across ALL history — for Cardio this compares by logged Duration
+    // (seconds) instead of weight, since Cardio sets carry no Kg/reps at all.
     let highestSession=null,lowestSession=null;
+    const compareSession=isCardio?compareSessionByDuration:compareSessionByWeight;
     sessionList.forEach(sess=>{
       if(!sess.sets.length)return;
-      if(!highestSession||compareSessionByWeight(sess,highestSession)>0)highestSession=sess;
-      if(!lowestSession||compareSessionByWeight(sess,lowestSession)<0)lowestSession=sess;
+      if(!highestSession||compareSession(sess,highestSession)>0)highestSession=sess;
+      if(!lowestSession||compareSession(sess,lowestSession)<0)lowestSession=sess;
     });
     // The displayed "set" for each column is the best/worst individual set within that winning session
-    const bestSetIn=(sess)=>sess&&sess.sets.length?[...sess.sets].sort((x,y)=>compareSetByWeight(y,x))[0]:null;
-    const worstSetIn=(sess)=>sess&&sess.sets.length?[...sess.sets].sort((x,y)=>compareSetByWeight(x,y))[0]:null;
+    const compareSet=isCardio?compareSetByDuration:compareSetByWeight;
+    const bestSetIn=(sess)=>sess&&sess.sets.length?[...sess.sets].sort((x,y)=>compareSet(y,x))[0]:null;
+    const worstSetIn=(sess)=>sess&&sess.sets.length?[...sess.sets].sort((x,y)=>compareSet(x,y))[0]:null;
     return{sno:idx+1,name,frequency:data.frequency,sets:data.sets,sessions:data.sessions,
       recentSet:bestSetIn(recentSession),
       recentSession,highestSet:bestSetIn(highestSession),highestSession,lowestSet:worstSetIn(lowestSession),lowestSession};
@@ -13572,14 +14256,15 @@ function renderTrackerTable(filterName){
   // "recent/highest/lowest" summary the way a weight-based set is — the expanded view still lists each set.
   const buildVolCell=(set,session,isBW)=>{
     if(!set||!session){return `<div class="tracker-vol-cell"><span style="color:var(--text-muted);font-size:11px;font-family:var(--font-alt)">—</span></div>`}
-    const collapsedLabel=isBW?`Total: ${session.sets.reduce((a,s)=>a+s.reps,0)} Reps`:formatSetDisplay(set.raw,false);
+    const collapsedLabel=set.isCardioSet?formatSetDisplay(set.raw,false):(isBW?`Total: ${session.sets.reduce((a,s)=>a+s.reps,0)} Reps`:formatSetDisplay(set.raw,false));
     const collapsed=`<div class="tracker-vol-collapsed"><span class="tracker-vol-date">${formatTrackerDate(set.date)}</span><span class="tracker-vol-raw">{${collapsedLabel}}</span></div>`;
     const setsListHtml=session.sets.map((s,i)=>`<li><span class="tracker-set-num">Set ${i+1}:</span><span>${formatSetDisplay(s.raw,true)}</span></li>`).join('');
     const expanded=`<div class="tracker-vol-expanded"><span class="tracker-vol-date">${formatTrackerDate(session.date)}</span><ul class="tracker-set-list-compact">${setsListHtml}</ul></div>`;
     return `<div class="tracker-vol-cell">${collapsed}${expanded}</div>`;
   };
   let rowsHtml=pageItems.map((item,i)=>{
-    const isBW=item.sets.every(s=>s.weight===0);
+    const isCardio=isCardioExercise(item.name);
+    const isBW=!isCardio&&item.sets.every(s=>s.weight===0);
     const recentHtml=buildVolCell(item.recentSet,item.recentSession,isBW);
     const highestHtml=buildVolCell(item.highestSet,item.highestSession,isBW);
     const lowestHtml=buildVolCell(item.lowestSet,item.lowestSession,isBW);
@@ -13706,36 +14391,44 @@ function goTrackerPage(page){trackerCurrentPage=page;renderTrackerTable();docume
 function showTrackerAnalytics(exName){
   const decoded=exName.replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&#039;/g,"'");
   const exData=trackerAllData[decoded];if(!exData||!exData.sets.length){alert("No set data available for this exercise.");return}
+  const isCardio=isCardioExercise(decoded);
   // Pure-bodyweight detection: if EVERY logged set for this exercise has 0kg, weight/volume are meaningless
   // (always 0), so only the Reps graph is offered and the mode dropdown stays hidden. If even one set has
   // real weight logged, the full Volume/Weight/Reps dropdown is shown (covers bodyweight exercises that are
-  // sometimes done weighted, e.g. weighted dips).
-  const isBodyweightOnly=exData.sets.every(s=>s.weight===0);
+  // sometimes done weighted, e.g. weighted dips). Cardio exercises are never routed down this path — they
+  // get their own Distance/Duration dropdown below, regardless of weight (which is always 0 for cardio sets).
+  const isBodyweightOnly=!isCardio&&exData.sets.every(s=>s.weight===0);
   // Build one entry per training day, keeping every individual set (with raw string, so duration survives) for
-  // that session, plus the day's total volume, total reps, and highest single-set weight logged that day.
+  // that session, plus the day's total volume, total reps, highest single-set weight, total Km and total
+  // cardio duration (seconds) logged that day.
   const dateMap={};
   exData.sets.forEach(s=>{
-    if(!dateMap[s.date])dateMap[s.date]={totalVol:0,totalReps:0,maxWeight:0,sets:[]};
+    if(!dateMap[s.date])dateMap[s.date]={totalVol:0,totalReps:0,maxWeight:0,totalKm:0,totalSec:0,sets:[]};
     dateMap[s.date].totalVol+=s.vol;
     dateMap[s.date].totalReps+=s.reps;
     if(s.weight>dateMap[s.date].maxWeight)dateMap[s.date].maxWeight=s.weight;
+    dateMap[s.date].totalKm+=s.km||0;
+    dateMap[s.date].totalSec+=s.sec||0;
     dateMap[s.date].sets.push(s);
   });
   const sortedDates=Object.keys(dateMap).sort(),labels=sortedDates.map(d=>formatTrackerDate(d));
 
   // Reset the View dropdown. Bodyweight-only exercises (never logged with Kg) are always Reps with the
-  // dropdown hidden — unchanged. Everything else shows the full Volume/Weight/Reps dropdown, but the
-  // *default* selection now depends on the exercise's catalog equipment tag: true bodyweight exercises
-  // that happen to have some Kg logged (e.g. a weighted dip, or an optional Kg entry on a bodyweight
-  // move) open on Reps by default since reps is still their primary metric; everything else (normal
-  // weighted exercises) keeps opening on Volume, exactly as before.
+  // dropdown hidden — unchanged. Cardio exercises always show the dropdown, restricted to Duration/Distance,
+  // defaulting to Duration. Everything else shows the full Volume/Weight/Reps dropdown, but the *default*
+  // selection now depends on the exercise's catalog equipment tag: true bodyweight exercises that happen to
+  // have some Kg logged (e.g. a weighted dip, or an optional Kg entry on a bodyweight move) open on Reps by
+  // default since reps is still their primary metric; everything else (normal weighted exercises) keeps
+  // opening on Volume, exactly as before.
   const isBodyweightCatalog=getExerciseEquipment(decoded)==='Bodyweight';
-  trackerGraphMode=isBodyweightOnly?'reps':(isBodyweightCatalog?'reps':'volume');
+  trackerGraphMode=isCardio?'duration':(isBodyweightOnly?'reps':(isBodyweightCatalog?'reps':'volume'));
   const modeWrap=document.getElementById('trackerGraphModeWrap'),modeSelect=document.getElementById('trackerGraphModeSelect');
   if(modeWrap)modeWrap.style.display=isBodyweightOnly?'none':'flex';
+  modeSelect?.querySelectorAll('.trk-opt-strength').forEach(o=>o.style.display=isCardio?'none':'');
+  modeSelect?.querySelectorAll('.trk-opt-cardio').forEach(o=>o.style.display=isCardio?'':'none');
   if(modeSelect)modeSelect.value=trackerGraphMode;
 
-  trackerGraphContext={decoded,isBodyweightOnly,dateMap,sortedDates,labels};
+  trackerGraphContext={decoded,isBodyweightOnly,isCardio,dateMap,sortedDates,labels};
 
   const panel=document.getElementById("trackerAnalyticsPanel");panel.classList.add("visible");
   renderTrackerChart();
@@ -13754,14 +14447,16 @@ function changeTrackerGraphMode(mode){
 // changeTrackerGraphMode (dropdown switch).
 function renderTrackerChart(){
   stopTrackerJourney(true);
-  const{decoded,isBodyweightOnly,dateMap,sortedDates,labels}=trackerGraphContext;
+  const{decoded,isBodyweightOnly,isCardio,dateMap,sortedDates,labels}=trackerGraphContext;
   const mode=trackerGraphMode;
-  const modeLabel=mode==='weight'?'Weight':mode==='reps'?'Reps':'Volume';
+  const modeLabel=mode==='weight'?'Weight':mode==='reps'?'Reps':mode==='duration'?'Duration':mode==='distance'?'Distance':'Volume';
   const dayWord=`${sortedDates.length} training day${sortedDates.length!==1?'s':''}`;
   const subtitleByMode={
     volume:`Total volume (kg × reps) per session across ${dayWord}`,
     weight:`Highest weight logged per session across ${dayWord}`,
-    reps:`Total reps per session across ${dayWord}`
+    reps:`Total reps per session across ${dayWord}`,
+    duration:`Total duration logged per session across ${dayWord}`,
+    distance:`Total distance (Km) logged per session across ${dayWord}`
   };
   document.getElementById("trackerAnalyticsTitle").textContent=`📊 ${decoded} — ${modeLabel} Journey`;
   document.getElementById("trackerAnalyticsSubtitle").textContent=subtitleByMode[mode];
@@ -13789,6 +14484,8 @@ function renderTrackerChart(){
   const values=sortedDates.map(d=>{
     if(mode==='weight')return dateMap[d].maxWeight;
     if(mode==='reps')return dateMap[d].totalReps;
+    if(mode==='duration')return Math.round((dateMap[d].totalSec/60)*100)/100;
+    if(mode==='distance')return dateMap[d].totalKm;
     return dateMap[d].totalVol;
   });
 
@@ -13809,6 +14506,11 @@ function renderTrackerChart(){
       totalEl.innerHTML=`Highest Weight: <strong>${fmtWeight(dateMap[date].maxWeight)}kg</strong>`;
     }else if(mode==='reps'){
       totalEl.innerHTML=`Total Reps: <strong>${dateMap[date].totalReps}</strong>`;
+    }else if(mode==='duration'){
+      const totalSec=dateMap[date].totalSec,mm=Math.floor(totalSec/60),ss=totalSec%60;
+      totalEl.innerHTML=`Total Duration: <strong>${mm}:${String(ss).padStart(2,'0')}</strong>`;
+    }else if(mode==='distance'){
+      totalEl.innerHTML=`Total Distance: <strong>${dateMap[date].totalKm.toFixed(2)}km</strong>`;
     }else{
       const totalVol=Math.round(dateMap[date].totalVol);
       totalEl.innerHTML=`Total Volume: <strong>${totalVol>=1000?(totalVol/1000).toFixed(1)+'k':totalVol}</strong>`;
@@ -13826,7 +14528,8 @@ function renderTrackerChart(){
   // scaled to a constrained ratio of the plot area, always leaving headroom above it — the line
   // and its markers can never reach the top-right corner where the detail box sits.
   const trkMaxVal=Math.max(0,...values);
-  const trkSuggestedMax=trkMaxVal>0?Math.ceil((trkMaxVal*1.45)/10)*10:100;
+  const trkRoundStep=mode==='distance'?1:(mode==='duration'?5:10);
+  const trkSuggestedMax=trkMaxVal>0?Math.ceil((trkMaxVal*1.45)/trkRoundStep)*trkRoundStep:(mode==='distance'?5:100);
 
   // Per-point style arrays so the selected marker can be enlarged + recolored without affecting the rest.
   // Hover radius is deliberately a bigger jump from the resting radius (6 -> 12) than before, paired with
@@ -13835,7 +14538,7 @@ function renderTrackerChart(){
   const basePointRadius=sortedDates.map(()=>6),baseHoverRadius=sortedDates.map(()=>12);
   const basePointBg=sortedDates.map(()=>pointColor),basePointBorder=sortedDates.map(()=>'#fff'),basePointBorderW=sortedDates.map(()=>2);
 
-  const yAxisTitle=mode==='weight'?'Weight (kg)':mode==='reps'?'Reps':'Volume (kg × reps)';
+  const yAxisTitle=mode==='weight'?'Weight (kg)':mode==='reps'?'Reps':mode==='duration'?'Duration (min)':mode==='distance'?'Distance (Km)':'Volume (kg × reps)';
 
   // Highest/Lowest point markers: a bold green "H" above the highest-value point and a bold red "L"
   // above the lowest-value point, for whichever metric is currently plotted (Volume, Weight, or Reps) —
@@ -13893,7 +14596,7 @@ function renderTrackerChart(){
       // Default Chart.js tooltip is disabled — the fixed top-right detail box replaces it with the full per-set breakdown
       plugins:{legend:{display:false},tooltip:{enabled:false}},
       scales:{
-        y:{beginAtZero:true,suggestedMax:trkSuggestedMax,grid:{color:'rgba(128,128,128,0.08)'},ticks:{color:'#6b7280',font:{family:'Rajdhani',size:12},callback(v){return mode==='reps'?v:v+'kg'}},title:{display:true,text:yAxisTitle,color:'#6b7280',font:{family:'Rajdhani',size:11}}},
+        y:{beginAtZero:true,suggestedMax:trkSuggestedMax,grid:{color:'rgba(128,128,128,0.08)'},ticks:{color:'#6b7280',font:{family:'Rajdhani',size:12},callback(v){if(mode==='reps')return v;if(mode==='duration')return v+'m';if(mode==='distance')return v+'km';return v+'kg'}},title:{display:true,text:yAxisTitle,color:'#6b7280',font:{family:'Rajdhani',size:11}}},
         // X axis: no date labels and no gridlines, per spec — dates only ever appear inside the detail box
         x:{display:false,grid:{display:false},ticks:{display:false}}
       },
