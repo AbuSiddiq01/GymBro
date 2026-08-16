@@ -457,6 +457,131 @@ input::placeholder{color:var(--text-muted)}
   .hist-status-modal-title{font-size:14px}
 }
 
+/* ===================== ATTENDANCE HISTORY: CALENDAR ICON TOGGLE ===================== */
+.hist-cal-icon-btn{display:flex;align-items:center;justify-content:center;width:42px;height:42px;margin:12px auto 18px;border-radius:13px;border:1px solid var(--border-col);background:var(--bg-panel);color:var(--text-muted);cursor:pointer;transition:background .2s ease,color .2s ease,transform .15s ease,border-color .2s ease}
+.hist-cal-icon-btn:active{transform:scale(0.92)}
+.hist-cal-icon-btn.active{background:var(--accent);border-color:var(--accent);color:#fff;box-shadow:0 4px 14px var(--accent-glow)}
+
+/* Summary cards: clickable selection state (drives table filtering in List view / cell
+   highlighting in Calendar view) */
+.hist-summary-cards .card.active{outline:2px solid var(--accent);box-shadow:0 0 0 3px var(--accent-glow)}
+
+/* Filter bar shown above the table when a summary card is selected in List view */
+.hist-filter-bar{display:none;align-items:center;justify-content:space-between;gap:10px;background:var(--accent-soft);border:1px solid var(--accent);border-radius:12px;padding:9px 12px;margin-bottom:10px;font-family:var(--font-alt)}
+.hist-filter-bar span{font-size:12px;font-weight:700;color:var(--accent)}
+.hist-filter-clear-btn{background:none;border:none;color:var(--accent);font-weight:800;font-size:11px;cursor:pointer;padding:2px 6px;letter-spacing:0.3px}
+
+/* ===================== ATTENDANCE HISTORY: CALENDAR VIEW ===================== */
+.hist-cal-wrap{margin-bottom:16px}
+.hist-cal-monthlabel{text-align:center;font-family:var(--font-display);font-size:20px;letter-spacing:1px;color:var(--accent);margin-bottom:10px}
+.hist-cal-legend{display:flex;flex-wrap:wrap;justify-content:center;gap:10px 16px;margin-bottom:14px}
+.hist-cal-legend-item{display:flex;align-items:center;gap:6px;font-family:var(--font-alt);font-size:10.5px;font-weight:700;color:var(--text-muted);letter-spacing:0.3px}
+.hist-cal-legend-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.hist-cal-legend-dot.present{background:#16a34a}
+.hist-cal-legend-dot.rest{background:#2563eb}
+.hist-cal-legend-dot.absent{background:#dc2626}
+.hist-cal-legend-dot.pending{background:#f59e0b}
+.hist-cal-daynames{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-bottom:6px}
+.hist-cal-dayname{text-align:center;font-size:9.5px;font-weight:800;color:var(--text-muted);font-family:var(--font-alt);letter-spacing:0.5px;text-transform:uppercase;padding-bottom:2px}
+.hist-cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+/* Glossy "glass" date box — same neutral card surface for every day (matches .wlc-box on the
+   Workouts page). Present/Rest/Absent/Pending is shown ONLY as a colored top-border strip; no
+   dot marker and no full-box color fill. */
+.hist-cal-cell{
+  position:relative;border-radius:14px;border:1px solid var(--border-col);border-top:3px solid var(--border-col);
+  background:var(--bg-panel);
+  padding:6px 3px 6px;min-height:64px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:2px;
+  overflow:hidden;box-sizing:border-box;
+  box-shadow:0 1px 0 rgba(255,255,255,0.10) inset,0 3px 10px -6px rgba(0,0,0,0.35);
+  transition:transform .2s cubic-bezier(.4,0,.2,1),box-shadow .25s ease,border-color .25s ease;
+}
+/* Diagonal glass sheen sitting on top of every box (subtle — a soft light catching the top-left) */
+.hist-cal-cell:not(.empty)::before{
+  content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  background:linear-gradient(145deg,rgba(255,255,255,0.16) 0%,rgba(255,255,255,0.03) 32%,rgba(255,255,255,0) 55%);
+}
+.hist-cal-cell.empty{background:transparent;border-color:transparent;border-top-color:transparent;box-shadow:none}
+.hist-cal-cell.future{opacity:0.42}
+/* Status tint lives only on the top-border strip now, not the box fill */
+.hist-cal-cell.present{border-top-color:#16a34a}
+.hist-cal-cell.rest{border-top-color:#2563eb}
+.hist-cal-cell.absent{border-top-color:#dc2626}
+.hist-cal-cell.pending{border-top-color:#f59e0b}
+/* Today's box gets a slow ambient glow-pulse (same visual family as roomGlowPulse elsewhere in the app) */
+.hist-cal-cell.hist-cal-today{animation:histCalGlowPulse 2.4s ease-in-out infinite}
+@keyframes histCalGlowPulse{
+  0%,100%{box-shadow:0 0 0 2px var(--accent) inset,0 1px 0 rgba(255,255,255,0.12) inset,0 0 10px 1px var(--accent-glow)}
+  50%{box-shadow:0 0 0 2px var(--accent) inset,0 1px 0 rgba(255,255,255,0.12) inset,0 0 20px 6px var(--accent-glow)}
+}
+.hist-cal-cell.hist-cal-highlight{outline:2px solid var(--accent);outline-offset:-1px;transform:translateY(-2px) scale(1.04);z-index:2;animation:histCalGlowPulse 1.8s ease-in-out infinite}
+.hist-cal-cell.hist-cal-dim{opacity:0.32}
+.hist-cal-cell.hist-cal-clickable{cursor:pointer}
+.hist-cal-cell.hist-cal-clickable:hover{transform:translateY(-3px);box-shadow:0 10px 22px -8px var(--accent-glow),0 1px 0 rgba(255,255,255,0.14) inset}
+.hist-cal-cell.hist-cal-clickable:active{transform:scale(0.94) translateY(0)}
+/* Selected (tapped-open) box — brighter, animated glow ring so it's unmistakable which date the
+   popup above is describing */
+.hist-cal-cell.hist-cal-selected{outline:2px solid var(--accent);outline-offset:-1px;z-index:3;animation:histCalGlowPulse 1.6s ease-in-out infinite;transform:translateY(-2px)}
+
+/* Date-detail popup: sits ABOVE the calendar grid (normal document flow, not a full-screen modal)
+   so the month grid underneath stays fully visible while a single date's details are shown. Opened
+   by tapping any non-future date box (see histCalCellClick); closed via the ✕ or by tapping the
+   same box again / picking another date. */
+.hist-cal-date-popup{display:none;position:relative;background:var(--bg-card);border:1px solid var(--accent);border-radius:14px;padding:10px 12px 8px;margin-bottom:10px;box-shadow:0 6px 18px var(--accent-glow);animation:fadeIn 0.2s ease}
+.hist-cal-date-popup.open{display:block}
+.hist-cal-popup-close{position:absolute;top:6px;right:6px;width:20px;height:20px;border-radius:50%;border:none;background:var(--accent-soft);color:var(--text-muted);font-size:9px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.hist-cal-popup-row{display:flex;align-items:center;justify-content:space-between;gap:6px;padding-right:16px}
+.hist-cal-popup-box{flex:1;background:var(--bg-panel);border:1px solid var(--border-col);border-radius:10px;padding:6px 4px;text-align:center;min-width:0}
+.hist-cal-popup-label{font-size:8.5px;font-weight:800;text-transform:uppercase;letter-spacing:0.3px;color:var(--text-muted);font-family:var(--font-alt);margin-bottom:2px}
+.hist-cal-popup-value{font-family:var(--font-display);font-size:12.5px;color:var(--accent);letter-spacing:0.2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hist-cal-popup-mid{flex:1.05;text-align:center;min-width:0}
+.hist-cal-popup-date{font-family:var(--font-display);font-size:16px;color:var(--text-primary);letter-spacing:0.4px}
+.hist-cal-popup-day{font-size:9.5px;color:var(--text-muted);font-family:var(--font-alt);font-weight:700;letter-spacing:0.2px;text-transform:uppercase;margin-top:0}
+.hist-cal-popup-classes{margin-top:7px;padding-top:7px;border-top:1px dashed var(--border-col);text-align:center;font-size:11px;color:var(--text-secondary);font-family:var(--font-alt);line-height:1.3}
+.hist-cal-popup-classes.hidden{display:none}
+@media(max-width:480px){
+  .hist-cal-date-popup{padding:8px 10px 6px;margin-bottom:8px;border-radius:12px}
+  .hist-cal-popup-close{width:18px;height:18px;font-size:8px;top:5px;right:5px}
+  .hist-cal-popup-row{gap:4px;padding-right:14px}
+  .hist-cal-popup-box{padding:5px 3px;border-radius:8px}
+  .hist-cal-popup-value{font-size:10.5px}
+  .hist-cal-popup-date{font-size:14px}
+  .hist-cal-popup-day{font-size:8.5px}
+  .hist-cal-popup-label{font-size:7.5px;margin-bottom:1px}
+  .hist-cal-popup-classes{font-size:10px;margin-top:6px;padding-top:6px}
+}
+@media(min-width:700px){
+  .hist-cal-date-popup{max-width:420px;margin-left:auto;margin-right:auto}
+}
+.hist-cal-status{position:relative;z-index:1;font-size:8px;font-weight:800;letter-spacing:0.2px;text-transform:uppercase;font-family:var(--font-alt);padding:2px 5px;border-radius:6px;color:var(--text-secondary);background:var(--bg-card);border:1px solid var(--border-col);white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis;line-height:1.3}
+.hist-cal-date{position:relative;z-index:1;font-family:var(--font-display);font-size:15px;margin:2px 0 1px;color:var(--text-primary);letter-spacing:0.5px}
+.hist-cal-cell.future .hist-cal-date{color:var(--text-muted)}
+.hist-cal-classes{position:relative;z-index:1;font-size:8.5px;font-weight:600;color:var(--text-primary);text-align:center;line-height:1.3;font-family:var(--font-alt);overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;word-break:break-word;padding:0 1px}
+.hist-cal-empty-note{text-align:center;font-size:11px;color:var(--text-muted);font-family:var(--font-alt);padding:16px 0}
+@media(max-width:480px){
+  .hist-cal-icon-btn{width:38px;height:38px;margin:10px auto 14px}
+  .hist-filter-bar{padding:7px 10px}
+  .hist-filter-bar span{font-size:11px}
+  .hist-cal-grid,.hist-cal-daynames{gap:5px}
+  .hist-cal-cell{min-height:58px;border-radius:11px;padding:5px 2px 5px}
+  .hist-cal-date{font-size:13px}
+  .hist-cal-status{font-size:7.8px;padding:1.5px 4px;font-weight:800}
+  .hist-cal-classes{font-size:8px;font-weight:600}
+  .hist-cal-dayname{font-size:8.5px}
+  .hist-cal-monthlabel{font-size:17px}
+  .hist-cal-legend{gap:7px 12px;margin-bottom:12px}
+  .hist-cal-legend-item{font-size:9.5px}
+}
+@media(min-width:700px){
+  .hist-cal-wrap{max-width:680px;margin-left:auto;margin-right:auto}
+  .hist-cal-grid,.hist-cal-daynames{gap:8px}
+  .hist-cal-cell{min-height:86px;padding:9px 5px 9px;border-radius:16px}
+  .hist-cal-date{font-size:19px;margin:4px 0 2px}
+  .hist-cal-status{font-size:9.5px;padding:2px 7px}
+  .hist-cal-classes{font-size:10px}
+  .hist-cal-dayname{font-size:11px}
+  .hist-cal-monthlabel{font-size:23px}
+}
+
 /* ===================== WORKOUT CARDS ===================== */
 .set-row{display:flex;gap:10px;align-items:center;margin-top:10px;background:var(--set-row-bg);padding:10px;border-radius:11px;border:1px solid var(--border-col);animation:fadeIn 0.3s ease;flex-wrap:wrap}
 .bw-info-icon{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:var(--accent-soft);color:var(--accent);font-size:14px;font-weight:800;cursor:pointer;flex-shrink:0;user-select:none}
@@ -2168,8 +2293,11 @@ body.tracker-fs-lock{overflow:hidden}
     <!-- ATTENDANCE TAB -->
     <div id="attPage" class="memberTab" style="display:none">
       <div class="section glass" style="margin-top:0">
-        <div class="section-title">
+        <div class="section-title" style="justify-content:space-between">
           <span>📋 Attendance History</span>
+          <button type="button" id="histCalToggleBtn" class="hist-cal-icon-btn" onclick="histToggleViewMode()" title="Calendar view" aria-pressed="false" style="margin:0;width:34px;height:34px;flex-shrink:0">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="3"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+          </button>
         </div>
         <div class="stats-period-row" id="histWeekRow">
           <div id="histWeekNavGroup" class="week-nav-group">
@@ -2179,17 +2307,51 @@ body.tracker-fs-lock{overflow:hidden}
           </div>
           <select id="monthFilter" onchange="histMonthChanged()"></select>
         </div>
+
         <div style="font-size:11px;color:var(--text-muted);font-family:var(--font-alt);font-weight:700;letter-spacing:0.5px;text-transform:uppercase;margin-bottom:6px">This Month</div>
         <div id="histMonthSummary" class="cards hist-summary-cards">
-          <div class="card" onclick="const b=this.querySelector('.hist-view-btn');b.style.display=(b.style.display==='inline-block'?'none':'inline-block')"><div class="card-label">✅ Present</div><h3 id="histCountPresent" style="color:#16a34a">0</h3><button type="button" class="hist-view-btn" onclick="event.stopPropagation();openHistStatusModal('present')">View</button></div>
-          <div class="card" onclick="const b=this.querySelector('.hist-view-btn');b.style.display=(b.style.display==='inline-block'?'none':'inline-block')"><div class="card-label">😴 Rest Day</div><h3 id="histCountRest" style="color:#2563eb">0</h3><button type="button" class="hist-view-btn" onclick="event.stopPropagation();openHistStatusModal('rest')">View</button></div>
-          <div class="card" onclick="const b=this.querySelector('.hist-view-btn');b.style.display=(b.style.display==='inline-block'?'none':'inline-block')"><div class="card-label">❌ Absent</div><h3 id="histCountAbsent" style="color:#dc2626">0</h3><button type="button" class="hist-view-btn" onclick="event.stopPropagation();openHistStatusModal('absent')">View</button></div>
+          <div class="card hist-summary-card" id="histCardPresent" onclick="histCardClicked('present')"><div class="card-label">✅ Present</div><h3 id="histCountPresent" style="color:#16a34a">0</h3></div>
+          <div class="card hist-summary-card" id="histCardRest" onclick="histCardClicked('rest')"><div class="card-label">😴 Rest Day</div><h3 id="histCountRest" style="color:#2563eb">0</h3></div>
+          <div class="card hist-summary-card" id="histCardAbsent" onclick="histCardClicked('absent')"><div class="card-label">❌ Absent</div><h3 id="histCountAbsent" style="color:#dc2626">0</h3></div>
         </div>
-        <div style="overflow-x:auto">
+
+        <div id="historyTableWrap" style="overflow-x:auto">
+          <div id="histFilterBar" class="hist-filter-bar">
+            <span id="histFilterLabel"></span>
+            <button type="button" class="hist-filter-clear-btn" onclick="histClearSelectedStatus()">✕ Clear</button>
+          </div>
           <table class="table">
             <thead><tr><th>Date</th><th>Status</th><th>Check-in</th><th>Muscles</th><th>Duration</th></tr></thead>
             <tbody id="historyTable"></tbody>
           </table>
+        </div>
+
+        <div id="histCalWrap" class="hist-cal-wrap" style="display:none">
+          <div id="histCalDatePopup" class="hist-cal-date-popup">
+            <button type="button" class="hist-cal-popup-close" onclick="histCloseDatePopup()" aria-label="Close">✕</button>
+            <div class="hist-cal-popup-row">
+              <div class="hist-cal-popup-box">
+                <div class="hist-cal-popup-label">Check-in</div>
+                <div class="hist-cal-popup-value" id="histCalPopupCheckin">-</div>
+              </div>
+              <div class="hist-cal-popup-mid">
+                <div class="hist-cal-popup-date" id="histCalPopupDate"></div>
+                <div class="hist-cal-popup-day" id="histCalPopupDay"></div>
+              </div>
+              <div class="hist-cal-popup-box">
+                <div class="hist-cal-popup-label">Duration</div>
+                <div class="hist-cal-popup-value" id="histCalPopupDuration">-</div>
+              </div>
+            </div>
+            <div class="hist-cal-popup-classes hidden" id="histCalPopupClasses"></div>
+          </div>
+          <div class="hist-cal-legend">
+            <span class="hist-cal-legend-item"><span class="hist-cal-legend-dot present"></span>Present</span>
+            <span class="hist-cal-legend-item"><span class="hist-cal-legend-dot rest"></span>Rest Day</span>
+            <span class="hist-cal-legend-item"><span class="hist-cal-legend-dot absent"></span>Absent</span>
+            <span class="hist-cal-legend-item"><span class="hist-cal-legend-dot pending"></span>Pending</span>
+          </div>
+          <div id="histCalGridBox"></div>
         </div>
       </div>
     </div>
@@ -6414,48 +6576,8 @@ function _monthDayList(status){
   return{year,month,list};
 }
 
-function _histStatusModalEscHandler(e){if(e.key==='Escape')closeHistStatusModal()}
-function closeHistStatusModal(){
-  const overlay=document.getElementById('histStatusModalOverlay');
-  if(overlay)overlay.remove();
-  document.removeEventListener('keydown',_histStatusModalEscHandler);
-  document.querySelectorAll('.hist-view-btn').forEach(b=>{b.style.display='none'});
-}
-function openHistStatusModal(status){
-  closeHistStatusModal();
-  const{year,month,list}=_monthDayList(status);
-  const monNames=['January','February','March','April','May','June','July','August','September','October','November','December'];
-  const meta={present:{title:'✅ Present Days',color:'#16a34a'},rest:{title:'😴 Rest Days',color:'#2563eb'},absent:{title:'❌ Absent Days',color:'#dc2626'}}[status];
-  const overlay=document.createElement('div');
-  overlay.className='hist-status-modal-overlay';overlay.id='histStatusModalOverlay';
-  overlay.onclick=function(e){if(e.target===overlay)closeHistStatusModal()};
-  let itemsHtml;
-  if(list.length===0){
-    itemsHtml=`<div class="hist-status-modal-empty">No ${status==='present'?'present':status==='rest'?'rest':'absent'} days recorded yet for this month.</div>`;
-  } else {
-    itemsHtml=list.map(item=>{
-      const dn=item.dt.toLocaleDateString('en-US',{weekday:'short'});
-      const ds=item.dt.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
-      if(status==='present'&&item.rows.length){
-        const rowsHtml=item.rows.map(r=>{
-          const t=formatCheckInTime(sessionDisplayCheckInISO(r));
-          let dur=sessionDisplayDurationText(r);
-          const muscleHtml=r.workout?`<div class="hist-status-modal-muscle">💪 ${r.workout}</div>`:'';
-          return `<div class="hist-status-modal-subrow"><span>${t}</span><span>${dur}</span></div>${muscleHtml}`;
-        }).join('');
-        return `<div class="hist-status-modal-item"><div class="hist-status-modal-date">${ds}, ${dn}</div>${rowsHtml}</div>`;
-      }
-      return `<div class="hist-status-modal-item"><div class="hist-status-modal-date">${ds}, ${dn}</div></div>`;
-    }).join('');
-  }
-  overlay.innerHTML=`<div class="hist-status-modal-box">
-    <button type="button" class="hist-status-modal-close" onclick="closeHistStatusModal()">✕</button>
-    <div class="hist-status-modal-title" style="color:${meta.color}">${meta.title} — ${monNames[month]} ${year}</div>
-    <div class="hist-status-modal-count">${list.length} day${list.length===1?'':'s'}</div>
-    <div class="hist-status-modal-list">${itemsHtml}</div>
-  </div>`;
-  document.body.appendChild(overlay);
-  document.addEventListener('keydown',_histStatusModalEscHandler);
+function _histStatusMonthLabel(status){
+  return status==='present'?'✅ Present days this month':status==='rest'?'😴 Rest days this month':'❌ Absent days this month';
 }
 
 async function loadAttendanceHistoryRecords(){
@@ -6466,10 +6588,114 @@ async function loadAttendanceHistoryRecords(){
   {const n=new Date();_histLastMonthYM={year:n.getFullYear(),month:n.getMonth()};}
   renderAttendanceHistory();
 }
+/* ===================== ATTENDANCE HISTORY: LIST / CALENDAR VIEW + STATUS SELECTION ===================== */
+let histViewMode='list'; // 'list' | 'calendar' — toggled via the calendar icon button
+let histSelectedStatus=null; // 'present'|'rest'|'absent'|null — set by tapping a summary card.
+// In List view a selection filters the table to that status's days for the whole selected month.
+// In Calendar view the same selection highlights the matching date boxes instead of navigating away.
+
+function _histUpdateCardActiveStates(){
+  ['present','rest','absent'].forEach(s=>{
+    const el=document.getElementById('histCard'+s.charAt(0).toUpperCase()+s.slice(1));
+    if(el)el.classList.toggle('active',histSelectedStatus===s);
+  });
+}
+
+function histCardClicked(status){
+  histSelectedStatus=(histSelectedStatus===status)?null:status;
+  _histUpdateCardActiveStates();
+  renderAttendanceHistory();
+}
+function histClearSelectedStatus(){
+  histSelectedStatus=null;
+  _histUpdateCardActiveStates();
+  renderAttendanceHistory();
+}
+
+function histToggleViewMode(){
+  histSetViewMode(histViewMode==='calendar'?'list':'calendar');
+}
+function histSetViewMode(mode){
+  if(mode!=='list'&&mode!=='calendar')return;
+  histViewMode=mode;
+  const btn=document.getElementById('histCalToggleBtn');
+  if(btn){
+    btn.classList.toggle('active',mode==='calendar');
+    btn.setAttribute('aria-pressed',mode==='calendar'?'true':'false');
+    btn.title=mode==='calendar'?'Back to list view':'Calendar view';
+  }
+  const tableWrap=document.getElementById('historyTableWrap');
+  const calWrap=document.getElementById('histCalWrap');
+  if(tableWrap)tableWrap.style.display=mode==='list'?'':'none';
+  if(calWrap)calWrap.style.display=mode==='calendar'?'':'none';
+  if(mode!=='calendar')histCloseDatePopup();
+  renderAttendanceHistory();
+}
+
+/* Renders the table filtered to every date in the selected month that resolves to `status`
+   ('present'|'rest'|'absent') — populated in place of the normal Mon–Sun week rows whenever a
+   summary card is selected in List view. */
+function renderHistoryFilteredTable(status){
+  const{list}=_monthDayList(status);
+  let tbody=document.getElementById("historyTable");tbody.innerHTML="";
+  if(list.length===0){
+    tbody.innerHTML=`<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:20px;font-family:var(--font-alt)">No ${status==='present'?'present':status==='rest'?'rest':'absent'} days recorded yet for this month.</td></tr>`;
+    return;
+  }
+  list.forEach(item=>{
+    const dt=item.dt;
+    const dn=dt.toLocaleDateString('en-US',{weekday:'short'}),ds=dt.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+    if(status==='present'){
+      if(item.rows.length){
+        item.rows.forEach(row=>{
+          const checkInTime=formatCheckInTime(sessionDisplayCheckInISO(row));
+          const displayDuration=sessionDisplayDurationText(row);
+          const tr=document.createElement('tr');
+          tr.innerHTML=`<td>${ds}, ${dn}</td><td><span class="badge present">Present</span></td><td style="font-size:12px">${checkInTime}</td><td style="font-size:11px;max-width:120px">${sessionParseClassField(row.class).join(', ')||'-'}</td><td style="font-size:12px">${displayDuration}</td>`;
+          tbody.appendChild(tr);
+        });
+      } else {
+        const tr=document.createElement('tr');
+        tr.innerHTML=`<td>${ds}, ${dn}</td><td><span class="badge present">Present</span></td><td style="font-size:12px">-</td><td style="font-size:11px;max-width:120px">-</td><td style="font-size:12px">-</td>`;
+        tbody.appendChild(tr);
+      }
+      return;
+    }
+    const badgeCls=status==='rest'?'rest':'absent',badgeTxt=status==='rest'?'Rest Day':'Absent';
+    const editTitle=status==='rest'?'Change to Absent':'Change to Rest Day';
+    const dateKey=_fmtISODate(dt);
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${ds}, ${dn}</td><td><span class="badge ${badgeCls}" style="cursor:pointer" onclick="this.nextElementSibling.style.display=(this.nextElementSibling.style.display==='inline-block'?'none':'inline-block')" title="Tap to edit">${badgeTxt}</span> <button class="hist-edit-btn" style="display:none" onclick="toggleRestDayForDate('${dateKey}')" title="${editTitle}">✏️</button></td><td style="font-size:12px">-</td><td style="font-size:11px;max-width:120px">-</td><td style="font-size:12px">-</td>`;
+    tbody.appendChild(tr);
+  });
+}
+
 function renderAttendanceHistory(){
-  let data=window.cachedAttendance||[];
   let monthSel=document.getElementById("monthFilter");
   const{year:filterYear,month:filterMonth}=_selectedMonthYM(monthSel);
+  renderMonthCounts(filterYear,filterMonth);
+  _histUpdateCardActiveStates();
+
+  const weekNavGroup=document.getElementById('histWeekNavGroup');
+  const filterBar=document.getElementById('histFilterBar');
+  const showFilteredTable=histViewMode==='list'&&histSelectedStatus;
+
+  if(filterBar){
+    filterBar.style.display=showFilteredTable?'flex':'none';
+    if(showFilteredTable){
+      const lbl=document.getElementById('histFilterLabel');
+      if(lbl)lbl.textContent=_histStatusMonthLabel(histSelectedStatus);
+    }
+  }
+  if(weekNavGroup)weekNavGroup.style.display=(histViewMode==='list'&&!histSelectedStatus)?'':'none';
+
+  if(showFilteredTable){
+    renderHistoryFilteredTable(histSelectedStatus);
+    if(histViewMode==='calendar')renderHistoryCalendar();
+    return;
+  }
+
+  let data=window.cachedAttendance||[];
   // Mon–Sun week window, anchored by histWeekAnchor (navigated via the < / > buttons)
   const weekStart=getMonday(histWeekAnchor);
   const weekDates=[];for(let i=0;i<7;i++)weekDates.push(addDays(weekStart,i));
@@ -6532,7 +6758,147 @@ function renderAttendanceHistory(){
   if(histPrevBtn)histPrevBtn.style.visibility=(weekStart.getTime()<=_hMin.getTime())?'hidden':'visible';
   if(histNextBtn)histNextBtn.style.visibility=(weekStart.getTime()>=_hMax.getTime())?'hidden':'visible';
 
-  renderMonthCounts(filterYear,filterMonth);
+  if(histViewMode==='calendar')renderHistoryCalendar();
+}
+
+/* Builds a Mon-start grid of dates (with leading/trailing nulls for padding) for the given month. */
+function _histCalBuildMonthGrid(year,month){
+  const firstOfMonth=new Date(year,month,1);
+  const startOffset=(firstOfMonth.getDay()+6)%7; // Sun=0 -> 6 slots after Mon..Sat
+  const lastDay=new Date(year,month+1,0).getDate();
+  const cells=[];
+  for(let i=0;i<startOffset;i++)cells.push(null);
+  for(let day=1;day<=lastDay;day++)cells.push(new Date(year,month,day));
+  while(cells.length%7!==0)cells.push(null);
+  return cells;
+}
+
+/* Renders the full-month, VIEW-ONLY Calendar for #monthFilter's currently selected month: a
+   Mon–Sun header row followed by a 7-column date grid. Each date box is color-coded by status
+   (green=Present, blue=Rest Day, red=Absent, amber=Pending — fixed app-theme colors, not tied to
+   OS light/dark mode). Since the color already conveys the status, the top of the box shows the
+   check-in time for Present days, and just "Rest"/"Absent"/"Pending" for the other cases; the
+   date number sits in the middle, and Present days list the class name(s) trained underneath.
+   Date boxes are not tappable — editing Rest Day / Absent stays a List-view-only action. If a
+   summary card is selected (histSelectedStatus), matching boxes are highlighted and the rest are
+   dimmed so the chosen status pops visually. */
+/* Populated fresh on every renderHistoryCalendar() call — one entry per clickable (non-empty,
+   non-future) date box, keyed by 'YYYY-MM-DD'. Read by histCalCellClick to fill the popup. */
+let histCalDayData={};
+
+function renderHistoryCalendar(){
+  const box=document.getElementById('histCalGridBox');
+  if(!box)return;
+  histCloseDatePopup(); // re-rendering (month/status change) invalidates whatever date was open
+  histCalDayData={};
+  const monthSel=document.getElementById('monthFilter');
+  const{year,month}=_selectedMonthYM(monthSel);
+
+  const uid=settingsUid();
+  const overrides=_getRestOverrides(uid);
+  const restSettings=_getRestSettings(uid);
+  const data=window.cachedAttendance||[];
+  const presentSet=new Set(data.map(r=>r.date));
+
+  // Collect unique class names trained, the earliest check-in time, and total duration for each Present date
+  const classesByDate={};
+  const checkInByDate={};
+  const durationByDate={};
+  data.forEach(r=>{
+    const list=sessionParseClassField(r.class);
+    if(list.length){
+      (classesByDate[r.date]=classesByDate[r.date]||new Set());
+      list.forEach(c=>classesByDate[r.date].add(c));
+    }
+    const iso=sessionDisplayCheckInISO(r);
+    if(iso&&(!checkInByDate[r.date]||new Date(iso)<new Date(checkInByDate[r.date])))checkInByDate[r.date]=iso;
+    durationByDate[r.date]=(durationByDate[r.date]||0)+parseDurationToMinutes(r.duration);
+  });
+
+  const todayMid=new Date();todayMid.setHours(0,0,0,0);
+  const cells=_histCalBuildMonthGrid(year,month);
+  const dayNames=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  const monNames=['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+  let html=`<div class="hist-cal-monthlabel">${monNames[month]} ${year}</div>`;
+  html+=`<div class="hist-cal-daynames">${dayNames.map(d=>`<div class="hist-cal-dayname">${d}</div>`).join('')}</div>`;
+  html+='<div class="hist-cal-grid">';
+  cells.forEach(dt=>{
+    if(!dt){html+='<div class="hist-cal-cell empty"></div>';return;}
+    const key=_fmtISODate(dt);
+    const isFuture=dt.getTime()>todayMid.getTime();
+    const isToday=dt.getTime()===todayMid.getTime();
+    let statusCls='future',statusLbl='';
+    if(!isFuture){
+      const resolved=_resolveDayStatus(dt,presentSet,overrides,restSettings);
+      const isPending=isToday&&resolved==='absent';
+      if(isPending){statusCls='pending';statusLbl='Pending';}
+      else if(resolved==='present'){statusCls='present';statusLbl=checkInByDate[key]?formatCheckInTime(checkInByDate[key]):'Present';}
+      else{statusCls=resolved;statusLbl=resolved==='rest'?'Rest':'Absent';}
+    }
+    const classesSet=classesByDate[key];
+    const classesTxt=classesSet&&classesSet.size?Array.from(classesSet).join(', '):'';
+    let extraCls='';
+    if(histSelectedStatus)extraCls=(statusCls===histSelectedStatus)?' hist-cal-highlight':' hist-cal-dim';
+    const clickable=!isFuture;
+    const cellCls=`hist-cal-cell ${statusCls}${isToday?' hist-cal-today':''}${extraCls}${clickable?' hist-cal-clickable':''}`;
+    if(clickable){
+      histCalDayData[key]={
+        status:statusCls,
+        statusLbl:statusLbl,
+        checkIn:checkInByDate[key]?formatCheckInTime(checkInByDate[key]):'-',
+        duration:durationByDate[key]?formatMinutesToDuration(durationByDate[key]):'-',
+        classes:classesTxt,
+        dayName:dt.toLocaleDateString('en-US',{weekday:'long'}),
+        dateLabel:dt.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})
+      };
+    }
+    html+=`<div class="${cellCls}" data-date="${key}"${clickable?` onclick="histCalCellClick('${key}')"`:''}>`;
+    if(statusLbl)html+=`<span class="hist-cal-status ${statusCls}">${statusLbl}</span>`;
+    html+=`<span class="hist-cal-date">${dt.getDate()}</span>`;
+    if(classesTxt)html+=`<span class="hist-cal-classes">${classesTxt}</span>`;
+    html+='</div>';
+  });
+  html+='</div>';
+  box.innerHTML=html;
+}
+
+/* Tapping a date box opens the detail popup ABOVE the grid (normal flow, not a modal) — the
+   calendar underneath stays fully visible. Left box = check-in time, right box = duration, middle
+   = date & weekday, with classes trained for that day listed below (Present days only). Tapping
+   the same already-selected date again closes it; picking another date swaps the popup content. */
+function histCalCellClick(key){
+  const d=histCalDayData[key];
+  if(!d)return;
+  const popup=document.getElementById('histCalDatePopup');
+  const alreadyOpenForThisDate=popup&&popup.classList.contains('open')&&popup.dataset.date===key;
+  if(alreadyOpenForThisDate){histCloseDatePopup();return;}
+
+  const isPresent=d.status==='present';
+  document.getElementById('histCalPopupDate').textContent=d.dateLabel;
+  document.getElementById('histCalPopupDay').textContent=d.dayName;
+  document.getElementById('histCalPopupCheckin').textContent=isPresent?d.checkIn:(d.statusLbl||'-');
+  document.getElementById('histCalPopupDuration').textContent=isPresent?d.duration:'-';
+  const classesEl=document.getElementById('histCalPopupClasses');
+  if(isPresent){
+    classesEl.textContent=d.classes?`Classes: ${d.classes}`:'No classes logged';
+    classesEl.classList.remove('hidden');
+  } else {
+    classesEl.textContent='';
+    classesEl.classList.add('hidden');
+  }
+
+  popup.dataset.date=key;
+  popup.classList.add('open');
+
+  document.querySelectorAll('.hist-cal-cell.hist-cal-selected').forEach(el=>el.classList.remove('hist-cal-selected'));
+  const cellEl=document.querySelector(`.hist-cal-cell[data-date="${key}"]`);
+  if(cellEl)cellEl.classList.add('hist-cal-selected');
+}
+function histCloseDatePopup(){
+  const popup=document.getElementById('histCalDatePopup');
+  if(popup){popup.classList.remove('open');delete popup.dataset.date;}
+  document.querySelectorAll('.hist-cal-cell.hist-cal-selected').forEach(el=>el.classList.remove('hist-cal-selected'));
 }
 
 
@@ -15765,4 +16131,4 @@ function closeLearnVideo(){
   <div class="tracker-fullscreen-stage" id="trackerFullscreenStage"></div>
 </div>
 </body>
-</html> 
+</html>
