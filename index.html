@@ -3851,8 +3851,9 @@ if(!CanvasRenderingContext2D.prototype.roundRect){
 <script>
 /* ===================== LOCAL DATE/TIME HELPERS (device clock, 12-hour AM/PM format) =====================
    Uses the device's own current time directly — no external time API call (that was causing
-   connection errors for some users/networks). "Today", Punch In gating, created_at, and the
-   Duration "In Progress|<...>" marker are all built from the same `new Date()` instant, and
+   connection errors for some users/networks). "Today", Punch In gating, and created_at (which now
+   directly holds the real Punch In instant once one happens — see processCheckIn) are all built
+   from the same `new Date()` instant, and
    every place that displays a check-in/session time (Homepage timer, History page, Stats page)
    formats it the same way: 12-hour clock with AM/PM, exactly matching whatever the device's
    clock actually reads at that moment (e.g. Punch In at 8:03 PM shows and stores as 8:03 PM). */
@@ -3870,6 +3871,22 @@ function getLocalDateStringFor(dateObj){
   const m=String(dateObj.getMonth()+1).padStart(2,'0');
   const d=String(dateObj.getDate()).padStart(2,'0');
   return `${y}-${m}-${d}`;
+}
+/* ===================== WORKOUT ADD/EDIT/DELETE WINDOW =====================
+   Workouts can only be ADDED, EDITED, or DELETED for today, yesterday, and the day before
+   yesterday — any older date is read-only on the Workouts page (the Track icon is exempt: it
+   doesn't modify data, so it stays available for every date, past or present).
+   Single source of truth used both to gate the UI (hide the Add button + Edit/Delete icons —
+   see loadWorkoutsForDate) and as a defensive re-check inside the actual add/edit/delete
+   functions themselves, in case they're ever reached another way. */
+function isWorkoutEditableDate(dateStr){
+  if(!dateStr)return false;
+  const today=new Date();today.setHours(0,0,0,0);
+  for(let i=0;i<3;i++){
+    const d=new Date(today);d.setDate(d.getDate()-i);
+    if(getLocalDateStringFor(d)===dateStr)return true;
+  }
+  return false;
 }
 /* Returns the device's current wall-clock time as "YYYY-MM-DDTHH:mm:ss" (24-hour, no timezone
    suffix) — used only as a raw storage-format helper; display formatting always goes through
@@ -4074,7 +4091,17 @@ async function downloadMemberReceipt(){
    - "class"    : comma-joined CLASS CODES (see encodeClassName/decodeClassCode below), e.g. "1,2"
                   decodes back to "Chest, Biceps". Old Morning/Evening "session" slot label is no
                   longer persisted — multiple sessions in a day are distinguished by created_at.
-   - "duration" : same text format as before ("1Hr 20min" / "45min" / "In Progress|<ISO>")
+   - "created_at": bare date at midnight UTC ("YYYY-MM-DDT00:00:00.000Z") for a row that only has
+                  workouts logged and no Punch In yet; rewritten to the exact real Punch In instant
+                  the moment the user Punches In (before or after adding workouts, doesn't matter).
+                  created_at is part of the primary key, but it's still safe to UPDATE as long as
+                  the WHERE clause targets the row's current (old) key — see processCheckIn.
+   - "duration" : "" (no Punch In yet) / "In Progress|<ISO>" while the session is running, where
+                  <ISO> is the same real Punch In instant now also stored in created_at (kept here
+                  too — not just in created_at — because admin.html's Live view reads this exact
+                  embedded timestamp to tick the elapsed time in real time) / "1Hr 20min" or
+                  "45min" once Punch Out happens (the "|<ISO>" marker is dropped at that point —
+                  see _doPunchOut — since created_at already has the Punch In time on record).
    - "workouts" : jsonb ARRAY of compact "<exerciseCode-or-customName>:<sets>" STRINGS, one per
                   exercise logged, e.g. ["11:5Kg x15,5Kg x12,5Kg x12", "Custom Move:5Kg x10"].
                   Catalog exercises are stored as their numeric CODE (1-based index into
@@ -4149,15 +4176,19 @@ function decodeClassCode(codeOrName){
 }
 
 /* ===================== REAL PUNCH-IN CHECK-IN TIME (vs. row created_at) =====================
-   A Session row's `duration` field carries an embedded "|<ISO>" suffix holding the EXACT
-   Supabase-server instant the user pressed Punch In:
-     - while the session is running:            "In Progress|<ISO>"
-     - after Check-Out (added by processCheckOut): "<friendly duration text>|<ISO>"
-   That ISO is the true check-in time to show, because the row's own created_at can instead be
-   the moment an earlier WORKOUT was logged (before the user remembered to Punch In) — created_at
-   never changes afterwards since it's part of the table's primary key. Rows where the user never
-   Punched In at all that day (workout-only, duration left blank) have no such marker, so the
-   fallback is simply the row's created_at, exactly as before. */
+   created_at itself IS the real Punch In instant once a Punch In happens — processCheckIn()
+   rewrites it at Punch In time, whether the row started life as a workout-only row (bare date,
+   no Punch In yet) or is brand new.
+   `duration` ALSO carries that same instant while the session is running ("In Progress|<ISO>") —
+   not because it's needed to know the check-in time (created_at already has it), but because
+   admin.html's Live attendance view reads this exact embedded timestamp to tick each member's
+   elapsed time in real time. Once Punch Out happens, duration is overwritten with just the plain
+   final text (see _doPunchOut) — the "|<ISO>" marker only needs to exist while In Progress.
+   sessionRealCheckInISO() below reads that embedded marker when present (covers both the live
+   "In Progress|<ISO>" case and any older "<friendly duration text>|<ISO>" rows saved before
+   created_at itself started tracking Punch In time); otherwise it falls back to the row's
+   created_at, which is correct for finished/legacy rows and for workout-only rows alike (bare
+   date, no Punch In — nothing to show as a check-in time anyway). */
 function sessionRealCheckInISO(row){
   const d=row&&row.duration;
   if(!d||!d.trim())return null;
@@ -4168,9 +4199,14 @@ function sessionRealCheckInISO(row){
   return isNaN(new Date(iso).getTime())?null:iso;
 }
 /* The check-in time to DISPLAY for a Session row — real Punch In instant when one exists,
-   otherwise (workout-only day, no Punch In) the row's created_at, unchanged from before. */
+   otherwise (workout-only day, no Punch In yet) null, so the UI shows "-" instead of a dummy
+   midnight time (created_at is only a genuine Punch In instant once duration is non-empty —
+   see isWorkoutEditableDate/wfComputePunchFillIfReady for how it later gets filled in). */
 function sessionDisplayCheckInISO(row){
-  return sessionRealCheckInISO(row)||(row&&row.created_at);
+  const real=sessionRealCheckInISO(row);
+  if(real)return real;
+  if(row&&row.duration&&row.duration.trim()!=='')return row.created_at;
+  return null;
 }
 /* The human-readable Duration text for a Session row — strips the internal "|<ISO>" Punch-In
    marker (see above) so the History/Stats UI keeps showing plain text like "1Hr 20min" or
@@ -4178,7 +4214,7 @@ function sessionDisplayCheckInISO(row){
 function sessionDisplayDurationText(row){
   const d=(row&&row.duration)||'';
   if(!d)return'-';
-  if(d.startsWith('In Progress|'))return'In Progress ⏱';
+  if(d==='In Progress'||d.startsWith('In Progress|'))return'In Progress ⏱';
   const idx=d.indexOf('|');
   return idx===-1?d:d.substring(0,idx);
 }
@@ -4277,7 +4313,7 @@ async function sessionFetchAllForUser(uid,ascending=false){
 }
 /* Find the currently in-progress (checked-in, not yet checked-out) Session row for a user/date, if any. */
 async function sessionFindInProgress(uid,date){
-  const{data,error}=await db.from(SESSION_TABLE).select('*').eq('user_id',uid).eq('date',date).like('duration','In Progress|%').order('created_at',{ascending:false}).limit(1);
+  const{data,error}=await db.from(SESSION_TABLE).select('*').eq('user_id',uid).eq('date',date).like('duration','In Progress%').order('created_at',{ascending:false}).limit(1);
   return{data:data||[],error};
 }
 /* Fetch one specific Session row by its full composite key (fresh read, avoids acting on stale data). */
@@ -4291,11 +4327,14 @@ async function sessionFetchRowByKey(uid,date,createdAt){
 async function sessionGetOrCreateTargetRow(uid,date){
   const{data}=await sessionFetchByUserDate(uid,date);
   if(data&&data.length)return data[data.length-1];
-  // No created_at passed in — the database assigns it via its own `default now()`, so this
-  // row's created_at is always Supabase's exact real server time, never the device clock.
-  const{data:inserted}=await sessionInsert({user_id:uid,date,class:'',duration:'',workouts:[]});
-  const fallbackNow=getServerNow().toISOString();
-  return(inserted&&inserted[0])?inserted[0]:{user_id:uid,date,class:'',duration:'',workouts:[],created_at:fallbackNow};
+  // Workout logged before Punching In: created_at only needs to carry the DATE — no meaningful
+  // time yet, so store bare midnight for that date. If/when the user later Punches In (before or
+  // after adding more workouts, doesn't matter), processCheckIn() rewrites THIS row's created_at
+  // to the real Punch In instant (see there) — created_at always ends up holding the true
+  // Punch In time once one happens, and the plain date until then.
+  const dateOnlyCreatedAt=`${date}T00:00:00.000Z`;
+  const{data:inserted}=await sessionInsert({user_id:uid,date,class:'',duration:'',workouts:[],created_at:dateOnlyCreatedAt});
+  return(inserted&&inserted[0])?inserted[0]:{user_id:uid,date,class:'',duration:'',workouts:[],created_at:dateOnlyCreatedAt};
 }
 /* Create or update a single compact workout entry within a Session row's "workouts" jsonb array.
    slotRef: null (create a new entry, appended to the target row) OR {rowCreatedAt,idx} (overwrite an
@@ -5158,7 +5197,10 @@ async function resumeActiveSession(uid){
   const today=getLocalDateString();
   const{data,error}=await sessionFindInProgress(uid,today);
   if(error||!data||data.length===0)return;
-  const row=data[0];const parts=row.duration.split('|');const checkInISO=parts[1]||null;if(!checkInISO)return;
+  const row=data[0];
+  // Real Punch In instant: created_at itself for new-format rows (see processCheckIn), or the
+  // legacy embedded "|<ISO>" duration marker for any older rows still carrying one.
+  const checkInISO=sessionDisplayCheckInISO(row);if(!checkInISO)return;
   const checkInTime=new Date(checkInISO);if(isNaN(checkInTime.getTime()))return;
   activeSessionCheckInTimestamp=checkInISO;
   activeSessionCreatedAt=row.created_at;
@@ -6022,12 +6064,13 @@ const MUSCLE_CLASS_MAP={Chest:["Chest_Left","Chest_Right"],Biceps:["Biceps_Left"
    A Session row for today may already exist with an EMPTY duration — that happens when the
    user logged a workout (directly, or via a Room from someone else's phone) before ever
    Punching In. That row already marks them Present for the day; Punching In must UPDATE that
-   SAME row's duration rather than inserting a second row for the same date. */
+   SAME row's duration (and, since this update, its created_at too — see below) rather than
+   inserting a second row for the same date. */
 async function processCheckIn(){
   let uid=localStorage.getItem("user_id");if(!uid)return;
   let today=getLocalDateString();
   const{data:ex}=await sessionFetchByUserDate(uid,today);
-  const inProgressRow=ex&&ex.find(r=>r.duration&&r.duration.startsWith("In Progress|"));
+  const inProgressRow=ex&&ex.find(r=>r.duration&&r.duration.startsWith("In Progress"));
   if(inProgressRow){alert("You already have an active session in progress today.");return}
   const finishedRow=ex&&ex.find(r=>r.duration&&r.duration.trim()!=="");
   if(finishedRow){alert("You have already Punched In today. Only 1 Punch In is allowed per day.");return}
@@ -6036,18 +6079,25 @@ async function processCheckIn(){
   let checkInISO;
   if(workoutOnlyRow){
     // Row already exists (created earlier for a workout logged before Punching In) — its
-    // created_at can't be changed (it's part of the primary key), so the real Punch In instant
-    // is Supabase's clock-synced "now" (getServerNow(), NOT the device clock), embedded into
-    // duration. History/Stats always prefer this embedded time over created_at (see
-    // sessionDisplayCheckInISO), so the correct Punch In time shows everywhere regardless.
+    // created_at so far only holds the bare date (see sessionGetOrCreateTargetRow). Now that the
+    // user is actually Punching In, rewrite created_at to the real Punch In instant — Supabase's
+    // clock-synced "now" (getServerNow(), NOT the device clock) — and store "In Progress|<ISO>"
+    // in duration too: the admin app's Live view reads that embedded timestamp directly to tick
+    // the elapsed time in real time (see admin.html's isLive/checkInISO handling), so it has to
+    // stay in duration while the session is running, even though created_at also has it now.
+    // Once Punch Out happens, duration is overwritten with just the final plain text (see
+    // _doPunchOut) — the "|<ISO>" marker only needs to exist while In Progress.
+    // created_at is part of the primary key, but an UPDATE is free to change it as long as the
+    // WHERE clause below still matches the row's OLD key.
     checkInISO=getServerNow().toISOString();
-    await sessionUpdateByKey(uid,today,workoutOnlyRow.created_at,{duration:`In Progress|${checkInISO}`});
-    activeSessionCreatedAt=workoutOnlyRow.created_at;
+    await sessionUpdateByKey(uid,today,workoutOnlyRow.created_at,{created_at:checkInISO,duration:`In Progress|${checkInISO}`});
+    activeSessionCreatedAt=checkInISO;
   }else{
     // Brand-new row: let the database itself assign created_at via its own `default now()` —
     // never a device-clock value — then read that exact server-generated instant straight back
-    // and reuse it as the Punch In time too, so created_at and the Punch In marker always agree,
-    // both being the database's own real time (no separate round trip needed to "measure" it).
+    // and reuse it as the Punch In time, since created_at IS the Punch In marker now. A second
+    // quick update embeds that same instant into duration too (see comment above) — insert can't
+    // do it in one shot since created_at isn't known until the row comes back from the database.
     const{data:inserted,error}=await sessionInsert({user_id:uid,date:today,class:"",duration:"In Progress",workouts:[]});
     if(error){alert(error.message);return}
     const newRow=inserted&&inserted[0];
@@ -6098,8 +6148,13 @@ async function cancelPunchIn(){
   if(createdAtKey){
     const row=await sessionFetchRowByKey(uid,today,createdAtKey);
     const hasWorkouts=row&&sessionWorkoutsArray(row).length>0;
-    if(hasWorkouts)await sessionUpdateByKey(uid,today,createdAtKey,{duration:''});
-    else await sessionDeleteByKey(uid,today,createdAtKey);
+    if(hasWorkouts){
+      // Workouts stay (still Present for the day), but there's no real Punch In anymore — revert
+      // created_at back to the bare-date marker, matching a workout logged with no Punch In.
+      await sessionUpdateByKey(uid,today,createdAtKey,{duration:'',created_at:`${today}T00:00:00.000Z`});
+    } else {
+      await sessionDeleteByKey(uid,today,createdAtKey);
+    }
   }
   _resetPunchInUI();
   showToast("Punch In cancelled.");
@@ -6203,16 +6258,10 @@ async function _doPunchOut(){
     const{data:lr}=await sessionFindInProgress(uid,today);
     if(lr&&lr.length>0)createdAtKey=lr[0].created_at;
   }
-  // Keep the real Punch In instant alive inside duration ("<friendly text>|<ISO>") instead of
-  // discarding it — this is what lets History/Stats keep showing the ACTUAL Punch In time even
-  // after Check-Out, regardless of whether created_at reflects an earlier workout log instead.
-  let checkInISOToSave=activeSessionCheckInTimestamp;
-  if(!checkInISOToSave&&createdAtKey){
-    const liveRow=await sessionFetchRowByKey(uid,today,createdAtKey);
-    checkInISOToSave=sessionRealCheckInISO(liveRow);
-  }
-  const durationToSave=checkInISOToSave?`${fmt}|${checkInISOToSave}`:fmt;
-  if(createdAtKey)await sessionUpdateByKey(uid,today,createdAtKey,{duration:durationToSave});
+  // Duration only needs the plain elapsed-time text now — created_at already holds the real
+  // Punch In instant (set at Punch In time, see processCheckIn), so there's nothing left to
+  // embed here. History/Stats keep showing the correct Punch In time straight from created_at.
+  if(createdAtKey)await sessionUpdateByKey(uid,today,createdAtKey,{duration:fmt});
   _resetPunchInUI();
   alert(`✅ Punch Out saved! Duration: ${fmt}`);
   await loadAttendanceHistoryRecords();await syncCoreDashboardMetrics();
@@ -10231,6 +10280,8 @@ function toggleLiveMode(){
   tog.classList.toggle("on",liveMode);lbl.textContent=liveMode?"ON":"OFF";lbl.style.color=liveMode?"var(--accent)":"var(--text-muted)";
 }
 function showAddWorkoutForm(){
+  const _td=isRoomMemberModeActive()?getLocalDateString():document.getElementById("workoutCalendarFilter").value;
+  if(!isWorkoutEditableDate(_td)){alert("You can only add workouts for today, yesterday, or the day before yesterday.");return}
   currentEditingIndex=null;window._liveEditMode=false;editOriginalSetCount=0;
   bwKgRevealed={nonlive:false,live:false,liveEditExisting:false,liveEditNew:false};
   if(typeof updateRoomTargetBadge==='function')updateRoomTargetBadge();
@@ -11093,6 +11144,10 @@ let _wcSuppressClickUntil=0;
 function wcPointerDown(e,el,ci){
   if(e.pointerType==='mouse'&&e.button!==0)return;
   if(e.target.closest('.action-icon-btn'))return;
+  // Reordering rewrites the row's workouts array, so it's an edit too — block it outside the
+  // Add/Edit/Delete window, same as the Edit/Delete icons (see isWorkoutEditableDate).
+  const _td=isRoomMemberModeActive()?getLocalDateString():document.getElementById("workoutCalendarFilter").value;
+  if(!isWorkoutEditableDate(_td))return;
   // Defensive: if a previous drag somehow never cleaned itself up (e.g. a swallowed pointerup),
   // force-clear it now instead of permanently locking out dragging.
   if(_wDrag){wcEndDrag(false);}
@@ -11311,6 +11366,11 @@ function wcResyncCiAfterReorder(container){
 }
 async function loadWorkoutsForDate(){
   let uid=getEffectiveUid(),date=isRoomMemberModeActive()?getLocalDateString():document.getElementById("workoutCalendarFilter").value;
+  const editable=isWorkoutEditableDate(date);
+  // Add Workout button: only for today/yesterday/day-before-yesterday. Older dates stay
+  // read-only — forced hidden here regardless of whatever state a form was left in.
+  const addBox=document.getElementById("initialWorkoutBox");
+  if(addBox)addBox.style.display=editable?"":"none";
   let con=document.getElementById("savedWorkoutLogsContainer");
   con.innerHTML=`<p style="font-size:13px;color:var(--text-muted);text-align:center;padding:10px;font-family:var(--font-alt)">Loading...</p>`;
   const{data,error}=await sessionFetchByUserDate(uid,date);
@@ -11334,7 +11394,8 @@ async function loadWorkoutsForDate(){
       const volVal=`<span class="wlc-vol-val">${vt.primary} <small>${vt.unit}</small></span>`;
       const classLabel=`<small class="wlc-class-label" style="color:${exColor}">${exCls}</small>`;
       const setsBlock=`<div class="${tagGridClass} wlc-sets-block${workoutBreakdownOn?"":" wlc-collapsed"}">${tags}</div>`;
-      html+=`<div class="workout-log-card" data-ci="${ci}" data-class="${escapeHtml(exCls)}" tabindex="0" style="--wlc-glow:${exColor}55" onclick="handleWorkoutCardActivate(this,${ci},'${escapeHtml(cell)}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click()}" onpointerdown="wcPointerDown(event,this,${ci})"><div class="wlc-box" style="border-color:${exColor}55;border-left-color:${exColor}"><div class="wlc-body"><div class="wlc-header-row"><span class="wlc-dot" style="background:${exColor}"></span><div class="exercise-name"><span class="wlc-serial" style="color:var(--accent);margin-right:4px">${counter}.</span>${ename}${classLabel}</div>${volVal}</div>${setsBlock}</div></div><div class="workout-actions-overlay"><button class="action-icon-btn track" title="Track Workout" onclick="trackWorkoutFromCard(event,'${escapeHtml(ename)}')">${ICON_TRACK}</button><button class="action-icon-btn edit" title="Edit" onclick="initiateWorkoutEdit(event,${ci},'${escapeHtml(cell)}')">${ICON_EDIT}</button><button class="action-icon-btn delete" title="Delete" onclick="triggerWorkoutDelete(event,${ci})">${ICON_DELETE}</button></div></div>`;counter++;
+      const actionsHtml=`<button class="action-icon-btn track" title="Track Workout" onclick="trackWorkoutFromCard(event,'${escapeHtml(ename)}')">${ICON_TRACK}</button>${editable?`<button class="action-icon-btn edit" title="Edit" onclick="initiateWorkoutEdit(event,${ci},'${escapeHtml(cell)}')">${ICON_EDIT}</button><button class="action-icon-btn delete" title="Delete" onclick="triggerWorkoutDelete(event,${ci})">${ICON_DELETE}</button>`:''}`;
+      html+=`<div class="workout-log-card" data-ci="${ci}" data-class="${escapeHtml(exCls)}" tabindex="0" style="--wlc-glow:${exColor}55" onclick="handleWorkoutCardActivate(this,${ci},'${escapeHtml(cell)}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click()}" onpointerdown="wcPointerDown(event,this,${ci})"><div class="wlc-box" style="border-color:${exColor}55;border-left-color:${exColor}"><div class="wlc-body"><div class="wlc-header-row"><span class="wlc-dot" style="background:${exColor}"></span><div class="exercise-name"><span class="wlc-serial" style="color:var(--accent);margin-right:4px">${counter}.</span>${ename}${classLabel}</div>${volVal}</div>${setsBlock}</div></div><div class="workout-actions-overlay">${actionsHtml}</div></div>`;counter++;
     });
   });
   if(!anyEntry){con.innerHTML=`<p style="font-size:13px;color:var(--text-muted);text-align:center;padding:10px;font-family:var(--font-alt)">No entries for this date.</p>`;if(breakdownRow)breakdownRow.style.display="none";renderWorkoutClassChipsRow(null,0,false);return}
@@ -11370,16 +11431,20 @@ async function loadWorkoutsForDate(){
    Class is now fully auto-derived from logged workouts (see syncAutoClassForDate) — nothing to
    pick by hand anywhere. This chip row gives an at-a-glance view of which muscle groups were
    hit for the date currently shown on the Workouts page, and the Finish button (shown once at
-   least one workout is logged for that date) opens a compact summary: the same body diagram the
-   app used to show at Punch Out, now read-only/auto-highlighted, with a small pencil toggle for
-   the rare case the auto-detected classes need a manual correction. */
+   least one workout is logged for that date, AND the date is within the Add/Edit/Delete window —
+   see isWorkoutEditableDate — since Finish lets the class/Check-In-Check-Out for the day be
+   changed too, same as Add/Edit/Delete) opens a compact summary: the same body diagram the app
+   used to show at Punch Out, now read-only/auto-highlighted, with a small pencil toggle for the
+   rare case the auto-detected classes need a manual correction. */
 function renderWorkoutClassChipsRow(classVolMap,totalVolAll,anyEntry){
   const chipsRow=document.getElementById("workoutClassChipsRow");
   const finishBtn=document.getElementById("workoutFinishBtn");
   if(!chipsRow||!finishBtn)return;
   // Finish button: shown whenever ANY workout is logged for the date, Warmup-only days included —
-  // the user still gets to open the summary and confirm there's simply nothing to classify.
-  finishBtn.style.display=anyEntry?"inline-flex":"none";
+  // the user still gets to open the summary and confirm there's simply nothing to classify —
+  // but only within the same 3-day editable window as Add/Edit/Delete.
+  const _fbDate=isRoomMemberModeActive()?getLocalDateString():document.getElementById("workoutCalendarFilter").value;
+  finishBtn.style.display=(anyEntry&&isWorkoutEditableDate(_fbDate))?"inline-flex":"none";
   // Chip row: only real muscle-group classes, Warmup/Unknown excluded (see deriveDayClasses).
   // Order = the order each class was FIRST added to the day (classVolMap is built by iterating the
   // day's workouts in logged order, and JS preserves string-key insertion order), NOT sorted by
@@ -11701,6 +11766,34 @@ function wfUpdateSaveButtonState(){
     if(streakEl)streakEl.style.display=window._wfHasSavedOnce?"block":"none";
   }
 }
+/* Computes {checkInISO, durationText} from the Finish modal's Check-In/Check-Out time inputs,
+   for backfilling a date that has no Punch In on record (see window._wfShowPunchFill).
+   Returns: null if the punch-fill section isn't showing, or both fields are still empty (nothing
+   to compute yet — leave Duration/created_at untouched); {error} if only one field is filled or
+   the times are invalid; otherwise {checkInISO, durationText} ready to save. */
+function wfComputePunchFillIfReady(){
+  if(!window._wfShowPunchFill)return null;
+  const ciEl=document.getElementById('wfCheckInTime'),coEl=document.getElementById('wfCheckOutTime');
+  if(!ciEl||!coEl)return null;
+  const ciVal=ciEl.value,coVal=coEl.value;
+  if(!ciVal&&!coVal)return null;
+  if(!ciVal||!coVal)return{error:"Enter both Check-In and Check-Out time, or leave both blank."};
+  const checkInDate=new Date(`${window._wfDate}T${ciVal}:00`);
+  let checkOutDate=new Date(`${window._wfDate}T${coVal}:00`);
+  if(isNaN(checkInDate.getTime())||isNaN(checkOutDate.getTime()))return{error:"Invalid time entered."};
+  if(checkOutDate.getTime()<=checkInDate.getTime())checkOutDate=new Date(checkOutDate.getTime()+24*60*60*1000); // Check-Out past midnight
+  const elapsedSec=Math.max(60,Math.round((checkOutDate.getTime()-checkInDate.getTime())/1000));
+  const hrs=Math.floor(elapsedSec/3600),mins=Math.floor((elapsedSec%3600)/60);
+  const durationText=hrs>0?`${hrs}Hr ${mins}min`:`${mins}min`;
+  return{checkInISO:checkInDate.toISOString(),durationText};
+}
+/* Live "Duration: X" preview under the Check-In/Check-Out inputs — purely cosmetic, the actual
+   save/validation happens in wfComputePunchFillIfReady() when Save is tapped. */
+function wfUpdatePunchDurationPreview(){
+  const el=document.getElementById('wfPunchDurationPreview');if(!el)return;
+  const r=wfComputePunchFillIfReady();
+  el.textContent=(r&&!r.error)?`Duration: ${r.durationText}`:'';
+}
 /* The ONLY place Session.class ever gets written to the database. Persists the reviewed/edited
    working list (window._wfClasses), reveals the streak note, then instantly refreshes the
    Workouts page chips, the History page, and the dashboard/Stats numbers so the change is
@@ -11708,15 +11801,30 @@ function wfUpdateSaveButtonState(){
 async function wfSaveClasses(){
   if(!window._wfUid||!window._wfDate||!window._wfRowCreatedAt)return;
   const btn=document.getElementById("wfSaveBtn");
+  // If this date had no Punch In (see window._wfShowPunchFill) and Check-In/Check-Out were
+  // entered, save Duration (and rewrite created_at to the real Check-In instant) right along
+  // with the class save — one Save button, one round trip.
+  const punchResult=wfComputePunchFillIfReady();
+  if(punchResult&&punchResult.error){alert(punchResult.error);return}
   if(btn){btn.disabled=true;btn.textContent="Saving...";}
-  await sessionUpdateByKey(window._wfUid,window._wfDate,window._wfRowCreatedAt,{class:sessionBuildClassField(window._wfClasses)});
+  const patch={class:sessionBuildClassField(window._wfClasses)};
+  if(punchResult){patch.created_at=punchResult.checkInISO;patch.duration=punchResult.durationText;}
+  await sessionUpdateByKey(window._wfUid,window._wfDate,window._wfRowCreatedAt,patch);
+  if(punchResult){
+    // created_at just changed (it's part of the primary key) — keep the modal's stored key in
+    // sync so any further Save this same modal session targets the right row, and hide the
+    // punch-fill section now that Duration is no longer empty.
+    window._wfRowCreatedAt=punchResult.checkInISO;
+    window._wfShowPunchFill=false;
+    const sec=document.getElementById('wfPunchFillSection');if(sec)sec.remove();
+  }
   window._wfDirty=false;
   window._wfHasSavedOnce=true;
   if(btn)btn.disabled=false;
   const streakEl=document.getElementById('wfStreakNote');
   if(streakEl)streakEl.textContent=window._wfStreakMsg||'';
   wfUpdateSaveButtonState();
-  showToast("Classes saved for the day ✅");
+  showToast(punchResult?"Check-In/Check-Out & classes saved ✅":"Classes saved for the day ✅");
   await loadWorkoutsForDate();          // Workouts page chips
   await loadAttendanceHistoryRecords(); // History page
   await syncCoreDashboardMetrics();     // dashboard + any Stats numbers currently on screen
@@ -11725,10 +11833,16 @@ async function openWorkoutFinishModal(){
   closeWorkoutFinishModal();
   const uid=getEffectiveUid();
   const date=isRoomMemberModeActive()?getLocalDateString():document.getElementById("workoutCalendarFilter").value;
+  if(!isWorkoutEditableDate(date)){showToast("Finish is only available for today, yesterday, or the day before yesterday.");return}
   const{data}=await sessionFetchByUserDate(uid,date);
   const row=data&&data.length?data[data.length-1]:null;
   if(!row||sessionWorkoutsArray(row).length===0){showToast("No workouts logged for this date yet.");return}
   window._wfUid=uid;window._wfDate=date;window._wfRowCreatedAt=row.created_at;
+  // No Punch In on record for this date (Duration is empty) — since Add Workout itself is only
+  // reachable for today/yesterday/day-before-yesterday (see isWorkoutEditableDate), this is
+  // always within that same window too. Offer to backfill Check-In/Check-Out time right here so
+  // Duration (and created_at, the real Punch In instant) get saved without a separate Punch In.
+  window._wfShowPunchFill=isWorkoutEditableDate(date)&&(!row.duration||row.duration.trim()==='');
   // Start from whatever was already saved for the day, PLUS any freshly-derived class the saved
   // list doesn't have yet (e.g. a workout logged since the last Save) — nothing here writes to
   // the database; it's only ever written when the user taps Save below.
@@ -11764,6 +11878,21 @@ async function openWorkoutFinishModal(){
     <div class="wf-modal-scroll">
       <div class="hist-status-modal-title" style="color:var(--accent)">✅ Workout Finished</div>
       <div class="hist-status-modal-count">${dLabel}</div>
+      ${window._wfShowPunchFill?`<div class="wf-punch-fill-section" id="wfPunchFillSection" style="margin:10px 0 4px;padding:10px 12px;border-radius:12px;background:var(--accent-soft);border:1px solid var(--border-col)">
+        <div style="font-family:var(--font-alt);font-size:11px;font-weight:800;color:var(--text-muted);letter-spacing:0.5px;margin-bottom:4px">⏱ NO PUNCH IN FOUND FOR THIS DAY</div>
+        <div style="font-family:var(--font-alt);font-size:11.5px;color:var(--text-secondary);margin-bottom:8px">Add your Check-In and Check-Out time to save the Duration for this day.</div>
+        <div style="display:flex;gap:10px">
+          <div style="flex:1">
+            <label style="font-size:11px;font-weight:700;color:var(--text-muted);font-family:var(--font-alt)">CHECK-IN</label>
+            <input type="time" id="wfCheckInTime" style="width:100%;margin-top:4px" oninput="wfUpdatePunchDurationPreview()">
+          </div>
+          <div style="flex:1">
+            <label style="font-size:11px;font-weight:700;color:var(--text-muted);font-family:var(--font-alt)">CHECK-OUT</label>
+            <input type="time" id="wfCheckOutTime" style="width:100%;margin-top:4px" oninput="wfUpdatePunchDurationPreview()">
+          </div>
+        </div>
+        <div id="wfPunchDurationPreview" style="margin-top:6px;font-family:var(--font-alt);font-size:12px;font-weight:700;color:var(--accent)"></div>
+      </div>`:''}
       <div style="display:flex;align-items:center;justify-content:space-between;margin:6px 0 4px">
         <span style="font-family:var(--font-alt);font-size:11px;font-weight:800;color:var(--text-muted);letter-spacing:0.5px">MUSCLES WORKED</span>
         <button type="button" class="wf-edit-toggle-btn" id="wfEditToggleBtn" onclick="wfToggleEditMode()">✏️ Edit</button>
@@ -11863,7 +11992,10 @@ function closeWorkoutEditOverlayViaCancel(){
   closeWorkoutEditOverlay();
 }
 function initiateWorkoutEdit(e,ci,rv){
-  e.stopPropagation();currentEditingIndex=ci;
+  e.stopPropagation();
+  const _td=isRoomMemberModeActive()?getLocalDateString():document.getElementById("workoutCalendarFilter").value;
+  if(!isWorkoutEditableDate(_td)){alert("You can only edit workouts for today, yesterday, or the day before yesterday.");return}
+  currentEditingIndex=ci;
   bwKgRevealed.nonlive=false;
   if(typeof updateRoomTargetBadge==='function')updateRoomTargetBadge();
   editOriginalDurations={};
@@ -12453,8 +12585,10 @@ function cancelLiveEditWorkout(){
   closeWorkoutEditOverlay();
 }
 async function triggerWorkoutDelete(e,ci){
-  e.stopPropagation();if(!confirm("Delete this workout entry?"))return;
+  e.stopPropagation();
   let uid=getEffectiveUid(),td=document.getElementById("workoutCalendarFilter").value;
+  if(!isWorkoutEditableDate(td)){alert("You can only delete workouts for today, yesterday, or the day before yesterday.");return}
+  if(!confirm("Delete this workout entry?"))return;
   const slotRef=window._workoutCiMap&&window._workoutCiMap[ci];
   await sessionDeleteWorkoutEntry(uid,td,slotRef);
   alert("Entry deleted.");await loadWorkoutsForDate();await syncCoreDashboardMetrics();
@@ -15631,4 +15765,4 @@ function closeLearnVideo(){
   <div class="tracker-fullscreen-stage" id="trackerFullscreenStage"></div>
 </div>
 </body>
-</html>
+</html> 
