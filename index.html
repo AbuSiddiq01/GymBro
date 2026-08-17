@@ -501,7 +501,7 @@ input::placeholder{color:var(--text-muted)}
 }
 .hist-cal-cell.empty{background:transparent;border-color:transparent;box-shadow:none}
 .hist-cal-cell.future{opacity:0.42}
-.hist-cal-cell.present{background:#fff;border-color:rgba(22,163,74,0.5);box-shadow:0 1px 0 rgba(255,255,255,0.12) inset,0 3px 10px -6px rgba(0,0,0,0.35)}
+.hist-cal-cell.present{background:#fff;border-color:#16a34a;box-shadow:0 1px 0 rgba(255,255,255,0.12) inset,0 3px 10px -6px rgba(0,0,0,0.35)}
 .hist-cal-cell.rest{background:#fff;border-color:rgba(37,99,235,0.5);box-shadow:0 1px 0 rgba(255,255,255,0.12) inset,0 3px 10px -6px rgba(0,0,0,0.35)}
 .hist-cal-cell.absent{background:#fff;border-color:rgba(220,38,38,0.5);box-shadow:0 1px 0 rgba(255,255,255,0.12) inset,0 3px 10px -6px rgba(0,0,0,0.35)}
 .hist-cal-cell.pending{background:#fff;border-color:rgba(245,158,11,0.5);box-shadow:0 1px 0 rgba(255,255,255,0.12) inset,0 3px 10px -6px rgba(0,0,0,0.35)}
@@ -558,6 +558,7 @@ input::placeholder{color:var(--text-muted)}
 .hist-cal-date{position:relative;z-index:1;font-family:var(--font-display);font-size:15px;margin:2px 0 1px;color:#1e293b;font-weight:500;letter-spacing:0.5px}
 .hist-cal-cell.future .hist-cal-date{color:#94a3b8}
 .hist-cal-classes{position:relative;z-index:1;font-size:7.5px;color:#1e293b;font-weight:800;text-align:center;line-height:1.25;font-family:var(--font-alt);overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;word-break:break-word;padding:0 1px}
+.hist-cal-classes-more{display:inline-block;background:var(--accent);color:#fff;font-weight:800;border-radius:5px;padding:0 3px;margin-left:2px;font-size:0.92em;line-height:1.3;white-space:nowrap;vertical-align:baseline}
 .hist-cal-empty-note{text-align:center;font-size:11px;color:var(--text-muted);font-family:var(--font-alt);padding:16px 0}
 @media(max-width:480px){
   .hist-cal-icon-btn{width:38px;height:38px;margin:10px auto 14px}
@@ -6841,7 +6842,14 @@ function renderHistoryCalendar(){
       else{statusCls=resolved;statusLbl=resolved==='rest'?'Rest':'Absent';}
     }
     const classesSet=classesByDate[key];
-    const classesTxt=classesSet&&classesSet.size?Array.from(classesSet).join(', '):'';
+    let classesTxt='',classesFullTxt='';
+    if(classesSet&&classesSet.size){
+      const classesArr=Array.from(classesSet);
+      classesFullTxt=classesArr.join(', ');
+      classesTxt=classesArr.length>2
+        ? `${classesArr.slice(0,2).join(', ')} <span class="hist-cal-classes-more">+${classesArr.length-2}</span>`
+        : classesFullTxt;
+    }
     let extraCls='';
     if(histSelectedStatus)extraCls=(statusCls===histSelectedStatus)?' hist-cal-highlight':' hist-cal-dim';
     const clickable=!isFuture;
@@ -6852,7 +6860,7 @@ function renderHistoryCalendar(){
         statusLbl:statusLbl,
         checkIn:checkInByDate[key]?formatCheckInTime(checkInByDate[key]):'-',
         duration:durationByDate[key]?formatMinutesToDuration(durationByDate[key]):'-',
-        classes:classesTxt,
+        classes:classesFullTxt,
         dayName:dt.toLocaleDateString('en-US',{weekday:'long'}),
         dateLabel:dt.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})
       };
