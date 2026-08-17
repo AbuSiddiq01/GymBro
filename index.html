@@ -484,13 +484,12 @@ input::placeholder{color:var(--text-muted)}
 .hist-cal-daynames{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-bottom:6px}
 .hist-cal-dayname{text-align:center;font-size:9.5px;font-weight:800;color:var(--text-muted);font-family:var(--font-alt);letter-spacing:0.5px;text-transform:uppercase;padding-bottom:2px}
 .hist-cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
-/* Glossy "glass" date box — same neutral card surface for every day (matches .wlc-box on the
-   Workouts page). Present/Rest/Absent/Pending is shown ONLY as a colored top-border strip; no
-   dot marker and no full-box color fill. */
+/* Glossy "glass" date box — layered gradient + soft top sheen + tinted glow shadow so it reads as
+   part of the same design language as .card/.glass/.today-workout-banner elsewhere in the app. */
 .hist-cal-cell{
-  position:relative;border-radius:14px;border:1px solid var(--border-col);border-top:3px solid var(--border-col);
+  position:relative;border-radius:14px;border:1px solid var(--border-col);
   background:var(--bg-panel);
-  padding:6px 3px 6px;min-height:64px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:2px;
+  padding:5px 3px 6px;min-height:62px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:2px;
   overflow:hidden;box-sizing:border-box;
   box-shadow:0 1px 0 rgba(255,255,255,0.10) inset,0 3px 10px -6px rgba(0,0,0,0.35);
   transition:transform .2s cubic-bezier(.4,0,.2,1),box-shadow .25s ease,border-color .25s ease;
@@ -500,13 +499,12 @@ input::placeholder{color:var(--text-muted)}
   content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;
   background:linear-gradient(145deg,rgba(255,255,255,0.16) 0%,rgba(255,255,255,0.03) 32%,rgba(255,255,255,0) 55%);
 }
-.hist-cal-cell.empty{background:transparent;border-color:transparent;border-top-color:transparent;box-shadow:none}
+.hist-cal-cell.empty{background:transparent;border-color:transparent;box-shadow:none}
 .hist-cal-cell.future{opacity:0.42}
-/* Status tint lives only on the top-border strip now, not the box fill */
-.hist-cal-cell.present{border-top-color:#16a34a}
-.hist-cal-cell.rest{border-top-color:#2563eb}
-.hist-cal-cell.absent{border-top-color:#dc2626}
-.hist-cal-cell.pending{border-top-color:#f59e0b}
+.hist-cal-cell.present{background:linear-gradient(160deg,rgba(22,163,74,0.30),rgba(22,163,74,0.07) 60%),var(--bg-panel);border-color:rgba(22,163,74,0.5);box-shadow:0 1px 0 rgba(255,255,255,0.12) inset,0 4px 14px -7px rgba(22,163,74,0.55)}
+.hist-cal-cell.rest{background:linear-gradient(160deg,rgba(37,99,235,0.30),rgba(37,99,235,0.07) 60%),var(--bg-panel);border-color:rgba(37,99,235,0.5);box-shadow:0 1px 0 rgba(255,255,255,0.12) inset,0 4px 14px -7px rgba(37,99,235,0.55)}
+.hist-cal-cell.absent{background:linear-gradient(160deg,rgba(220,38,38,0.30),rgba(220,38,38,0.07) 60%),var(--bg-panel);border-color:rgba(220,38,38,0.5);box-shadow:0 1px 0 rgba(255,255,255,0.12) inset,0 4px 14px -7px rgba(220,38,38,0.55)}
+.hist-cal-cell.pending{background:linear-gradient(160deg,rgba(245,158,11,0.30),rgba(245,158,11,0.07) 60%),var(--bg-panel);border-color:rgba(245,158,11,0.5);box-shadow:0 1px 0 rgba(255,255,255,0.12) inset,0 4px 14px -7px rgba(245,158,11,0.55)}
 /* Today's box gets a slow ambient glow-pulse (same visual family as roomGlowPulse elsewhere in the app) */
 .hist-cal-cell.hist-cal-today{animation:histCalGlowPulse 2.4s ease-in-out infinite}
 @keyframes histCalGlowPulse{
@@ -552,20 +550,24 @@ input::placeholder{color:var(--text-muted)}
 @media(min-width:700px){
   .hist-cal-date-popup{max-width:420px;margin-left:auto;margin-right:auto}
 }
-.hist-cal-status{position:relative;z-index:1;font-size:8px;font-weight:800;letter-spacing:0.2px;text-transform:uppercase;font-family:var(--font-alt);padding:2px 5px;border-radius:6px;color:var(--text-secondary);background:var(--bg-card);border:1px solid var(--border-col);white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis;line-height:1.3}
+.hist-cal-status{position:relative;z-index:1;font-size:7px;font-weight:800;letter-spacing:0.2px;text-transform:uppercase;font-family:var(--font-alt);padding:2px 4px;border-radius:6px;color:#fff;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis;line-height:1.3;box-shadow:0 1px 0 rgba(255,255,255,0.25) inset,0 2px 6px -2px rgba(0,0,0,0.35)}
+.hist-cal-status.present{background:linear-gradient(160deg,#22c55e,#16a34a)}
+.hist-cal-status.rest{background:linear-gradient(160deg,#3b82f6,#2563eb)}
+.hist-cal-status.absent{background:linear-gradient(160deg,#ef4444,#dc2626)}
+.hist-cal-status.pending{background:linear-gradient(160deg,#fbbf24,#f59e0b)}
 .hist-cal-date{position:relative;z-index:1;font-family:var(--font-display);font-size:15px;margin:2px 0 1px;color:var(--text-primary);letter-spacing:0.5px}
 .hist-cal-cell.future .hist-cal-date{color:var(--text-muted)}
-.hist-cal-classes{position:relative;z-index:1;font-size:8.5px;font-weight:600;color:var(--text-primary);text-align:center;line-height:1.3;font-family:var(--font-alt);overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;word-break:break-word;padding:0 1px}
+.hist-cal-classes{position:relative;z-index:1;font-size:7.5px;color:var(--text-secondary);text-align:center;line-height:1.25;font-family:var(--font-alt);overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;word-break:break-word;padding:0 1px}
 .hist-cal-empty-note{text-align:center;font-size:11px;color:var(--text-muted);font-family:var(--font-alt);padding:16px 0}
 @media(max-width:480px){
   .hist-cal-icon-btn{width:38px;height:38px;margin:10px auto 14px}
   .hist-filter-bar{padding:7px 10px}
   .hist-filter-bar span{font-size:11px}
   .hist-cal-grid,.hist-cal-daynames{gap:5px}
-  .hist-cal-cell{min-height:58px;border-radius:11px;padding:5px 2px 5px}
+  .hist-cal-cell{min-height:52px;border-radius:11px;padding:4px 2px 5px}
   .hist-cal-date{font-size:13px}
-  .hist-cal-status{font-size:7.8px;padding:1.5px 4px;font-weight:800}
-  .hist-cal-classes{font-size:8px;font-weight:600}
+  .hist-cal-status{font-size:6.3px;padding:1.5px 3px}
+  .hist-cal-classes{font-size:6.8px}
   .hist-cal-dayname{font-size:8.5px}
   .hist-cal-monthlabel{font-size:17px}
   .hist-cal-legend{gap:7px 12px;margin-bottom:12px}
@@ -574,10 +576,10 @@ input::placeholder{color:var(--text-muted)}
 @media(min-width:700px){
   .hist-cal-wrap{max-width:680px;margin-left:auto;margin-right:auto}
   .hist-cal-grid,.hist-cal-daynames{gap:8px}
-  .hist-cal-cell{min-height:86px;padding:9px 5px 9px;border-radius:16px}
+  .hist-cal-cell{min-height:84px;padding:8px 5px 9px;border-radius:16px}
   .hist-cal-date{font-size:19px;margin:4px 0 2px}
-  .hist-cal-status{font-size:9.5px;padding:2px 7px}
-  .hist-cal-classes{font-size:10px}
+  .hist-cal-status{font-size:8.5px;padding:2px 6px}
+  .hist-cal-classes{font-size:9px}
   .hist-cal-dayname{font-size:11px}
   .hist-cal-monthlabel{font-size:23px}
 }
