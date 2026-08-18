@@ -2549,7 +2549,7 @@ body.tracker-fs-lock{overflow:hidden}
             <div id="dynamicSetsContainer" style="margin-top:10px"></div>
             <!-- Quick Fill: Copy to All (Non-Live) -->
             <button class="quick-fill-btn" id="quickFillCopyAllBtn" onclick="quickFillCopyAll()">⚡ COPY SET 1 TO ALL SETS</button>
-            <button class="workout-form-action-btn" onclick="saveWorkoutLogEntry()">💾 SAVE ENTRY</button>
+            <button class="workout-form-action-btn" id="nlSaveEntryBtn" onclick="saveWorkoutLogEntry()">💾 SAVE ENTRY</button>
           </div>
           <button class="workout-form-close-btn" onclick="confirmCloseWorkoutForm('nonlive')">CLOSE</button>
         </div>
@@ -2572,8 +2572,8 @@ body.tracker-fs-lock{overflow:hidden}
                 <select id="liveWorkoutEquipmentFilter" onchange="handleLiveSearchAuto()"></select>
               </div>
             </div>
-            <label style="font-size:12px;font-weight:700;color:var(--text-muted);font-family:var(--font-alt)">EXERCISE NAME:</label>
-            <div class="suggestion-box">
+            <label id="liveExerciseNameLabel" style="font-size:12px;font-weight:700;color:var(--text-muted);font-family:var(--font-alt)">EXERCISE NAME:</label>
+            <div class="suggestion-box" id="liveWorkoutNameBox">
               <input type="text" id="liveWorkoutNameInput" placeholder="Type or Select (e.g. Bench Press)" oninput="handleLiveSearchAuto()" onfocus="handleLiveSearchAuto()" autocomplete="off">
               <span class="sugg-clear-icon" id="liveWorkoutNameClearIcon" title="Clear" onclick="clearWorkoutNameInput('live')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg></span>
               <span class="sugg-dropdown-icon" id="liveWorkoutNameDropdownIcon" onclick="toggleLiveNameDropdown(event)">▼</span>
@@ -9856,17 +9856,24 @@ function updateLiveSetsStructureVisibility(){
    Non-Live, where the badge + Track Workout button stay put in the same spot (below the exercise
    name, above the sets) for as long as the entry form is open. These two helpers instead hide only
    the parts that are genuinely no longer relevant once a session is running (Muscle/Equipment
-   filters, the "SETS STRUCTURE" selector + Start button, and any inline Class/Equipment prompts),
-   leaving the exercise name, Previous Performance badge, and Track Workout button visible and in
-   that exact same fixed position throughout — matching Non-Live. */
+   filters, the "SETS STRUCTURE" selector + Start button, any inline Class/Equipment prompts, and —
+   once a session is actually running — the exercise-name selection box itself, since the name is
+   already shown/locked in via the session title above the sets and re-selecting it makes no sense
+   mid-session), leaving the Previous Performance badge and Track Workout button visible and in
+   that exact same fixed position throughout — matching Non-Live. Applies to every live add format
+   (normal, warmup, etc.) — the live-EDIT flow never calls Enter, only Exit, so it's untouched. */
 function liveSetupPanelEnterActiveSession(){
   const filterRow=document.getElementById("liveSetupFilterRow");if(filterRow)filterRow.style.display="none";
   const wrap=document.getElementById("liveSetsStructureWrap");if(wrap)wrap.style.display="none";
   ["_addCustomBtnLive","_inlineClassBtnLive","_inlineEquipBtnLive"].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display="none";});
   const nameInput=document.getElementById("liveWorkoutNameInput");if(nameInput)nameInput.readOnly=true;
+  const nameLabel=document.getElementById("liveExerciseNameLabel");if(nameLabel)nameLabel.style.display="none";
+  const nameBox=document.getElementById("liveWorkoutNameBox");if(nameBox)nameBox.style.display="none";
 }
 function liveSetupPanelExitActiveSession(){
   const filterRow=document.getElementById("liveSetupFilterRow");if(filterRow)filterRow.style.display="";
+  const nameLabel=document.getElementById("liveExerciseNameLabel");if(nameLabel)nameLabel.style.display="";
+  const nameBox=document.getElementById("liveWorkoutNameBox");if(nameBox)nameBox.style.display="";
 }
 /* Fixed SVG "X" clear icon shared by the Add Workout, Live Workout, and Workout Tracker exercise-name
    boxes — only shown once the box has a value, and hidden while the box is read-only (e.g. the locked
@@ -10355,7 +10362,7 @@ function addAnotherLiveWorkout(){
   const nameEl=document.getElementById("liveWorkoutNameInput");
   if(nameEl){nameEl.readOnly=false;nameEl.style.opacity="1";nameEl.value="";}
   document.getElementById("liveSetsCountSelect").value="1";
-  liveCurrentSet=1;liveTotalSets=0;liveSetResults=[];liveSessionSlot=null;
+  liveCurrentSet=1;liveTotalSets=0;liveSetResults=[];liveSessionSlot=null;window._liveEntryPunchNotified=false;
   window._selectedLiveWorkoutClass=null;window._selectedLiveWorkoutEquipment=null;
   _updateInlineClassBtn('liveWorkoutNameInput','_inlineClassBtnLive','live');
   _updateInlineEquipBtn('liveWorkoutNameInput','_inlineEquipBtnLive','live');
@@ -10487,6 +10494,12 @@ function applySetsCountMinConstraint(){
 }
 
 async function saveWorkoutLogEntry(){
+  // Guard against a duplicate entry from a double-tap or a slow network: if a save is already in
+  // flight, ignore any further taps until it finishes (success or failure).
+  if(window._savingNonLiveEntry)return;
+  window._savingNonLiveEntry=true;
+  const _saveBtnGuard=document.getElementById("nlSaveEntryBtn");if(_saveBtnGuard)_saveBtnGuard.disabled=true;
+  try{
   let uid=getEffectiveUid();
   let name=document.getElementById("workoutNameInput").value.trim();
   let td=document.getElementById("workoutCalendarFilter").value;
@@ -10555,6 +10568,10 @@ async function saveWorkoutLogEntry(){
     cancelWorkoutLogging();
   }
   await loadWorkoutsForDate();await syncCoreDashboardMetrics();
+  } finally {
+    window._savingNonLiveEntry=false;
+    const _saveBtnGuardEnd=document.getElementById("nlSaveEntryBtn");if(_saveBtnGuardEnd)_saveBtnGuardEnd.disabled=false;
+  }
 }
 
 /* ===================== TRACK WORKOUT (redirect to Workout Tracker for this exercise) ===================== */
@@ -11311,7 +11328,7 @@ function showAddWorkoutForm(){
     document.getElementById("prevPerfBadgeLive").classList.remove("visible");
     resetPrevPerfCopyState('live');
     updateTrackWorkoutBtnVisibility('live');
-    liveCurrentSet=1;liveTotalSets=0;liveSetTimers={};liveSetSeconds={};liveSetTimerStartEpoch={};liveSetTimerAccumAtStart={};liveBreakTimers={};liveBreakSeconds={};liveBreakTotalSecs={};liveBreakStartEpoch={};liveBreakAccumAtStart={};liveSetResults=[];liveSessionSlot=null;
+    liveCurrentSet=1;liveTotalSets=0;liveSetTimers={};liveSetSeconds={};liveSetTimerStartEpoch={};liveSetTimerAccumAtStart={};liveBreakTimers={};liveBreakSeconds={};liveBreakTotalSecs={};liveBreakStartEpoch={};liveBreakAccumAtStart={};liveSetResults=[];liveSessionSlot=null;window._liveEntryPunchNotified=false;
     window._selectedLiveWorkoutClass=null;window._selectedLiveWorkoutEquipment=null;
     _updateInlineClassBtn('liveWorkoutNameInput','_inlineClassBtnLive','live');
     _updateInlineEquipBtn('liveWorkoutNameInput','_inlineEquipBtnLive','live');
@@ -11366,7 +11383,7 @@ function cancelWorkoutLogging(){
 function cancelLiveWorkout(){
   if(window._liveEditMode){cancelLiveEditWorkout();return;}
   bwKgRevealed.live=false;
-  stopAllLiveTimers();document.getElementById("liveWorkoutForm").style.display="none";document.getElementById("initialWorkoutBox").style.display="block";liveSetResults=[];liveSessionSlot=null;
+  stopAllLiveTimers();document.getElementById("liveWorkoutForm").style.display="none";document.getElementById("initialWorkoutBox").style.display="block";liveSetResults=[];liveSessionSlot=null;window._liveEntryPunchNotified=false;
   liveWorkoutQueue=[];clearLiveQueue(); // fully closing Live Mode discards any queued (not-yet-started) entries too
   const lqs=document.getElementById("liveQueueStrip");if(lqs)lqs.style.display="none";
   resetPrevPerfCopyState('live');
@@ -11602,7 +11619,7 @@ function restoreLiveSessionUI(draft,fromQueue){
   titleEl.style.display="block";
   updateTrackWorkoutBtnVisibility('live');
 
-  liveTotalSets=draft.totalSets;liveSetResults=(draft.results||[]).slice();liveSessionSlot=draft.sessionSlot||null;
+  liveTotalSets=draft.totalSets;liveSetResults=(draft.results||[]).slice();liveSessionSlot=draft.sessionSlot||null;window._liveEntryPunchNotified=!!liveSessionSlot;
   liveCurrentSet=liveSetResults.length+1;
   liveSetTimers={};liveSetSeconds={};liveSetTimerStartEpoch={};liveSetTimerAccumAtStart={};
   liveBreakTimers={};liveBreakSeconds={};liveBreakTotalSecs={};liveBreakStartEpoch={};liveBreakAccumAtStart={};
@@ -11766,7 +11783,7 @@ function startLiveSession(){
   // so every subsequent set saved this session uses the same finalized name.
   name=finalizeCustomExerciseName(name,window._selectedLiveWorkoutClass,window._selectedLiveWorkoutEquipment);
   document.getElementById("liveWorkoutNameInput").value=name;
-  liveTotalSets=parseInt(document.getElementById("liveSetsCountSelect").value);liveCurrentSet=1;liveSetResults=[];liveSessionSlot=null;window._liveSetCopiedFlags={};
+  liveTotalSets=parseInt(document.getElementById("liveSetsCountSelect").value);liveCurrentSet=1;liveSetResults=[];liveSessionSlot=null;window._liveSetCopiedFlags={};window._liveEntryPunchNotified=false;
   liveSetupPanelEnterActiveSession();
   let titleEl=document.getElementById("liveSessionTitle");titleEl.textContent="🏋 "+name+" — "+liveTotalSets+" Set"+(liveTotalSets>1?"s":"");titleEl.style.display="block";
   const container=document.getElementById("liveSetsContainer");container.innerHTML="";
@@ -11916,6 +11933,12 @@ function toggleLiveSetTimer(idx){
   saveLiveDraft();
 }
 async function saveLiveSet(idx){
+  // Guard against duplicate sets from a double-tap or a slow network: if a save for this set is
+  // already in flight, ignore any further taps until it finishes (success or failure).
+  if(window._savingLiveSet)return;
+  window._savingLiveSet=true;
+  const _saveBtnGuard=document.getElementById(`liveSetSaveBtn_${idx}`);if(_saveBtnGuard)_saveBtnGuard.disabled=true;
+  try{
   const exName=document.getElementById("liveWorkoutNameInput")?.value.trim();
   const isBW=isBodyweightNoWeightExercise(exName);
   const isCardio=isCardioExercise(exName);
@@ -11941,7 +11964,9 @@ async function saveLiveSet(idx){
   let name=document.getElementById("liveWorkoutNameInput").value.trim(),uid=getEffectiveUid(),td=document.getElementById("workoutCalendarFilter").value;
   let combinedEntry=`${name}: ${liveSetResults.join(", ")}`;
   const entry=sessionMakeWorkoutEntry(name,liveSetResults.join(", "));
-  if(!liveSessionSlot)await maybeNotifyNotPunchedIn(uid,td); // first set of a brand-new live entry
+  // Notify at most ONCE per live workout entry (not once per set) — the flag is set the first time
+  // we notify for this entry and only cleared again when a brand-new live entry/session starts.
+  if(!liveSessionSlot&&!window._liveEntryPunchNotified){window._liveEntryPunchNotified=true;await maybeNotifyNotPunchedIn(uid,td);}
   const savedSlot=await sessionUpsertWorkoutEntry(uid,td,liveSessionSlot,entry);
   if(!savedSlot){alert("Daily capacity of 15 entries reached for this session.");return}
   liveSessionSlot=savedSlot;
@@ -11982,6 +12007,10 @@ async function saveLiveSet(idx){
     }
   }
   await loadWorkoutsForDate();await syncCoreDashboardMetrics();
+  } finally {
+    window._savingLiveSet=false;
+    const _saveBtnGuardEnd=document.getElementById(`liveSetSaveBtn_${idx}`);if(_saveBtnGuardEnd)_saveBtnGuardEnd.disabled=false;
+  }
 }
 /* ===================== SCREEN WAKE LOCK (keep screen on during a break) =====================
    Best-effort helper: while a break is counting down, try to stop the screen from
@@ -13314,7 +13343,7 @@ function renderLiveEditSetsUI(){
     const bwIcon=(isBWExisting&&i===1)?bwInfoIconHtml('liveEditExisting'):'';
     html+=`<div class="set-row" style="margin-top:8px" ontouchstart="nlSetSwipeStart(event)" ontouchend="nlSetSwipeEnd(event,${i})"><span onclick="toggleSetRowSelection(this)" style="cursor:pointer" title="Tap to show delete option">Set ${i}</span>${weightInputHtml}<input type="number" placeholder="Reps" id="liveEditExistReps_${i}" min="1" value="${r}" style="margin-top:0;padding:9px;flex:1">${bwIcon}${durTag}<button type="button" class="set-delete-btn" title="Delete this set" onclick="deleteLiveEditSavedSet(${i})">${ICON_DELETE}</button></div>`;
   }
-  html+=`<button class="workout-form-action-btn" onclick="updateLiveEditExistingSets()">💾 SAVE ENTRY</button>
+  html+=`<button class="workout-form-action-btn" id="liveEditSaveEntryBtn" onclick="updateLiveEditExistingSets()">💾 SAVE ENTRY</button>
   </div>`;
   container.innerHTML=html;
 
@@ -13355,6 +13384,11 @@ function applyLiveSetsCountMinConstraint(){
 
 /* Persists edited Kg/Reps for already-saved sets — never touches their locked duration */
 async function updateLiveEditExistingSets(){
+  // Guard against a duplicate/racing save from a double-tap or a slow network.
+  if(window._savingLiveEditUpdate)return;
+  window._savingLiveEditUpdate=true;
+  const _saveBtnGuard=document.getElementById("liveEditSaveEntryBtn");if(_saveBtnGuard)_saveBtnGuard.disabled=true;
+  try{
   const committedSegs=getLiveEditCommittedSegments();
   const committedCount=committedSegs.length;
   const desiredTotal=Math.max(parseInt(document.getElementById("liveSetsCountSelect").value)||1,1);
@@ -13394,6 +13428,10 @@ async function updateLiveEditExistingSets(){
   // be logged below (i.e. the sets-count dropdown wasn't raised above what's already saved). If new
   // sets are still pending, leave the form open so that live timer/break flow can be completed.
   if(liveEditTotalNewSets===0)cancelLiveEditWorkout();
+  } finally {
+    window._savingLiveEditUpdate=false;
+    const _saveBtnGuardEnd=document.getElementById("liveEditSaveEntryBtn");if(_saveBtnGuardEnd)_saveBtnGuardEnd.disabled=false;
+  }
 }
 
 /* Removes the segment at 1-based combined index i from whichever underlying array (existing vs
@@ -13499,6 +13537,12 @@ function toggleLiveEditSetTimer(idx){
 }
 
 async function saveLiveEditSet(idx){
+  // Guard against duplicate sets from a double-tap or a slow network: if a save for this set is
+  // already in flight, ignore any further taps until it finishes (success or failure).
+  if(window._savingLiveEditSet)return;
+  window._savingLiveEditSet=true;
+  const _saveBtnGuard=document.getElementById(`liveEditSetSaveBtn_${idx}`);if(_saveBtnGuard)_saveBtnGuard.disabled=true;
+  try{
   const isBW=isBodyweightNoWeightExercise(document.getElementById("liveWorkoutNameInput")?.value.trim());
   let kg=parseFloat(document.getElementById(`liveEditKg_${idx}`).value)||0,reps=parseInt(document.getElementById(`liveEditReps_${idx}`).value)||0;
   const displayIdx=liveEditExistingResults.length+liveEditNewResults.length+1;
@@ -13545,6 +13589,10 @@ async function saveLiveEditSet(idx){
     renderLiveEditSetsUI();
   }
   await loadWorkoutsForDate();await syncCoreDashboardMetrics();
+  } finally {
+    window._savingLiveEditSet=false;
+    const _saveBtnGuardEnd=document.getElementById(`liveEditSetSaveBtn_${idx}`);if(_saveBtnGuardEnd)_saveBtnGuardEnd.disabled=false;
+  }
 }
 
 function skipLiveEditBreak(idx){
@@ -16825,4 +16873,4 @@ function closeLearnVideo(){
   <div class="tracker-fullscreen-stage" id="trackerFullscreenStage"></div>
 </div>
 </body>
-</html> 
+</html>
