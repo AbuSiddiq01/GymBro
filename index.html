@@ -188,6 +188,36 @@ body{background:var(--bg-base);min-height:100vh;color:var(--text-primary);font-f
 .room-approval-row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:12px 0}
 .room-approval-row .room-approval-label{font-size:12px;font-weight:700;color:var(--text-secondary);font-family:var(--font-alt)}
 .room-approval-row .room-approval-sub{font-size:10.5px;color:var(--text-muted);font-family:var(--font-alt);margin-top:2px}
+
+/* Room toggle icon (shown under LIVE MODE row) — clicking reveals/hides the Create Room / Enter Room ID
+   options strip. Room options stay hidden until the user explicitly opens them. */
+.room-toggle-btn{display:flex;align-items:center;gap:6px;background:var(--accent-soft);border:1px solid var(--border-col);border-radius:10px;padding:6px 10px;cursor:pointer;font-family:var(--font-alt);font-size:11px;font-weight:800;color:var(--text-secondary);letter-spacing:0.4px;margin-bottom:10px;width:fit-content;transition:background .2s ease,color .2s ease}
+.room-toggle-btn svg{width:16px;height:16px;flex-shrink:0}
+.room-toggle-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.room-toggle-btn .rtb-chev{width:11px;height:11px;transition:transform .2s ease}
+.room-toggle-btn.active .rtb-chev{transform:rotate(180deg)}
+.room-option-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:9px 8px;margin-top:0;font-size:12px;border-radius:11px}
+.room-option-btn svg{width:15px;height:15px;flex-shrink:0}
+@media(max-width:480px){
+  .room-option-btn{padding:7px 6px;font-size:10.5px;gap:4px}
+  .room-option-btn svg{width:13px;height:13px}
+  .room-toggle-btn{padding:5px 9px;font-size:10px}
+}
+
+/* Non-live "multiple workouts at a time" queue strip — small switchable boxes for workout entries
+   started but not yet saved, shown above the Add Workout form (new-entry flow only). */
+.nl-queue-strip{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 8px;margin-bottom:6px;-webkit-overflow-scrolling:touch}
+.nl-queue-chip{position:relative;flex-shrink:0;display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-width:84px;max-width:120px;padding:6px 18px 6px 9px;border-radius:10px;border:1.5px solid var(--border-col);background:var(--bg-card);cursor:pointer;transition:border-color .2s ease,background .2s ease}
+.nl-queue-chip.active{border-color:var(--accent);background:var(--accent-soft)}
+.nl-queue-chip .nlq-label{font-size:10.5px;font-weight:800;color:var(--text-primary);font-family:var(--font-alt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.nl-queue-chip .nlq-sub{font-size:9px;color:var(--text-muted);font-family:var(--font-alt);font-weight:700}
+.nl-queue-chip .nlq-remove{position:absolute;top:3px;right:3px;width:15px;height:15px;border-radius:50%;background:#e11d48;color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.nl-queue-chip .nlq-remove svg{width:9px;height:9px}
+@media(max-width:480px){
+  .nl-queue-chip{min-width:72px;max-width:96px;padding:5px 16px 5px 8px}
+  .nl-queue-chip .nlq-label{font-size:9.5px}
+  .nl-queue-chip .nlq-sub{font-size:8.5px}
+}
 /* Scrollable Hour:Min time picker */
 .time-picker-wrap{display:flex;align-items:center;justify-content:center;gap:8px;background:var(--input-bg,var(--bg-card));border:1px solid var(--border-col);border-radius:12px;padding:6px 0;position:relative}
 .time-picker-wrap::before{content:'';position:absolute;top:50%;left:8px;right:8px;height:36px;transform:translateY(-50%);background:var(--accent-soft);border-radius:8px;pointer-events:none;z-index:0}
@@ -2376,9 +2406,21 @@ body.tracker-fs-lock{overflow:hidden}
         </div>
 
         <!-- ===== WORKOUT ROOM STRIP ===== -->
-        <div id="roomIdleControls" style="display:flex;gap:8px;margin-bottom:14px">
-          <button class="btn" style="flex:1;background:linear-gradient(135deg,#7c3aed,#6d28d9)" onclick="openCreateRoomModal()">👥 Create Room</button>
-          <button class="btn" style="flex:1;background:linear-gradient(135deg,#0891b2,#0e7490)" onclick="openJoinRoomModal()">🔑 Enter Room ID</button>
+        <!-- Fixed group-people icon: room options (Create Room / Enter Room ID) stay hidden until tapped. -->
+        <button type="button" class="room-toggle-btn" id="roomOptionsToggleBtn" onclick="toggleRoomOptionsVisibility()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <span>ROOM</span>
+          <svg class="rtb-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div id="roomIdleControls" style="display:none;gap:8px;margin-bottom:14px">
+          <button class="btn room-option-btn" style="background:linear-gradient(135deg,#7c3aed,#6d28d9)" onclick="openCreateRoomModal()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            <span>Create Room</span>
+          </button>
+          <button class="btn room-option-btn" style="background:linear-gradient(135deg,#0891b2,#0e7490)" onclick="openJoinRoomModal()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            <span>Enter Room ID</span>
+          </button>
         </div>
         <div id="memberRoomWaitingStrip" style="display:none;background:var(--bg-card);border:1px solid #f59e0b;border-radius:14px;padding:12px 14px;margin-bottom:14px">
           <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
@@ -2445,6 +2487,10 @@ body.tracker-fs-lock{overflow:hidden}
         <div id="workoutClassChipsRow" class="workout-class-chips-row" style="display:none"></div>
         <div id="workoutFormStructure" class="workout-form-wrapper" style="display:none">
           <h4 id="formActionTitle">LOG NEW ENTRY</h4>
+          <!-- Multiple-workouts-at-a-time queue strip: only used for the non-live, brand-new-entry flow
+               (never for edits, never for Live Mode). Each chip is a workout entry started but not yet
+               saved; tap a chip to switch the form to it (the currently open one is swapped in). -->
+          <div id="nlQueueStrip" class="nl-queue-strip" style="display:none"></div>
           <div class="ctm-muscle-eq-row entry-filter-row">
             <div>
               <label>Muscle</label>
@@ -2488,12 +2534,16 @@ body.tracker-fs-lock{overflow:hidden}
             <button class="quick-fill-btn" id="quickFillCopyAllBtn" onclick="quickFillCopyAll()">⚡ COPY SET 1 TO ALL SETS</button>
             <button class="workout-form-action-btn" onclick="saveWorkoutLogEntry()">💾 SAVE ENTRY</button>
           </div>
-          <button class="workout-form-close-btn" onclick="cancelWorkoutLogging()">CLOSE</button>
+          <button class="workout-form-close-btn" onclick="confirmCloseWorkoutForm('nonlive')">CLOSE</button>
         </div>
         <div id="liveWorkoutForm" class="workout-form-wrapper" style="display:none">
           <h4 style="color:var(--accent);display:flex;align-items:center;gap:8px">
             <span class="live-dot"></span> LIVE WORKOUT SESSION
           </h4>
+          <!-- Multiple-workouts-at-a-time queue strip for Live Mode — same chip UI/behavior as the
+               non-live nlQueueStrip above, just backed by liveWorkoutQueue. Never shown while
+               live-editing an already-saved entry. -->
+          <div id="liveQueueStrip" class="nl-queue-strip" style="display:none"></div>
           <div id="liveSetupPanel">
             <div class="ctm-muscle-eq-row entry-filter-row">
               <div>
@@ -2538,7 +2588,7 @@ body.tracker-fs-lock{overflow:hidden}
           </div>
           <div id="liveSessionTitle" style="display:none;margin-top:10px;font-weight:800;font-size:15px;color:var(--accent);font-family:var(--font-alt);letter-spacing:0.5px"></div>
           <div id="liveSetsContainer" style="margin-top:14px"></div>
-          <button class="workout-form-close-btn" onclick="cancelLiveWorkout()">CLOSE</button>
+          <button class="workout-form-close-btn" onclick="confirmCloseWorkoutForm('live')">CLOSE</button>
         </div>
         <div id="savedWorkoutLogsContainer" style="margin-top:18px"></div>
       </div>
@@ -6402,6 +6452,31 @@ async function _punchOutConfirmed(){
   _closePunchOutModal();
   await _doPunchOut();
 }
+/* ===================== CLOSE CONFIRMATION (workout forms) =====================
+   Every "CLOSE" affordance on the Add/Edit workout form — non-live or Live Mode, brand-new entry
+   or editing an already-saved one — routes through here first instead of discarding straight
+   away. Reuses the same small modal + button styles as the Punch Out confirmation above so it
+   looks/behaves consistently. Only actually cancels (and loses whatever's unsaved) once the
+   person taps "Yes, Close". */
+function confirmCloseWorkoutForm(kind){
+  _renderPunchOutModal('❓',"Close Workout Form?","Are you sure you want to close? Anything not yet saved will be lost.",
+    `<button type="button" onclick="_confirmCloseWorkoutFormYes('${kind}')" style="${_PO_BTN_DANGER}">Yes, Close</button>
+     <button type="button" onclick="_closePunchOutModal()" style="${_PO_BTN_GHOST}">Cancel</button>`);
+}
+function _confirmCloseWorkoutFormYes(kind){
+  _closePunchOutModal();
+  // cancelLiveWorkout() already internally routes to cancelLiveEditWorkout() when a live edit is
+  // in progress, so a single 'live' kind covers Live add AND Live edit — same for 'nonlive' below.
+  if(kind==='live')cancelLiveWorkout();else cancelWorkoutLogging();
+}
+/* Wired to the shared edit-overlay ✕ button and the Escape key: only worth a confirmation when
+   there's an actual in-progress add/edit to lose — otherwise (e.g. overlay open with nothing
+   active) just close it immediately like before. */
+function confirmCloseWorkoutOverlay(){
+  if(window._liveEditMode){confirmCloseWorkoutForm('live');return}
+  if(currentEditingIndex!==null){confirmCloseWorkoutForm('nonlive');return}
+  closeWorkoutEditOverlay();
+}
 async function processCheckOut(){
   if(!activeWorkoutTimer&&!activeSessionCheckInTimestamp){alert("No active session.");return}
   const state=await _getTodayWorkoutFinishState();
@@ -10014,10 +10089,11 @@ function nlSetSwipeEnd(evt,i){
    Persists the ENTIRE in-progress "Log New Entry" form — exercise name, sets count, and every set's
    Kg/Reps/lock state, whether locked or not — to sessionStorage as the person fills it in. Restored
    automatically on page load if the browser was refreshed mid-entry (see restoreInProgressWorkoutFormIfAny
-   below), so nothing typed is lost. sessionStorage (not localStorage) is deliberate: it survives a
-   refresh but is cleared on logout or when the browser/tab is actually closed — a fresh session should
-   still start blank. Only applies to brand-new entries (not editing an already-saved entry) and is
-   cleared as soon as the entry is saved or the form is cancelled. */
+   below), so nothing typed is lost. Uses localStorage (not sessionStorage): the draft must survive not
+   just a refresh but a full browser/tab close and reopen, so the person's in-progress entry (and any
+   queued entries, see below) is exactly where they left it whenever they come back. Only applies to
+   brand-new entries (not editing an already-saved entry) and is cleared as soon as the entry is saved
+   or the form is explicitly closed. */
 function getNonLiveDraftKey(){return `gymbro_nonlive_draft_${getEffectiveUid()}`}
 function saveNonLiveDraft(){
   if(currentEditingIndex!==null)return; // edits of already-saved entries aren't draft-persisted
@@ -10043,16 +10119,238 @@ function saveNonLiveDraft(){
   }
   const hasContent=!!name||sets.some(s=>s.w||s.r||s.km||s.min||s.sec);
   if(!hasContent){clearNonLiveDraft();return} // nothing worth keeping
-  try{sessionStorage.setItem(getNonLiveDraftKey(),JSON.stringify({name,setsCount:cnt,sets}))}catch(e){}
+  try{localStorage.setItem(getNonLiveDraftKey(),JSON.stringify({name,setsCount:cnt,sets}))}catch(e){}
 }
 function loadNonLiveDraft(){
-  try{return JSON.parse(sessionStorage.getItem(getNonLiveDraftKey())||'null')}catch(e){return null}
+  try{return JSON.parse(localStorage.getItem(getNonLiveDraftKey())||'null')}catch(e){return null}
 }
 function clearNonLiveDraft(){
-  try{sessionStorage.removeItem(getNonLiveDraftKey())}catch(e){}
+  try{localStorage.removeItem(getNonLiveDraftKey())}catch(e){}
 }
 function nonLiveDraftHasContent(d){
   return!!(d&&d.sets&&d.sets.length&&(d.name||d.sets.some(s=>s.w||s.r||s.km||s.min||s.sec)));
+}
+
+/* ===================== MULTIPLE WORKOUTS AT A TIME (non-live, brand-new entries only) =====================
+   Lets the user start a new workout entry while a previous one is still unfinished — each unsaved entry
+   is kept as a small switchable "chip" above the form. Explicitly NOT used for: Live Mode (add or edit)
+   or editing an already-saved entry (initiateWorkoutEdit uses its own overlay, never this path). Persisted
+   to localStorage alongside the single "current" draft above, so the whole in-progress set of entries
+   survives a refresh, a tab switch, and a full browser close/reopen. */
+let nlWorkoutQueue=[];
+function getNonLiveQueueKey(){return `gymbro_nonlive_queue_${getEffectiveUid()}`}
+function saveNonLiveQueue(){
+  try{
+    if(!nlWorkoutQueue.length){localStorage.removeItem(getNonLiveQueueKey());return}
+    localStorage.setItem(getNonLiveQueueKey(),JSON.stringify(nlWorkoutQueue));
+  }catch(e){}
+}
+function loadNonLiveQueue(){
+  try{return JSON.parse(localStorage.getItem(getNonLiveQueueKey())||'[]')||[]}catch(e){return[]}
+}
+function clearNonLiveQueue(){
+  try{localStorage.removeItem(getNonLiveQueueKey())}catch(e){}
+}
+/* Snapshot of whatever is currently typed into the non-live form, in the same {name,setsCount,sets} shape
+   used by the refresh-proof draft above — but returned directly instead of being written to storage. */
+function serializeCurrentNonLiveForm(){
+  const name=document.getElementById("workoutNameInput")?.value||'';
+  const cnt=parseInt(document.getElementById("setsCountSelect")?.value)||1;
+  const cardio=isCardioExercise(name.trim());
+  const sets=[];
+  for(let i=1;i<=cnt;i++){
+    if(cardio){
+      const totalSec=getPickerSeconds(`nlSet_${i}`);
+      sets.push({km:document.getElementById(`km_set_${i}`)?.value||'',min:Math.floor(totalSec/60),sec:totalSec%60,locked:!!document.getElementById(`lock_set_${i}`)?.checked});
+    } else {
+      sets.push({w:document.getElementById(`weight_set_${i}`)?.value||'',r:document.getElementById(`reps_set_${i}`)?.value||'',locked:!!document.getElementById(`lock_set_${i}`)?.checked});
+    }
+  }
+  return{name,setsCount:cnt,sets};
+}
+/* Loads a serialized {name,setsCount,sets} entry into the (blank) non-live form — mirrors the
+   refresh-restore logic in showAddWorkoutForm/restoreInProgressWorkoutFormIfAny above. */
+function loadNonLiveFormEntry(entry){
+  document.getElementById("workoutNameInput").value=entry.name||"";
+  document.getElementById("setsCountSelect").value=String(entry.setsCount||(entry.sets&&entry.sets.length)||1);
+  const sets=entry.sets||[];
+  renderNonLiveSetsRows(sets.map(s=>s.w),sets.map(s=>s.r),sets.map(s=>s.locked),sets.map(s=>s.km),sets.map(s=>s.min),sets.map(s=>s.sec));
+  window._selectedWorkoutClass=getExerciseClass(entry.name||'')!=='Unknown'?getExerciseClass(entry.name||''):null;
+  window._selectedWorkoutEquipment=getExerciseEquipment(entry.name||'')!=='Unknown'?getExerciseEquipment(entry.name||''):null;
+  _updateInlineClassBtn('workoutNameInput','_inlineClassBtnNonLive','nonlive');
+  _updateInlineEquipBtn('workoutNameInput','_inlineEquipBtnNonLive','nonlive');
+  document.getElementById("prevPerfBadgeNonLive").classList.remove("visible");
+  checkQuickFillVisibility();
+  resetNlCopyAllState();
+  updateTrackWorkoutBtnVisibility('nonlive');
+  updateNameClearIconVisibility('workoutNameInput','workoutNameClearIcon');
+  saveNonLiveDraft();
+}
+/* Whether the multi-entry queue applies right now: non-live, and a brand-new entry (never while
+   editing an already-saved slot, never in Live Mode). */
+function nlMultiEntryAllowed(){return !liveMode&&currentEditingIndex===null}
+function renderNlQueueStrip(){
+  const strip=document.getElementById("nlQueueStrip");
+  if(!strip)return;
+  if(!nlMultiEntryAllowed()||!nlWorkoutQueue.length){strip.style.display="none";strip.innerHTML="";return}
+  strip.style.display="flex";
+  strip.innerHTML=nlWorkoutQueue.map((e,i)=>{
+    const label=escapeHtml(e.name||'New Entry')||'New Entry';
+    const subLabel=`${(e.sets||[]).length||1} set${((e.sets||[]).length||1)>1?'s':''}`;
+    return `<div class="nl-queue-chip" onclick="selectNlQueueEntry(${i})">
+      <span class="nlq-label">${label||'New Entry'}</span>
+      <span class="nlq-sub">${subLabel}</span>
+      <span class="nlq-remove" title="Discard this entry" onclick="removeNlQueueEntry(event,${i})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg></span>
+    </div>`;
+  }).join('');
+}
+/* Triggered by the SAME fixed "+ ADD WORKOUT ENTRY" button — when the non-live form is already open
+   (a brand-new entry, not an edit), clicking it again stashes whatever's currently in the form into
+   the queue (if it has any content worth keeping) and resets the form blank for the next entry — so
+   multiple in-progress workout entries can be switched between, one small box per entry, without
+   losing any of them. See showAddWorkoutForm(), which routes here automatically. */
+function addAnotherNonLiveWorkout(){
+  if(!nlMultiEntryAllowed())return;
+  const current=serializeCurrentNonLiveForm();
+  if(nonLiveDraftHasContent(current))nlWorkoutQueue.push(current);
+  currentEditingIndex=null;
+  document.getElementById("workoutNameInput").value="";
+  document.getElementById("setsCountSelect").value="1";
+  // Wipe the old set rows BEFORE rebuilding — buildSetsInputFields() captures "existing" values
+  // straight from whatever is currently in the DOM so Sets-Structure changes don't lose typed
+  // data; without this it would silently carry the just-queued entry's Kg/Reps/Km into the new
+  // blank entry's Set 1 (see cancelWorkoutLogging(), which does the same wipe for the same reason).
+  document.getElementById("dynamicSetsContainer").innerHTML="";
+  buildSetsInputFields();
+  document.getElementById("prevPerfBadgeNonLive").classList.remove("visible");
+  document.getElementById("quickFillCopyAllBtn").classList.remove("visible");
+  resetNlCopyAllState();
+  window._selectedWorkoutClass=null;window._selectedWorkoutEquipment=null;
+  _updateInlineClassBtn('workoutNameInput','_inlineClassBtnNonLive','nonlive');
+  _updateInlineEquipBtn('workoutNameInput','_inlineEquipBtnNonLive','nonlive');
+  updateTrackWorkoutBtnVisibility('nonlive');
+  clearNonLiveDraft();
+  saveNonLiveQueue();
+  renderNlQueueStrip();
+  document.getElementById("workoutNameInput").focus();
+  showToast(`📥 Saved to queue — ${nlWorkoutQueue.length} workout${nlWorkoutQueue.length>1?'s':''} waiting.`);
+}
+/* Switches the form to a queued entry: whatever's open right now goes back into the queue (in the
+   same slot) and the picked entry takes its place in the form. */
+function selectNlQueueEntry(idx){
+  if(!nlWorkoutQueue[idx])return;
+  const current=serializeCurrentNonLiveForm();
+  const target=nlWorkoutQueue[idx];
+  if(nonLiveDraftHasContent(current))nlWorkoutQueue[idx]=current; // keep the outgoing entry in the same slot
+  else nlWorkoutQueue.splice(idx,1); // nothing worth keeping — just drop the empty slot
+  loadNonLiveFormEntry(target);
+  saveNonLiveQueue();
+  renderNlQueueStrip();
+}
+function removeNlQueueEntry(e,idx){
+  if(e)e.stopPropagation();
+  nlWorkoutQueue.splice(idx,1);
+  saveNonLiveQueue();
+  renderNlQueueStrip();
+}
+
+/* ===================== MULTIPLE WORKOUTS AT A TIME (Live Mode) =====================
+   Same idea as the non-live queue above, adapted for Live Mode: the same fixed "+ ADD WORKOUT
+   ENTRY" button, clicked again while a Live entry is open, stashes whatever's on the live
+   setup/session panel right now (including any running set/break stopwatch — captured via the
+   same epoch math buildLiveDraftSnapshot() already uses for refresh-recovery) and opens a blank
+   live setup panel. Never applies while live-editing an already-saved entry. Persisted to
+   sessionStorage alongside the single "current" live draft, so it survives a refresh/tab switch
+   for the current browser session (matching how the live draft itself is scoped). */
+let liveWorkoutQueue=[];
+function getLiveQueueKey(){return `gymbro_live_queue_${getEffectiveUid()}`}
+function saveLiveQueue(){
+  try{
+    if(!liveWorkoutQueue.length){sessionStorage.removeItem(getLiveQueueKey());return}
+    sessionStorage.setItem(getLiveQueueKey(),JSON.stringify(liveWorkoutQueue));
+  }catch(e){}
+}
+function loadLiveQueue(){
+  try{return JSON.parse(sessionStorage.getItem(getLiveQueueKey())||'[]')||[]}catch(e){return[]}
+}
+function clearLiveQueue(){
+  try{sessionStorage.removeItem(getLiveQueueKey())}catch(e){}
+}
+/* Whether the Live multi-entry queue applies right now: Live Mode on, and not live-editing an
+   already-saved entry (mirrors nlMultiEntryAllowed's currentEditingIndex===null guard). */
+function liveMultiEntryAllowed(){return liveMode&&!window._liveEditMode}
+function renderLiveQueueStrip(){
+  const strip=document.getElementById("liveQueueStrip");
+  if(!strip)return;
+  if(!liveMultiEntryAllowed()||!liveWorkoutQueue.length){strip.style.display="none";strip.innerHTML="";return}
+  strip.style.display="flex";
+  strip.innerHTML=liveWorkoutQueue.map((e,i)=>{
+    const label=escapeHtml(e.name||'New Entry')||'New Entry';
+    const subLabel=e.mode==='live'?`${(e.results||[]).length}/${e.totalSets} sets done`:'not started';
+    return `<div class="nl-queue-chip" onclick="selectLiveQueueEntry(${i})">
+      <span class="nlq-label">${label}</span>
+      <span class="nlq-sub">${subLabel}</span>
+      <span class="nlq-remove" title="Discard this entry" onclick="removeLiveQueueEntry(event,${i})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg></span>
+    </div>`;
+  }).join('');
+}
+/* Loads a serialized live snapshot ({mode:'setup'|'live', ...}) into the (blank) live form —
+   just dispatches to whichever restore function already knows how to fully reconstruct that
+   shape, same as a refresh would, but with the refresh-specific toast suppressed. */
+function loadLiveFormEntry(entry){
+  if(entry.mode==='setup')restoreLiveSetupUI(entry,true);else restoreLiveSessionUI(entry,true);
+}
+/* Triggered by the SAME fixed "+ ADD WORKOUT ENTRY" button when a brand-new Live entry is already
+   open — see showAddWorkoutForm(), which routes here automatically. Stops whatever timers are
+   currently running (their elapsed time was already captured into the snapshot above) before
+   wiping the panel for the next entry. */
+function addAnotherLiveWorkout(){
+  if(!liveMultiEntryAllowed())return;
+  const current=buildLiveDraftSnapshot();
+  if(current)liveWorkoutQueue.push(current);
+  stopAllLiveTimers();
+  currentEditingIndex=null;
+  bwKgRevealed.live=false;
+  document.getElementById("liveSetupPanel").style.display="block";
+  document.getElementById("liveSessionTitle").style.display="none";
+  document.getElementById("liveSetsContainer").innerHTML="";
+  const nameEl=document.getElementById("liveWorkoutNameInput");
+  if(nameEl){nameEl.readOnly=false;nameEl.style.opacity="1";nameEl.value="";}
+  document.getElementById("liveSetsCountSelect").value="1";
+  liveCurrentSet=1;liveTotalSets=0;liveSetResults=[];liveSessionSlot=null;
+  window._selectedLiveWorkoutClass=null;window._selectedLiveWorkoutEquipment=null;
+  _updateInlineClassBtn('liveWorkoutNameInput','_inlineClassBtnLive','live');
+  _updateInlineEquipBtn('liveWorkoutNameInput','_inlineEquipBtnLive','live');
+  document.getElementById("prevPerfBadgeLive").classList.remove("visible");
+  updateTrackWorkoutBtnVisibility('live');
+  updateLiveSetsStructureVisibility();
+  updateNameClearIconVisibility('liveWorkoutNameInput','liveWorkoutNameClearIcon');
+  applyLiveSetsCountMinConstraint();
+  clearLiveDraft();
+  saveLiveQueue();
+  renderLiveQueueStrip();
+  if(nameEl)nameEl.focus();
+  showToast(`📥 Saved to queue — ${liveWorkoutQueue.length} live workout${liveWorkoutQueue.length>1?'s':''} waiting.`);
+}
+/* Switches the live form to a queued entry: whatever's open right now (setup panel OR a
+   part-finished session, timers included) goes back into the queue in the same slot, and the
+   picked entry takes its place. */
+function selectLiveQueueEntry(idx){
+  if(!liveWorkoutQueue[idx])return;
+  const current=buildLiveDraftSnapshot();
+  stopAllLiveTimers();
+  const target=liveWorkoutQueue[idx];
+  if(current)liveWorkoutQueue[idx]=current; // keep the outgoing entry in the same slot
+  else liveWorkoutQueue.splice(idx,1); // nothing worth keeping — just drop the empty slot
+  loadLiveFormEntry(target);
+  saveLiveQueue();
+  renderLiveQueueStrip();
+}
+function removeLiveQueueEntry(e,idx){
+  if(e)e.stopPropagation();
+  liveWorkoutQueue.splice(idx,1);
+  saveLiveQueue();
+  renderLiveQueueStrip();
 }
 
 /* ===================== TOP-LEVEL RESTORE ORCHESTRATOR =====================
@@ -10061,34 +10359,71 @@ function nonLiveDraftHasContent(d){
    a fresh login, since a fresh session should start clean. Checks for a live-mode draft first (it's
    the more time-sensitive one, with running timers), then a non-live draft. */
 async function restoreInProgressWorkoutFormIfAny(wasRefresh){
-  if(!wasRefresh)return;
-  const liveDraft=loadLiveDraft();
-  if(liveDraft&&liveDraft.mode==='live'&&liveDraft.name&&liveDraft.totalSets){
-    await switchMemberTab('workPage');
-    restoreLiveSessionUI(liveDraft);
-    return;
+  if(wasRefresh){
+    liveWorkoutQueue=loadLiveQueue();
+    const liveDraft=loadLiveDraft();
+    if(liveDraft&&liveDraft.mode==='live'&&liveDraft.name&&liveDraft.totalSets){
+      await switchMemberTab('workPage');
+      restoreLiveSessionUI(liveDraft);
+      renderLiveQueueStrip();
+      return;
+    }
+    if(liveDraft&&liveDraft.mode==='setup'){
+      await switchMemberTab('workPage');
+      restoreLiveSetupUI(liveDraft);
+      renderLiveQueueStrip();
+      return;
+    }
+    if(liveWorkoutQueue.length){
+      // No current live draft, but queued Live entries survived the refresh — pull the first one
+      // back into the form (mirrors the non-live queue-only restore branch further below).
+      await switchMemberTab('workPage');
+      liveMode=true;
+      const tog=document.getElementById("liveModeToggle"),lbl=document.getElementById("liveModeLabel");
+      if(tog)tog.classList.add("on");if(lbl){lbl.textContent="ON";lbl.style.color="var(--accent)"}
+      currentEditingIndex=null;window._liveEditMode=false;
+      document.getElementById("initialWorkoutBox").style.display="";
+      document.getElementById("workoutFormStructure").style.display="none";
+      document.getElementById("liveWorkoutForm").style.display="block";
+      const first=liveWorkoutQueue.shift();
+      loadLiveFormEntry(first);
+      saveLiveQueue();
+      renderLiveQueueStrip();
+      showToast('🔄 Restored your in-progress live workouts after the refresh.');
+      return;
+    }
   }
-  if(liveDraft&&liveDraft.mode==='setup'){
-    await switchMemberTab('workPage');
-    restoreLiveSetupUI(liveDraft);
-    return;
-  }
+  // Non-live draft + queue live in localStorage, so — unlike the live-mode check above — these are
+  // restored on ANY landing (fresh login, refresh, or a brand-new browser session), not just a refresh.
   const nlDraft=loadNonLiveDraft();
-  if(nonLiveDraftHasContent(nlDraft)){
+  const nlQueue=loadNonLiveQueue();
+  if(nonLiveDraftHasContent(nlDraft)||nlQueue.length){
     await switchMemberTab('workPage');
     document.getElementById("formActionTitle").innerText="LOG NEW ENTRY";
-    document.getElementById("initialWorkoutBox").style.display="none";
+    document.getElementById("initialWorkoutBox").style.display="";
     document.getElementById("workoutFormStructure").style.display="block";
     document.getElementById("liveWorkoutForm").style.display="none";
     applySetsCountMinConstraint();
-    document.getElementById("workoutNameInput").value=nlDraft.name||"";
-    document.getElementById("setsCountSelect").value=String(nlDraft.setsCount||nlDraft.sets.length||1);
-    renderNonLiveSetsRows(nlDraft.sets.map(s=>s.w),nlDraft.sets.map(s=>s.r),nlDraft.sets.map(s=>s.locked),nlDraft.sets.map(s=>s.km),nlDraft.sets.map(s=>s.min),nlDraft.sets.map(s=>s.sec));
+    currentEditingIndex=null;
+    nlWorkoutQueue=nlQueue;
+    if(nonLiveDraftHasContent(nlDraft)){
+      document.getElementById("workoutNameInput").value=nlDraft.name||"";
+      document.getElementById("setsCountSelect").value=String(nlDraft.setsCount||nlDraft.sets.length||1);
+      renderNonLiveSetsRows(nlDraft.sets.map(s=>s.w),nlDraft.sets.map(s=>s.r),nlDraft.sets.map(s=>s.locked),nlDraft.sets.map(s=>s.km),nlDraft.sets.map(s=>s.min),nlDraft.sets.map(s=>s.sec));
+    } else if(nlWorkoutQueue.length){
+      // No current draft, but queued entries survived — pull the first one back into the form.
+      const first=nlWorkoutQueue.shift();
+      loadNonLiveFormEntry(first);
+      saveNonLiveQueue();
+    } else {
+      document.getElementById("setsCountSelect").value="1";buildSetsInputFields();
+    }
     document.getElementById("prevPerfBadgeNonLive").classList.remove("visible");
-    document.getElementById("quickFillCopyAllBtn").classList.remove("visible");
+    checkQuickFillVisibility();
     resetNlCopyAllState();
     updateTrackWorkoutBtnVisibility('nonlive');
-    showToast('🔄 Restored your in-progress workout entry after the refresh.');
+    renderNlQueueStrip();
+    showToast('🔄 Restored your in-progress workout entry.');
   }
 }
 
@@ -10168,7 +10503,20 @@ async function saveWorkoutLogEntry(){
   // compared vs ALL-time saved history for this exercise.
   {const _mx=computeSessionMaxes(sd);
    checkAndShowLevelUp(name,_mx.maxKg,_mx.maxKg>0?_mx.maxKgReps:_mx.totalReps,_mx.totalVolume);}
-  alert(`✅ Workout saved! +${xpe} XP earned!`);cancelWorkoutLogging();await loadWorkoutsForDate();await syncCoreDashboardMetrics();
+  alert(`✅ Workout saved! +${xpe} XP earned!`);
+  // Multiple-workouts-at-a-time: if more entries are queued, load the next one into the still-open
+  // form instead of closing it. Only relevant for the non-live, brand-new-entry flow that queued them.
+  if(nlMultiEntryAllowed()&&nlWorkoutQueue.length){
+    const next=nlWorkoutQueue.shift();
+    currentEditingIndex=null;
+    document.getElementById("formActionTitle").innerText="LOG NEW ENTRY";
+    loadNonLiveFormEntry(next);
+    saveNonLiveQueue();
+    renderNlQueueStrip();
+  } else {
+    cancelWorkoutLogging();
+  }
+  await loadWorkoutsForDate();await syncCoreDashboardMetrics();
 }
 
 /* ===================== TRACK WORKOUT (redirect to Workout Tracker for this exercise) ===================== */
@@ -10681,17 +11029,43 @@ function toggleLiveMode(){
   const tog=document.getElementById("liveModeToggle"),lbl=document.getElementById("liveModeLabel");
   tog.classList.toggle("on",liveMode);lbl.textContent=liveMode?"ON":"OFF";lbl.style.color=liveMode?"var(--accent)":"var(--text-muted)";
 }
+/* Room options (Create Room / Enter Room ID) stay hidden behind the fixed group-people icon below
+   LIVE MODE until the user explicitly taps it open. */
+function toggleRoomOptionsVisibility(){
+  const box=document.getElementById("roomIdleControls"),btn=document.getElementById("roomOptionsToggleBtn");
+  if(!box||!btn)return;
+  const opening=box.style.display==="none"||!box.style.display;
+  box.style.display=opening?"flex":"none";
+  btn.classList.toggle("active",opening);
+}
 function showAddWorkoutForm(){
   const _td=isRoomMemberModeActive()?getLocalDateString():document.getElementById("workoutCalendarFilter").value;
   if(!isWorkoutEditableDate(_td)){alert("You can only add workouts for today, yesterday, or the day before yesterday.");return}
+  // Same fixed "+ ADD WORKOUT ENTRY" button doubles as "add another workout": if a brand-new
+  // non-live entry is already open, clicking it again queues the current one and opens a blank
+  // entry instead of restarting the whole form. Never applies to Live Mode or to editing.
+  const formAlreadyOpen=document.getElementById("workoutFormStructure").style.display==="block";
+  if(formAlreadyOpen&&!liveMode&&currentEditingIndex===null){
+    addAnotherNonLiveWorkout();
+    return;
+  }
+  const liveFormAlreadyOpen=document.getElementById("liveWorkoutForm").style.display==="block";
+  if(liveFormAlreadyOpen&&liveMultiEntryAllowed()){
+    addAnotherLiveWorkout();
+    return;
+  }
   currentEditingIndex=null;window._liveEditMode=false;editOriginalSetCount=0;
   bwKgRevealed={nonlive:false,live:false,liveEditExisting:false,liveEditNew:false};
   if(typeof updateRoomTargetBadge==='function')updateRoomTargetBadge();
   ctmInitMuscleEquipmentDropdowns();
   // Reset name input in case it was locked by live-edit mode
   const ni=document.getElementById("liveWorkoutNameInput");if(ni){ni.readOnly=false;ni.style.opacity="1";}
+  nlWorkoutQueue=[];clearNonLiveQueue(); // opening fresh from the "+ ADD WORKOUT ENTRY" button always starts a clean queue
+  liveWorkoutQueue=[];clearLiveQueue(); // same for the Live-mode queue
   if(liveMode){
-    document.getElementById("initialWorkoutBox").style.display="none";document.getElementById("liveWorkoutForm").style.display="block";document.getElementById("workoutFormStructure").style.display="none";
+    const qs=document.getElementById("nlQueueStrip");if(qs)qs.style.display="none";
+    const lqs=document.getElementById("liveQueueStrip");if(lqs)lqs.style.display="none";
+    document.getElementById("initialWorkoutBox").style.display="";document.getElementById("liveWorkoutForm").style.display="block";document.getElementById("workoutFormStructure").style.display="none";
     document.getElementById("liveWorkoutNameInput").value="";document.getElementById("liveSetsCountSelect").value="1";document.getElementById("liveSetsContainer").innerHTML="";
     document.getElementById("liveSetupPanel").style.display="block";document.getElementById("liveSessionTitle").style.display="none";
     updateLiveSetsStructureVisibility();
@@ -10706,7 +11080,9 @@ function showAddWorkoutForm(){
     applyLiveSetsCountMinConstraint();
   } else {
     document.getElementById("formActionTitle").innerText="LOG NEW ENTRY";
-    document.getElementById("initialWorkoutBox").style.display="none";document.getElementById("workoutFormStructure").style.display="block";document.getElementById("liveWorkoutForm").style.display="none";
+    // Stays visible (not hidden) so the same button remains reachable — a second tap opens
+    // another workout entry instead of the person having to close this one first.
+    document.getElementById("initialWorkoutBox").style.display="";document.getElementById("workoutFormStructure").style.display="block";document.getElementById("liveWorkoutForm").style.display="none";
     applySetsCountMinConstraint();
     window._selectedWorkoutClass=null;window._selectedWorkoutEquipment=null;
     // Restore a refresh-proof draft if the person had anything typed before an accidental reload
@@ -10725,8 +11101,11 @@ function showAddWorkoutForm(){
     updateTrackWorkoutBtnVisibility('nonlive');
     _updateInlineClassBtn('workoutNameInput','_inlineClassBtnNonLive','nonlive');
     _updateInlineEquipBtn('workoutNameInput','_inlineEquipBtnNonLive','nonlive');
+    renderNlQueueStrip();
   }
 }
+/* CLOSE button: fully abandons the form AND discards any queued (not-yet-saved) workout entries —
+   a deliberate "leave the whole multi-entry session" action, distinct from switching between chips. */
 function cancelWorkoutLogging(){
   currentEditingIndex=null;document.getElementById("workoutNameInput").value="";
   bwKgRevealed.nonlive=false;
@@ -10737,6 +11116,9 @@ function cancelWorkoutLogging(){
   updateNonLiveSetsStructureVisibility();
   updateNameClearIconVisibility('workoutNameInput','workoutNameClearIcon');
   clearNonLiveDraft();
+  nlWorkoutQueue=[];clearNonLiveQueue();
+  const qs=document.getElementById("nlQueueStrip");
+  if(qs)qs.style.display="none";
   document.getElementById("workoutFormStructure").style.display="none";document.getElementById("liveWorkoutForm").style.display="none";document.getElementById("initialWorkoutBox").style.display="block";stopAllLiveTimers();
   closeWorkoutEditOverlay();
 }
@@ -10744,6 +11126,8 @@ function cancelLiveWorkout(){
   if(window._liveEditMode){cancelLiveEditWorkout();return;}
   bwKgRevealed.live=false;
   stopAllLiveTimers();document.getElementById("liveWorkoutForm").style.display="none";document.getElementById("initialWorkoutBox").style.display="block";liveSetResults=[];liveSessionSlot=null;
+  liveWorkoutQueue=[];clearLiveQueue(); // fully closing Live Mode discards any queued (not-yet-started) entries too
+  const lqs=document.getElementById("liveQueueStrip");if(lqs)lqs.style.display="none";
   clearLiveDraft();
 }
 function stopAllLiveTimers(){Object.values(liveSetTimers).forEach(t=>clearInterval(t));Object.values(liveBreakTimers).forEach(t=>clearInterval(t));liveSetTimers={};liveSetSeconds={};liveSetTimerStartEpoch={};liveSetTimerAccumAtStart={};liveBreakTimers={};liveBreakSeconds={};liveBreakTotalSecs={};liveBreakStartEpoch={};liveBreakAccumAtStart={};releaseBreakWakeLock()}
@@ -10861,8 +11245,12 @@ function handleLiveSearchAuto(forceShow){
    (live-edit mode) is not draft-persisted — if that gets refreshed, it simply returns to a clean
    state rather than restoring, since the already-saved sets are safe in the database either way. */
 function getLiveDraftKey(){return `gymbro_live_draft_${getEffectiveUid()}`}
-function saveLiveDraft(){
-  if(!_liveDraftSaveEnabled||!liveMode||window._liveEditMode)return;
+/* Builds a {mode:'setup'|'live', ...} snapshot of whatever's currently on the live form/session —
+   the exact same shape saveLiveDraft() persists for refresh-recovery — but just returns it instead
+   of writing to storage. Returns null when there's genuinely nothing worth keeping. Shared by the
+   refresh-proof draft below AND the Live Mode multiple-workouts-at-a-time queue, so both benefit
+   from the same running-timer epoch math instead of duplicating it. */
+function buildLiveDraftSnapshot(){
   const name=(document.getElementById("liveWorkoutNameInput")?.value||'').trim();
   if(!liveTotalSets){
     // Session hasn't been started yet (still on the setup panel: name + sets structure). There's no
@@ -10871,11 +11259,10 @@ function saveLiveDraft(){
     const muscle=document.getElementById("liveWorkoutMuscleFilter")?.value||'';
     const equipment=document.getElementById("liveWorkoutEquipmentFilter")?.value||'';
     const setsCount=setsCountEl?setsCountEl.value:"1";
-    if(!name&&!muscle&&!equipment&&setsCount==="1"){clearLiveDraft();return}
-    try{sessionStorage.setItem(getLiveDraftKey(),JSON.stringify({mode:'setup',name,setsCount,muscle,equipment}))}catch(e){}
-    return;
+    if(!name&&!muscle&&!equipment&&setsCount==="1")return null;
+    return{mode:'setup',name,setsCount,muscle,equipment};
   }
-  if(!name){clearLiveDraft();return}
+  if(!name)return null;
   const isCardio=isCardioExercise(name);
   const sets={};
   for(let i=1;i<=liveTotalSets;i++){
@@ -10911,7 +11298,12 @@ function saveLiveDraft(){
       startEpoch:running?(liveBreakStartEpoch[brIdx]||Date.now()):null
     };
   }
-  const draft={mode:'live',name,totalSets:liveTotalSets,results:liveSetResults.slice(),sessionSlot:liveSessionSlot,sets,liveBreak};
+  return{mode:'live',name,totalSets:liveTotalSets,results:liveSetResults.slice(),sessionSlot:liveSessionSlot,sets,liveBreak};
+}
+function saveLiveDraft(){
+  if(!_liveDraftSaveEnabled||!liveMode||window._liveEditMode)return;
+  const draft=buildLiveDraftSnapshot();
+  if(!draft){clearLiveDraft();return}
   try{sessionStorage.setItem(getLiveDraftKey(),JSON.stringify(draft))}catch(e){}
 }
 function loadLiveDraft(){
@@ -10926,14 +11318,14 @@ function clearLiveDraft(){
 /* Brings back what was picked on the Live Mode setup panel (exercise name, muscle/equipment
    filters, sets structure) if the person refreshed BEFORE pressing "Start Live Session" — there's
    no running session to resume, but the selection they'd already made shouldn't be thrown away. */
-function restoreLiveSetupUI(draft){
+function restoreLiveSetupUI(draft,fromQueue){
   _liveDraftSaveEnabled=false;
   liveMode=true;
   const tog=document.getElementById("liveModeToggle"),lbl=document.getElementById("liveModeLabel");
   if(tog)tog.classList.add("on");if(lbl){lbl.textContent="ON";lbl.style.color="var(--accent)"}
   currentEditingIndex=null;window._liveEditMode=false;editOriginalSetCount=0;
   ctmInitMuscleEquipmentDropdowns();
-  document.getElementById("initialWorkoutBox").style.display="none";
+  document.getElementById("initialWorkoutBox").style.display="";
   document.getElementById("liveWorkoutForm").style.display="block";
   document.getElementById("workoutFormStructure").style.display="none";
   document.getElementById("liveSetupPanel").style.display="block";
@@ -10948,13 +11340,13 @@ function restoreLiveSetupUI(draft){
   handleLiveSearchAuto();
   updateTrackWorkoutBtnVisibility('live');
   _liveDraftSaveEnabled=true;
-  showToast('🔄 Restored your exercise selection after the refresh.');
+  if(!fromQueue)showToast('🔄 Restored your exercise selection after the refresh.');
 }
 
-function restoreLiveSessionUI(draft){
+function restoreLiveSessionUI(draft,fromQueue){
   _liveDraftSaveEnabled=false; // don't re-save while we're programmatically reconstructing it
   liveMode=true;
-  document.getElementById("initialWorkoutBox").style.display="none";
+  document.getElementById("initialWorkoutBox").style.display="";
   document.getElementById("workoutFormStructure").style.display="none";
   document.getElementById("liveWorkoutForm").style.display="block";
   const tog=document.getElementById("liveModeToggle"),lbl=document.getElementById("liveModeLabel");
@@ -11041,6 +11433,10 @@ function restoreLiveSessionUI(draft){
       liveSetSeconds[i]=s.timerAccumulated;
       const m=Math.floor(s.timerAccumulated/60),sec=s.timerAccumulated%60;
       const dispEl=document.getElementById(`liveTimerDisplay_${i}`);if(dispEl)dispEl.textContent=String(m).padStart(2,'0')+':'+String(sec).padStart(2,'0');
+      // Timer was started AND already stopped before the refresh — that's exactly what reveals the
+      // Save button during normal play (see toggleLiveSetTimer's stop branch), so restore that same
+      // visible state here instead of leaving it hidden until the person re-toggles the timer.
+      const saveBtn=document.getElementById(`liveSetSaveBtn_${i}`);if(saveBtn)saveBtn.style.display="block";
     }
   });
 
@@ -11084,7 +11480,7 @@ function restoreLiveSessionUI(draft){
   }
 
   _liveDraftSaveEnabled=true;
-  showToast('🔄 Restored your in-progress live workout after the refresh — timers included.');
+  if(!fromQueue)showToast('🔄 Restored your in-progress live workout after the refresh — timers included.');
 }
 
 /* Browsers will never let JS fake a tap to unlock audio/vibration — a script-dispatched click or
@@ -11324,7 +11720,21 @@ async function saveLiveSet(idx){
       document.getElementById(`liveBreakInputsRow_${idx}`).style.display="flex";
       document.getElementById(`liveBreakAutoSkip_${idx}`).style.display="none";
     }
-  }else{finishLiveSession(name);clearLiveDraft()}
+  }else{
+    clearLiveDraft();
+    // Multiple-workouts-at-a-time: if more Live entries are queued, load the next one straight
+    // into the still-open form instead of showing the "all done, close" screen.
+    if(liveMultiEntryAllowed()&&liveWorkoutQueue.length){
+      const next=liveWorkoutQueue.shift();
+      currentEditingIndex=null;
+      showToast(`✅ ${name} finished! Loading next queued workout — ${liveWorkoutQueue.length} more waiting.`);
+      loadLiveFormEntry(next);
+      saveLiveQueue();
+      renderLiveQueueStrip();
+    } else {
+      finishLiveSession(name);
+    }
+  }
   await loadWorkoutsForDate();await syncCoreDashboardMetrics();
 }
 /* ===================== SCREEN WAKE LOCK (keep screen on during a break) =====================
@@ -12418,7 +12828,7 @@ function initiateWorkoutEdit(e,ci,rv){
   // Non-live path — static form as before, but shown inside the edit overlay so it never appears
   // scrolled away above the on-page workout list.
   document.getElementById("formActionTitle").innerText=`EDIT ENTRY (Slot ${ci})`;
-  document.getElementById("initialWorkoutBox").style.display="none";
+  document.getElementById("initialWorkoutBox").style.display="";
   document.getElementById("workoutFormStructure").style.display="block";
   document.getElementById("liveWorkoutForm").style.display="none";
   openWorkoutEditOverlay(document.getElementById("workoutFormStructure"));
@@ -12578,7 +12988,7 @@ function startLiveEditSession(ci,exerciseName,setsStr,segs){
 
   // Show the live form, hide everything else, and relocate it into the edit overlay so it never
   // appears scrolled away above the on-page workout list.
-  document.getElementById("initialWorkoutBox").style.display="none";
+  document.getElementById("initialWorkoutBox").style.display="";
   document.getElementById("workoutFormStructure").style.display="none";
   document.getElementById("liveWorkoutForm").style.display="block";
   openWorkoutEditOverlay(document.getElementById("liveWorkoutForm"));
@@ -13209,7 +13619,7 @@ function cleanupWaitingRoomState(msg){
   window.__memberWaiting=null;
   clearRoomSession();
   document.getElementById('memberRoomWaitingStrip').style.display='none';
-  document.getElementById('roomIdleControls').style.display='flex';
+  document.getElementById('roomIdleControls').style.display='none';const _rotb=document.getElementById('roomOptionsToggleBtn');if(_rotb)_rotb.classList.remove('active');
   if(msg)showToast(msg);
 }
 
@@ -13285,7 +13695,7 @@ function cleanupMemberRoomState(msg){
   window.__memberRoom=null;
   clearRoomSession();
   document.getElementById('memberRoomStrip').style.display='none';
-  document.getElementById('roomIdleControls').style.display='flex';
+  document.getElementById('roomIdleControls').style.display='none';const _rotb=document.getElementById('roomOptionsToggleBtn');if(_rotb)_rotb.classList.remove('active');
   if(msg)showToast(msg);
 }
 
@@ -13496,7 +13906,7 @@ function cleanupRoomState(msg){
   window.__room=null;
   clearRoomSession();
   document.getElementById('roomActiveStrip').style.display='none';
-  document.getElementById('roomIdleControls').style.display='flex';
+  document.getElementById('roomIdleControls').style.display='none';const _rotb=document.getElementById('roomOptionsToggleBtn');if(_rotb)_rotb.classList.remove('active');
   if(msg)showToast(msg);
 }
 
@@ -13520,7 +13930,7 @@ function teardownRoomUiOnLogout(){
   const ras=document.getElementById('roomActiveStrip');if(ras)ras.style.display='none';
   const mrs=document.getElementById('memberRoomStrip');if(mrs)mrs.style.display='none';
   const mws=document.getElementById('memberRoomWaitingStrip');if(mws)mws.style.display='none';
-  const ric=document.getElementById('roomIdleControls');if(ric)ric.style.display='flex';
+  const ric=document.getElementById('roomIdleControls');if(ric)ric.style.display='none';const _rotb2=document.getElementById('roomOptionsToggleBtn');if(_rotb2)_rotb2.classList.remove('active');
 }
 
 /* Called from mountMemberDashboard() on BOTH fresh login and page-refresh auto-restore, so an
@@ -15490,7 +15900,7 @@ function exitTrackerFullscreen(){
 }
 document.addEventListener('keydown',function(e){
   if(e.key==='Escape'&&trackerFullscreenOpen)exitTrackerFullscreen();
-  if(e.key==='Escape'&&document.getElementById('workoutEditOverlay')?.classList.contains('active'))closeWorkoutEditOverlayViaCancel();
+  if(e.key==='Escape'&&document.getElementById('workoutEditOverlay')?.classList.contains('active'))confirmCloseWorkoutOverlay();
 });
 
 document.addEventListener('click',function(e){
@@ -16155,7 +16565,7 @@ function closeLearnVideo(){
      so the edit form always shows front-and-center instead of appearing above the on-page workout list.
      The "+ ADD WORKOUT ENTRY" flow never touches this overlay and keeps its original in-page behavior. -->
 <div class="workout-edit-overlay" id="workoutEditOverlay">
-  <button type="button" class="workout-edit-overlay-close" id="workoutEditOverlayCloseBtn" onclick="closeWorkoutEditOverlayViaCancel()" title="Close" aria-label="Close">
+  <button type="button" class="workout-edit-overlay-close" id="workoutEditOverlayCloseBtn" onclick="confirmCloseWorkoutOverlay()" title="Close" aria-label="Close">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg>
   </button>
   <div class="workout-edit-overlay-stage" id="workoutEditOverlayStage"></div>
@@ -16167,4 +16577,4 @@ function closeLearnVideo(){
   <div class="tracker-fullscreen-stage" id="trackerFullscreenStage"></div>
 </div>
 </body>
-</html>
+</html> 
