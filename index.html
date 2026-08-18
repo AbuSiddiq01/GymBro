@@ -1383,8 +1383,22 @@ body.workout-edit-lock{overflow:hidden}
 .prev-perf-badge.visible{display:flex}
 .prev-perf-icon{font-size:16px;flex-shrink:0;margin-top:2px}
 .prev-perf-label{font-size:10px;font-weight:700;color:var(--text-muted);letter-spacing:0.6px;text-transform:uppercase;display:block;margin-bottom:1px}
-.prev-perf-value{font-size:13px;font-weight:700;color:var(--accent);letter-spacing:0.3px;flex:1;min-width:0}
+.prev-perf-value{font-size:13px;font-weight:700;color:var(--accent);letter-spacing:0.3px;flex:1;min-width:0;padding-right:32px}
 .prev-perf-loading{font-size:12px;color:var(--text-muted);font-family:var(--font-alt);font-style:italic}
+/* Copy-previous-performance icon: pinned to the top-right corner of the badge — icon only, no label,
+   so a single tap fills the current sets from this previous performance without disturbing the rest
+   of the box's layout (see .prev-perf-value's padding-right above). Tapping it again while it's still
+   showing the "copied" (filled) state undoes the copy, same tap-again pattern as every other copy
+   icon in the workout forms (see .set-copy-btn.copied / .live-copy-prev-btn.copied). */
+.prev-perf-copy-btn{
+  position:absolute;top:6px;right:6px;display:flex;align-items:center;justify-content:center;
+  background:transparent;border:none;cursor:pointer;width:28px;height:28px;border-radius:8px;
+  transition:background 0.2s ease,transform 0.2s ease;
+}
+.prev-perf-copy-btn:hover{background:rgba(0,0,0,0.07);transform:translateY(-1px)}
+.prev-perf-copy-icon{width:16px;height:16px;color:var(--accent);display:block}
+.prev-perf-copy-btn.copied{background:var(--accent)}
+.prev-perf-copy-btn.copied .prev-perf-copy-icon{color:#fff}
 
 /* ===================== QUICK FILL BUTTON ===================== */
 .quick-fill-btn{
@@ -2518,6 +2532,9 @@ body.tracker-fs-lock{overflow:hidden}
               <span class="prev-perf-label">Previous Performance</span>
               <span class="prev-perf-value" id="prevPerfValueNonLive">—</span>
             </div>
+            <button type="button" class="prev-perf-copy-btn" id="prevPerfCopyBtnNonLive" title="Copy previous performance into the current sets (tap again to undo)" onclick="copyPrevPerfToFields('nonlive')">
+              <svg class="prev-perf-copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            </button>
           </div>
           <!-- Track Workout (Non-Live) — always available while an exercise name is entered, whether adding or editing -->
           <button type="button" class="track-workout-btn" id="trackWorkoutBtnNonLive" onclick="trackWorkoutFromForm('nonlive')">📈 Track Workout</button>
@@ -2545,7 +2562,7 @@ body.tracker-fs-lock{overflow:hidden}
                live-editing an already-saved entry. -->
           <div id="liveQueueStrip" class="nl-queue-strip" style="display:none"></div>
           <div id="liveSetupPanel">
-            <div class="ctm-muscle-eq-row entry-filter-row">
+            <div class="ctm-muscle-eq-row entry-filter-row" id="liveSetupFilterRow">
               <div>
                 <label>Muscle</label>
                 <select id="liveWorkoutMuscleFilter" onchange="handleLiveSearchAuto()"></select>
@@ -2572,6 +2589,9 @@ body.tracker-fs-lock{overflow:hidden}
                 <span class="prev-perf-label">Previous Performance</span>
                 <span class="prev-perf-value" id="prevPerfValueLive">—</span>
               </div>
+              <button type="button" class="prev-perf-copy-btn" id="prevPerfCopyBtnLive" title="Copy previous performance into the current sets (tap again to undo)" onclick="copyPrevPerfToFields('live')">
+                <svg class="prev-perf-copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              </button>
             </div>
             <!-- Track Workout (Live) — always available while an exercise name is entered, whether starting fresh or live-editing -->
             <button type="button" class="track-workout-btn" id="trackWorkoutBtnLive" onclick="trackWorkoutFromForm('live')">📈 Track Workout</button>
@@ -9830,6 +9850,24 @@ function updateLiveSetsStructureVisibility(){
   const hasName=!!document.getElementById("liveWorkoutNameInput")?.value.trim();
   wrap.style.display=hasName?"block":"none";
 }
+/* ===================== LIVE MODE: KEEP PREVIOUS PERFORMANCE + TRACK WORKOUT "FIXED" =====================
+   Previously, starting a Live session hid the ENTIRE #liveSetupPanel (name box, Previous Performance
+   badge, and Track Workout button included), so they'd disappear the moment sets started — unlike
+   Non-Live, where the badge + Track Workout button stay put in the same spot (below the exercise
+   name, above the sets) for as long as the entry form is open. These two helpers instead hide only
+   the parts that are genuinely no longer relevant once a session is running (Muscle/Equipment
+   filters, the "SETS STRUCTURE" selector + Start button, and any inline Class/Equipment prompts),
+   leaving the exercise name, Previous Performance badge, and Track Workout button visible and in
+   that exact same fixed position throughout — matching Non-Live. */
+function liveSetupPanelEnterActiveSession(){
+  const filterRow=document.getElementById("liveSetupFilterRow");if(filterRow)filterRow.style.display="none";
+  const wrap=document.getElementById("liveSetsStructureWrap");if(wrap)wrap.style.display="none";
+  ["_addCustomBtnLive","_inlineClassBtnLive","_inlineEquipBtnLive"].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display="none";});
+  const nameInput=document.getElementById("liveWorkoutNameInput");if(nameInput)nameInput.readOnly=true;
+}
+function liveSetupPanelExitActiveSession(){
+  const filterRow=document.getElementById("liveSetupFilterRow");if(filterRow)filterRow.style.display="";
+}
 /* Fixed SVG "X" clear icon shared by the Add Workout, Live Workout, and Workout Tracker exercise-name
    boxes — only shown once the box has a value, and hidden while the box is read-only (e.g. the locked
    exercise name during a live-edit session, where clearing it makes no sense). */
@@ -10311,7 +10349,7 @@ function addAnotherLiveWorkout(){
   stopAllLiveTimers();
   currentEditingIndex=null;
   bwKgRevealed.live=false;
-  document.getElementById("liveSetupPanel").style.display="block";
+  document.getElementById("liveSetupPanel").style.display="block";liveSetupPanelExitActiveSession();
   document.getElementById("liveSessionTitle").style.display="none";
   document.getElementById("liveSetsContainer").innerHTML="";
   const nameEl=document.getElementById("liveWorkoutNameInput");
@@ -10604,6 +10642,10 @@ async function fetchPrevPerformance(exerciseName, mode){
   const badgeEl=document.getElementById(mode==='live'?'prevPerfBadgeLive':'prevPerfBadgeNonLive');
   const valueEl=document.getElementById(mode==='live'?'prevPerfValueLive':'prevPerfValueNonLive');
   if(!badgeEl||!valueEl)return;
+  // A fresh lookup is starting (new exercise name) — any earlier previous-performance data (and any
+  // pending "copy on session start" request in Live mode, see copyPrevPerfToFields) is now stale.
+  if(mode==='live'){window._prevPerfSetsLive=null;window._pendingLivePrevPerfCopy=null;}else{window._prevPerfSetsNonLive=null;}
+  resetPrevPerfCopyState(mode);
   badgeEl.classList.add("visible");
   valueEl.innerHTML=`<span class="prev-perf-loading">Looking up history...</span>`;
   try{
@@ -10617,11 +10659,25 @@ async function fetchPrevPerformance(exerciseName, mode){
         if(cellName===nameLower){found=sessionWorkoutEntryToText(wEntry);foundDate=row.date;break outer}
       }
     }
-    if(!found){badgeEl.classList.remove("visible");return}
+    if(!found){badgeEl.classList.remove("visible");if(mode==='live')window._prevPerfSetsLive=null;else window._prevPerfSetsNonLive=null;return}
     const setsStr=found.substring(found.indexOf(":")+1).trim();
     const segs=setsStr.split(",").map(s=>s.trim()).filter(Boolean);
     const dateObj=new Date(foundDate+"T00:00:00");
     const dateLabel=dateObj.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+    // Structured per-set data (parallel to the display below) so the "Copy previous performance"
+    // icon can fill the current workout's fields exactly as shown here, set-by-set.
+    const structuredSets=segs.map(seg=>{
+      if(isCardioSetString(seg)){
+        const cp=parseCardioSetSegment(seg);
+        return{type:'cardio',km:cp.km,min:cp.min,sec:cp.sec};
+      }
+      const m=seg.match(/([\d.]+)\s*[Kk][Gg]?\s*x\s*(\d+)/i);
+      if(m)return{type:'strength',kg:m[1],reps:m[2]};
+      // "N Reps" bodyweight-only format — no Kg component
+      const rOnly=seg.match(/(\d+)\s*Reps?/i);
+      return{type:'strength',kg:'0',reps:rOnly?rOnly[1]:'0'};
+    });
+    if(mode==='live')window._prevPerfSetsLive=structuredSets;else window._prevPerfSetsNonLive=structuredSets;
     // Build a row for every set
     let setsHtml=segs.map((seg,si)=>{
       if(isCardioSetString(seg)){
@@ -10634,7 +10690,189 @@ async function fetchPrevPerformance(exerciseName, mode){
     }).join('');
     valueEl.innerHTML=`<div style="margin-bottom:2px"><span style="font-size:10px;font-weight:700;color:var(--text-muted);font-family:var(--font-alt);letter-spacing:0.4px">${segs.length} SET${segs.length>1?'S':''} — ${dateLabel}</span></div>${setsHtml}`;
     badgeEl.classList.add("visible");
-  }catch(err){badgeEl.classList.remove("visible")}
+  }catch(err){badgeEl.classList.remove("visible");if(mode==='live')window._prevPerfSetsLive=null;else window._prevPerfSetsNonLive=null}
+}
+
+/* ===================== COPY PREVIOUS PERFORMANCE INTO CURRENT WORKOUT ===================== */
+/* Tracks, per mode ('nonlive' | 'live'), whether the Previous Performance copy icon is currently in
+   its "just copied" state — lets a second tap on the SAME icon undo the paste (restoring exactly what
+   each field held before) instead of copying again, same tap-again pattern used everywhere else in
+   the workout forms (see window._nlSetCopiedFlags / window._liveSetCopiedFlags). */
+window._prevPerfCopyState={nonlive:0,live:0};
+window._prevPerfCopyOriginal={nonlive:null,live:null};
+function resetPrevPerfCopyState(mode){
+  window._prevPerfCopyState[mode]=0;
+  window._prevPerfCopyOriginal[mode]=null;
+  document.getElementById(mode==='live'?'prevPerfCopyBtnLive':'prevPerfCopyBtnNonLive')?.classList.remove('copied');
+}
+/* Fills previous-performance values into the Live per-set fields (liveKg_/liveReps_/liveKm_+picker)
+   for every set from 1..totalSets — including sets that are still "upcoming" (dimmed via the
+   set-active/opacity styling in buildLiveSetHTML) — writing directly into their inputs so the value
+   is there and ready the moment that set becomes active, while the dimmed look itself is left
+   completely alone (it's just CSS on the wrapping row, untouched by this). Records each field's
+   PRIOR value into `orig` so the copy can be undone by a second tap. */
+function _applyPrevPerfToLiveFields(prevSets,totalSets,isCardio,orig){
+  let filled=0;
+  for(let i=1;i<=totalSets;i++){
+    const s=prevSets[i-1];if(!s)continue;
+    if(isCardio){
+      if(s.type!=='cardio')continue;
+      const kmEl=document.getElementById(`liveKm_${i}`);
+      orig[i]={type:'cardio',km:kmEl?kmEl.value:'',sec:getPickerSeconds(`liveSet_${i}`)};
+      if(kmEl)kmEl.value=s.km;
+      setCardioPickerValue(`liveSet_${i}`,s.min,s.sec);
+      if(typeof syncLiveCardioDurDisplay==='function')syncLiveCardioDurDisplay(i);
+      filled++;
+    } else {
+      if(s.type!=='strength')continue;
+      const kgEl=document.getElementById(`liveKg_${i}`),repsEl=document.getElementById(`liveReps_${i}`);
+      orig[i]={type:'strength',kg:kgEl?kgEl.value:'',reps:repsEl?repsEl.value:''};
+      if(kgEl)kgEl.value=s.kg;
+      if(repsEl)repsEl.value=s.reps;
+      filled++;
+    }
+  }
+  return filled;
+}
+/* Restores whatever _applyPrevPerfToLiveFields overwrote, using the `orig` map it recorded. */
+function _undoPrevPerfLiveFields(orig){
+  if(!orig)return;
+  Object.keys(orig).forEach(i=>{
+    const o=orig[i];
+    if(o.type==='cardio'){
+      const kmEl=document.getElementById(`liveKm_${i}`);if(kmEl)kmEl.value=o.km;
+      setCardioPickerValue(`liveSet_${i}`,Math.floor(o.sec/60),o.sec%60);
+      if(typeof syncLiveCardioDurDisplay==='function')syncLiveCardioDurDisplay(parseInt(i));
+    } else {
+      const kgEl=document.getElementById(`liveKg_${i}`),repsEl=document.getElementById(`liveReps_${i}`);
+      if(kgEl)kgEl.value=o.kg;
+      if(repsEl)repsEl.value=o.reps;
+    }
+  });
+}
+/* Same restore idea for the Non-Live fields (weight_set_/reps_set_/km_set_+picker), respecting locked
+   (✓) rows exactly like the copy itself did (never touches them). */
+function _undoPrevPerfNonLiveFields(orig){
+  if(!orig)return;
+  Object.keys(orig).forEach(i=>{
+    const o=orig[i];
+    const locked=document.getElementById(`lock_set_${i}`)?.checked;
+    if(o.type==='cardio'){
+      const kmEl=document.getElementById(`km_set_${i}`);
+      if(kmEl&&!kmEl.readOnly)kmEl.value=o.km;
+      if(!locked)setCardioPickerValue(`nlSet_${i}`,Math.floor(o.sec/60),o.sec%60);
+    } else {
+      const wEl=document.getElementById(`weight_set_${i}`),rEl=document.getElementById(`reps_set_${i}`);
+      if(wEl&&!wEl.readOnly)wEl.value=o.w;
+      if(rEl&&!rEl.readOnly)rEl.value=o.r;
+    }
+  });
+}
+/* Click handler for the copy icon inside the Previous Performance badge (Non-Live & Live, all
+   formats: Kg-Reps, Reps only, Reps with Kgs, Km-Time). Fills the CURRENTLY selected number of sets
+   from the previous performance, set-by-set — e.g. previous had 3 sets but only 2 sets are selected
+   now: only sets 1-2 get filled; change the selector to 3 and tap copy again and set 3 fills in too.
+   Locked (✓) set rows are left untouched, same as every other bulk-fill action in this app.
+   Tapping the SAME icon again while it's still showing the "copied" state undoes it instead. */
+function copyPrevPerfToFields(mode){
+  const badgeEl=document.getElementById(mode==='live'?'prevPerfBadgeLive':'prevPerfBadgeNonLive');
+  const btn=document.getElementById(mode==='live'?'prevPerfCopyBtnLive':'prevPerfCopyBtnNonLive');
+
+  // 2nd tap: undo whatever the last tap pasted in.
+  if(window._prevPerfCopyState[mode]===1){
+    if(mode==='nonlive'){
+      _undoPrevPerfNonLiveFields(window._prevPerfCopyOriginal.nonlive);
+      handleNonLiveSetInputChange();
+      checkQuickFillVisibility();
+    } else if(window._pendingLivePrevPerfCopy){
+      // Session hasn't started yet — nothing was written to any field, just cancel the queued copy.
+      window._pendingLivePrevPerfCopy=null;
+    } else {
+      _undoPrevPerfLiveFields(window._prevPerfCopyOriginal.live);
+      saveLiveDraft();
+    }
+    resetPrevPerfCopyState(mode);
+    showToast('↩️ Previous performance copy undone.');
+    return;
+  }
+
+  const prevSets=mode==='live'?window._prevPerfSetsLive:window._prevPerfSetsNonLive;
+  if(!badgeEl||!badgeEl.classList.contains('visible')||!prevSets||!prevSets.length){
+    showToast('⚠️ No previous performance to copy.');
+    return;
+  }
+  if(mode==='nonlive'){
+    const exName=document.getElementById('workoutNameInput')?.value.trim();
+    const isCardio=isCardioExercise(exName);
+    const count=parseInt(document.getElementById('setsCountSelect')?.value)||1;
+    let filled=0;const orig={};
+    for(let i=1;i<=count;i++){
+      const s=prevSets[i-1];if(!s)continue;
+      const lockEl=document.getElementById(`lock_set_${i}`);
+      if(lockEl&&lockEl.checked)continue;
+      if(isCardio){
+        if(s.type!=='cardio')continue;
+        const kmEl=document.getElementById(`km_set_${i}`);
+        orig[i]={type:'cardio',km:kmEl?kmEl.value:'',sec:getPickerSeconds(`nlSet_${i}`)};
+        if(kmEl&&!kmEl.readOnly)kmEl.value=s.km;
+        setCardioPickerValue(`nlSet_${i}`,s.min,s.sec);
+        filled++;
+      } else {
+        if(s.type!=='strength')continue;
+        const wEl=document.getElementById(`weight_set_${i}`),rEl=document.getElementById(`reps_set_${i}`);
+        orig[i]={type:'strength',w:wEl?wEl.value:'',r:rEl?rEl.value:''};
+        if(wEl&&!wEl.readOnly)wEl.value=s.kg;
+        if(rEl&&!rEl.readOnly)rEl.value=s.reps;
+        filled++;
+      }
+    }
+    if(!filled){showToast('⚠️ Nothing to copy for the selected sets.');return}
+    window._prevPerfCopyOriginal.nonlive=orig;
+    window._prevPerfCopyState.nonlive=1;
+    handleNonLiveSetInputChange();
+    checkQuickFillVisibility();
+    showToast('✅ Previous performance copied!');
+  } else if(liveTotalSets>0){
+    // Live session is already running — its per-set fields already exist, so fill them immediately
+    // across ALL sets at once (including upcoming/blurred ones), instead of queuing.
+    const exName=document.getElementById('liveWorkoutNameInput')?.value.trim();
+    const isCardio=isCardioExercise(exName);
+    const orig={};
+    const filled=_applyPrevPerfToLiveFields(prevSets,liveTotalSets,isCardio,orig);
+    if(!filled){showToast('⚠️ Nothing to copy for the current sets.');return}
+    window._prevPerfCopyOriginal.live=orig;
+    window._prevPerfCopyState.live=1;
+    saveLiveDraft();
+    showToast('✅ Previous performance copied into your sets!');
+  } else {
+    // Live mode: before "Start Live Session" the per-set fields don't exist in the DOM yet, so the
+    // copy is queued and applied automatically the moment the session (and its fields) are created —
+    // see the window._pendingLivePrevPerfCopy check inside startLiveSession().
+    window._pendingLivePrevPerfCopy=prevSets;
+    window._prevPerfCopyState.live=1;
+    window._prevPerfCopyOriginal.live=null;
+    showToast('✅ Will fill your sets as soon as you start the Live session.');
+  }
+  if(btn)btn.classList.add('copied');
+}
+/* Applies a queued Live-mode previous-performance copy right after startLiveSession() has built the
+   per-set input rows. Fills only up to however many sets were actually created this session
+   (liveTotalSets), matching whatever "SETS STRUCTURE" count was chosen — same rule as Non-Live. */
+function applyPendingLivePrevPerfCopy(totalSets,isCardio){
+  const prevSets=window._pendingLivePrevPerfCopy;
+  window._pendingLivePrevPerfCopy=null;
+  if(!prevSets||!prevSets.length){window._prevPerfCopyState.live=0;return}
+  const orig={};
+  const filled=_applyPrevPerfToLiveFields(prevSets,totalSets,isCardio,orig);
+  if(filled){
+    window._prevPerfCopyOriginal.live=orig;
+    window._prevPerfCopyState.live=1;
+    document.getElementById('prevPerfCopyBtnLive')?.classList.add('copied');
+    saveLiveDraft();
+    showToast('✅ Previous performance copied into your sets!');
+  } else {
+    window._prevPerfCopyState.live=0;
+  }
 }
 
 /* ===================== QUICK FILL: COPY TO ALL (NON-LIVE) ===================== */
@@ -11067,10 +11305,11 @@ function showAddWorkoutForm(){
     const lqs=document.getElementById("liveQueueStrip");if(lqs)lqs.style.display="none";
     document.getElementById("initialWorkoutBox").style.display="";document.getElementById("liveWorkoutForm").style.display="block";document.getElementById("workoutFormStructure").style.display="none";
     document.getElementById("liveWorkoutNameInput").value="";document.getElementById("liveSetsCountSelect").value="1";document.getElementById("liveSetsContainer").innerHTML="";
-    document.getElementById("liveSetupPanel").style.display="block";document.getElementById("liveSessionTitle").style.display="none";
+    document.getElementById("liveSetupPanel").style.display="block";liveSetupPanelExitActiveSession();document.getElementById("liveSessionTitle").style.display="none";
     updateLiveSetsStructureVisibility();
     updateNameClearIconVisibility('liveWorkoutNameInput','liveWorkoutNameClearIcon');
     document.getElementById("prevPerfBadgeLive").classList.remove("visible");
+    resetPrevPerfCopyState('live');
     updateTrackWorkoutBtnVisibility('live');
     liveCurrentSet=1;liveTotalSets=0;liveSetTimers={};liveSetSeconds={};liveSetTimerStartEpoch={};liveSetTimerAccumAtStart={};liveBreakTimers={};liveBreakSeconds={};liveBreakTotalSecs={};liveBreakStartEpoch={};liveBreakAccumAtStart={};liveSetResults=[];liveSessionSlot=null;
     window._selectedLiveWorkoutClass=null;window._selectedLiveWorkoutEquipment=null;
@@ -11096,6 +11335,7 @@ function showAddWorkoutForm(){
       document.getElementById("setsCountSelect").value="1";buildSetsInputFields();
     }
     document.getElementById("prevPerfBadgeNonLive").classList.remove("visible");
+    resetPrevPerfCopyState('nonlive');
     document.getElementById("quickFillCopyAllBtn").classList.remove("visible");
     resetNlCopyAllState();
     updateTrackWorkoutBtnVisibility('nonlive');
@@ -11116,6 +11356,7 @@ function cancelWorkoutLogging(){
   updateNonLiveSetsStructureVisibility();
   updateNameClearIconVisibility('workoutNameInput','workoutNameClearIcon');
   clearNonLiveDraft();
+  resetPrevPerfCopyState('nonlive');
   nlWorkoutQueue=[];clearNonLiveQueue();
   const qs=document.getElementById("nlQueueStrip");
   if(qs)qs.style.display="none";
@@ -11128,6 +11369,7 @@ function cancelLiveWorkout(){
   stopAllLiveTimers();document.getElementById("liveWorkoutForm").style.display="none";document.getElementById("initialWorkoutBox").style.display="block";liveSetResults=[];liveSessionSlot=null;
   liveWorkoutQueue=[];clearLiveQueue(); // fully closing Live Mode discards any queued (not-yet-started) entries too
   const lqs=document.getElementById("liveQueueStrip");if(lqs)lqs.style.display="none";
+  resetPrevPerfCopyState('live');
   clearLiveDraft();
 }
 function stopAllLiveTimers(){Object.values(liveSetTimers).forEach(t=>clearInterval(t));Object.values(liveBreakTimers).forEach(t=>clearInterval(t));liveSetTimers={};liveSetSeconds={};liveSetTimerStartEpoch={};liveSetTimerAccumAtStart={};liveBreakTimers={};liveBreakSeconds={};liveBreakTotalSecs={};liveBreakStartEpoch={};liveBreakAccumAtStart={};releaseBreakWakeLock()}
@@ -11328,7 +11570,7 @@ function restoreLiveSetupUI(draft,fromQueue){
   document.getElementById("initialWorkoutBox").style.display="";
   document.getElementById("liveWorkoutForm").style.display="block";
   document.getElementById("workoutFormStructure").style.display="none";
-  document.getElementById("liveSetupPanel").style.display="block";
+  document.getElementById("liveSetupPanel").style.display="block";liveSetupPanelExitActiveSession();
   document.getElementById("liveSessionTitle").style.display="none";
   document.getElementById("liveSetsContainer").innerHTML="";
   const muscleEl=document.getElementById("liveWorkoutMuscleFilter");if(muscleEl&&draft.muscle)muscleEl.value=draft.muscle;
@@ -11354,7 +11596,7 @@ function restoreLiveSessionUI(draft,fromQueue){
   if(lbl){lbl.textContent="ON";lbl.style.color="var(--accent)"}
   const nameInput=document.getElementById("liveWorkoutNameInput");
   nameInput.value=draft.name;nameInput.readOnly=false;nameInput.style.opacity="1";
-  document.getElementById("liveSetupPanel").style.display="none";
+  liveSetupPanelEnterActiveSession();
   const titleEl=document.getElementById("liveSessionTitle");
   titleEl.textContent="🏋 "+draft.name+" — "+draft.totalSets+" Set"+(draft.totalSets>1?"s":"");
   titleEl.style.display="block";
@@ -11525,11 +11767,12 @@ function startLiveSession(){
   name=finalizeCustomExerciseName(name,window._selectedLiveWorkoutClass,window._selectedLiveWorkoutEquipment);
   document.getElementById("liveWorkoutNameInput").value=name;
   liveTotalSets=parseInt(document.getElementById("liveSetsCountSelect").value);liveCurrentSet=1;liveSetResults=[];liveSessionSlot=null;window._liveSetCopiedFlags={};
-  document.getElementById("liveSetupPanel").style.display="none";
+  liveSetupPanelEnterActiveSession();
   let titleEl=document.getElementById("liveSessionTitle");titleEl.textContent="🏋 "+name+" — "+liveTotalSets+" Set"+(liveTotalSets>1?"s":"");titleEl.style.display="block";
   const container=document.getElementById("liveSetsContainer");container.innerHTML="";
   for(let i=1;i<=liveTotalSets;i++){container.innerHTML+=buildLiveSetHTML(i,i===1)}
-  if(isCardioExercise(name))for(let i=1;i<=liveTotalSets;i++)mountCardioDurationPicker(`liveCardioDurMount_${i}`,`liveSet_${i}`,0,0,false,()=>syncLiveCardioDurDisplay(i));
+  const _isCardioName=isCardioExercise(name);
+  if(_isCardioName)for(let i=1;i<=liveTotalSets;i++)mountCardioDurationPicker(`liveCardioDurMount_${i}`,`liveSet_${i}`,0,0,false,()=>syncLiveCardioDurDisplay(i));
   // Only mount the manual scrollable picker when the user has NOT configured a default break time.
   // If a default is set, the break auto-runs silently after each set — no manual UI needed.
   const hasDefault=getDefaultBreakSeconds()>0;
@@ -11538,6 +11781,9 @@ function startLiveSession(){
       mountMinSecPicker(`liveBreakPickerMount_${i}`,`liveBreak_${i}`,0,0);
     }
   }
+  // If "Copy previous performance" was tapped on the setup panel, the per-set fields only just now
+  // came into existence — fill them right away.
+  if(window._pendingLivePrevPerfCopy)applyPendingLivePrevPerfCopy(liveTotalSets,_isCardioName);
   saveLiveDraft();
 }
 function buildLiveSetHTML(idx,active){
@@ -12864,6 +13110,7 @@ function initiateWorkoutEdit(e,ci,rv){
   if(isBodyweightNoWeightExercise(en)&&parsedSets.some(ps=>parseFloat(ps.w)>0))bwKgRevealed.nonlive=true;
   // Editing — hide prev perf badge and kill any pending debounce lookup, but keep Track Workout available
   document.getElementById("prevPerfBadgeNonLive").classList.remove("visible");
+  resetPrevPerfCopyState('nonlive');
   if(_prevPerfNonLiveTimer){clearTimeout(_prevPerfNonLiveTimer);_prevPerfNonLiveTimer=null;}
   updateTrackWorkoutBtnVisibility('nonlive');
 
@@ -13001,6 +13248,7 @@ function startLiveEditSession(ci,exerciseName,setsStr,segs){
   updateNameClearIconVisibility('liveWorkoutNameInput','liveWorkoutNameClearIcon');
   // Editing — hide prev perf badge and kill any pending debounce lookup, but keep Track Workout available
   document.getElementById("prevPerfBadgeLive").classList.remove("visible");
+  resetPrevPerfCopyState('live');
   if(_prevPerfLiveTimer){clearTimeout(_prevPerfLiveTimer);_prevPerfLiveTimer=null;}
   updateTrackWorkoutBtnVisibility('live');
 
@@ -13011,7 +13259,7 @@ function startLiveEditSession(ci,exerciseName,setsStr,segs){
 
   // Show the setup panel (name + sets dropdown) but hide the "Start" button —
   // in edit mode the dropdown itself drives everything, no extra click needed.
-  document.getElementById("liveSetupPanel").style.display="block";
+  document.getElementById("liveSetupPanel").style.display="block";liveSetupPanelExitActiveSession();
   updateLiveSetsStructureVisibility();
   const startBtn=document.getElementById("liveStartSessionBtn");
   if(startBtn)startBtn.style.display="none";
@@ -13021,7 +13269,6 @@ function startLiveEditSession(ci,exerciseName,setsStr,segs){
   const countSel=document.getElementById("liveSetsCountSelect");
   countSel.value=String(Math.min(Math.max(liveEditExistingResults.length,1),6));
 
-  // Mark global flag so the rest of the live-mode code knows we're in edit mode
   window._liveEditMode=true;
   applyLiveSetsCountMinConstraint();
 
@@ -13394,6 +13641,7 @@ function cancelLiveEditWorkout(){
   const startBtn=document.getElementById("liveStartSessionBtn");if(startBtn)startBtn.style.display="block";
   document.getElementById("liveWorkoutForm").style.display="none";
   document.getElementById("initialWorkoutBox").style.display="block";
+  resetPrevPerfCopyState('live');
   closeWorkoutEditOverlay();
 }
 async function triggerWorkoutDelete(e,ci){
