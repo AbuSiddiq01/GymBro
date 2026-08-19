@@ -628,6 +628,17 @@ input::placeholder{color:var(--text-muted)}
 .bw-info-modal-btn{flex:1;padding:11px;border-radius:12px;border:none;font-family:var(--font-alt);font-size:13px;font-weight:800;letter-spacing:0.3px;cursor:pointer}
 .bw-info-modal-btn.primary{background:var(--btn-bg);color:#fff;box-shadow:var(--btn-shadow)}
 .bw-info-modal-btn.secondary{background:var(--accent-soft);color:var(--text-secondary)}
+/* Generic in-app "are you sure?" confirm modal — themed to match the app (CSS vars) instead of the
+   browser/OS's native confirm() popup. Used for every destructive delete action (workouts + sets,
+   add/edit/saved, live + non-live) so the confirmation always looks the same across every device/OS. */
+.app-confirm-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.55);display:flex;align-items:center;justify-content:center;z-index:99999999;padding:20px;box-sizing:border-box;animation:fadeIn 0.2s ease}
+.app-confirm-modal{background:var(--bg-card);border:1px solid var(--border-col);border-radius:16px;box-shadow:0 12px 40px rgba(0,0,0,0.35);padding:20px;max-width:360px;width:100%;box-sizing:border-box;animation:fadeIn 0.25s ease}
+.app-confirm-modal-title{font-family:var(--font-alt);font-size:16px;font-weight:700;color:var(--section-title-col);letter-spacing:0.3px;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.app-confirm-modal-body{font-family:var(--font-body);font-size:13.5px;line-height:1.5;color:var(--text-secondary)}
+.app-confirm-modal-actions{display:flex;gap:10px;margin-top:18px}
+.app-confirm-modal-btn{flex:1;padding:11px;border-radius:12px;border:none;font-family:var(--font-alt);font-size:13px;font-weight:800;letter-spacing:0.3px;cursor:pointer}
+.app-confirm-modal-btn.secondary{background:var(--accent-soft);color:var(--text-secondary)}
+.app-confirm-modal-btn.danger{background:#e11d48;color:#fff;box-shadow:0 6px 16px rgba(225,29,72,0.35)}
 .set-time-locked{font-size:11px;font-weight:700;color:var(--accent);font-family:var(--font-alt);background:var(--accent-soft);padding:5px 10px;border-radius:9px;white-space:nowrap;flex-shrink:0}
 .set-new-timer-row{display:flex;align-items:center;gap:8px;width:100%;margin-top:6px;padding-top:8px;border-top:1px dashed var(--border-col)}
 .set-new-timer-display{font-family:var(--font-display);font-size:15px;color:var(--accent);letter-spacing:1px}
@@ -5097,6 +5108,42 @@ function saveNlCardioTimer(i){
   if(disp){disp.style.display="none";disp.textContent="00:00"}
   handleNonLiveSetInputChange();
   showToast(`⏱️ Time saved to Set ${i}!`);
+}
+
+/* ===================== IN-APP DELETE CONFIRM (replaces native confirm()) ===================== */
+/* Generic themed "Are you sure?" modal used for every destructive delete in the Workouts page —
+   deleting a whole saved workout entry AND deleting a single set from an entry being edited,
+   across every mode (live / non-live) and every stage (add / edit / already-saved). Matches the
+   app's own card/modal styling (via CSS vars) instead of popping the browser/OS's native confirm(),
+   same idea as the themed Cancel/ask flow already used for Punch In.
+   Returns a Promise<boolean> — true if the user tapped the destructive action, false if they
+   tapped Cancel, tapped outside the card, or dismissed it any other way. Always await it. */
+function showAppConfirm(opts){
+  if(typeof opts==='string')opts={body:opts};
+  const{title='🗑 Confirm Delete',body='',confirmText='🗑 Delete',cancelText='Cancel'}=opts||{};
+  return new Promise(resolve=>{
+    document.querySelectorAll('.app-confirm-modal-overlay').forEach(el=>el.remove());
+    let settled=false;
+    const finish=result=>{
+      if(settled)return;settled=true;
+      overlay.remove();
+      resolve(result);
+    };
+    const overlay=document.createElement('div');
+    overlay.className='app-confirm-modal-overlay';
+    overlay.innerHTML=`<div class="app-confirm-modal">
+      <div class="app-confirm-modal-title">${title}</div>
+      <div class="app-confirm-modal-body">${body}</div>
+      <div class="app-confirm-modal-actions">
+        <button type="button" class="app-confirm-modal-btn secondary" id="appConfirmCancelBtn">${cancelText}</button>
+        <button type="button" class="app-confirm-modal-btn danger" id="appConfirmOkBtn">${confirmText}</button>
+      </div>
+    </div>`;
+    document.body.appendChild(overlay);
+    overlay.addEventListener('click',e=>{if(e.target===overlay)finish(false)});
+    document.getElementById('appConfirmCancelBtn').onclick=()=>finish(false);
+    document.getElementById('appConfirmOkBtn').onclick=()=>finish(true);
+  });
 }
 
 /* Small "why is there no Kg box?" info icon shown next to the Reps box for bodyweight-only exercises */
@@ -10554,7 +10601,7 @@ async function saveWorkoutLogEntry(){
   // compared vs ALL-time saved history for this exercise.
   {const _mx=computeSessionMaxes(sd);
    checkAndShowLevelUp(name,_mx.maxKg,_mx.maxKg>0?_mx.maxKgReps:_mx.totalReps,_mx.totalVolume);}
-  alert(`✅ Workout saved! +${xpe} XP earned!`);
+  showToast(`✅ Workout saved! +${xpe} XP earned!`);
   // Multiple-workouts-at-a-time: if more entries are queued, load the next one into the still-open
   // form instead of closing it. Only relevant for the non-live, brand-new-entry flow that queued them.
   if(nlMultiEntryAllowed()&&nlWorkoutQueue.length){
@@ -13154,7 +13201,7 @@ function initiateWorkoutEdit(e,ci,rv){
    immediately to the DB, and re-renders the remaining sets (renumbered). Any not-yet-saved new set
    rows the person may have started adding (beyond editOriginalSetCount) are left untouched locally. */
 async function deleteNonLiveSavedSet(i){
-  if(!confirm(`Delete Set ${i}? This will permanently remove it from this saved entry.`))return;
+  if(!await showAppConfirm({title:'🗑 Delete Set?',body:`Delete Set ${i}? This will permanently remove it from this saved entry.`}))return;
   if(editOriginalSetCount<=1){alert("This entry has only one saved set. Use the 🗑 icon on the workout card to delete the whole entry instead.");return}
   const cnt=parseInt(document.getElementById("setsCountSelect").value)||editOriginalSetCount;
   const cardio=isCardioExercise(document.getElementById("workoutNameInput")?.value.trim());
@@ -13445,7 +13492,7 @@ function removeCommittedSegmentAt(i){
 /* Deletes one specific already-saved set from a live entry being edited, persists the change
    immediately to the DB, and re-renders the remaining sets (renumbered). */
 async function deleteLiveEditSavedSet(i){
-  if(!confirm(`Delete Set ${i}? This will permanently remove it from this saved entry.`))return;
+  if(!await showAppConfirm({title:'🗑 Delete Set?',body:`Delete Set ${i}? This will permanently remove it from this saved entry.`}))return;
   const committedSegs=getLiveEditCommittedSegments();
   if(committedSegs.length<=1){alert("This entry has only one saved set. Use the 🗑 icon on the workout card to delete the whole entry instead.");return}
 
@@ -13696,10 +13743,22 @@ async function triggerWorkoutDelete(e,ci){
   e.stopPropagation();
   let uid=getEffectiveUid(),td=document.getElementById("workoutCalendarFilter").value;
   if(!isWorkoutEditableDate(td)){alert("You can only delete workouts for today, yesterday, or the day before yesterday.");return}
-  if(!confirm("Delete this workout entry?"))return;
+  if(!await showAppConfirm({title:'🗑 Delete Workout?',body:'Delete this workout entry? This will permanently remove it.'}))return;
+  // Grab the exercise name off the card before it's gone, so the confirmation toast can say
+  // exactly what was deleted instead of a generic message (strip the serial number + class-label
+  // sub-elements first, keeping just the exercise name itself).
+  const cardEl=document.querySelector(`.workout-log-card[data-ci="${ci}"]`);
+  let deletedName='';
+  const nameEl=cardEl?.querySelector('.exercise-name');
+  if(nameEl){
+    const clone=nameEl.cloneNode(true);
+    clone.querySelectorAll('.wlc-serial,.wlc-class-label').forEach(el=>el.remove());
+    deletedName=clone.textContent.trim();
+  }
   const slotRef=window._workoutCiMap&&window._workoutCiMap[ci];
   await sessionDeleteWorkoutEntry(uid,td,slotRef);
-  alert("Entry deleted.");await loadWorkoutsForDate();await syncCoreDashboardMetrics();
+  showToast(deletedName?`🗑 ${deletedName} deleted`:'🗑 Workout entry deleted');
+  await loadWorkoutsForDate();await syncCoreDashboardMetrics();
 }
 /* ===================== WORKOUT ROOM (multi-user, shared-phone) ===================== */
 /* window.__room only exists on the HOST device.
