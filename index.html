@@ -1945,6 +1945,50 @@ body.tracker-fs-lock{overflow:hidden}
 .levelup-toast .levelup-close{position:absolute;top:8px;right:10px;background:rgba(255,255,255,0.2);border:none;border-radius:50%;width:20px;height:20px;line-height:20px;text-align:center;color:#fff;font-size:13px;font-weight:800;cursor:pointer;padding:0}
 .levelup-toast .levelup-close:hover{background:rgba(255,255,255,0.35)}
 </style>
+<style>
+/* ===================== FLOATING MENU (Stopwatch / Timer) ===================== */
+.fm-gesture-options{display:flex;flex-direction:column;gap:8px}
+.fm-gesture-opt{display:flex;align-items:center;gap:12px;padding:12px;border-radius:12px;border:1px solid var(--border-col);background:var(--bg-panel);cursor:pointer;transition:border-color .15s,background .15s}
+.fm-gesture-opt-icon{font-size:18px;line-height:1;width:34px;text-align:center;flex-shrink:0}
+.fm-gesture-opt-title{font-family:var(--font-alt);font-weight:700;font-size:13px;color:var(--text-primary)}
+.fm-gesture-opt-sub{font-family:var(--font-alt);font-size:11px;color:var(--text-muted);margin-top:1px}
+.fm-gesture-opt-check{margin-left:auto;opacity:0;color:var(--accent);font-weight:800;font-size:15px;flex-shrink:0}
+.fm-gesture-opt.active{border-color:var(--accent);background:var(--accent-soft)}
+.fm-gesture-opt.active .fm-gesture-opt-check{opacity:1}
+
+.fm-root{position:fixed;inset:0;z-index:99990;pointer-events:none}
+.fm-overlay{position:fixed;inset:0;background:transparent;pointer-events:auto}
+.fm-menu-pop{position:fixed;pointer-events:auto;z-index:99992;background:var(--bg-card);border:1px solid var(--border-col);border-radius:18px;box-shadow:var(--card-shadow);padding:16px;display:flex;gap:10px;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);opacity:0;transform:scale(.85);transition:opacity .15s ease,transform .15s ease}
+.fm-menu-pop.fm-open{opacity:1;transform:scale(1)}
+.fm-menu-btn{display:flex;flex-direction:column;align-items:center;gap:7px;width:78px;padding:14px 8px;border-radius:14px;background:var(--accent-soft);color:var(--text-primary);cursor:pointer;font-family:var(--font-alt);font-size:12px;font-weight:700;border:none;letter-spacing:.3px}
+.fm-menu-btn:active{transform:scale(.95)}
+.fm-menu-btn-icon{font-size:22px;line-height:1}
+.fm-menu-close{position:absolute;top:-11px;right:-11px;width:28px;height:28px;border-radius:50%;background:var(--btn-bg);box-shadow:var(--btn-shadow);display:flex;align-items:center;justify-content:center;cursor:pointer;border:none;padding:0}
+.fm-menu-close svg{width:13px;height:13px;stroke:#fff}
+
+.fm-widget{position:fixed;pointer-events:auto;z-index:99991;touch-action:none}
+.fm-bubble{width:58px;height:58px;border-radius:50%;background:var(--btn-bg);box-shadow:var(--btn-shadow);display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;cursor:grab;user-select:none;font-family:var(--font-alt)}
+.fm-bubble:active{cursor:grabbing}
+.fm-bubble-icon{font-size:16px;line-height:1}
+.fm-bubble-time{font-size:9.5px;font-weight:700;margin-top:2px;letter-spacing:.2px}
+.fm-panel{width:216px;background:var(--bg-card);border:1px solid var(--border-col);border-radius:18px;box-shadow:var(--card-shadow);padding:14px;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+.fm-panel-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:2px;cursor:grab;touch-action:none}
+.fm-panel-head:active{cursor:grabbing}
+.fm-panel-title{font-family:var(--font-alt);font-weight:700;font-size:12px;color:var(--text-secondary);letter-spacing:.4px;text-transform:uppercase}
+.fm-panel-actions{display:flex;gap:6px}
+.fm-icon-btn{width:24px;height:24px;border-radius:50%;background:var(--accent-soft);display:flex;align-items:center;justify-content:center;cursor:pointer;border:none;padding:0;flex-shrink:0}
+.fm-icon-btn svg{width:11px;height:11px;stroke:var(--text-secondary)}
+.fm-time-display{font-family:var(--font-display);font-size:36px;text-align:center;letter-spacing:1px;color:var(--text-primary);margin:6px 0 10px}
+.fm-time-display.fm-finished{color:#e11d48;animation:fmPulse 1s ease-in-out infinite}
+@keyframes fmPulse{0%,100%{opacity:1}50%{opacity:.45}}
+.fm-ctrl-row{display:flex;gap:8px}
+.fm-ctrl-btn{flex:1;padding:9px 4px;border-radius:11px;border:none;background:var(--btn-bg);color:#fff;font-family:var(--font-alt);font-weight:700;cursor:pointer;font-size:11.5px;letter-spacing:.3px}
+.fm-ctrl-btn.secondary{background:var(--accent-soft);color:var(--text-primary)}
+.fm-ctrl-btn:active{transform:scale(.96)}
+.fm-timer-setup{display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:10px}
+.fm-timer-setup input{width:48px;text-align:center;padding:7px 2px;border-radius:9px;border:1px solid var(--input-border);background:var(--input-bg);color:var(--text-primary);font-family:var(--font-alt);font-size:15px;font-weight:700}
+.fm-timer-setup span{font-family:var(--font-alt);font-size:11px;color:var(--text-muted)}
+</style>
 </head>
 <body>
 
@@ -3065,6 +3109,54 @@ body.tracker-fs-lock{overflow:hidden}
               </div>
             </div>
             <button class="settings-save-btn" onclick="saveRestDaySettings()">💾 SAVE REST DAY SETTINGS</button>
+          </div>
+        </div>
+
+        <!-- Floating Menu Accordion -->
+        <div class="settings-accordion" id="accordion-floatingmenu">
+          <div class="settings-accordion-header" onclick="toggleSettingsAccordion('floatingmenu')">
+            <div class="settings-accordion-title-wrap">
+              <span class="settings-accordion-icon">🧿</span>
+              <div>
+                <div class="settings-accordion-title">Floating Menu</div>
+                <div class="settings-accordion-sub">Quick-access Stopwatch &amp; Timer, from anywhere in the app</div>
+              </div>
+            </div>
+            <span class="settings-accordion-chevron">▼</span>
+          </div>
+          <div class="settings-accordion-body">
+            <div class="settings-row">
+              <div>
+                <div class="settings-row-label">Enable Floating Menu</div>
+                <div class="settings-row-sub">Reveal a quick Stopwatch/Timer menu using a gesture, anywhere in the app.</div>
+              </div>
+              <div class="settings-row-ctrl">
+                <label class="gb-toggle">
+                  <input type="checkbox" id="fmEnabledToggle" onchange="fmHandleEnabledToggleChange()">
+                  <span class="gb-toggle-slider"></span>
+                </label>
+              </div>
+            </div>
+            <div id="fmGestureGroup">
+              <p style="font-size:12px;color:var(--text-muted);font-family:var(--font-alt);margin:14px 0 8px;letter-spacing:0.3px">Choose how you reveal the floating menu.</p>
+              <div class="fm-gesture-options" id="fmGestureOptions">
+                <div class="fm-gesture-opt" data-g="dbltap" onclick="fmSetGestureChoice('dbltap')">
+                  <span class="fm-gesture-opt-icon">👆👆</span>
+                  <div><div class="fm-gesture-opt-title">Double Tap</div><div class="fm-gesture-opt-sub">Tap twice quickly, anywhere</div></div>
+                  <span class="fm-gesture-opt-check">✓</span>
+                </div>
+                <div class="fm-gesture-opt" data-g="tripletap" onclick="fmSetGestureChoice('tripletap')">
+                  <span class="fm-gesture-opt-icon">👆👆👆</span>
+                  <div><div class="fm-gesture-opt-title">Triple Tap</div><div class="fm-gesture-opt-sub">Tap three times quickly, anywhere</div></div>
+                  <span class="fm-gesture-opt-check">✓</span>
+                </div>
+                <div class="fm-gesture-opt" data-g="longpress" onclick="fmSetGestureChoice('longpress')">
+                  <span class="fm-gesture-opt-icon">✋</span>
+                  <div><div class="fm-gesture-opt-title">Long Press</div><div class="fm-gesture-opt-sub">Press and hold, anywhere</div></div>
+                  <span class="fm-gesture-opt-check">✓</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -17355,5 +17447,383 @@ function closeLearnVideo(){
   </button>
   <div class="tracker-fullscreen-stage" id="trackerFullscreenStage"></div>
 </div>
+<script>
+/* ===================== FLOATING MENU: STOPWATCH & TIMER ===================== */
+(function(){
+  const CLOSE_SVG='<svg viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="5" x2="19" y2="19"/><line x1="19" y1="5" x2="5" y2="19"/></svg>';
+  const MINIMIZE_SVG='<svg viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>';
+
+  function fmUid(){return localStorage.getItem('user_id')||'default'}
+  const K={
+    gesture:()=>'gymbro_fm_gesture_'+fmUid(),
+    enabled:()=>'gymbro_fm_enabled_'+fmUid(),
+    sw:()=>'gymbro_fm_sw_'+fmUid(),
+    tm:()=>'gymbro_fm_tm_'+fmUid(),
+    ui:()=>'gymbro_fm_ui_'+fmUid(),
+  };
+  function loadJSON(key,def){try{const v=JSON.parse(localStorage.getItem(key));return v&&typeof v==='object'?v:def}catch(e){return def}}
+  function saveJSON(key,val){try{localStorage.setItem(key,JSON.stringify(val))}catch(e){}}
+
+  function getGesture(){return localStorage.getItem(K.gesture())||'dbltap'}
+  function isFMEnabled(){const v=localStorage.getItem(K.enabled());return v===null?true:v==='1'}
+
+  function defaultSW(){return{running:false,startEpoch:0,accumMs:0}}
+  function defaultTM(){return{running:false,startEpoch:0,accumMs:0,durationMs:5*60000,finished:false}}
+  function defaultUI(){return{open:null,x:null,y:null,expanded:true}}
+
+  function pad(n){return String(n).padStart(2,'0')}
+  function fmtStopwatch(ms){
+    const totalSec=Math.floor(ms/1000);
+    const h=Math.floor(totalSec/3600),m=Math.floor((totalSec%3600)/60),s=totalSec%60;
+    return h>0?`${pad(h)}:${pad(m)}:${pad(s)}`:`${pad(m)}:${pad(s)}`;
+  }
+  function fmtCountdown(ms){
+    const totalSec=Math.max(0,Math.ceil(ms/1000));
+    const h=Math.floor(totalSec/3600),m=Math.floor((totalSec%3600)/60),s=totalSec%60;
+    return h>0?`${pad(h)}:${pad(m)}:${pad(s)}`:`${pad(m)}:${pad(s)}`;
+  }
+
+  /* ---------- DOM root, built once ---------- */
+  let root,overlay,menuPop,widget;
+  function buildRoot(){
+    if(root)return;
+    root=document.createElement('div');
+    root.className='fm-root';
+    root.innerHTML=`
+      <div class="fm-overlay" id="fmOverlay" style="display:none"></div>
+      <div class="fm-menu-pop" id="fmMenuPop" style="display:none">
+        <button class="fm-menu-close" id="fmMenuCloseBtn" title="Close">${CLOSE_SVG}</button>
+        <div class="fm-menu-btn" id="fmMenuStopwatchBtn"><span class="fm-menu-btn-icon">⏱</span>Stopwatch</div>
+        <div class="fm-menu-btn" id="fmMenuTimerBtn"><span class="fm-menu-btn-icon">⏲</span>Timer</div>
+      </div>
+      <div class="fm-widget" id="fmWidget" style="display:none"></div>
+    `;
+    document.body.appendChild(root);
+    overlay=document.getElementById('fmOverlay');
+    menuPop=document.getElementById('fmMenuPop');
+    widget=document.getElementById('fmWidget');
+    overlay.addEventListener('pointerdown',closeFMMenu);
+    document.getElementById('fmMenuCloseBtn').addEventListener('click',closeFMMenu);
+    document.getElementById('fmMenuStopwatchBtn').addEventListener('click',()=>{closeFMMenu();openWidget('stopwatch')});
+    document.getElementById('fmMenuTimerBtn').addEventListener('click',()=>{closeFMMenu();openWidget('timer')});
+  }
+
+  /* ---------- Gesture detection ---------- */
+  let tapTimestamps=[],longPressTimer=null,longPressFired=false,downX=0,downY=0;
+  function insideFM(el){return !!(el&&el.closest&&el.closest('.fm-root'))}
+
+  function onPointerDown(e){
+    if(!isFMEnabled())return;
+    if(insideFM(e.target))return;
+    downX=e.clientX;downY=e.clientY;longPressFired=false;
+    if(getGesture()==='longpress'){
+      longPressTimer=setTimeout(()=>{longPressFired=true;openFMMenu(downX,downY)},550);
+    }
+  }
+  function onPointerMove(e){
+    if(longPressTimer&&(Math.abs(e.clientX-downX)>10||Math.abs(e.clientY-downY)>10)){
+      clearTimeout(longPressTimer);longPressTimer=null;
+    }
+  }
+  function onPointerUp(e){
+    if(longPressTimer){clearTimeout(longPressTimer);longPressTimer=null}
+    if(longPressFired)return;
+    if(!isFMEnabled())return;
+    if(insideFM(e.target))return;
+    const gesture=getGesture();
+    if(gesture==='longpress')return;
+    const now=Date.now();
+    tapTimestamps=tapTimestamps.filter(t=>now-t<500);
+    tapTimestamps.push(now);
+    const needed=gesture==='tripletap'?3:2;
+    if(tapTimestamps.length>=needed){
+      tapTimestamps=[];
+      openFMMenu(e.clientX,e.clientY);
+    }
+  }
+  document.addEventListener('pointerdown',onPointerDown,{passive:true});
+  document.addEventListener('pointermove',onPointerMove,{passive:true});
+  document.addEventListener('pointerup',onPointerUp,{passive:true});
+
+  /* ---------- Menu popup ---------- */
+  function openFMMenu(x,y){
+    buildRoot();
+    overlay.style.display='block';
+    menuPop.style.display='flex';
+    const pw=176,ph=104;
+    let left=Math.min(Math.max(12,x-pw/2),window.innerWidth-pw-12);
+    let top=Math.min(Math.max(12,y-ph-14),window.innerHeight-ph-12);
+    if(top<12)top=Math.min(y+14,window.innerHeight-ph-12);
+    menuPop.style.left=left+'px';
+    menuPop.style.top=top+'px';
+    requestAnimationFrame(()=>menuPop.classList.add('fm-open'));
+  }
+  function closeFMMenu(){
+    if(!menuPop)return;
+    menuPop.classList.remove('fm-open');
+    overlay.style.display='none';
+    setTimeout(()=>{menuPop.style.display='none'},150);
+  }
+
+  /* ---------- Widget: shared open/close/drag ---------- */
+  let tickHandle=null;
+
+  function openWidget(type){
+    buildRoot();
+    const ui=loadJSON(K.ui(),defaultUI());
+    ui.open=type;
+    if(ui.expanded===undefined)ui.expanded=true;
+    ui.expanded=true;
+    if(ui.x===null||ui.x===undefined){ui.x=window.innerWidth-236;ui.y=window.innerHeight-260}
+    saveJSON(K.ui(),ui);
+    widget.style.display='block';
+    renderWidget();
+    startTicker();
+  }
+  function closeWidget(){
+    saveJSON(K.ui(),defaultUI());
+    widget.style.display='none';
+    stopTicker();
+  }
+  function toggleExpanded(){
+    const ui=loadJSON(K.ui(),defaultUI());
+    ui.expanded=!ui.expanded;
+    saveJSON(K.ui(),ui);
+    renderWidget();
+  }
+  function clampPos(x,y){
+    const w=widget.offsetWidth||220,h=widget.offsetHeight||140;
+    return{x:Math.min(Math.max(6,x),window.innerWidth-w-6),y:Math.min(Math.max(6,y),window.innerHeight-h-6)};
+  }
+  function positionWidget(){
+    const ui=loadJSON(K.ui(),defaultUI());
+    if(!ui.open)return;
+    const w=widget.offsetWidth||220,h=widget.offsetHeight||140;
+    let x=ui.x,y=ui.y;
+    if(x===null||x===undefined){x=window.innerWidth-w-16;y=window.innerHeight-h-16}
+    const c=clampPos(x,y);
+    widget.style.left=c.x+'px';
+    widget.style.top=c.y+'px';
+  }
+
+  function attachDrag(handleEl){
+    let dragging=false,startPX=0,startPY=0,startLeft=0,startTop=0,moved=false;
+    handleEl.addEventListener('pointerdown',e=>{
+      dragging=true;moved=false;
+      startPX=e.clientX;startPY=e.clientY;
+      const rect=widget.getBoundingClientRect();
+      startLeft=rect.left;startTop=rect.top;
+      handleEl.setPointerCapture(e.pointerId);
+    });
+    handleEl.addEventListener('pointermove',e=>{
+      if(!dragging)return;
+      const dx=e.clientX-startPX,dy=e.clientY-startPY;
+      if(Math.abs(dx)>4||Math.abs(dy)>4)moved=true;
+      const c=clampPos(startLeft+dx,startTop+dy);
+      widget.style.left=c.x+'px';widget.style.top=c.y+'px';
+    });
+    handleEl.addEventListener('pointerup',e=>{
+      if(!dragging)return;
+      dragging=false;
+      const ui=loadJSON(K.ui(),defaultUI());
+      const rect=widget.getBoundingClientRect();
+      ui.x=rect.left;ui.y=rect.top;
+      saveJSON(K.ui(),ui);
+      if(moved)handleEl._fmSuppressClick=true;
+    });
+  }
+
+  /* ---------- Render ---------- */
+  function renderWidget(){
+    const ui=loadJSON(K.ui(),defaultUI());
+    if(!ui.open){widget.style.display='none';return}
+    widget.style.display='block';
+    if(!ui.expanded){
+      renderBubble(ui.open);
+    }else if(ui.open==='stopwatch'){
+      renderStopwatchPanel();
+    }else{
+      renderTimerPanel();
+    }
+    positionWidget();
+  }
+
+  function renderBubble(type){
+    const sw=loadJSON(K.sw(),defaultSW()),tm=loadJSON(K.tm(),defaultTM());
+    let icon=type==='stopwatch'?'⏱':'⏲';
+    let timeStr;
+    if(type==='stopwatch'){timeStr=fmtStopwatch(sw.accumMs+(sw.running?Date.now()-sw.startEpoch:0))}
+    else{const elapsed=tm.accumMs+(tm.running?Date.now()-tm.startEpoch:0);timeStr=fmtCountdown(tm.durationMs-elapsed)}
+    widget.innerHTML=`<div class="fm-bubble" id="fmBubble"><span class="fm-bubble-icon">${icon}</span><span class="fm-bubble-time">${timeStr}</span></div>`;
+    const bubble=document.getElementById('fmBubble');
+    attachDrag(bubble);
+    bubble.addEventListener('click',()=>{if(bubble._fmSuppressClick){bubble._fmSuppressClick=false;return}toggleExpanded()});
+  }
+
+  function renderStopwatchPanel(){
+    const sw=loadJSON(K.sw(),defaultSW());
+    const elapsed=sw.accumMs+(sw.running?Date.now()-sw.startEpoch:0);
+    widget.innerHTML=`
+      <div class="fm-panel">
+        <div class="fm-panel-head" id="fmPanelHead">
+          <span class="fm-panel-title">⏱ Stopwatch</span>
+          <div class="fm-panel-actions">
+            <button class="fm-icon-btn" id="fmMinBtn" title="Minimize">${MINIMIZE_SVG}</button>
+            <button class="fm-icon-btn" id="fmCloseBtn" title="Close">${CLOSE_SVG}</button>
+          </div>
+        </div>
+        <div class="fm-time-display" id="fmTimeDisplay">${fmtStopwatch(elapsed)}</div>
+        <div class="fm-ctrl-row">
+          <button class="fm-ctrl-btn secondary" id="fmResetBtn">RESET</button>
+          <button class="fm-ctrl-btn" id="fmToggleBtn">${sw.running?'PAUSE':'START'}</button>
+        </div>
+      </div>`;
+    attachDrag(document.getElementById('fmPanelHead'));
+    document.getElementById('fmMinBtn').addEventListener('click',toggleExpanded);
+    document.getElementById('fmCloseBtn').addEventListener('click',closeWidget);
+    document.getElementById('fmResetBtn').addEventListener('click',()=>{saveJSON(K.sw(),defaultSW());renderWidget()});
+    document.getElementById('fmToggleBtn').addEventListener('click',()=>{
+      const cur=loadJSON(K.sw(),defaultSW());
+      if(cur.running){cur.accumMs=cur.accumMs+(Date.now()-cur.startEpoch);cur.running=false;cur.startEpoch=0}
+      else{cur.running=true;cur.startEpoch=Date.now()}
+      saveJSON(K.sw(),cur);renderWidget();
+    });
+  }
+
+  function renderTimerPanel(){
+    const tm=loadJSON(K.tm(),defaultTM());
+    const elapsed=tm.accumMs+(tm.running?Date.now()-tm.startEpoch:0);
+    const remain=tm.durationMs-elapsed;
+    const finished=remain<=0&&(tm.running||tm.finished);
+    const canEditDuration=!tm.running&&elapsed<=0;
+    const totalMin=Math.floor(tm.durationMs/60000),totalSec=Math.floor((tm.durationMs%60000)/1000);
+    widget.innerHTML=`
+      <div class="fm-panel">
+        <div class="fm-panel-head" id="fmPanelHead">
+          <span class="fm-panel-title">⏲ Timer</span>
+          <div class="fm-panel-actions">
+            <button class="fm-icon-btn" id="fmMinBtn" title="Minimize">${MINIMIZE_SVG}</button>
+            <button class="fm-icon-btn" id="fmCloseBtn" title="Close">${CLOSE_SVG}</button>
+          </div>
+        </div>
+        ${canEditDuration?`
+        <div class="fm-timer-setup">
+          <input type="number" id="fmTimerMin" min="0" max="180" value="${totalMin}"><span>m</span>
+          <input type="number" id="fmTimerSec" min="0" max="59" value="${totalSec}"><span>s</span>
+        </div>`:''}
+        <div class="fm-time-display ${finished?'fm-finished':''}" id="fmTimeDisplay">${finished?"TIME'S UP":fmtCountdown(remain)}</div>
+        <div class="fm-ctrl-row">
+          <button class="fm-ctrl-btn secondary" id="fmResetBtn">RESET</button>
+          <button class="fm-ctrl-btn" id="fmToggleBtn">${finished?'RESTART':(tm.running?'PAUSE':'START')}</button>
+        </div>
+      </div>`;
+    attachDrag(document.getElementById('fmPanelHead'));
+    document.getElementById('fmMinBtn').addEventListener('click',toggleExpanded);
+    document.getElementById('fmCloseBtn').addEventListener('click',closeWidget);
+    document.getElementById('fmResetBtn').addEventListener('click',()=>{
+      const cur=loadJSON(K.tm(),defaultTM());
+      const fresh=defaultTM();fresh.durationMs=cur.durationMs;
+      saveJSON(K.tm(),fresh);renderWidget();
+    });
+    document.getElementById('fmToggleBtn').addEventListener('click',()=>{
+      const cur=loadJSON(K.tm(),defaultTM());
+      const curElapsed=cur.accumMs+(cur.running?Date.now()-cur.startEpoch:0);
+      const curFinished=curElapsed>=cur.durationMs&&(cur.running||cur.finished);
+      if(curFinished){
+        saveJSON(K.tm(),{running:true,startEpoch:Date.now(),accumMs:0,durationMs:cur.durationMs,finished:false});
+      }else if(cur.running){
+        cur.accumMs=curElapsed;cur.running=false;cur.startEpoch=0;
+        saveJSON(K.tm(),cur);
+      }else{
+        let durationMs=cur.durationMs;
+        const minEl=document.getElementById('fmTimerMin'),secEl=document.getElementById('fmTimerSec');
+        if(minEl&&secEl){
+          const m=Math.max(0,parseInt(minEl.value)||0),s=Math.max(0,Math.min(59,parseInt(secEl.value)||0));
+          durationMs=(m*60+s)*1000;
+          if(durationMs<=0){showFMToast('Set a timer duration greater than 0');return}
+        }
+        cur.durationMs=durationMs;cur.running=true;cur.startEpoch=Date.now();cur.finished=false;
+        saveJSON(K.tm(),cur);
+      }
+      renderWidget();
+    });
+  }
+
+  function showFMToast(msg){
+    try{if(typeof showToast==='function'){showToast(msg);return}}catch(e){}
+  }
+
+  /* ---------- Ticker: keeps displayed time live + detects timer completion ---------- */
+  function startTicker(){
+    if(tickHandle)return;
+    tickHandle=setInterval(tick,1000);
+  }
+  function stopTicker(){
+    if(tickHandle){clearInterval(tickHandle);tickHandle=null}
+  }
+  function tick(){
+    const ui=loadJSON(K.ui(),defaultUI());
+    if(!ui.open){stopTicker();return}
+    if(ui.open==='timer'){
+      const tm=loadJSON(K.tm(),defaultTM());
+      if(tm.running){
+        const elapsed=tm.accumMs+(Date.now()-tm.startEpoch);
+        if(elapsed>=tm.durationMs){
+          tm.accumMs=tm.durationMs;tm.running=false;tm.startEpoch=0;tm.finished=true;
+          saveJSON(K.tm(),tm);
+          try{if(typeof playConfiguredBreakSound==='function')playConfiguredBreakSound()}catch(e){}
+          showFMToast("⏲ Timer's up!");
+        }
+      }
+    }
+    renderWidget();
+  }
+
+  /* ---------- Settings page wiring ---------- */
+  window.fmHandleEnabledToggleChange=function(){
+    const t=document.getElementById('fmEnabledToggle');
+    localStorage.setItem(K.enabled(),t.checked?'1':'0');
+    fmSyncSettingsUI();
+  };
+  window.fmSetGestureChoice=function(g){
+    localStorage.setItem(K.gesture(),g);
+    fmSyncSettingsUI();
+  };
+  function fmSyncSettingsUI(){
+    const t=document.getElementById('fmEnabledToggle');
+    if(t)t.checked=isFMEnabled();
+    const grp=document.getElementById('fmGestureGroup');
+    if(grp)grp.style.opacity=isFMEnabled()?'1':'.45';
+    const g=getGesture();
+    document.querySelectorAll('.fm-gesture-opt').forEach(el=>{
+      el.classList.toggle('active',el.getAttribute('data-g')===g);
+    });
+  }
+
+  /* ---------- Init: restore widget across refresh/tab-switch/app close ---------- */
+  function fmInit(){
+    buildRoot();
+    fmSyncSettingsUI();
+    const ui=loadJSON(K.ui(),defaultUI());
+    if(ui.open){
+      widget.style.display='block';
+      renderWidget();
+      startTicker();
+    }
+  }
+  document.addEventListener('visibilitychange',()=>{
+    if(document.visibilityState==='visible'){
+      const ui=loadJSON(K.ui(),defaultUI());
+      if(ui.open){renderWidget();startTicker()}
+    }
+  });
+  window.addEventListener('resize',()=>positionWidget());
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded',fmInit);
+  }else{
+    fmInit();
+  }
+})();
+</script>
 </body>
 </html> 
