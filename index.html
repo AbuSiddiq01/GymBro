@@ -1396,6 +1396,12 @@ body.workout-edit-lock{overflow:hidden}
 .prev-perf-label{font-size:10px;font-weight:700;color:var(--text-muted);letter-spacing:0.6px;text-transform:uppercase;display:block;margin-bottom:1px}
 .prev-perf-value{font-size:13px;font-weight:700;color:var(--accent);letter-spacing:0.3px;flex:1;min-width:0;padding-right:32px}
 .prev-perf-loading{font-size:12px;color:var(--text-muted);font-family:var(--font-alt);font-style:italic}
+/* Live-mode "active session" exercise name — a fixed, view-only (non-editable) label shown once a
+   FRESH Live session has actually started, sitting directly above the Previous Performance badge
+   (never below the Track Workout button — see liveSetupPanelEnterActiveSession/ExitActiveSession
+   and startLiveSession/restoreLiveSessionUI). Live-EDIT sessions keep using #liveSessionTitle
+   exactly as before (untouched), so this element is only ever driven by the fresh-add flow. */
+.live-active-exercise-name{display:none;margin-top:10px;margin-bottom:2px;font-weight:800;font-size:15px;color:var(--accent);font-family:var(--font-alt);letter-spacing:0.5px}
 /* Copy-previous-performance icon: pinned to the top-right corner of the badge — icon only, no label,
    so a single tap fills the current sets from this previous performance without disturbing the rest
    of the box's layout (see .prev-perf-value's padding-right above). Tapping it again while it's still
@@ -2593,6 +2599,11 @@ body.tracker-fs-lock{overflow:hidden}
             <button id="_addCustomBtnLive" type="button" style="display:none;margin-top:6px;padding:7px 14px;border-radius:11px;border:1.5px dashed var(--accent);background:transparent;color:var(--accent);font-family:var(--font-alt);font-size:12px;font-weight:800;cursor:pointer;letter-spacing:0.4px" onclick="_confirmAddCustomWorkout('live')">➕ Add Custom Workout</button>
             <button id="_inlineClassBtnLive" type="button" style="display:none;margin-top:6px;margin-right:6px;padding:7px 14px;border-radius:11px;border:1.5px solid var(--accent);background:var(--accent-soft);color:var(--accent);font-family:var(--font-alt);font-size:12px;font-weight:800;cursor:pointer;letter-spacing:0.4px" onclick="_triggerInlineClassPicker('liveWorkoutNameInput','live')">🏷 Choose Class (required)</button>
             <button id="_inlineEquipBtnLive" type="button" style="display:none;margin-top:6px;padding:7px 14px;border-radius:11px;border:1.5px solid var(--accent);background:var(--accent-soft);color:var(--accent);font-family:var(--font-alt);font-size:12px;font-weight:800;cursor:pointer;letter-spacing:0.4px" onclick="_triggerInlineEquipPicker('liveWorkoutNameInput','live')">🔧 Choose Equipment (optional)</button>
+            <!-- Fixed, view-only exercise name shown once a FRESH Live session is running — sits above
+                 the Previous Performance badge instead of appearing below Track Workout. See
+                 liveSetupPanelEnterActiveSession/ExitActiveSession, startLiveSession, and
+                 restoreLiveSessionUI. Live-EDIT keeps using #liveSessionTitle below, untouched. -->
+            <div class="live-active-exercise-name" id="liveActiveExerciseName"></div>
             <!-- Previous Performance Badge (Live) -->
             <div class="prev-perf-badge" id="prevPerfBadgeLive">
               <span class="prev-perf-icon">📊</span>
@@ -9916,11 +9927,15 @@ function liveSetupPanelEnterActiveSession(){
   const nameInput=document.getElementById("liveWorkoutNameInput");if(nameInput)nameInput.readOnly=true;
   const nameLabel=document.getElementById("liveExerciseNameLabel");if(nameLabel)nameLabel.style.display="none";
   const nameBox=document.getElementById("liveWorkoutNameBox");if(nameBox)nameBox.style.display="none";
+  // Fresh-session view-only name label goes live here — text itself is set by the caller
+  // (startLiveSession / restoreLiveSessionUI), this just reveals it above the prev-perf badge.
+  const activeName=document.getElementById("liveActiveExerciseName");if(activeName)activeName.style.display="block";
 }
 function liveSetupPanelExitActiveSession(){
   const filterRow=document.getElementById("liveSetupFilterRow");if(filterRow)filterRow.style.display="";
   const nameLabel=document.getElementById("liveExerciseNameLabel");if(nameLabel)nameLabel.style.display="";
   const nameBox=document.getElementById("liveWorkoutNameBox");if(nameBox)nameBox.style.display="";
+  const activeName=document.getElementById("liveActiveExerciseName");if(activeName){activeName.style.display="none";activeName.textContent="";}
 }
 /* Fixed SVG "X" clear icon shared by the Add Workout, Live Workout, and Workout Tracker exercise-name
    boxes — only shown once the box has a value, and hidden while the box is read-only (e.g. the locked
@@ -11645,6 +11660,9 @@ function restoreLiveSetupUI(draft,fromQueue){
   applyLiveSetsCountMinConstraint();
   handleLiveSearchAuto();
   updateTrackWorkoutBtnVisibility('live');
+  // Same reasoning as restoreLiveSessionUI: Previous Performance isn't part of the persisted draft,
+  // so re-fetch it here too when a name was already picked before the refresh.
+  if(draft.name)fetchPrevPerformance(draft.name,'live');
   _liveDraftSaveEnabled=true;
   if(!fromQueue)showToast('🔄 Restored your exercise selection after the refresh.');
 }
@@ -11661,10 +11679,16 @@ function restoreLiveSessionUI(draft,fromQueue){
   const nameInput=document.getElementById("liveWorkoutNameInput");
   nameInput.value=draft.name;nameInput.readOnly=false;nameInput.style.opacity="1";
   liveSetupPanelEnterActiveSession();
-  const titleEl=document.getElementById("liveSessionTitle");
-  titleEl.textContent="🏋 "+draft.name+" — "+draft.totalSets+" Set"+(draft.totalSets>1?"s":"");
-  titleEl.style.display="block";
+  // Same fresh-session name spot as startLiveSession() — above the Previous Performance badge,
+  // not the Live-EDIT-only #liveSessionTitle.
+  const activeNameEl=document.getElementById("liveActiveExerciseName");
+  if(activeNameEl)activeNameEl.textContent="🏋 "+draft.name+" — "+draft.totalSets+" Set"+(draft.totalSets>1?"s":"");
+  document.getElementById("liveSessionTitle").style.display="none";
   updateTrackWorkoutBtnVisibility('live');
+  // Previous Performance is looked up live from the DB and was never part of the persisted draft,
+  // so a refresh (or tab-switch/app-resume triggering this same restore path) left the badge blank
+  // until the name box was touched again. Re-run the lookup here so it reappears automatically.
+  if(draft.name)fetchPrevPerformance(draft.name,'live');
 
   liveTotalSets=draft.totalSets;liveSetResults=(draft.results||[]).slice();liveSessionSlot=draft.sessionSlot||null;window._liveEntryPunchNotified=!!liveSessionSlot;
   liveCurrentSet=liveSetResults.length+1;
@@ -11832,7 +11856,12 @@ function startLiveSession(){
   document.getElementById("liveWorkoutNameInput").value=name;
   liveTotalSets=parseInt(document.getElementById("liveSetsCountSelect").value);liveCurrentSet=1;liveSetResults=[];liveSessionSlot=null;window._liveSetCopiedFlags={};window._liveEntryPunchNotified=false;
   liveSetupPanelEnterActiveSession();
-  let titleEl=document.getElementById("liveSessionTitle");titleEl.textContent="🏋 "+name+" — "+liveTotalSets+" Set"+(liveTotalSets>1?"s":"");titleEl.style.display="block";
+  // Fresh live session: the view-only exercise name goes above the Previous Performance badge
+  // (see #liveActiveExerciseName), NOT the old below-Track-Workout #liveSessionTitle spot — that
+  // element stays reserved for the Live-EDIT flow only (startLiveEditSession), untouched.
+  const activeNameEl=document.getElementById("liveActiveExerciseName");
+  if(activeNameEl)activeNameEl.textContent="🏋 "+name+" — "+liveTotalSets+" Set"+(liveTotalSets>1?"s":"");
+  document.getElementById("liveSessionTitle").style.display="none";
   const container=document.getElementById("liveSetsContainer");container.innerHTML="";
   for(let i=1;i<=liveTotalSets;i++){container.innerHTML+=buildLiveSetHTML(i,i===1)}
   const _isCardioName=isCardioExercise(name);
@@ -16932,4 +16961,4 @@ function closeLearnVideo(){
   <div class="tracker-fullscreen-stage" id="trackerFullscreenStage"></div>
 </div>
 </body>
-</html>
+</html> 
