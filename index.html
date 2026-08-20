@@ -5080,9 +5080,11 @@ function setCardioPickerLocked(pickerKey,locked){
    as before — the stopwatch is just an alternative way to fill the same box. */
 window._nlSetTimers=window._nlSetTimers||{};
 window._nlSetSeconds=window._nlSetSeconds||{};
+window._nlSetTimerStartEpoch=window._nlSetTimerStartEpoch||{};
+window._nlSetTimerAccumAtStart=window._nlSetTimerAccumAtStart||{};
 function stopAllNlCardioTimers(){
   Object.values(window._nlSetTimers).forEach(t=>clearInterval(t));
-  window._nlSetTimers={};window._nlSetSeconds={};
+  window._nlSetTimers={};window._nlSetSeconds={};window._nlSetTimerStartEpoch={};window._nlSetTimerAccumAtStart={};
 }
 function toggleNlCardioTimer(i){
   const locked=document.getElementById(`lock_set_${i}`)?.checked;
@@ -5091,26 +5093,40 @@ function toggleNlCardioTimer(i){
         saveBtn=document.getElementById(`nlTimerSaveBtn_${i}`),disp=document.getElementById(`nlTimerDisplay_${i}`);
   if(!playBtn)return;
   if(window._nlSetTimers[i]){
-    // Pause: stop counting, drop back to ▶ so it can be resumed — Save stays visible/available.
+    // Pause: freeze the elapsed time, stop counting, drop back to ▶ so it can be resumed — Save
+    // stays visible/available. Persist the paused (frozen) elapsed time so a refresh right after
+    // pausing doesn't lose it.
+    window._nlSetSeconds[i]=(window._nlSetTimerAccumAtStart[i]||0)+Math.floor((Date.now()-(window._nlSetTimerStartEpoch[i]||Date.now()))/1000);
     clearInterval(window._nlSetTimers[i]);delete window._nlSetTimers[i];
     playBtn.style.display="flex";pauseBtn.style.display="none";
+    saveNonLiveDraft();
   } else {
-    // Play (fresh start or resume from pause): begin/continue counting up.
+    // Play (fresh start or resume from pause): begin/continue counting up, tracked via a wall-clock
+    // epoch (not a naive per-second increment) so a refresh, tab switch, or the browser throttling a
+    // background timer never loses or skews the elapsed time — same approach Live Mode's set timer
+    // already uses (see buildLiveDraftSnapshot/restoreLiveSessionUI).
     if(window._nlSetSeconds[i]===undefined)window._nlSetSeconds[i]=0;
+    window._nlSetTimerAccumAtStart[i]=window._nlSetSeconds[i];
+    window._nlSetTimerStartEpoch[i]=Date.now();
     playBtn.style.display="none";pauseBtn.style.display="flex";saveBtn.style.display="flex";if(disp)disp.style.display="inline";
     window._nlSetTimers[i]=setInterval(()=>{
-      window._nlSetSeconds[i]++;
+      window._nlSetSeconds[i]=(window._nlSetTimerAccumAtStart[i]||0)+Math.floor((Date.now()-window._nlSetTimerStartEpoch[i])/1000);
       const m=Math.floor(window._nlSetSeconds[i]/60),s=window._nlSetSeconds[i]%60;
       if(disp)disp.textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+      saveNonLiveDraft();
     },1000);
+    saveNonLiveDraft();
   }
 }
 function saveNlCardioTimer(i){
-  if(window._nlSetTimers[i]){clearInterval(window._nlSetTimers[i]);delete window._nlSetTimers[i]}
+  if(window._nlSetTimers[i]){
+    window._nlSetSeconds[i]=(window._nlSetTimerAccumAtStart[i]||0)+Math.floor((Date.now()-(window._nlSetTimerStartEpoch[i]||Date.now()))/1000);
+    clearInterval(window._nlSetTimers[i]);delete window._nlSetTimers[i];
+  }
   const totalSec=window._nlSetSeconds[i]||0;
   if(totalSec<=0){showToast('⚠️ Start the timer first.');return}
   setCardioPickerValue(`nlSet_${i}`,Math.floor(totalSec/60),totalSec%60);
-  delete window._nlSetSeconds[i];
+  delete window._nlSetSeconds[i];delete window._nlSetTimerStartEpoch[i];delete window._nlSetTimerAccumAtStart[i];
   const playBtn=document.getElementById(`nlTimerPlayBtn_${i}`),pauseBtn=document.getElementById(`nlTimerPauseBtn_${i}`),
         saveBtn=document.getElementById(`nlTimerSaveBtn_${i}`),disp=document.getElementById(`nlTimerDisplay_${i}`);
   if(playBtn)playBtn.style.display="flex";
@@ -9573,10 +9589,12 @@ window._pickExClass=function(inputId,baseName,cls,mode){
     window._selectedWorkoutClass=cls;
     fetchPrevPerformance(fullName,'nonlive');
     _updateInlineEquipBtn(inputId,'_inlineEquipBtnNonLive','nonlive');
+    saveNonLiveDraft();
   } else {
     window._selectedLiveWorkoutClass=cls;
     fetchPrevPerformance(fullName,'live');
     _updateInlineEquipBtn(inputId,'_inlineEquipBtnLive','live');
+    saveLiveDraft();
   }
   updateTrackWorkoutBtnVisibility(mode);
 };
@@ -9679,6 +9697,7 @@ window._pickExEquipment=function(inputId,baseName,eq,mode){
   _updateInlineEquipBtn(inputId,btnId,mode);
   _updateInlineClassBtn(inputId,mode==='nonlive'?'_inlineClassBtnNonLive':'_inlineClassBtnLive',mode);
   fetchPrevPerformance(fullName,mode);
+  if(mode==='nonlive')saveNonLiveDraft();else saveLiveDraft();
 };
 /* Show/hide the inline equipment button — shown whenever there's typed text that isn't already a
    known exercise (built-in catalog or previously-saved custom — both already have a fixed
@@ -9861,6 +9880,7 @@ function handleWorkoutSearchAuto(forceShow){
         }
         bwKgRevealed.nonlive=false;
         buildSetsInputFields();
+        saveNonLiveDraft();
       };
       box.appendChild(div);
     });
@@ -10194,7 +10214,7 @@ function nlSetSwipeEnd(evt,i){
 
 /* ===================== NON-LIVE DRAFT (survives an accidental browser refresh) =====================
    Persists the ENTIRE in-progress "Log New Entry" form — exercise name, sets count, and every set's
-   Kg/Reps/lock state, whether locked or not — to sessionStorage as the person fills it in. Restored
+   Kg/Reps/lock state, whether locked or not — to localStorage as the person fills it in. Restored
    automatically on page load if the browser was refreshed mid-entry (see restoreInProgressWorkoutFormIfAny
    below), so nothing typed is lost. Uses localStorage (not sessionStorage): the draft must survive not
    just a refresh but a full browser/tab close and reopen, so the person's in-progress entry (and any
@@ -10211,10 +10231,18 @@ function saveNonLiveDraft(){
   for(let i=1;i<=cnt;i++){
     if(cardio){
       const totalSec=getPickerSeconds(`nlSet_${i}`);
+      // Capture the inline stopwatch's own state too (running or paused-with-elapsed-time), tracked
+      // via wall-clock epoch (see toggleNlCardioTimer) so it can be resumed exactly where it was
+      // left after a refresh, tab switch, or a full app close/reopen — same idea as Live Mode's
+      // per-set timer.
+      const timerRunning=!!window._nlSetTimers[i];
+      const timerAccumulated=timerRunning?((window._nlSetTimerAccumAtStart[i]||0)+Math.floor((Date.now()-(window._nlSetTimerStartEpoch[i]||Date.now()))/1000)):(window._nlSetSeconds[i]||0);
       sets.push({
         km:document.getElementById(`km_set_${i}`)?.value||'',
         min:Math.floor(totalSec/60),sec:totalSec%60,
-        locked:!!document.getElementById(`lock_set_${i}`)?.checked
+        locked:!!document.getElementById(`lock_set_${i}`)?.checked,
+        timerRunning,timerAccumulated,
+        timerStartEpoch:timerRunning?(window._nlSetTimerStartEpoch[i]||Date.now()):null
       });
     } else {
       sets.push({
@@ -10224,7 +10252,7 @@ function saveNonLiveDraft(){
       });
     }
   }
-  const hasContent=!!name||sets.some(s=>s.w||s.r||s.km||s.min||s.sec);
+  const hasContent=!!name||sets.some(s=>s.w||s.r||s.km||s.min||s.sec||s.timerRunning||s.timerAccumulated);
   if(!hasContent){clearNonLiveDraft();return} // nothing worth keeping
   try{localStorage.setItem(getNonLiveDraftKey(),JSON.stringify({name,setsCount:cnt,sets}))}catch(e){}
 }
@@ -10235,7 +10263,43 @@ function clearNonLiveDraft(){
   try{localStorage.removeItem(getNonLiveDraftKey())}catch(e){}
 }
 function nonLiveDraftHasContent(d){
-  return!!(d&&d.sets&&d.sets.length&&(d.name||d.sets.some(s=>s.w||s.r||s.km||s.min||s.sec)));
+  return!!(d&&d.sets&&d.sets.length&&(d.name||d.sets.some(s=>s.w||s.r||s.km||s.min||s.sec||s.timerRunning||s.timerAccumulated)));
+}
+/* Restarts any in-progress non-live cardio stopwatches from a restored draft (refresh, tab switch,
+   or a full app close/reopen) — mirrors the epoch-based restore Live Mode's set timer already does
+   (see restoreLiveSessionUI). Must run AFTER renderNonLiveSetsRows/buildSetsInputFields, since that
+   rebuild always wipes any running timers first via stopAllNlCardioTimers() as part of its normal
+   reset — this re-arms them from the saved snapshot right after. */
+function restoreNlCardioTimers(sets){
+  (sets||[]).forEach((s,idx)=>{
+    const i=idx+1;
+    if(!s)return;
+    const accumulated=s.timerAccumulated||0;
+    if(!s.timerRunning&&!accumulated)return;
+    const playBtn=document.getElementById(`nlTimerPlayBtn_${i}`),pauseBtn=document.getElementById(`nlTimerPauseBtn_${i}`),
+          saveBtn=document.getElementById(`nlTimerSaveBtn_${i}`),disp=document.getElementById(`nlTimerDisplay_${i}`);
+    if(!playBtn)return; // not a cardio row — nothing to restore
+    if(s.timerRunning){
+      const elapsed=accumulated+Math.floor((Date.now()-(s.timerStartEpoch||Date.now()))/1000);
+      window._nlSetSeconds[i]=elapsed;
+      window._nlSetTimerAccumAtStart[i]=elapsed;
+      window._nlSetTimerStartEpoch[i]=Date.now();
+      playBtn.style.display="none";pauseBtn.style.display="flex";saveBtn.style.display="flex";
+      if(disp){disp.style.display="inline";const m=Math.floor(elapsed/60),sec=elapsed%60;disp.textContent=String(m).padStart(2,'0')+':'+String(sec).padStart(2,'0');}
+      window._nlSetTimers[i]=setInterval(()=>{
+        window._nlSetSeconds[i]=(window._nlSetTimerAccumAtStart[i]||0)+Math.floor((Date.now()-window._nlSetTimerStartEpoch[i])/1000);
+        const m=Math.floor(window._nlSetSeconds[i]/60),sec2=window._nlSetSeconds[i]%60;
+        if(disp)disp.textContent=String(m).padStart(2,'0')+':'+String(sec2).padStart(2,'0');
+        saveNonLiveDraft();
+      },1000);
+    } else {
+      // Was paused (not running) but has elapsed time saved — restore the paused display so the
+      // person can resume (▶) or save (💾) it, exactly as it looked right before the refresh.
+      window._nlSetSeconds[i]=accumulated;
+      playBtn.style.display="flex";pauseBtn.style.display="none";saveBtn.style.display="flex";
+      if(disp){disp.style.display="inline";const m=Math.floor(accumulated/60),sec=accumulated%60;disp.textContent=String(m).padStart(2,'0')+':'+String(sec).padStart(2,'0');}
+    }
+  });
 }
 
 /* ===================== MULTIPLE WORKOUTS AT A TIME (non-live, brand-new entries only) =====================
@@ -10281,7 +10345,11 @@ function loadNonLiveFormEntry(entry){
   document.getElementById("workoutNameInput").value=entry.name||"";
   document.getElementById("setsCountSelect").value=String(entry.setsCount||(entry.sets&&entry.sets.length)||1);
   const sets=entry.sets||[];
+  // Same reveal-before-render fix as the draft-restore path above: a queued entry can also carry a
+  // manually-added Kg value on an otherwise-bodyweight exercise, which must not be hidden/zeroed.
+  if(isBodyweightNoWeightExercise((entry.name||'').trim())&&sets.some(s=>parseFloat(s.w)>0))bwKgRevealed.nonlive=true;
   renderNonLiveSetsRows(sets.map(s=>s.w),sets.map(s=>s.r),sets.map(s=>s.locked),sets.map(s=>s.km),sets.map(s=>s.min),sets.map(s=>s.sec));
+  restoreNlCardioTimers(sets);
   window._selectedWorkoutClass=getExerciseClass(entry.name||'')!=='Unknown'?getExerciseClass(entry.name||''):null;
   window._selectedWorkoutEquipment=getExerciseEquipment(entry.name||'')!=='Unknown'?getExerciseEquipment(entry.name||''):null;
   _updateInlineClassBtn('workoutNameInput','_inlineClassBtnNonLive','nonlive');
@@ -10367,21 +10435,21 @@ function removeNlQueueEntry(e,idx){
    setup/session panel right now (including any running set/break stopwatch — captured via the
    same epoch math buildLiveDraftSnapshot() already uses for refresh-recovery) and opens a blank
    live setup panel. Never applies while live-editing an already-saved entry. Persisted to
-   sessionStorage alongside the single "current" live draft, so it survives a refresh/tab switch
-   for the current browser session (matching how the live draft itself is scoped). */
+   localStorage alongside the single "current" live draft, so it survives a refresh, a tab switch,
+   and a full browser/app close and reopen (matching how the live draft itself is scoped). */
 let liveWorkoutQueue=[];
 function getLiveQueueKey(){return `gymbro_live_queue_${getEffectiveUid()}`}
 function saveLiveQueue(){
   try{
-    if(!liveWorkoutQueue.length){sessionStorage.removeItem(getLiveQueueKey());return}
-    sessionStorage.setItem(getLiveQueueKey(),JSON.stringify(liveWorkoutQueue));
+    if(!liveWorkoutQueue.length){localStorage.removeItem(getLiveQueueKey());return}
+    localStorage.setItem(getLiveQueueKey(),JSON.stringify(liveWorkoutQueue));
   }catch(e){}
 }
 function loadLiveQueue(){
-  try{return JSON.parse(sessionStorage.getItem(getLiveQueueKey())||'[]')||[]}catch(e){return[]}
+  try{return JSON.parse(localStorage.getItem(getLiveQueueKey())||'[]')||[]}catch(e){return[]}
 }
 function clearLiveQueue(){
-  try{sessionStorage.removeItem(getLiveQueueKey())}catch(e){}
+  try{localStorage.removeItem(getLiveQueueKey())}catch(e){}
 }
 /* Whether the Live multi-entry queue applies right now: Live Mode on, and not live-editing an
    already-saved entry (mirrors nlMultiEntryAllowed's currentEditingIndex===null guard). */
@@ -10461,12 +10529,15 @@ function removeLiveQueueEntry(e,idx){
 }
 
 /* ===================== TOP-LEVEL RESTORE ORCHESTRATOR =====================
-   Called once right after landing on the last-viewed tab (mountMemberDashboard). Only reopens a
-   form on a genuine REFRESH (wasRefresh=true, i.e. sessionStorage had a last-tab entry) — never on
-   a fresh login, since a fresh session should start clean. Checks for a live-mode draft first (it's
-   the more time-sensitive one, with running timers), then a non-live draft. */
+   Called once right after landing on the last-viewed tab (mountMemberDashboard). Both the live-mode
+   draft/queue AND the non-live draft/queue now live in localStorage (not sessionStorage), and both
+   are restored on ANY landing — fresh login, refresh, tab switch, or a brand-new browser session
+   after the app/browser was fully closed and reopened — so an in-progress entry is never lost no
+   matter how the person left it. wasRefresh is kept as a parameter for backward compatibility but no
+   longer gates this restore. Checks for a live-mode draft first (it's the more time-sensitive one,
+   with running timers), then a non-live draft. */
 async function restoreInProgressWorkoutFormIfAny(wasRefresh){
-  if(wasRefresh){
+  {
     liveWorkoutQueue=loadLiveQueue();
     const liveDraft=loadLiveDraft();
     if(liveDraft&&liveDraft.mode==='live'&&liveDraft.name&&liveDraft.totalSets){
@@ -10482,8 +10553,8 @@ async function restoreInProgressWorkoutFormIfAny(wasRefresh){
       return;
     }
     if(liveWorkoutQueue.length){
-      // No current live draft, but queued Live entries survived the refresh — pull the first one
-      // back into the form (mirrors the non-live queue-only restore branch further below).
+      // No current live draft, but queued Live entries survived — pull the first one back into the
+      // form (mirrors the non-live queue-only restore branch further below).
       await switchMemberTab('workPage');
       liveMode=true;
       const tog=document.getElementById("liveModeToggle"),lbl=document.getElementById("liveModeLabel");
@@ -10496,12 +10567,12 @@ async function restoreInProgressWorkoutFormIfAny(wasRefresh){
       loadLiveFormEntry(first);
       saveLiveQueue();
       renderLiveQueueStrip();
-      showToast('🔄 Restored your in-progress live workouts after the refresh.');
+      showToast('🔄 Restored your in-progress live workouts.');
       return;
     }
   }
-  // Non-live draft + queue live in localStorage, so — unlike the live-mode check above — these are
-  // restored on ANY landing (fresh login, refresh, or a brand-new browser session), not just a refresh.
+  // Non-live draft + queue also live in localStorage, so — same as the live-mode check above — these
+  // are restored on ANY landing (fresh login, refresh, or a brand-new browser session).
   const nlDraft=loadNonLiveDraft();
   const nlQueue=loadNonLiveQueue();
   if(nonLiveDraftHasContent(nlDraft)||nlQueue.length){
@@ -10516,7 +10587,12 @@ async function restoreInProgressWorkoutFormIfAny(wasRefresh){
     if(nonLiveDraftHasContent(nlDraft)){
       document.getElementById("workoutNameInput").value=nlDraft.name||"";
       document.getElementById("setsCountSelect").value=String(nlDraft.setsCount||nlDraft.sets.length||1);
+      // If this is a bodyweight-only exercise but the saved draft actually has a Kg value on some
+      // set (the person manually added extra weight before refreshing), reveal the Kg boxes now so
+      // the saved value shows instead of being blanked/zeroed out by the hidden-input render path.
+      if(isBodyweightNoWeightExercise((nlDraft.name||'').trim())&&nlDraft.sets.some(s=>parseFloat(s.w)>0))bwKgRevealed.nonlive=true;
       renderNonLiveSetsRows(nlDraft.sets.map(s=>s.w),nlDraft.sets.map(s=>s.r),nlDraft.sets.map(s=>s.locked),nlDraft.sets.map(s=>s.km),nlDraft.sets.map(s=>s.min),nlDraft.sets.map(s=>s.sec));
+      restoreNlCardioTimers(nlDraft.sets);
     } else if(nlWorkoutQueue.length){
       // No current draft, but queued entries survived — pull the first one back into the form.
       const first=nlWorkoutQueue.shift();
@@ -11546,6 +11622,7 @@ function handleLiveSearchAuto(forceShow){
         bwKgRevealed.live=false;
         updateLiveSetsStructureVisibility();
         updateNameClearIconVisibility('liveWorkoutNameInput','liveWorkoutNameClearIcon');
+        saveLiveDraft();
       };
       box.appendChild(div);
     });
@@ -11556,15 +11633,16 @@ function handleLiveSearchAuto(forceShow){
     _updateInlineEquipBtn('liveWorkoutNameInput','_inlineEquipBtnLive','live');
   }
 }
-/* ===================== LIVE MODE DRAFT (survives an accidental browser refresh) =====================
+/* ===================== LIVE MODE DRAFT (survives refresh, tab switch, and app close/reopen) =====================
    Persists an in-progress FRESH live session — exercise name, set count, each set's typed Kg/Reps,
    already-saved set results, and both the per-set stopwatch and the break countdown (including their
    running/paused state via epoch timestamps so elapsed real time through the refresh is accounted
-   for correctly) — to sessionStorage. Restored automatically on page load after a refresh (see
-   restoreInProgressWorkoutFormIfAny), so a mid-set or mid-break refresh doesn't lose anything.
-   Scope note: this covers adding a brand-new live entry. Editing an already-saved live entry
-   (live-edit mode) is not draft-persisted — if that gets refreshed, it simply returns to a clean
-   state rather than restoring, since the already-saved sets are safe in the database either way. */
+   for correctly) — to localStorage, scoped to the logged-in user. Restored automatically on landing
+   (see restoreInProgressWorkoutFormIfAny), so a mid-set or mid-break refresh, tab switch, or full
+   browser/app close and reopen doesn't lose anything. Scope note: this covers adding a brand-new
+   live entry. Editing an already-saved live entry (live-edit mode) is not draft-persisted — if that
+   gets refreshed, it simply returns to a clean state, since the already-saved sets are safe in the
+   database either way. */
 function getLiveDraftKey(){return `gymbro_live_draft_${getEffectiveUid()}`}
 /* Builds a {mode:'setup'|'live', ...} snapshot of whatever's currently on the live form/session —
    the exact same shape saveLiveDraft() persists for refresh-recovery — but just returns it instead
@@ -11625,13 +11703,13 @@ function saveLiveDraft(){
   if(!_liveDraftSaveEnabled||!liveMode||window._liveEditMode)return;
   const draft=buildLiveDraftSnapshot();
   if(!draft){clearLiveDraft();return}
-  try{sessionStorage.setItem(getLiveDraftKey(),JSON.stringify(draft))}catch(e){}
+  try{localStorage.setItem(getLiveDraftKey(),JSON.stringify(draft))}catch(e){}
 }
 function loadLiveDraft(){
-  try{return JSON.parse(sessionStorage.getItem(getLiveDraftKey())||'null')}catch(e){return null}
+  try{return JSON.parse(localStorage.getItem(getLiveDraftKey())||'null')}catch(e){return null}
 }
 function clearLiveDraft(){
-  try{sessionStorage.removeItem(getLiveDraftKey())}catch(e){}
+  try{localStorage.removeItem(getLiveDraftKey())}catch(e){}
 }
 
 /* Rebuilds the entire live session UI (set blocks, done/active states, in-progress Kg/Reps, running
@@ -11707,6 +11785,15 @@ function restoreLiveSessionUI(draft,fromQueue){
   }
   const activeIdxForBuild=breakStillPending?-1:nextActiveIdx;
   const isCardioLive=isCardioExercise(draft.name);
+  // Same reveal-before-render fix as the non-live draft restore: if this is a bodyweight-only
+  // exercise but a completed result or an in-progress typed value actually has a Kg on it (the
+  // person manually added extra weight), reveal the Kg boxes now so it shows instead of being
+  // hidden/zeroed out by buildLiveSetHTML's hidden-input render path.
+  if(!isCardioLive&&isBodyweightNoWeightExercise(draft.name)){
+    const doneHasKg=liveSetResults.some(r=>{const m=(r||'').match(/([\d.]+)\s*[Kk][Gg]?\s*x\s*(\d+)/i);return m&&parseFloat(m[1])>0;});
+    const pendingHasKg=Object.values(draft.sets||{}).some(s=>parseFloat(s.kg)>0);
+    if(doneHasKg||pendingHasKg)bwKgRevealed.live=true;
+  }
   for(let i=1;i<=liveTotalSets;i++)container.innerHTML+=buildLiveSetHTML(i,i===activeIdxForBuild);
   if(isCardioLive)for(let i=1;i<=liveTotalSets;i++)mountCardioDurationPicker(`liveCardioDurMount_${i}`,`liveSet_${i}`,0,0,false,()=>syncLiveCardioDurDisplay(i));
   const hasDefault=getDefaultBreakSeconds()>0;
