@@ -1957,37 +1957,80 @@ body.tracker-fs-lock{overflow:hidden}
 .fm-gesture-opt.active .fm-gesture-opt-check{opacity:1}
 
 .fm-root{position:fixed;inset:0;z-index:99990;pointer-events:none}
-.fm-overlay{position:fixed;inset:0;background:transparent;pointer-events:auto}
-.fm-menu-pop{position:fixed;pointer-events:auto;z-index:99992;background:var(--bg-card);border:1px solid var(--border-col);border-radius:18px;box-shadow:var(--card-shadow);padding:16px;display:flex;gap:10px;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);opacity:0;transform:scale(.85);transition:opacity .15s ease,transform .15s ease}
-.fm-menu-pop.fm-open{opacity:1;transform:scale(1)}
-.fm-menu-btn{display:flex;flex-direction:column;align-items:center;gap:7px;width:78px;padding:14px 8px;border-radius:14px;background:var(--accent-soft);color:var(--text-primary);cursor:pointer;font-family:var(--font-alt);font-size:12px;font-weight:700;border:none;letter-spacing:.3px}
-.fm-menu-btn:active{transform:scale(.95)}
-.fm-menu-btn-icon{font-size:22px;line-height:1}
-.fm-menu-close{position:absolute;top:-11px;right:-11px;width:28px;height:28px;border-radius:50%;background:var(--btn-bg);box-shadow:var(--btn-shadow);display:flex;align-items:center;justify-content:center;cursor:pointer;border:none;padding:0}
-.fm-menu-close svg{width:13px;height:13px;stroke:#fff}
 
-.fm-widget{position:fixed;pointer-events:auto;z-index:99991;touch-action:none}
-.fm-bubble{width:58px;height:58px;border-radius:50%;background:var(--btn-bg);box-shadow:var(--btn-shadow);display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;cursor:grab;user-select:none;font-family:var(--font-alt)}
+/* ---- shared floating-widget shell: every widget (launcher, timer, stopwatch) is an
+   independently positioned/draggable node that lives above the app chrome and never
+   closes on outside interaction — only via its own Close SVG. ---- */
+.fm-widget{position:fixed;pointer-events:auto;z-index:99991;touch-action:none;transition:box-shadow .18s ease;will-change:transform}
+.fm-widget.fm-appear{animation:fmWidgetIn .32s cubic-bezier(0.34,1.56,0.64,1)}
+@keyframes fmWidgetIn{0%{opacity:0;transform:scale(.6)}100%{opacity:1;transform:scale(1)}}
+.fm-widget:hover .fm-bubble,.fm-widget:hover .fm-launcher-btn{transform:translateY(-3px) scale(1.04);box-shadow:0 10px 26px var(--accent-glow)}
+.fm-widget:hover .fm-panel{transform:translateY(-2px);box-shadow:0 14px 36px var(--accent-glow)}
+
+/* ---- Launcher: single persistent SVG-icon bubble revealed by gesture ---- */
+.fm-launcher-btn{width:58px;height:58px;border-radius:50%;background:var(--btn-bg);box-shadow:var(--btn-shadow);display:flex;align-items:center;justify-content:center;color:#fff;cursor:grab;user-select:none;border:none;transition:transform .18s cubic-bezier(0.34,1.56,0.64,1),box-shadow .18s ease}
+.fm-launcher-btn:active{cursor:grabbing;transform:scale(.94)}
+.fm-launcher-btn svg{width:24px;height:24px;stroke:#fff}
+
+/* ---- Expandable dropdown frame anchored to the launcher — hangs vertically BELOW the
+   launcher button so Launcher → menu → chosen widget read as one connected tree. ---- */
+.fm-menu-dropdown{position:absolute;top:calc(100% + 12px);left:50%;transform:translateX(-50%) translateY(-10px) scale(.85);transform-origin:top center;background:var(--bg-card);border:1px solid var(--border-col);border-radius:16px;box-shadow:var(--card-shadow);padding:8px;display:flex;flex-direction:column;gap:6px;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);opacity:0;pointer-events:none;transition:opacity .22s cubic-bezier(0.34,1.56,0.64,1),transform .22s cubic-bezier(0.34,1.56,0.64,1);white-space:nowrap}
+.fm-menu-dropdown.fm-open{opacity:1;pointer-events:auto;transform:translateX(-50%) translateY(0) scale(1)}
+.fm-menu-btn{display:flex;flex-direction:row;align-items:center;justify-content:flex-start;gap:10px;width:128px;padding:10px 14px;border-radius:12px;background:var(--accent-soft);color:var(--text-primary);cursor:pointer;font-family:var(--font-alt);font-size:12px;font-weight:700;border:none;letter-spacing:.3px;transition:transform .15s ease,background .15s ease}
+.fm-menu-btn:hover{background:var(--accent-glow);transform:translateX(2px)}
+.fm-menu-btn:active{transform:scale(.95)}
+.fm-menu-btn.fm-active-opt{background:var(--accent-glow)}
+.fm-menu-btn-icon{font-size:20px;line-height:1;display:flex}
+.fm-menu-btn-icon svg{width:18px;height:18px;stroke:var(--accent)}
+
+.fm-widget-close{position:absolute;top:-9px;right:-9px;width:24px;height:24px;border-radius:50%;background:var(--btn-bg);box-shadow:var(--btn-shadow);display:flex;align-items:center;justify-content:center;cursor:pointer;border:none;padding:0;z-index:2;transition:transform .12s ease}
+.fm-widget-close:hover{transform:scale(1.12)}
+.fm-widget-close svg{width:11px;height:11px;stroke:#fff}
+
+.fm-bubble{width:58px;height:58px;border-radius:50%;background:var(--btn-bg);box-shadow:var(--btn-shadow);display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;cursor:grab;user-select:none;font-family:var(--font-alt);position:relative}
 .fm-bubble:active{cursor:grabbing}
-.fm-bubble-icon{font-size:16px;line-height:1}
-.fm-bubble-time{font-size:9.5px;font-weight:700;margin-top:2px;letter-spacing:.2px}
-.fm-panel{width:216px;background:var(--bg-card);border:1px solid var(--border-col);border-radius:18px;box-shadow:var(--card-shadow);padding:14px;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+.fm-bubble-time{font-size:12px;font-weight:700;letter-spacing:.2px;line-height:1.15;text-align:center}
+.fm-bubble.fm-finished{animation:fmBubblePulse 1s ease-in-out infinite}
+@keyframes fmBubblePulse{0%,100%{box-shadow:var(--btn-shadow)}50%{box-shadow:0 0 0 8px rgba(225,29,72,.25),var(--btn-shadow)}}
+
+.fm-panel{width:236px;background:var(--bg-card);border:1px solid var(--border-col);border-radius:18px;box-shadow:var(--card-shadow);padding:14px;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);transition:transform .18s ease,box-shadow .18s ease;cursor:grab}
+.fm-panel:active{cursor:grabbing}
+.fm-panel button{cursor:pointer}
+/* The panel itself is now the drag surface, but the minsec scroll pickers need native touch
+   scrolling to keep working inside it — carve their gesture handling back out. */
+.fm-panel .minsec-scroll-list{touch-action:pan-y}
 .fm-panel-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:2px;cursor:grab;touch-action:none}
 .fm-panel-head:active{cursor:grabbing}
-.fm-panel-title{font-family:var(--font-alt);font-weight:700;font-size:12px;color:var(--text-secondary);letter-spacing:.4px;text-transform:uppercase}
+.fm-panel-title{font-family:var(--font-alt);font-weight:700;font-size:12px;color:var(--text-secondary);letter-spacing:.4px;text-transform:uppercase;display:flex;align-items:center;gap:5px}
+.fm-panel-title svg{width:13px;height:13px;stroke:var(--accent)}
 .fm-panel-actions{display:flex;gap:6px}
-.fm-icon-btn{width:24px;height:24px;border-radius:50%;background:var(--accent-soft);display:flex;align-items:center;justify-content:center;cursor:pointer;border:none;padding:0;flex-shrink:0}
+.fm-icon-btn{width:24px;height:24px;border-radius:50%;background:var(--accent-soft);display:flex;align-items:center;justify-content:center;cursor:pointer;border:none;padding:0;flex-shrink:0;transition:background .15s ease,transform .15s ease}
+.fm-icon-btn:hover{background:var(--accent-glow);transform:translateY(-1px)}
 .fm-icon-btn svg{width:11px;height:11px;stroke:var(--text-secondary)}
 .fm-time-display{font-family:var(--font-display);font-size:36px;text-align:center;letter-spacing:1px;color:var(--text-primary);margin:6px 0 10px}
 .fm-time-display.fm-finished{color:#e11d48;animation:fmPulse 1s ease-in-out infinite}
 @keyframes fmPulse{0%,100%{opacity:1}50%{opacity:.45}}
+.fm-limit-note{text-align:center;font-family:var(--font-alt);font-size:10px;color:var(--text-muted);margin:-6px 0 10px;letter-spacing:.2px}
 .fm-ctrl-row{display:flex;gap:8px}
-.fm-ctrl-btn{flex:1;padding:9px 4px;border-radius:11px;border:none;background:var(--btn-bg);color:#fff;font-family:var(--font-alt);font-weight:700;cursor:pointer;font-size:11.5px;letter-spacing:.3px}
+.fm-ctrl-btn{flex:1;padding:9px 4px;border-radius:11px;border:none;background:var(--btn-bg);color:#fff;font-family:var(--font-alt);font-weight:700;cursor:pointer;font-size:11.5px;letter-spacing:.3px;transition:transform .12s ease,filter .12s ease}
 .fm-ctrl-btn.secondary{background:var(--accent-soft);color:var(--text-primary)}
+.fm-ctrl-btn:hover{filter:brightness(1.08)}
 .fm-ctrl-btn:active{transform:scale(.96)}
-.fm-timer-setup{display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:10px}
-.fm-timer-setup input{width:48px;text-align:center;padding:7px 2px;border-radius:9px;border:1px solid var(--input-border);background:var(--input-bg);color:var(--text-primary);font-family:var(--font-alt);font-size:15px;font-weight:700}
-.fm-timer-setup span{font-family:var(--font-alt);font-size:11px;color:var(--text-muted)}
+.fm-ctrl-btn:disabled{opacity:.5;cursor:not-allowed;filter:none;transform:none}
+
+/* ---- Unified H:M:S duration field: scrollable picker + direct keyboard typing, same box ---- */
+.fm-hms-wrap{display:flex;align-items:center;justify-content:center;gap:4px;background:var(--input-bg);border:1px solid var(--input-border);border-radius:12px;padding:6px 4px;position:relative;margin-bottom:10px}
+.fm-hms-wrap::before{content:'';position:absolute;top:50%;left:6px;right:6px;height:30px;transform:translateY(-50%);background:var(--accent-soft);border-radius:8px;pointer-events:none;z-index:0}
+.fm-hms-col{display:flex;flex-direction:column;align-items:center;gap:2px;z-index:1}
+.fm-hms-scroll{height:90px;width:40px;overflow-y:scroll;scroll-snap-type:y mandatory;-webkit-overflow-scrolling:touch;position:relative;scrollbar-width:none}
+.fm-hms-scroll::-webkit-scrollbar{display:none}
+.fm-hms-pad{height:30px}
+.fm-hms-item{height:30px;display:flex;align-items:center;justify-content:center;scroll-snap-align:center;font-family:var(--font-alt);font-weight:700;font-size:13px;color:var(--text-muted)}
+.fm-hms-item.selected{color:var(--accent);font-size:16px;font-weight:800}
+.fm-hms-unit{font-family:var(--font-alt);font-size:9px;color:var(--text-muted);letter-spacing:.3px}
+.fm-hms-sep{font-family:var(--font-display);font-size:20px;color:var(--text-primary);z-index:1;align-self:flex-start;margin-top:38px}
+.fm-hms-typed{display:flex;align-items:center;justify-content:center;gap:4px}
+.fm-hms-typed input{width:34px;padding:5px 2px;text-align:center;border-radius:7px;border:1px solid var(--border-col);background:var(--bg-panel);color:var(--text-primary);font-family:var(--font-alt);font-weight:700;font-size:13px}
 </style>
 </head>
 <body>
@@ -17448,18 +17491,21 @@ function closeLearnVideo(){
   <div class="tracker-fullscreen-stage" id="trackerFullscreenStage"></div>
 </div>
 <script>
-/* ===================== FLOATING MENU: STOPWATCH & TIMER ===================== */
+/* ===================== FLOATING MENU: LAUNCHER, TIMER & STOPWATCH ===================== */
 (function(){
   const CLOSE_SVG='<svg viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="5" x2="19" y2="19"/><line x1="19" y1="5" x2="5" y2="19"/></svg>';
   const MINIMIZE_SVG='<svg viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>';
+  const LAUNCHER_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.2 3.2"/></svg>';
+  const TIMER_ICON_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5"/><path d="M9 2h6"/><path d="M18.4 4.6l1.4-1.4"/></svg>';
+  const SW_ICON_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5"/><path d="M9.5 2h5"/></svg>';
 
   function fmUid(){return localStorage.getItem('user_id')||'default'}
   const K={
     gesture:()=>'gymbro_fm_gesture_'+fmUid(),
     enabled:()=>'gymbro_fm_enabled_'+fmUid(),
+    launcher:()=>'gymbro_fm_launcher_'+fmUid(),
     sw:()=>'gymbro_fm_sw_'+fmUid(),
     tm:()=>'gymbro_fm_tm_'+fmUid(),
-    ui:()=>'gymbro_fm_ui_'+fmUid(),
   };
   function loadJSON(key,def){try{const v=JSON.parse(localStorage.getItem(key));return v&&typeof v==='object'?v:def}catch(e){return def}}
   function saveJSON(key,val){try{localStorage.setItem(key,JSON.stringify(val))}catch(e){}}
@@ -17467,13 +17513,15 @@ function closeLearnVideo(){
   function getGesture(){return localStorage.getItem(K.gesture())||'dbltap'}
   function isFMEnabled(){const v=localStorage.getItem(K.enabled());return v===null?true:v==='1'}
 
-  function defaultSW(){return{running:false,startEpoch:0,accumMs:0}}
-  function defaultTM(){return{running:false,startEpoch:0,accumMs:0,durationMs:5*60000,finished:false}}
-  function defaultUI(){return{open:null,x:null,y:null,expanded:true}}
+  const SW_LIMIT_MS=10*60*60*1000; // Stopwatch hard cap: 10 hours
+
+  function defaultLauncher(){return{open:false,x:null,y:null,expanded:false}}
+  function defaultSW(){return{open:false,minimized:false,x:null,y:null,running:false,startEpoch:0,accumMs:0,limitHit:false}}
+  function defaultTM(){return{open:false,minimized:false,x:null,y:null,running:false,startEpoch:0,accumMs:0,durationMs:5*60000,finished:false}}
 
   function pad(n){return String(n).padStart(2,'0')}
-  function fmtStopwatch(ms){
-    const totalSec=Math.floor(ms/1000);
+  function fmtHMS(ms){
+    const totalSec=Math.floor(Math.max(0,ms)/1000);
     const h=Math.floor(totalSec/3600),m=Math.floor((totalSec%3600)/60),s=totalSec%60;
     return h>0?`${pad(h)}:${pad(m)}:${pad(s)}`:`${pad(m)}:${pad(s)}`;
   }
@@ -17483,32 +17531,28 @@ function closeLearnVideo(){
     return h>0?`${pad(h)}:${pad(m)}:${pad(s)}`:`${pad(m)}:${pad(s)}`;
   }
 
-  /* ---------- DOM root, built once ---------- */
-  let root,overlay,menuPop,widget;
-  function buildRoot(){
-    if(root)return;
-    root=document.createElement('div');
-    root.className='fm-root';
-    root.innerHTML=`
-      <div class="fm-overlay" id="fmOverlay" style="display:none"></div>
-      <div class="fm-menu-pop" id="fmMenuPop" style="display:none">
-        <button class="fm-menu-close" id="fmMenuCloseBtn" title="Close">${CLOSE_SVG}</button>
-        <div class="fm-menu-btn" id="fmMenuStopwatchBtn"><span class="fm-menu-btn-icon">⏱</span>Stopwatch</div>
-        <div class="fm-menu-btn" id="fmMenuTimerBtn"><span class="fm-menu-btn-icon">⏲</span>Timer</div>
-      </div>
-      <div class="fm-widget" id="fmWidget" style="display:none"></div>
-    `;
-    document.body.appendChild(root);
-    overlay=document.getElementById('fmOverlay');
-    menuPop=document.getElementById('fmMenuPop');
-    widget=document.getElementById('fmWidget');
-    overlay.addEventListener('pointerdown',closeFMMenu);
-    document.getElementById('fmMenuCloseBtn').addEventListener('click',closeFMMenu);
-    document.getElementById('fmMenuStopwatchBtn').addEventListener('click',()=>{closeFMMenu();openWidget('stopwatch')});
-    document.getElementById('fmMenuTimerBtn').addEventListener('click',()=>{closeFMMenu();openWidget('timer')});
+  function showFMToast(msg){
+    try{if(typeof showToast==='function'){showToast(msg);return}}catch(e){}
   }
 
-  /* ---------- Gesture detection ---------- */
+  /* ---------- DOM roots, built once ---------- */
+  let fmRoot,launcherEl,timerEl,swEl;
+  function buildRoot(){
+    if(fmRoot)return;
+    fmRoot=document.createElement('div');
+    fmRoot.className='fm-root';
+    fmRoot.innerHTML=`
+      <div class="fm-widget" id="fmLauncherWidget" style="display:none"></div>
+      <div class="fm-widget" id="fmTimerWidget" style="display:none"></div>
+      <div class="fm-widget" id="fmSwWidget" style="display:none"></div>
+    `;
+    document.body.appendChild(fmRoot);
+    launcherEl=document.getElementById('fmLauncherWidget');
+    timerEl=document.getElementById('fmTimerWidget');
+    swEl=document.getElementById('fmSwWidget');
+  }
+
+  /* ---------- Gesture detection (double-tap / triple-tap / long-press) ---------- */
   let tapTimestamps=[],longPressTimer=null,longPressFired=false,downX=0,downY=0;
   function insideFM(el){return !!(el&&el.closest&&el.closest('.fm-root'))}
 
@@ -17517,7 +17561,7 @@ function closeLearnVideo(){
     if(insideFM(e.target))return;
     downX=e.clientX;downY=e.clientY;longPressFired=false;
     if(getGesture()==='longpress'){
-      longPressTimer=setTimeout(()=>{longPressFired=true;openFMMenu(downX,downY)},550);
+      longPressTimer=setTimeout(()=>{longPressFired=true;revealLauncher(downX,downY)},550);
     }
   }
   function onPointerMove(e){
@@ -17538,248 +17582,454 @@ function closeLearnVideo(){
     const needed=gesture==='tripletap'?3:2;
     if(tapTimestamps.length>=needed){
       tapTimestamps=[];
-      openFMMenu(e.clientX,e.clientY);
+      revealLauncher(e.clientX,e.clientY);
     }
   }
   document.addEventListener('pointerdown',onPointerDown,{passive:true});
   document.addEventListener('pointermove',onPointerMove,{passive:true});
   document.addEventListener('pointerup',onPointerUp,{passive:true});
 
-  /* ---------- Menu popup ---------- */
-  function openFMMenu(x,y){
-    buildRoot();
-    overlay.style.display='block';
-    menuPop.style.display='flex';
-    const pw=176,ph=104;
-    let left=Math.min(Math.max(12,x-pw/2),window.innerWidth-pw-12);
-    let top=Math.min(Math.max(12,y-ph-14),window.innerHeight-ph-12);
-    if(top<12)top=Math.min(y+14,window.innerHeight-ph-12);
-    menuPop.style.left=left+'px';
-    menuPop.style.top=top+'px';
-    requestAnimationFrame(()=>menuPop.classList.add('fm-open'));
-  }
-  function closeFMMenu(){
-    if(!menuPop)return;
-    menuPop.classList.remove('fm-open');
-    overlay.style.display='none';
-    setTimeout(()=>{menuPop.style.display='none'},150);
-  }
-
-  /* ---------- Widget: shared open/close/drag ---------- */
-  let tickHandle=null;
-
-  function openWidget(type){
-    buildRoot();
-    const ui=loadJSON(K.ui(),defaultUI());
-    ui.open=type;
-    if(ui.expanded===undefined)ui.expanded=true;
-    ui.expanded=true;
-    if(ui.x===null||ui.x===undefined){ui.x=window.innerWidth-236;ui.y=window.innerHeight-260}
-    saveJSON(K.ui(),ui);
-    widget.style.display='block';
-    renderWidget();
-    startTicker();
-  }
-  function closeWidget(){
-    saveJSON(K.ui(),defaultUI());
-    widget.style.display='none';
-    stopTicker();
-  }
-  function toggleExpanded(){
-    const ui=loadJSON(K.ui(),defaultUI());
-    ui.expanded=!ui.expanded;
-    saveJSON(K.ui(),ui);
-    renderWidget();
-  }
-  function clampPos(x,y){
-    const w=widget.offsetWidth||220,h=widget.offsetHeight||140;
+  /* ---------- Generic drag + clamp helpers, shared by every independent widget ---------- */
+  function clampPosFor(el,x,y){
+    const w=el.offsetWidth||58,h=el.offsetHeight||58;
     return{x:Math.min(Math.max(6,x),window.innerWidth-w-6),y:Math.min(Math.max(6,y),window.innerHeight-h-6)};
   }
-  function positionWidget(){
-    const ui=loadJSON(K.ui(),defaultUI());
-    if(!ui.open)return;
-    const w=widget.offsetWidth||220,h=widget.offsetHeight||140;
-    let x=ui.x,y=ui.y;
-    if(x===null||x===undefined){x=window.innerWidth-w-16;y=window.innerHeight-h-16}
-    const c=clampPos(x,y);
-    widget.style.left=c.x+'px';
-    widget.style.top=c.y+'px';
+  function positionEl(el,x,y){
+    if(x===null||x===undefined){x=window.innerWidth-(el.offsetWidth||58)-16;y=window.innerHeight-(el.offsetHeight||58)-16}
+    const c=clampPosFor(el,x,y);
+    el.style.left=c.x+'px';el.style.top=c.y+'px';
+    return c;
   }
-
-  function attachDrag(handleEl){
+  /* Elements a drag must never start on — buttons, inputs, and the minsec scroll pickers all
+     need their own taps/scrolls to keep working normally even though they sit inside a now-
+     draggable panel. */
+  const DRAG_EXCLUDE_SEL='button,input,.minsec-scroll-list,.minsec-scroll-item,.minsec-type-input';
+  function attachDrag(handleEl,widgetEl,onDragEnd){
     let dragging=false,startPX=0,startPY=0,startLeft=0,startTop=0,moved=false;
     handleEl.addEventListener('pointerdown',e=>{
+      // Only exclude nested controls (buttons/inputs/scroll-pickers) INSIDE the handle — never
+      // the handle itself. Without the `!==handleEl` check, a handle that is itself a <button>
+      // (the launcher bubble) would always match 'button' in DRAG_EXCLUDE_SEL and never be able
+      // to start a drag at all, since it's excluding itself.
+      const excluded=e.target&&e.target.closest&&e.target.closest(DRAG_EXCLUDE_SEL);
+      if(excluded&&excluded!==handleEl)return; // let nested controls behave normally
       dragging=true;moved=false;
       startPX=e.clientX;startPY=e.clientY;
-      const rect=widget.getBoundingClientRect();
+      const rect=widgetEl.getBoundingClientRect();
       startLeft=rect.left;startTop=rect.top;
-      handleEl.setPointerCapture(e.pointerId);
+      try{handleEl.setPointerCapture(e.pointerId)}catch(err){}
     });
     handleEl.addEventListener('pointermove',e=>{
       if(!dragging)return;
       const dx=e.clientX-startPX,dy=e.clientY-startPY;
       if(Math.abs(dx)>4||Math.abs(dy)>4)moved=true;
-      const c=clampPos(startLeft+dx,startTop+dy);
-      widget.style.left=c.x+'px';widget.style.top=c.y+'px';
+      const c=clampPosFor(widgetEl,startLeft+dx,startTop+dy);
+      widgetEl.style.left=c.x+'px';widgetEl.style.top=c.y+'px';
     });
     handleEl.addEventListener('pointerup',e=>{
       if(!dragging)return;
       dragging=false;
-      const ui=loadJSON(K.ui(),defaultUI());
-      const rect=widget.getBoundingClientRect();
-      ui.x=rect.left;ui.y=rect.top;
-      saveJSON(K.ui(),ui);
+      const rect=widgetEl.getBoundingClientRect();
       if(moved)handleEl._fmSuppressClick=true;
+      onDragEnd(rect.left,rect.top,moved);
     });
   }
 
-  /* ---------- Render ---------- */
-  function renderWidget(){
-    const ui=loadJSON(K.ui(),defaultUI());
-    if(!ui.open){widget.style.display='none';return}
-    widget.style.display='block';
-    if(!ui.expanded){
-      renderBubble(ui.open);
-    }else if(ui.open==='stopwatch'){
-      renderStopwatchPanel();
-    }else{
-      renderTimerPanel();
-    }
-    positionWidget();
+  /* =====================================================================
+     LAUNCHER — single persistent SVG-icon bubble. Click expands a dropdown
+     frame with Timer / Stopwatch options. Never auto-closes; only its own
+     Close icon dismisses it.
+  ===================================================================== */
+  function revealLauncher(x,y){
+    buildRoot();
+    const ui=loadJSON(K.launcher(),defaultLauncher());
+    if(ui.open)return; // already revealed — drag it instead of re-triggering
+    ui.open=true;ui.expanded=false;ui.x=x-29;ui.y=y-29;
+    saveJSON(K.launcher(),ui);
+    launcherEl.style.display='block';
+    launcherEl.classList.add('fm-appear');
+    renderLauncher();
   }
-
-  function renderBubble(type){
-    const sw=loadJSON(K.sw(),defaultSW()),tm=loadJSON(K.tm(),defaultTM());
-    let icon=type==='stopwatch'?'⏱':'⏲';
-    let timeStr;
-    if(type==='stopwatch'){timeStr=fmtStopwatch(sw.accumMs+(sw.running?Date.now()-sw.startEpoch:0))}
-    else{const elapsed=tm.accumMs+(tm.running?Date.now()-tm.startEpoch:0);timeStr=fmtCountdown(tm.durationMs-elapsed)}
-    widget.innerHTML=`<div class="fm-bubble" id="fmBubble"><span class="fm-bubble-icon">${icon}</span><span class="fm-bubble-time">${timeStr}</span></div>`;
-    const bubble=document.getElementById('fmBubble');
-    attachDrag(bubble);
-    bubble.addEventListener('click',()=>{if(bubble._fmSuppressClick){bubble._fmSuppressClick=false;return}toggleExpanded()});
+  function closeLauncher(){
+    // Closing the launcher only hides the launcher icon/menu itself — it must NOT touch a
+    // running Timer/Stopwatch. The launcher and the widgets are independent once a widget is
+    // open: the widget only goes away via its own Close button.
+    saveJSON(K.launcher(),defaultLauncher());
+    launcherEl.style.display='none';
   }
-
-  function renderStopwatchPanel(){
-    const sw=loadJSON(K.sw(),defaultSW());
-    const elapsed=sw.accumMs+(sw.running?Date.now()-sw.startEpoch:0);
-    widget.innerHTML=`
-      <div class="fm-panel">
-        <div class="fm-panel-head" id="fmPanelHead">
-          <span class="fm-panel-title">⏱ Stopwatch</span>
-          <div class="fm-panel-actions">
-            <button class="fm-icon-btn" id="fmMinBtn" title="Minimize">${MINIMIZE_SVG}</button>
-            <button class="fm-icon-btn" id="fmCloseBtn" title="Close">${CLOSE_SVG}</button>
-          </div>
-        </div>
-        <div class="fm-time-display" id="fmTimeDisplay">${fmtStopwatch(elapsed)}</div>
-        <div class="fm-ctrl-row">
-          <button class="fm-ctrl-btn secondary" id="fmResetBtn">RESET</button>
-          <button class="fm-ctrl-btn" id="fmToggleBtn">${sw.running?'PAUSE':'START'}</button>
-        </div>
+  /* Hides the launcher without touching any running widget — used internally right after the
+     user picks Timer/Stopwatch from the menu, so only the chosen widget remains on screen. */
+  function hideLauncherOnly(){
+    saveJSON(K.launcher(),defaultLauncher());
+    if(launcherEl)launcherEl.style.display='none';
+  }
+  function toggleLauncherExpanded(){
+    const ui=loadJSON(K.launcher(),defaultLauncher());
+    ui.expanded=!ui.expanded;
+    saveJSON(K.launcher(),ui);
+    renderLauncher();
+  }
+  function renderLauncher(){
+    const ui=loadJSON(K.launcher(),defaultLauncher());
+    if(!ui.open){launcherEl.style.display='none';return}
+    launcherEl.style.display='block';
+    const tmOpen=loadJSON(K.tm(),defaultTM()).open;
+    const swOpen=loadJSON(K.sw(),defaultSW()).open;
+    launcherEl.innerHTML=`
+      <button class="fm-launcher-btn" id="fmLauncherBtn" title="Quick Timer / Stopwatch">${LAUNCHER_SVG}</button>
+      <button class="fm-widget-close" id="fmLauncherCloseBtn" title="Close">${CLOSE_SVG}</button>
+      <div class="fm-menu-dropdown${ui.expanded?' fm-open':''}" id="fmLauncherDropdown">
+        <div class="fm-menu-btn${swOpen?' fm-active-opt':''}" id="fmOptStopwatch"><span class="fm-menu-btn-icon">${SW_ICON_SVG}</span>Stopwatch</div>
+        <div class="fm-menu-btn${tmOpen?' fm-active-opt':''}" id="fmOptTimer"><span class="fm-menu-btn-icon">${TIMER_ICON_SVG}</span>Timer</div>
       </div>`;
-    attachDrag(document.getElementById('fmPanelHead'));
-    document.getElementById('fmMinBtn').addEventListener('click',toggleExpanded);
-    document.getElementById('fmCloseBtn').addEventListener('click',closeWidget);
-    document.getElementById('fmResetBtn').addEventListener('click',()=>{saveJSON(K.sw(),defaultSW());renderWidget()});
-    document.getElementById('fmToggleBtn').addEventListener('click',()=>{
-      const cur=loadJSON(K.sw(),defaultSW());
-      if(cur.running){cur.accumMs=cur.accumMs+(Date.now()-cur.startEpoch);cur.running=false;cur.startEpoch=0}
-      else{cur.running=true;cur.startEpoch=Date.now()}
-      saveJSON(K.sw(),cur);renderWidget();
+    positionEl(launcherEl,ui.x,ui.y);
+    const btn=document.getElementById('fmLauncherBtn');
+    attachDrag(btn,launcherEl,(left,top)=>{
+      const cur=loadJSON(K.launcher(),defaultLauncher());
+      cur.x=left;cur.y=top;saveJSON(K.launcher(),cur);
+    });
+    btn.addEventListener('click',()=>{
+      if(btn._fmSuppressClick){btn._fmSuppressClick=false;return}
+      toggleLauncherExpanded();
+    });
+    document.getElementById('fmLauncherCloseBtn').addEventListener('click',closeLauncher);
+    document.getElementById('fmOptStopwatch').addEventListener('click',()=>{
+      openIndependentWidget('stopwatch');
+      const cur=loadJSON(K.launcher(),defaultLauncher());cur.expanded=false;saveJSON(K.launcher(),cur);
+      renderLauncher();
+    });
+    document.getElementById('fmOptTimer').addEventListener('click',()=>{
+      openIndependentWidget('timer');
+      const cur=loadJSON(K.launcher(),defaultLauncher());cur.expanded=false;saveJSON(K.launcher(),cur);
+      renderLauncher();
     });
   }
 
-  function renderTimerPanel(){
+  /* =====================================================================
+     Launcher, Timer and Stopwatch form one connected tree: opening one
+     widget from the menu closes the other (only one can hang off the
+     launcher at a time) and, the first time it opens, it appears anchored
+     directly below the launcher rather than in some unrelated corner.
+  ===================================================================== */
+  function anchorBelowLauncher(widthGuess){
+    const lu=loadJSON(K.launcher(),defaultLauncher());
+    const lx=(lu.x===null||lu.x===undefined)?window.innerWidth-90:lu.x;
+    const ly=(lu.y===null||lu.y===undefined)?window.innerHeight-90:lu.y;
+    return{x:lx+29-(widthGuess/2),y:ly+58+14};
+  }
+  function hideOtherWidget(type){
+    if(type==='timer'){
+      const sw=loadJSON(K.sw(),defaultSW());
+      if(sw.open){saveJSON(K.sw(),defaultSW());if(swEl)swEl.style.display='none'}
+    }else{
+      const tm=loadJSON(K.tm(),defaultTM());
+      if(tm.open){saveJSON(K.tm(),Object.assign(defaultTM(),{durationMs:tm.durationMs}));if(timerEl)timerEl.style.display='none'}
+    }
+  }
+  function openIndependentWidget(type){
+    buildRoot();
+    // Capture the anchor position BEFORE hideLauncherOnly() resets the launcher's saved x/y —
+    // otherwise the anchor always falls back to the default corner instead of the exact spot
+    // the launcher/menu icon was actually sitting at when Timer/Stopwatch was chosen.
+    const anchorPos=anchorBelowLauncher(236);
+    hideOtherWidget(type);
+    hideLauncherOnly(); // selecting an option hides the menu itself — only the chosen widget remains
+    if(type==='timer'){
+      const tm=loadJSON(K.tm(),defaultTM());
+      const wasOpen=tm.open;
+      tm.open=true;tm.minimized=false;
+      if(!wasOpen||tm.x===null||tm.x===undefined){tm.x=anchorPos.x;tm.y=anchorPos.y}
+      saveJSON(K.tm(),tm);
+      timerEl.style.display='block';
+      if(!wasOpen)timerEl.classList.add('fm-appear');
+      renderTimerWidget();
+    }else{
+      const sw=loadJSON(K.sw(),defaultSW());
+      const wasOpen=sw.open;
+      sw.open=true;sw.minimized=false;
+      if(!wasOpen||sw.x===null||sw.x===undefined){sw.x=anchorPos.x;sw.y=anchorPos.y}
+      saveJSON(K.sw(),sw);
+      swEl.style.display='block';
+      if(!wasOpen)swEl.classList.add('fm-appear');
+      renderSwWidget();
+    }
+    startTicker();
+  }
+  function closeTimerWidget(){
+    saveJSON(K.tm(),Object.assign(defaultTM(),{durationMs:loadJSON(K.tm(),defaultTM()).durationMs}));
+    timerEl.style.display='none';
+    renderLauncher();
+  }
+  function closeSwWidget(){
+    saveJSON(K.sw(),defaultSW());
+    swEl.style.display='none';
+    renderLauncher();
+  }
+  function toggleTimerMinimized(){
     const tm=loadJSON(K.tm(),defaultTM());
+    tm.minimized=!tm.minimized;
+    saveJSON(K.tm(),tm);
+    renderTimerWidget();
+  }
+  function toggleSwMinimized(){
+    const sw=loadJSON(K.sw(),defaultSW());
+    sw.minimized=!sw.minimized;
+    saveJSON(K.sw(),sw);
+    renderSwWidget();
+  }
+
+  /* =====================================================================
+     TIMER WIDGET — duration entry reuses the exact same single-field
+     "minsec-scroll" control the Cardio Duration picker uses elsewhere in
+     the app (mountMinSecPicker / setupMinSecScrollList / openMinSecTypeInput,
+     defined earlier in this file): each HR/MIN/SEC column both scrolls to
+     change the value AND, tapping the visible value, swaps to a plain
+     editable number input — one field does both jobs instead of a separate
+     scroll wheel plus a separate row of typed inputs.
+  ===================================================================== */
+  function minsecItemsHtml(max,selected){
+    let html='';
+    for(let i=0;i<=max;i++)html+=`<div class="minsec-scroll-item${i===selected?' picked':''}" data-val="${i}">${pad(i)}</div>`;
+    return html;
+  }
+
+  function renderTimerWidget(){
+    const tm=loadJSON(K.tm(),defaultTM());
+    if(!tm.open){timerEl.style.display='none';return}
+    timerEl.style.display='block';
     const elapsed=tm.accumMs+(tm.running?Date.now()-tm.startEpoch:0);
     const remain=tm.durationMs-elapsed;
     const finished=remain<=0&&(tm.running||tm.finished);
-    const canEditDuration=!tm.running&&elapsed<=0;
-    const totalMin=Math.floor(tm.durationMs/60000),totalSec=Math.floor((tm.durationMs%60000)/1000);
-    widget.innerHTML=`
-      <div class="fm-panel">
-        <div class="fm-panel-head" id="fmPanelHead">
-          <span class="fm-panel-title">⏲ Timer</span>
+
+    if(tm.minimized){
+      timerEl.innerHTML=`<div class="fm-bubble${finished?' fm-finished':''}" id="fmTmBubble"><span class="fm-bubble-time">${finished?"TIME'S UP":fmtCountdown(remain)}</span></div>`;
+      const bubble=document.getElementById('fmTmBubble');
+      attachDrag(bubble,timerEl,(left,top)=>{const cur=loadJSON(K.tm(),defaultTM());cur.x=left;cur.y=top;saveJSON(K.tm(),cur)});
+      bubble.addEventListener('click',()=>{if(bubble._fmSuppressClick){bubble._fmSuppressClick=false;return}toggleTimerMinimized()});
+      positionEl(timerEl,tm.x,tm.y);
+      return;
+    }
+
+    // Editable whenever the timer isn't actively running — this is the fix for the
+    // "locked at 5 minutes" bug: editing is no longer restricted to a fresh/never-started timer.
+    const canEdit=!tm.running;
+    const totalSec=Math.round(tm.durationMs/1000);
+    const dh=Math.floor(totalSec/3600),dm=Math.floor((totalSec%3600)/60),ds=totalSec%60;
+
+    timerEl.innerHTML=`
+      <div class="fm-panel" id="fmTmPanel">
+        <div class="fm-panel-head" id="fmTmHead">
+          <span class="fm-panel-title">${TIMER_ICON_SVG}Timer</span>
           <div class="fm-panel-actions">
-            <button class="fm-icon-btn" id="fmMinBtn" title="Minimize">${MINIMIZE_SVG}</button>
-            <button class="fm-icon-btn" id="fmCloseBtn" title="Close">${CLOSE_SVG}</button>
+            <button class="fm-icon-btn" id="fmTmMinBtn" title="Minimize">${MINIMIZE_SVG}</button>
+            <button class="fm-icon-btn" id="fmTmCloseBtn" title="Close">${CLOSE_SVG}</button>
           </div>
         </div>
-        ${canEditDuration?`
-        <div class="fm-timer-setup">
-          <input type="number" id="fmTimerMin" min="0" max="180" value="${totalMin}"><span>m</span>
-          <input type="number" id="fmTimerSec" min="0" max="59" value="${totalSec}"><span>s</span>
-        </div>`:''}
-        <div class="fm-time-display ${finished?'fm-finished':''}" id="fmTimeDisplay">${finished?"TIME'S UP":fmtCountdown(remain)}</div>
+        ${canEdit?`
+        <div style="display:flex;justify-content:center;margin:8px 0 12px">
+        <div class="minsec-scroll-group" id="fmTmScrollGroup">
+          <div class="minsec-scroll-col"><div class="minsec-scroll-list" id="fmTmHourList">${minsecItemsHtml(23,dh)}</div><div class="minsec-unit-label">HR</div></div>
+          <div class="minsec-sep">:</div>
+          <div class="minsec-scroll-col"><div class="minsec-scroll-list" id="fmTmMinList">${minsecItemsHtml(59,dm)}</div><div class="minsec-unit-label">MIN</div></div>
+          <div class="minsec-sep">:</div>
+          <div class="minsec-scroll-col"><div class="minsec-scroll-list" id="fmTmSecList">${minsecItemsHtml(59,ds)}</div><div class="minsec-unit-label">SEC</div></div>
+        </div>
+        </div>`:`
+        <div class="fm-time-display ${finished?'fm-finished':''}" id="fmTmTimeDisplay">${finished?"TIME'S UP":fmtCountdown(remain)}</div>
+        `}
         <div class="fm-ctrl-row">
-          <button class="fm-ctrl-btn secondary" id="fmResetBtn">RESET</button>
-          <button class="fm-ctrl-btn" id="fmToggleBtn">${finished?'RESTART':(tm.running?'PAUSE':'START')}</button>
+          <button class="fm-ctrl-btn secondary" id="fmTmResetBtn">RESET</button>
+          <button class="fm-ctrl-btn" id="fmTmToggleBtn">${finished?'RESTART':(tm.running?'PAUSE':'START')}</button>
         </div>
       </div>`;
-    attachDrag(document.getElementById('fmPanelHead'));
-    document.getElementById('fmMinBtn').addEventListener('click',toggleExpanded);
-    document.getElementById('fmCloseBtn').addEventListener('click',closeWidget);
-    document.getElementById('fmResetBtn').addEventListener('click',()=>{
+
+    positionEl(timerEl,tm.x,tm.y);
+    // Drag from anywhere on the panel now (not just the thin header strip) — attachDrag skips
+    // buttons/inputs/scroll-pickers internally so those keep working normally.
+    attachDrag(document.getElementById('fmTmPanel'),timerEl,(left,top)=>{const cur=loadJSON(K.tm(),defaultTM());cur.x=left;cur.y=top;saveJSON(K.tm(),cur)});
+    document.getElementById('fmTmMinBtn').addEventListener('click',toggleTimerMinimized);
+    document.getElementById('fmTmCloseBtn').addEventListener('click',closeTimerWidget);
+
+    if(canEdit){
+      let draft={h:dh,m:dm,s:ds};
+      // Same shared control as the Cardio Duration field: scroll to change, or tap the
+      // current value to type it directly — one field, both interactions.
+      setupMinSecScrollList('fmTmHourList',dh,v=>draft.h=v,23);
+      setupMinSecScrollList('fmTmMinList',dm,v=>draft.m=v,59);
+      setupMinSecScrollList('fmTmSecList',ds,v=>draft.s=v,59);
+      timerEl._fmDraft=draft;
+    }
+
+    document.getElementById('fmTmResetBtn').addEventListener('click',()=>{
       const cur=loadJSON(K.tm(),defaultTM());
-      const fresh=defaultTM();fresh.durationMs=cur.durationMs;
-      saveJSON(K.tm(),fresh);renderWidget();
+      // RESET only zeroes the countdown (running/accumMs/finished) — it must NOT move the panel
+      // back to a default corner or un-minimize it, so carry the current position/minimized
+      // state (and duration) over into the fresh state instead of discarding them.
+      const fresh=defaultTM();
+      fresh.open=true;fresh.durationMs=cur.durationMs;
+      fresh.x=cur.x;fresh.y=cur.y;fresh.minimized=cur.minimized;
+      saveJSON(K.tm(),fresh);renderTimerWidget();
     });
-    document.getElementById('fmToggleBtn').addEventListener('click',()=>{
+    document.getElementById('fmTmToggleBtn').addEventListener('click',()=>{
       const cur=loadJSON(K.tm(),defaultTM());
       const curElapsed=cur.accumMs+(cur.running?Date.now()-cur.startEpoch:0);
       const curFinished=curElapsed>=cur.durationMs&&(cur.running||cur.finished);
       if(curFinished){
-        saveJSON(K.tm(),{running:true,startEpoch:Date.now(),accumMs:0,durationMs:cur.durationMs,finished:false});
+        saveJSON(K.tm(),Object.assign(defaultTM(),{open:true,running:true,startEpoch:Date.now(),accumMs:0,durationMs:cur.durationMs,finished:false}));
+        startTicker();
       }else if(cur.running){
         cur.accumMs=curElapsed;cur.running=false;cur.startEpoch=0;
         saveJSON(K.tm(),cur);
       }else{
         let durationMs=cur.durationMs;
-        const minEl=document.getElementById('fmTimerMin'),secEl=document.getElementById('fmTimerSec');
-        if(minEl&&secEl){
-          const m=Math.max(0,parseInt(minEl.value)||0),s=Math.max(0,Math.min(59,parseInt(secEl.value)||0));
-          durationMs=(m*60+s)*1000;
-          if(durationMs<=0){showFMToast('Set a timer duration greater than 0');return}
+        const draft=timerEl._fmDraft;
+        if(draft){
+          durationMs=((draft.h*3600)+(draft.m*60)+draft.s)*1000;
         }
+        if(durationMs<=0){showFMToast('Set a timer duration greater than 0');return}
         cur.durationMs=durationMs;cur.running=true;cur.startEpoch=Date.now();cur.finished=false;
         saveJSON(K.tm(),cur);
+        // Restarting the interval here is the fix for the countdown freezing after Start:
+        // the ticker shuts itself off once nothing is running (stopTickerIfIdle), so it must
+        // be explicitly restarted on every fresh Start, not just the first time the widget opens.
+        startTicker();
       }
-      renderWidget();
+      renderTimerWidget();
     });
   }
 
-  function showFMToast(msg){
-    try{if(typeof showToast==='function'){showToast(msg);return}}catch(e){}
+  /* =====================================================================
+     STOPWATCH WIDGET — freely draggable, capped at a 10-hour maximum.
+  ===================================================================== */
+  function renderSwWidget(){
+    const sw=loadJSON(K.sw(),defaultSW());
+    if(!sw.open){swEl.style.display='none';return}
+    swEl.style.display='block';
+    const elapsed=Math.min(sw.accumMs+(sw.running?Date.now()-sw.startEpoch:0),SW_LIMIT_MS);
+    const atLimit=sw.limitHit||elapsed>=SW_LIMIT_MS;
+
+    if(sw.minimized){
+      swEl.innerHTML=`<div class="fm-bubble${atLimit?' fm-finished':''}" id="fmSwBubble"><span class="fm-bubble-time">${fmtHMS(elapsed)}</span></div>`;
+      const bubble=document.getElementById('fmSwBubble');
+      attachDrag(bubble,swEl,(left,top)=>{const cur=loadJSON(K.sw(),defaultSW());cur.x=left;cur.y=top;saveJSON(K.sw(),cur)});
+      bubble.addEventListener('click',()=>{if(bubble._fmSuppressClick){bubble._fmSuppressClick=false;return}toggleSwMinimized()});
+      positionEl(swEl,sw.x,sw.y);
+      return;
+    }
+
+    swEl.innerHTML=`
+      <div class="fm-panel" id="fmSwPanel">
+        <div class="fm-panel-head" id="fmSwHead">
+          <span class="fm-panel-title">${SW_ICON_SVG}Stopwatch</span>
+          <div class="fm-panel-actions">
+            <button class="fm-icon-btn" id="fmSwMinBtn" title="Minimize">${MINIMIZE_SVG}</button>
+            <button class="fm-icon-btn" id="fmSwCloseBtn" title="Close">${CLOSE_SVG}</button>
+          </div>
+        </div>
+        <div class="fm-time-display ${atLimit?'fm-finished':''}" id="fmSwTimeDisplay">${fmtHMS(elapsed)}</div>
+        <div class="fm-limit-note">${atLimit?'10-hour limit reached — reset to continue':'Max tracking time: 10:00:00'}</div>
+        <div class="fm-ctrl-row">
+          <button class="fm-ctrl-btn secondary" id="fmSwResetBtn">RESET</button>
+          <button class="fm-ctrl-btn" id="fmSwToggleBtn" ${atLimit?'disabled':''}>${sw.running?'PAUSE':'START'}</button>
+        </div>
+      </div>`;
+    positionEl(swEl,sw.x,sw.y);
+    // Drag from anywhere on the panel now (not just the thin header strip).
+    attachDrag(document.getElementById('fmSwPanel'),swEl,(left,top)=>{const cur=loadJSON(K.sw(),defaultSW());cur.x=left;cur.y=top;saveJSON(K.sw(),cur)});
+    document.getElementById('fmSwMinBtn').addEventListener('click',toggleSwMinimized);
+    document.getElementById('fmSwCloseBtn').addEventListener('click',closeSwWidget);
+    document.getElementById('fmSwResetBtn').addEventListener('click',()=>{
+      const cur=loadJSON(K.sw(),defaultSW());
+      // RESET only zeroes the elapsed time (running/accumMs/limitHit) — it must NOT move the
+      // panel back to a default corner or un-minimize it, so carry the current position/
+      // minimized state over into the fresh state instead of discarding them.
+      const fresh=defaultSW();
+      fresh.open=true;
+      fresh.x=cur.x;fresh.y=cur.y;fresh.minimized=cur.minimized;
+      saveJSON(K.sw(),fresh);renderSwWidget();
+    });
+    const toggleBtn=document.getElementById('fmSwToggleBtn');
+    toggleBtn.addEventListener('click',()=>{
+      if(atLimit)return;
+      const cur=loadJSON(K.sw(),defaultSW());
+      if(cur.running){cur.accumMs=Math.min(SW_LIMIT_MS,cur.accumMs+(Date.now()-cur.startEpoch));cur.running=false;cur.startEpoch=0}
+      else{cur.running=true;cur.startEpoch=Date.now();startTicker()}
+      saveJSON(K.sw(),cur);renderSwWidget();
+    });
   }
 
-  /* ---------- Ticker: keeps displayed time live + detects timer completion ---------- */
+  /* ---------- Ticker: keeps running widgets' displayed time live, second-by-second ----------
+     IMPORTANT: while a timer/stopwatch is running, the ticker must NEVER fully re-render the
+     widget (i.e. must never rebuild its innerHTML). A full re-render replaces the panel/bubble
+     DOM node every second, which — mid-drag — rips the currently-dragged element (and its
+     pointer capture) out from under the user's finger, so on mobile the panel/minimize-bubble
+     would freeze in place the instant the countdown/stopwatch started ticking. Instead, each
+     tick only touches the existing time-text node's textContent, leaving the drag handlers and
+     the dragged element itself completely untouched — so it stays freely movable at all times,
+     running or not. A full render only ever happens on genuine structural changes (open/close,
+     minimize/maximize, start/pause/reset, or the timer/stopwatch actually finishing). ---------- */
+  function updateTimerDisplayOnly(tm){
+    const elapsed=tm.accumMs+(tm.running?Date.now()-tm.startEpoch:0);
+    const remain=tm.durationMs-elapsed;
+    const text=fmtCountdown(remain);
+    if(tm.minimized){
+      const t=timerEl.querySelector('#fmTmBubble .fm-bubble-time');
+      if(t)t.textContent=text;
+    }else{
+      const disp=document.getElementById('fmTmTimeDisplay');
+      if(disp)disp.textContent=text;
+    }
+  }
+  function updateSwDisplayOnly(sw){
+    const elapsed=Math.min(sw.accumMs+(sw.running?Date.now()-sw.startEpoch:0),SW_LIMIT_MS);
+    const text=fmtHMS(elapsed);
+    if(sw.minimized){
+      const t=swEl.querySelector('#fmSwBubble .fm-bubble-time');
+      if(t)t.textContent=text;
+    }else{
+      const disp=document.getElementById('fmSwTimeDisplay');
+      if(disp)disp.textContent=text;
+    }
+  }
+  let tickHandle=null;
   function startTicker(){
     if(tickHandle)return;
     tickHandle=setInterval(tick,1000);
   }
-  function stopTicker(){
-    if(tickHandle){clearInterval(tickHandle);tickHandle=null}
+  function stopTickerIfIdle(){
+    const tm=loadJSON(K.tm(),defaultTM()),sw=loadJSON(K.sw(),defaultSW());
+    if(!tm.running&&!sw.running){if(tickHandle){clearInterval(tickHandle);tickHandle=null}}
   }
   function tick(){
-    const ui=loadJSON(K.ui(),defaultUI());
-    if(!ui.open){stopTicker();return}
-    if(ui.open==='timer'){
-      const tm=loadJSON(K.tm(),defaultTM());
-      if(tm.running){
-        const elapsed=tm.accumMs+(Date.now()-tm.startEpoch);
-        if(elapsed>=tm.durationMs){
-          tm.accumMs=tm.durationMs;tm.running=false;tm.startEpoch=0;tm.finished=true;
-          saveJSON(K.tm(),tm);
-          try{if(typeof playConfiguredBreakSound==='function')playConfiguredBreakSound()}catch(e){}
-          showFMToast("⏲ Timer's up!");
-        }
+    const tm=loadJSON(K.tm(),defaultTM());
+    if(tm.open&&tm.running){
+      const elapsed=tm.accumMs+(Date.now()-tm.startEpoch);
+      if(elapsed>=tm.durationMs){
+        tm.accumMs=tm.durationMs;tm.running=false;tm.startEpoch=0;tm.finished=true;
+        saveJSON(K.tm(),tm);
+        try{if(typeof playConfiguredBreakSound==='function')playConfiguredBreakSound()}catch(e){}
+        showFMToast("⏲ Timer's up!");
+        renderTimerWidget(); // structural change (buttons/layout swap) — full render is fine here
+      }else{
+        updateTimerDisplayOnly(tm); // just the ticking number — never rebuilds the draggable DOM
       }
     }
-    renderWidget();
+    const sw=loadJSON(K.sw(),defaultSW());
+    if(sw.open&&sw.running){
+      const elapsed=sw.accumMs+(Date.now()-sw.startEpoch);
+      if(elapsed>=SW_LIMIT_MS&&!sw.limitHit){
+        sw.accumMs=SW_LIMIT_MS;sw.running=false;sw.startEpoch=0;sw.limitHit=true;
+        saveJSON(K.sw(),sw);
+        showFMToast('⏱ Stopwatch stopped automatically — 10-hour limit reached');
+        renderSwWidget(); // structural change (disables Start/Pause, limit note) — full render fine
+      }else{
+        updateSwDisplayOnly(sw); // just the ticking number — never rebuilds the draggable DOM
+      }
+    }
+    stopTickerIfIdle();
   }
 
-  /* ---------- Settings page wiring ---------- */
+  /* ---------- Settings page wiring (unchanged public API) ---------- */
   window.fmHandleEnabledToggleChange=function(){
     const t=document.getElementById('fmEnabledToggle');
     localStorage.setItem(K.enabled(),t.checked?'1':'0');
@@ -17800,30 +18050,42 @@ function closeLearnVideo(){
     });
   }
 
-  /* ---------- Init: restore widget across refresh/tab-switch/app close ---------- */
+  /* ---------- Init: restore all widgets across refresh/tab-switch/app close ---------- */
   function fmInit(){
     buildRoot();
     fmSyncSettingsUI();
-    const ui=loadJSON(K.ui(),defaultUI());
-    if(ui.open){
-      widget.style.display='block';
-      renderWidget();
-      startTicker();
-    }
+    const lu=loadJSON(K.launcher(),defaultLauncher());
+    // The Timer/Stopwatch dropdown must only ever appear as a direct result of the user
+    // clicking the menu icon in the current session — never auto-restored already-open from a
+    // previous session/reload/tab-switch — so force it collapsed on every fresh init.
+    if(lu.expanded){lu.expanded=false;saveJSON(K.launcher(),lu)}
+    if(lu.open){launcherEl.style.display='block';renderLauncher()}
+    const tm=loadJSON(K.tm(),defaultTM());
+    if(tm.open){timerEl.style.display='block';renderTimerWidget()}
+    const sw=loadJSON(K.sw(),defaultSW());
+    if(sw.open){swEl.style.display='block';renderSwWidget()}
+    if((tm.open&&tm.running)||(sw.open&&sw.running))startTicker();
   }
   document.addEventListener('visibilitychange',()=>{
     if(document.visibilityState==='visible'){
-      const ui=loadJSON(K.ui(),defaultUI());
-      if(ui.open){renderWidget();startTicker()}
+      const tm=loadJSON(K.tm(),defaultTM()),sw=loadJSON(K.sw(),defaultSW());
+      if(tm.open)renderTimerWidget();
+      if(sw.open)renderSwWidget();
+      if((tm.open&&tm.running)||(sw.open&&sw.running))startTicker();
     }
   });
-  window.addEventListener('resize',()=>positionWidget());
+  window.addEventListener('resize',()=>{
+    const lu=loadJSON(K.launcher(),defaultLauncher());if(lu.open)positionEl(launcherEl,lu.x,lu.y);
+    const tm=loadJSON(K.tm(),defaultTM());if(tm.open)positionEl(timerEl,tm.x,tm.y);
+    const sw=loadJSON(K.sw(),defaultSW());if(sw.open)positionEl(swEl,sw.x,sw.y);
+  });
   if(document.readyState==='loading'){
     document.addEventListener('DOMContentLoaded',fmInit);
   }else{
     fmInit();
   }
 })();
+
 </script>
 </body>
 </html> 
