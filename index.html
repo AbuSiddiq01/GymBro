@@ -10223,7 +10223,7 @@ function nlSetSwipeEnd(evt,i){
    or the form is explicitly closed. */
 function getNonLiveDraftKey(){return `gymbro_nonlive_draft_${getEffectiveUid()}`}
 function saveNonLiveDraft(){
-  if(currentEditingIndex!==null)return; // edits of already-saved entries aren't draft-persisted
+  if(currentEditingIndex!==null){saveNonLiveEditDraft();return} // editing an already-saved entry — persist via the edit-draft path instead
   const name=document.getElementById("workoutNameInput")?.value||'';
   const cnt=parseInt(document.getElementById("setsCountSelect")?.value)||1;
   const cardio=isCardioExercise(name.trim());
@@ -10300,6 +10300,102 @@ function restoreNlCardioTimers(sets){
       if(disp){disp.style.display="inline";const m=Math.floor(accumulated/60),sec=accumulated%60;disp.textContent=String(m).padStart(2,'0')+':'+String(sec).padStart(2,'0');}
     }
   });
+}
+
+/* ===================== NON-LIVE EDIT DRAFT (survives refresh, tab switch, app close/reopen) =====================
+   Mirrors the "add new entry" draft above, but for an in-progress EDIT of an already-saved non-live
+   entry. currentEditingIndex (the display-order "Slot N") isn't stable across a reload — the list can
+   be renumbered — so this keys off the entry's real, stable identity instead: {rowCreatedAt,idx} from
+   window._workoutCiMap, resolved back to whatever ci that same identity maps to after the fresh
+   reload. Captures name, sets count, every set's current value/lock/cardio-stopwatch state (same
+   shape as the add-draft), plus the edit-specific bits (which original sets were already saved,
+   their locked durations, Class/Equipment) so "open Edit and change nothing" and "open Edit, add a
+   new set, refresh" both land back exactly where they were left. */
+function getNonLiveEditDraftKey(){return `gymbro_nonlive_editdraft_${getEffectiveUid()}`}
+function saveNonLiveEditDraft(){
+  if(currentEditingIndex===null)return;
+  const slotRef=window._workoutCiMap&&window._workoutCiMap[currentEditingIndex];
+  if(!slotRef)return; // can't identify which saved entry this is — nothing safe to persist
+  const name=document.getElementById("workoutNameInput")?.value||'';
+  const cnt=parseInt(document.getElementById("setsCountSelect")?.value)||1;
+  const cardio=isCardioExercise(name.trim());
+  const sets=[];
+  for(let i=1;i<=cnt;i++){
+    if(cardio){
+      const totalSec=getPickerSeconds(`nlSet_${i}`);
+      const timerRunning=!!window._nlSetTimers[i];
+      const timerAccumulated=timerRunning?((window._nlSetTimerAccumAtStart[i]||0)+Math.floor((Date.now()-(window._nlSetTimerStartEpoch[i]||Date.now()))/1000)):(window._nlSetSeconds[i]||0);
+      sets.push({
+        km:document.getElementById(`km_set_${i}`)?.value||'',
+        min:Math.floor(totalSec/60),sec:totalSec%60,
+        locked:!!document.getElementById(`lock_set_${i}`)?.checked,
+        timerRunning,timerAccumulated,
+        timerStartEpoch:timerRunning?(window._nlSetTimerStartEpoch[i]||Date.now()):null
+      });
+    } else {
+      sets.push({
+        w:document.getElementById(`weight_set_${i}`)?.value||'',
+        r:document.getElementById(`reps_set_${i}`)?.value||'',
+        locked:!!document.getElementById(`lock_set_${i}`)?.checked
+      });
+    }
+  }
+  const td=document.getElementById("workoutCalendarFilter")?.value||getLocalDateString();
+  const draft={
+    date:td,slotRef,name,setsCount:cnt,
+    editOriginalSetCount,editOriginalDurations:Object.assign({},editOriginalDurations),
+    sets,
+    selectedClass:window._selectedWorkoutClass||null,
+    selectedEquipment:window._selectedWorkoutEquipment||null,
+    bwRevealed:!!bwKgRevealed.nonlive
+  };
+  try{localStorage.setItem(getNonLiveEditDraftKey(),JSON.stringify(draft))}catch(e){}
+}
+function loadNonLiveEditDraft(){
+  try{return JSON.parse(localStorage.getItem(getNonLiveEditDraftKey())||'null')}catch(e){return null}
+}
+function clearNonLiveEditDraft(){
+  try{localStorage.removeItem(getNonLiveEditDraftKey())}catch(e){}
+}
+/* Resolves a restored edit draft back to a live ci for the CURRENT render of the saved-workouts list
+   (loadWorkoutsForDate rebuilds window._workoutCiMap/window._workoutCiRawMap fresh every call, and ci
+   numbering can shift, so identity must be matched via slotRef, not by trusting the old ci number). */
+async function restoreNonLiveEditDraftIfAny(){
+  const draft=loadNonLiveEditDraft();
+  if(!draft||!draft.slotRef)return false;
+  const dateEl=document.getElementById("workoutCalendarFilter");
+  if(dateEl&&draft.date)dateEl.value=draft.date;
+  await loadWorkoutsForDate(); // populates window._workoutCiMap for this date
+  const ciMap=window._workoutCiMap||{};
+  let foundCi=null;
+  Object.keys(ciMap).forEach(ci=>{
+    const ref=ciMap[ci];
+    if(ref&&ref.rowCreatedAt===draft.slotRef.rowCreatedAt&&ref.idx===draft.slotRef.idx)foundCi=parseInt(ci);
+  });
+  if(foundCi===null){clearNonLiveEditDraft();return false} // entry no longer exists — nothing to restore
+  currentEditingIndex=foundCi;
+  bwKgRevealed.nonlive=!!draft.bwRevealed;
+  editOriginalDurations=Object.assign({},draft.editOriginalDurations||{});
+  editOriginalSetCount=draft.editOriginalSetCount||0;
+  document.getElementById("formActionTitle").innerText=`EDIT ENTRY (Slot ${foundCi})`;
+  document.getElementById("initialWorkoutBox").style.display="";
+  document.getElementById("workoutFormStructure").style.display="block";
+  document.getElementById("liveWorkoutForm").style.display="none";
+  openWorkoutEditOverlay(document.getElementById("workoutFormStructure"));
+  document.getElementById("workoutNameInput").value=draft.name||"";
+  window._selectedWorkoutClass=draft.selectedClass||null;
+  window._selectedWorkoutEquipment=draft.selectedEquipment||null;
+  _updateInlineClassBtn('workoutNameInput','_inlineClassBtnNonLive','nonlive');
+  _updateInlineEquipBtn('workoutNameInput','_inlineEquipBtnNonLive','nonlive');
+  document.getElementById("setsCountSelect").value=String(draft.setsCount||(draft.sets&&draft.sets.length)||1);
+  applySetsCountMinConstraint();
+  document.getElementById("prevPerfBadgeNonLive").classList.remove("visible");
+  resetPrevPerfCopyState('nonlive');
+  updateTrackWorkoutBtnVisibility('nonlive');
+  const sets=draft.sets||[];
+  renderNonLiveSetsRows(sets.map(s=>s.w),sets.map(s=>s.r),sets.map(s=>s.locked),sets.map(s=>s.km),sets.map(s=>s.min),sets.map(s=>s.sec));
+  restoreNlCardioTimers(sets);
+  return true;
 }
 
 /* ===================== MULTIPLE WORKOUTS AT A TIME (non-live, brand-new entries only) =====================
@@ -10529,14 +10625,24 @@ function removeLiveQueueEntry(e,idx){
 }
 
 /* ===================== TOP-LEVEL RESTORE ORCHESTRATOR =====================
-   Called once right after landing on the last-viewed tab (mountMemberDashboard). Both the live-mode
-   draft/queue AND the non-live draft/queue now live in localStorage (not sessionStorage), and both
-   are restored on ANY landing — fresh login, refresh, tab switch, or a brand-new browser session
-   after the app/browser was fully closed and reopened — so an in-progress entry is never lost no
-   matter how the person left it. wasRefresh is kept as a parameter for backward compatibility but no
-   longer gates this restore. Checks for a live-mode draft first (it's the more time-sensitive one,
-   with running timers), then a non-live draft. */
+   Called once right after landing on the last-viewed tab (mountMemberDashboard). Every draft this
+   page tracks — live-edit, live-add, non-live-edit, non-live-add, and both queues — now lives in
+   localStorage (not sessionStorage), and all of them are restored on ANY landing — fresh login,
+   refresh, tab switch, or a brand-new browser session after the app/browser was fully closed and
+   reopened — so an in-progress entry is never lost no matter how the person left it. wasRefresh is
+   kept as a parameter for backward compatibility but no longer gates this restore. Checked in order
+   of specificity/time-sensitivity: an in-progress EDIT of an already-saved live entry first (it can
+   have running set/break timers), then a fresh live session, then the live queue, then an in-progress
+   edit of an already-saved non-live entry, then a fresh non-live entry/queue. */
 async function restoreInProgressWorkoutFormIfAny(wasRefresh){
+  if(loadLiveEditDraft()){
+    await switchMemberTab('workPage');
+    if(await restoreLiveEditDraftIfAny()){
+      renderLiveQueueStrip();
+      showToast('🔄 Restored your in-progress edit.');
+      return;
+    }
+  }
   {
     liveWorkoutQueue=loadLiveQueue();
     const liveDraft=loadLiveDraft();
@@ -10568,6 +10674,14 @@ async function restoreInProgressWorkoutFormIfAny(wasRefresh){
       saveLiveQueue();
       renderLiveQueueStrip();
       showToast('🔄 Restored your in-progress live workouts.');
+      return;
+    }
+  }
+  // Non-live EDIT draft next — an in-progress edit of an already-saved non-live entry.
+  if(loadNonLiveEditDraft()){
+    await switchMemberTab('workPage');
+    if(await restoreNonLiveEditDraftIfAny()){
+      showToast('🔄 Restored your in-progress edit.');
       return;
     }
   }
@@ -11511,6 +11625,7 @@ function cancelWorkoutLogging(){
   updateNonLiveSetsStructureVisibility();
   updateNameClearIconVisibility('workoutNameInput','workoutNameClearIcon');
   clearNonLiveDraft();
+  clearNonLiveEditDraft();
   resetPrevPerfCopyState('nonlive');
   nlWorkoutQueue=[];clearNonLiveQueue();
   const qs=document.getElementById("nlQueueStrip");
@@ -12627,13 +12742,14 @@ async function loadWorkoutsForDate(){
   const breakdownRow=document.getElementById("workoutBreakdownRow");
   if(error||!data||data.length===0){con.innerHTML=`<p style="font-size:13px;color:var(--text-muted);text-align:center;padding:10px;font-family:var(--font-alt)">No workouts logged for this date.</p>`;if(breakdownRow)breakdownRow.style.display="none";renderWorkoutClassChipsRow(null,0,false);return}
   let html="",counter=1,classVolMap={},totalVolAll=0,anyEntry=false;
-  window._workoutCiMap={};
+  window._workoutCiMap={};window._workoutCiRawMap={};
   data.forEach(row=>{
     window.currentWorkoutRowObject=row;
     (sessionWorkoutsArray(row)).forEach((wEntry,arrIdx)=>{
       let cell=sessionWorkoutEntryToText(wEntry);if(!cell||cell.trim()==="")return;
       const ci=counter;
       window._workoutCiMap[ci]={rowCreatedAt:row.created_at,idx:arrIdx};
+      window._workoutCiRawMap[ci]=cell;
       anyEntry=true;
       let ename=cell,tags="",hasDuration=false,isCardioRow=false;if(cell.includes(":")){let pts=cell.split(":");ename=pts[0].trim();isCardioRow=isCardioExercise(ename);pts[1].trim().split(",").map(s=>s.trim()).filter(Boolean).forEach((s,si)=>{if(s.includes("["))hasDuration=true;tags+=`<span class="workout-tag${isCardioRow?' workout-tag-wide':''}">${formatSetTagLabel(s,si+1)}</span>`})}
       const tagGridClass=(isCardioRow||hasDuration)?"workout-tag-grid tag-grid-2col":"workout-tag-grid";
@@ -13311,6 +13427,7 @@ function initiateWorkoutEdit(e,ci,rv){
   } else {
     renderNonLiveSetsRows(parsedSets.map(ps=>ps.w),parsedSets.map(ps=>ps.r));
   }
+  saveNonLiveEditDraft();
 }
 
 /* Deletes one specific already-saved set from a non-live entry being edited, persists the change
@@ -13373,6 +13490,7 @@ async function deleteNonLiveSavedSet(i){
 /* State for live-edit mode — separate from the fresh live session state so they don't collide */
 let liveEditSlot=null,liveEditExistingResults=[],liveEditNewResults=[],liveEditTotalNewSets=0,liveEditCurrentNewSet=1;
 let liveEditSetTimers={},liveEditSetSeconds={},liveEditBreakTimers={},liveEditBreakSeconds={},liveEditBreakTotalSecs={};
+let liveEditSetTimerStartEpoch={},liveEditSetTimerAccumAtStart={},liveEditBreakStartEpoch={},liveEditBreakAccumAtStart={};
 /* Caches user-edited Kg/Reps for already-saved sets (both originally-saved and saved-this-session), keyed by absolute set number */
 let liveEditValueOverrides={};
 
@@ -13470,12 +13588,23 @@ function startLiveEditSession(ci,exerciseName,setsStr,segs){
   if(isBodyweightNoWeightExercise(exerciseName)&&liveEditExistingResults.some(seg=>parseFloat(parseSetSegment(seg).w)>0))bwKgRevealed.liveEditExisting=true;
 
   renderLiveEditSetsUI();
+  saveLiveEditDraft();
 }
 
 /* Renders the full live-edit UI: editable rows (with locked durations) for every already-saved
    set, an "Update Sets" button to persist Kg/Reps edits, and — only if the dropdown asks for
    more sets than are currently saved — the live timer/break flow for the next new set(s), exactly
    like adding a brand-new set in live mode. */
+/* Captures an uncommitted edit to an already-saved set's Kg/Reps the moment it's typed (rather than
+   lazily on the next full rebuild), and persists it — so "modify an existing set, then refresh"
+   survives even before the person taps Save Entry. */
+function handleLiveEditExistingInputChange(i){
+  const kgEl=document.getElementById(`liveEditExistKg_${i}`),repEl=document.getElementById(`liveEditExistReps_${i}`);
+  liveEditValueOverrides[i]=liveEditValueOverrides[i]||{};
+  if(kgEl)liveEditValueOverrides[i].w=kgEl.value;
+  if(repEl)liveEditValueOverrides[i].r=repEl.value;
+  saveLiveEditDraft();
+}
 function renderLiveEditSetsUI(){
   const container=document.getElementById("liveSetsContainer");if(!container)return;
 
@@ -13502,9 +13631,9 @@ function renderLiveEditSetsUI(){
     const w=ov.w!==undefined?ov.w:parsed.w,r=ov.r!==undefined?ov.r:parsed.r;
     const durTag=parsed.duration?`<span class="set-time-locked" title="Original duration is preserved and cannot be changed">⏱ ${parsed.duration}</span>`:'';
     const bwHidden=isBWExisting&&!bwKgRevealed.liveEditExisting;
-    const weightInputHtml=bwHidden?`<input type="number" id="liveEditExistKg_${i}" value="0" style="display:none">`:(isBWExisting?`<input type="number" placeholder="Kgs (optional)" id="liveEditExistKg_${i}" min="0" step="0.5" value="${w}" style="margin-top:0;padding:9px;flex:1">`:`<input type="number" placeholder="Kgs" id="liveEditExistKg_${i}" min="0.5" step="0.5" value="${w}" style="margin-top:0;padding:9px;flex:1">`);
+    const weightInputHtml=bwHidden?`<input type="number" id="liveEditExistKg_${i}" value="0" style="display:none">`:(isBWExisting?`<input type="number" placeholder="Kgs (optional)" id="liveEditExistKg_${i}" min="0" step="0.5" value="${w}" oninput="handleLiveEditExistingInputChange(${i})" style="margin-top:0;padding:9px;flex:1">`:`<input type="number" placeholder="Kgs" id="liveEditExistKg_${i}" min="0.5" step="0.5" value="${w}" oninput="handleLiveEditExistingInputChange(${i})" style="margin-top:0;padding:9px;flex:1">`);
     const bwIcon=(isBWExisting&&i===1)?bwInfoIconHtml('liveEditExisting'):'';
-    html+=`<div class="set-row" style="margin-top:8px" ontouchstart="nlSetSwipeStart(event)" ontouchend="nlSetSwipeEnd(event,${i})"><span onclick="toggleSetRowSelection(this)" style="cursor:pointer" title="Tap to show delete option">Set ${i}</span>${weightInputHtml}<input type="number" placeholder="Reps" id="liveEditExistReps_${i}" min="1" value="${r}" style="margin-top:0;padding:9px;flex:1">${bwIcon}${durTag}<button type="button" class="set-delete-btn" title="Delete this set" onclick="deleteLiveEditSavedSet(${i})">${ICON_DELETE}</button></div>`;
+    html+=`<div class="set-row" style="margin-top:8px" ontouchstart="nlSetSwipeStart(event)" ontouchend="nlSetSwipeEnd(event,${i})"><span onclick="toggleSetRowSelection(this)" style="cursor:pointer" title="Tap to show delete option">Set ${i}</span>${weightInputHtml}<input type="number" placeholder="Reps" id="liveEditExistReps_${i}" min="1" value="${r}" oninput="handleLiveEditExistingInputChange(${i})" style="margin-top:0;padding:9px;flex:1">${bwIcon}${durTag}<button type="button" class="set-delete-btn" title="Delete this set" onclick="deleteLiveEditSavedSet(${i})">${ICON_DELETE}</button></div>`;
   }
   html+=`<button class="workout-form-action-btn" id="liveEditSaveEntryBtn" onclick="updateLiveEditExistingSets()">💾 SAVE ENTRY</button>
   </div>`;
@@ -13535,6 +13664,7 @@ function handleLiveSetsCountSelectChange(){
     return;
   }
   renderLiveEditSetsUI();
+  saveLiveEditDraft();
 }
 
 /* Disables any "Set N" dropdown option below the currently-committed (saved) set count while
@@ -13590,7 +13720,7 @@ async function updateLiveEditExistingSets(){
   // Save & close, same as Save Entry — but only when there's no pending new-set slot still waiting to
   // be logged below (i.e. the sets-count dropdown wasn't raised above what's already saved). If new
   // sets are still pending, leave the form open so that live timer/break flow can be completed.
-  if(liveEditTotalNewSets===0)cancelLiveEditWorkout();
+  if(liveEditTotalNewSets===0)cancelLiveEditWorkout();else saveLiveEditDraft();
   } finally {
     window._savingLiveEditUpdate=false;
     const _saveBtnGuardEnd=document.getElementById("liveEditSaveEntryBtn");if(_saveBtnGuardEnd)_saveBtnGuardEnd.disabled=false;
@@ -13633,6 +13763,7 @@ async function deleteLiveEditSavedSet(i){
   if(sel)sel.value=String(newCommitted.length);
   showToast(`🗑 Set ${i} deleted`);
   renderLiveEditSetsUI();
+  saveLiveEditDraft();
   await loadWorkoutsForDate();
 }
 
@@ -13649,13 +13780,13 @@ function buildLiveEditSetHTML(idx,active){
   const isBW=isBodyweightNoWeightExercise(document.getElementById("liveWorkoutNameInput")?.value.trim());
   const copyBtn=`<button class="live-copy-prev-btn" id="liveEditCopyPrevBtn_${idx}" onclick="liveEditCopyFromPrevSet(${idx})" title="Auto-fill from the previous set's values">${ICON_COPY} Copy from previous set</button>`;
   const bwHidden=isBW&&!bwKgRevealed.liveEditNew;
-  const weightInputHtml=bwHidden?`<input type="number" id="liveEditKg_${idx}" value="0" style="display:none">`:(isBW?`<input type="number" id="liveEditKg_${idx}" placeholder="Kgs (optional)" min="0" step="0.5" style="margin-top:0;padding:9px">`:`<input type="number" id="liveEditKg_${idx}" placeholder="Kgs" min="0.5" step="0.5" style="margin-top:0;padding:9px">`);
+  const weightInputHtml=bwHidden?`<input type="number" id="liveEditKg_${idx}" value="0" style="display:none">`:(isBW?`<input type="number" id="liveEditKg_${idx}" placeholder="Kgs (optional)" min="0" step="0.5" oninput="saveLiveEditDraft()" style="margin-top:0;padding:9px">`:`<input type="number" id="liveEditKg_${idx}" placeholder="Kgs" min="0.5" step="0.5" oninput="saveLiveEditDraft()" style="margin-top:0;padding:9px">`);
   const bwIcon=(isBW&&displayIdx===1)?bwInfoIconHtml('liveEditNew'):'';
   return `<div class="live-set-block${active?' set-active':''}" id="liveEditSetBlock_${idx}">
     <div class="live-set-header"><span class="live-set-title">NEW SET ${displayIdx}</span><span class="live-set-done-badge" id="liveEditSetDoneBadge_${idx}" style="display:none">✓ DONE</span></div>
     <div class="live-set-inputs" id="liveEditSetInputs_${idx}" ${!active?'style="opacity:0.4;pointer-events:none"':''}>
       ${weightInputHtml}
-      <input type="number" id="liveEditReps_${idx}" placeholder="Reps" min="1" style="margin-top:0;padding:9px">
+      <input type="number" id="liveEditReps_${idx}" placeholder="Reps" min="1" oninput="saveLiveEditDraft()" style="margin-top:0;padding:9px">
       ${bwIcon}
       ${copyBtn}
     </div>
@@ -13692,10 +13823,22 @@ function buildLiveEditSetHTML(idx,active){
 
 function toggleLiveEditSetTimer(idx){
   const btn=document.getElementById(`liveEditTimerBtn_${idx}`);
-  if(liveEditSetTimers[idx]){clearInterval(liveEditSetTimers[idx]);delete liveEditSetTimers[idx];btn.textContent="▶";btn.className="live-timer-btn start";document.getElementById(`liveEditSetSaveBtn_${idx}`).style.display="block"}
+  if(liveEditSetTimers[idx]){
+    liveEditSetSeconds[idx]=(liveEditSetTimerAccumAtStart[idx]||0)+Math.floor((Date.now()-(liveEditSetTimerStartEpoch[idx]||Date.now()))/1000);
+    clearInterval(liveEditSetTimers[idx]);delete liveEditSetTimers[idx];btn.textContent="▶";btn.className="live-timer-btn start";document.getElementById(`liveEditSetSaveBtn_${idx}`).style.display="block";
+    saveLiveEditDraft();
+  }
   else{
-    if(!liveEditSetSeconds[idx])liveEditSetSeconds[idx]=0;btn.textContent="⏹";btn.className="live-timer-btn stop";document.getElementById(`liveEditSetSaveBtn_${idx}`).style.display="none";
-    liveEditSetTimers[idx]=setInterval(()=>{liveEditSetSeconds[idx]++;let m=Math.floor(liveEditSetSeconds[idx]/60),s=liveEditSetSeconds[idx]%60;document.getElementById(`liveEditTimerDisplay_${idx}`).textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0')},1000);
+    if(!liveEditSetSeconds[idx])liveEditSetSeconds[idx]=0;
+    liveEditSetTimerAccumAtStart[idx]=liveEditSetSeconds[idx];liveEditSetTimerStartEpoch[idx]=Date.now();
+    btn.textContent="⏹";btn.className="live-timer-btn stop";document.getElementById(`liveEditSetSaveBtn_${idx}`).style.display="none";
+    liveEditSetTimers[idx]=setInterval(()=>{
+      liveEditSetSeconds[idx]=(liveEditSetTimerAccumAtStart[idx]||0)+Math.floor((Date.now()-liveEditSetTimerStartEpoch[idx])/1000);
+      let m=Math.floor(liveEditSetSeconds[idx]/60),s=liveEditSetSeconds[idx]%60;
+      document.getElementById(`liveEditTimerDisplay_${idx}`).textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+      saveLiveEditDraft();
+    },1000);
+    saveLiveEditDraft();
   }
 }
 
@@ -13711,7 +13854,10 @@ async function saveLiveEditSet(idx){
   const displayIdx=liveEditExistingResults.length+liveEditNewResults.length+1;
   if(isBW){if(reps<1){alert(`Set ${displayIdx}: Please enter Reps before saving.`);return}}
   else if(kg<0.5||reps<1){alert(`Set ${displayIdx}: Please enter Kgs and Reps before saving.`);return}
-  if(liveEditSetTimers[idx]){clearInterval(liveEditSetTimers[idx]);delete liveEditSetTimers[idx]}
+  if(liveEditSetTimers[idx]){
+    liveEditSetSeconds[idx]=(liveEditSetTimerAccumAtStart[idx]||0)+Math.floor((Date.now()-(liveEditSetTimerStartEpoch[idx]||Date.now()))/1000);
+    clearInterval(liveEditSetTimers[idx]);delete liveEditSetTimers[idx];
+  }
   let secs=liveEditSetSeconds[idx]||0;let timeLabel=secs===0?"0 sec":secs<60?`${secs} sec`:secs%60>0?`${Math.floor(secs/60)} min ${secs%60} sec`:`${Math.floor(secs/60)} min`;
   let setStr=`${kg}Kg x ${reps} [${timeLabel}]`;liveEditNewResults.push(setStr);
 
@@ -13752,6 +13898,7 @@ async function saveLiveEditSet(idx){
     renderLiveEditSetsUI();
   }
   await loadWorkoutsForDate();await syncCoreDashboardMetrics();
+  saveLiveEditDraft();
   } finally {
     window._savingLiveEditSet=false;
     const _saveBtnGuardEnd=document.getElementById(`liveEditSetSaveBtn_${idx}`);if(_saveBtnGuardEnd)_saveBtnGuardEnd.disabled=false;
@@ -13760,13 +13907,14 @@ async function saveLiveEditSet(idx){
 
 function skipLiveEditBreak(idx){
   if(liveEditBreakTimers[idx]){clearInterval(liveEditBreakTimers[idx]);delete liveEditBreakTimers[idx]}
-  delete liveEditBreakTotalSecs[idx];
+  delete liveEditBreakTotalSecs[idx];delete liveEditBreakStartEpoch[idx];delete liveEditBreakAccumAtStart[idx];
   releaseBreakWakeLock();
   const autoSkipBtn=document.getElementById(`liveEditBreakAutoSkip_${idx}`);if(autoSkipBtn)autoSkipBtn.style.display="none";
   const editBtn=document.getElementById(`liveEditBreakEditBtn_${idx}`);if(editBtn)editBtn.style.display="none";
   const editPanel=document.getElementById(`liveEditBreakEditPanel_${idx}`);if(editPanel)editPanel.style.display="none";
   document.getElementById(`liveEditBreakRow_${idx}`).style.display="none";
   activateNextLiveEditSet(idx+1);
+  saveLiveEditDraft();
 }
 
 function startLiveEditBreak(idx,forcedSecs){
@@ -13775,11 +13923,13 @@ function startLiveEditBreak(idx,forcedSecs){
   let timerEl=document.getElementById(`liveEditBreakTimer_${idx}`),msgEl=document.getElementById(`liveEditBreakMsg_${idx}`);
   timerEl.style.display="block";msgEl.style.display="none";
   liveEditBreakSeconds[idx]=0;liveEditBreakTotalSecs[idx]=totalSecs;
+  liveEditBreakAccumAtStart[idx]=0;liveEditBreakStartEpoch[idx]=Date.now();
   acquireBreakWakeLock();
   const editBtn=document.getElementById(`liveEditBreakEditBtn_${idx}`);
   if(editBtn)editBtn.style.display=forcedSecs!==undefined?"inline-flex":"none";
   const editPanel=document.getElementById(`liveEditBreakEditPanel_${idx}`);if(editPanel)editPanel.style.display="none";
   runLiveEditBreakInterval(idx);
+  saveLiveEditDraft();
 }
 
 function runLiveEditBreakInterval(idx){
@@ -13787,9 +13937,11 @@ function runLiveEditBreakInterval(idx){
   const editBtn=document.getElementById(`liveEditBreakEditBtn_${idx}`),editPanel=document.getElementById(`liveEditBreakEditPanel_${idx}`);
   if(liveEditBreakTimers[idx]){clearInterval(liveEditBreakTimers[idx])}
   liveEditBreakTimers[idx]=setInterval(()=>{
-    liveEditBreakSeconds[idx]++;let rem=liveEditBreakTotalSecs[idx]-liveEditBreakSeconds[idx];
-    if(rem<=0){clearInterval(liveEditBreakTimers[idx]);delete liveEditBreakTimers[idx];delete liveEditBreakTotalSecs[idx];timerEl.textContent="00:00";msgEl.textContent="🔔 Break over! Time to crush the next set!";msgEl.style.display="block";timerEl.style.display="none";if(editBtn)editBtn.style.display="none";if(editPanel)editPanel.style.display="none";releaseBreakWakeLock();playConfiguredBreakSound();setTimeout(()=>{document.getElementById(`liveEditBreakRow_${idx}`).style.display="none";activateNextLiveEditSet(idx+1)},1500);return}
+    liveEditBreakSeconds[idx]=(liveEditBreakAccumAtStart[idx]||0)+Math.floor((Date.now()-liveEditBreakStartEpoch[idx])/1000);
+    let rem=liveEditBreakTotalSecs[idx]-liveEditBreakSeconds[idx];
+    if(rem<=0){clearInterval(liveEditBreakTimers[idx]);delete liveEditBreakTimers[idx];delete liveEditBreakTotalSecs[idx];delete liveEditBreakStartEpoch[idx];delete liveEditBreakAccumAtStart[idx];timerEl.textContent="00:00";msgEl.textContent="🔔 Break over! Time to crush the next set!";msgEl.style.display="block";timerEl.style.display="none";if(editBtn)editBtn.style.display="none";if(editPanel)editPanel.style.display="none";releaseBreakWakeLock();playConfiguredBreakSound();saveLiveEditDraft();setTimeout(()=>{document.getElementById(`liveEditBreakRow_${idx}`).style.display="none";activateNextLiveEditSet(idx+1)},1500);return}
     let m=Math.floor(rem/60),s=rem%60;timerEl.textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+    saveLiveEditDraft();
   },1000);
 }
 
@@ -13798,15 +13950,23 @@ function toggleEditBreakPanelForEdit(idx){
   const msgEl=document.getElementById(`liveEditBreakMsg_${idx}`);
   const opening=panel.style.display==="none"||!panel.style.display;
   if(opening){
-    if(liveEditBreakTimers[idx]){clearInterval(liveEditBreakTimers[idx]);delete liveEditBreakTimers[idx]}
+    if(liveEditBreakTimers[idx]){
+      liveEditBreakSeconds[idx]=(liveEditBreakAccumAtStart[idx]||0)+Math.floor((Date.now()-liveEditBreakStartEpoch[idx])/1000);
+      clearInterval(liveEditBreakTimers[idx]);delete liveEditBreakTimers[idx];
+    }
     const baseSecs=getDefaultBreakSeconds();
     mountMinSecPicker(`liveEditBreakEditPickerMount_${idx}`,`liveEditBreakEdit_${idx}`,Math.floor(baseSecs/60),baseSecs%60);
     if(msgEl){msgEl.textContent="⏸ Break paused";msgEl.style.display="block"}
     panel.style.display="block";
+    saveLiveEditDraft();
   } else {
     if(msgEl){msgEl.style.display="none";msgEl.textContent=""}
     panel.style.display="none";
-    if(liveEditBreakTotalSecs[idx]!==undefined)runLiveEditBreakInterval(idx);
+    if(liveEditBreakTotalSecs[idx]!==undefined){
+      liveEditBreakAccumAtStart[idx]=liveEditBreakSeconds[idx]||0;liveEditBreakStartEpoch[idx]=Date.now();
+      runLiveEditBreakInterval(idx);
+      saveLiveEditDraft();
+    }
   }
 }
 
@@ -13815,12 +13975,14 @@ function applyBreakTimeEditForEdit(idx){
   const newSecs=getPickerSeconds(`liveEditBreakEdit_${idx}`);
   if(newSecs<1){alert("Pick a break time greater than 0 seconds — or use Skip Break to move on.");return}
   liveEditBreakTotalSecs[idx]=newSecs;liveEditBreakSeconds[idx]=0;
+  liveEditBreakAccumAtStart[idx]=0;liveEditBreakStartEpoch[idx]=Date.now();
   const timerEl=document.getElementById(`liveEditBreakTimer_${idx}`);
   if(timerEl){timerEl.style.display="block";let m=Math.floor(newSecs/60),s=newSecs%60;timerEl.textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0')}
   const msgEl=document.getElementById(`liveEditBreakMsg_${idx}`);if(msgEl){msgEl.style.display="none";msgEl.textContent=""}
   document.getElementById(`liveEditBreakEditPanel_${idx}`).style.display="none";
   showToast(`⏱ Break set to ${formatMinSec(newSecs)} for this set only`);
   runLiveEditBreakInterval(idx);
+  saveLiveEditDraft();
 }
 
 function activateNextLiveEditSet(idx){
@@ -13839,9 +14001,11 @@ function cancelLiveEditWorkout(){
   Object.values(liveEditSetTimers).forEach(t=>clearInterval(t));
   Object.values(liveEditBreakTimers).forEach(t=>clearInterval(t));
   liveEditSetTimers={};liveEditSetSeconds={};liveEditBreakTimers={};liveEditBreakSeconds={};liveEditBreakTotalSecs={};
+  liveEditSetTimerStartEpoch={};liveEditSetTimerAccumAtStart={};liveEditBreakStartEpoch={};liveEditBreakAccumAtStart={};
   releaseBreakWakeLock();
   liveEditSlot=null;liveEditExistingResults=[];liveEditNewResults=[];liveEditTotalNewSets=0;liveEditValueOverrides={};
   window._liveEditMode=false;
+  clearLiveEditDraft();
   applyLiveSetsCountMinConstraint();
   // Reset name input readonly
   const nameInput=document.getElementById("liveWorkoutNameInput");
@@ -13854,6 +14018,150 @@ function cancelLiveEditWorkout(){
   document.getElementById("initialWorkoutBox").style.display="block";
   resetPrevPerfCopyState('live');
   closeWorkoutEditOverlay();
+}
+
+/* ===================== LIVE EDIT DRAFT (survives refresh, tab switch, app close/reopen) =====================
+   Persists an in-progress edit of an already-saved LIVE entry: which entry (via the stable
+   {rowCreatedAt,idx} slot reference, same identity scheme as the non-live edit draft), any
+   not-yet-saved Kg/Reps typed into a new set row (plus its stopwatch, running or paused, tracked via
+   wall-clock epoch), any not-yet-saved edits to already-committed sets' Kg/Reps, the sets-count
+   dropdown's current value (which drives how many "new set" rows exist), and a running break timer
+   between two new sets. Anything already individually saved via 💾 SAVE SET or 💾 SAVE ENTRY is safe
+   in the database regardless — restoring simply re-derives the committed sets fresh from there, so
+   only genuinely-unsaved, in-progress state needs to travel through this draft. */
+function getLiveEditDraftKey(){return `gymbro_live_editdraft_${getEffectiveUid()}`}
+function saveLiveEditDraft(){
+  if(!window._liveEditMode||!liveEditSlot)return;
+  const name=(document.getElementById("liveWorkoutNameInput")?.value||'').trim();
+  const td=document.getElementById("workoutCalendarFilter")?.value||getLocalDateString();
+  const desiredTotal=Math.max(parseInt(document.getElementById("liveSetsCountSelect")?.value)||1,1);
+  const newSets={};
+  for(let idx=1;idx<=liveEditTotalNewSets;idx++){
+    const kgEl=document.getElementById(`liveEditKg_${idx}`);if(!kgEl)continue;
+    const repsEl=document.getElementById(`liveEditReps_${idx}`);
+    const running=!!liveEditSetTimers[idx];
+    newSets[idx]={
+      kg:kgEl.value||'',reps:repsEl?repsEl.value:'',
+      timerRunning:running,
+      timerAccumulated:running?((liveEditSetTimerAccumAtStart[idx]||0)+Math.floor((Date.now()-(liveEditSetTimerStartEpoch[idx]||Date.now()))/1000)):(liveEditSetSeconds[idx]||0),
+      timerStartEpoch:running?(liveEditSetTimerStartEpoch[idx]||Date.now()):null
+    };
+  }
+  let liveBreak=null;
+  const brIdxKey=Object.keys(liveEditBreakTotalSecs)[0];
+  if(brIdxKey!==undefined){
+    const brIdx=parseInt(brIdxKey);
+    const running=!!liveEditBreakTimers[brIdx];
+    const editBtnEl=document.getElementById(`liveEditBreakEditBtn_${brIdx}`);
+    const isAuto=!!(editBtnEl&&editBtnEl.style.display==="inline-flex");
+    liveBreak={
+      idx:brIdx,total:liveEditBreakTotalSecs[brIdx],running,auto:isAuto,
+      accumulated:running?((liveEditBreakAccumAtStart[brIdx]||0)+Math.floor((Date.now()-(liveEditBreakStartEpoch[brIdx]||Date.now()))/1000)):(liveEditBreakSeconds[brIdx]||0),
+      startEpoch:running?(liveEditBreakStartEpoch[brIdx]||Date.now()):null
+    };
+  }
+  const draft={
+    date:td,slotRef:liveEditSlot,name,desiredTotal,
+    valueOverrides:Object.assign({},liveEditValueOverrides),
+    newSets,liveBreak,
+    bwRevealedExisting:!!bwKgRevealed.liveEditExisting,
+    bwRevealedNew:!!bwKgRevealed.liveEditNew
+  };
+  try{localStorage.setItem(getLiveEditDraftKey(),JSON.stringify(draft))}catch(e){}
+}
+function loadLiveEditDraft(){
+  try{return JSON.parse(localStorage.getItem(getLiveEditDraftKey())||'null')}catch(e){return null}
+}
+function clearLiveEditDraft(){
+  try{localStorage.removeItem(getLiveEditDraftKey())}catch(e){}
+}
+/* Resolves a restored live-edit draft back to the current ci for this date (same slotRef-matching
+   approach as restoreNonLiveEditDraftIfAny), then rebuilds committed sets fresh from the DB before
+   layering the not-yet-saved overrides/new-set/break state from the draft back on top. */
+async function restoreLiveEditDraftIfAny(){
+  const draft=loadLiveEditDraft();
+  if(!draft||!draft.slotRef)return false;
+  const dateEl=document.getElementById("workoutCalendarFilter");
+  if(dateEl&&draft.date)dateEl.value=draft.date;
+  await loadWorkoutsForDate(); // populates window._workoutCiMap/window._workoutCiRawMap for this date
+  const ciMap=window._workoutCiMap||{};
+  let foundCi=null;
+  Object.keys(ciMap).forEach(ci=>{
+    const ref=ciMap[ci];
+    if(ref&&ref.rowCreatedAt===draft.slotRef.rowCreatedAt&&ref.idx===draft.slotRef.idx)foundCi=parseInt(ci);
+  });
+  if(foundCi===null){clearLiveEditDraft();return false} // entry no longer exists — nothing to restore
+  const rv=window._workoutCiRawMap&&window._workoutCiRawMap[foundCi];
+  if(!rv){clearLiveEditDraft();return false}
+  let en=rv,ss="";
+  if(rv.includes(":")){let p=rv.indexOf(":");en=rv.substring(0,p).trim();ss=rv.substring(p+1).trim()}
+  let segs=ss.split(",").map(s=>s.trim()).filter(Boolean);
+
+  startLiveEditSession(foundCi,en,ss,segs); // re-derives committed sets fresh from the DB, opens the overlay
+  if(draft.bwRevealedExisting)bwKgRevealed.liveEditExisting=true;
+  if(draft.bwRevealedNew)bwKgRevealed.liveEditNew=true;
+  liveEditValueOverrides=Object.assign({},draft.valueOverrides||{});
+
+  const countSel=document.getElementById("liveSetsCountSelect");
+  if(countSel&&draft.desiredTotal)countSel.value=String(Math.max(draft.desiredTotal,liveEditExistingResults.length));
+  renderLiveEditSetsUI(); // re-render honoring the restored reveal flags, overrides, and desired total
+
+  // Re-populate any not-yet-saved new-set rows (Kg/Reps typed, stopwatch running or paused)
+  Object.keys(draft.newSets||{}).forEach(k=>{
+    const idx=parseInt(k),s=draft.newSets[k];
+    const kgEl=document.getElementById(`liveEditKg_${idx}`),repEl=document.getElementById(`liveEditReps_${idx}`);
+    if(kgEl)kgEl.value=s.kg||'';
+    if(repEl)repEl.value=s.reps||'';
+    if(s.timerRunning){
+      const elapsed=(s.timerAccumulated||0)+Math.floor((Date.now()-(s.timerStartEpoch||Date.now()))/1000);
+      liveEditSetSeconds[idx]=elapsed;liveEditSetTimerAccumAtStart[idx]=elapsed;liveEditSetTimerStartEpoch[idx]=Date.now();
+      const btn=document.getElementById(`liveEditTimerBtn_${idx}`);
+      if(btn){btn.textContent="⏹";btn.className="live-timer-btn stop"}
+      const saveBtn=document.getElementById(`liveEditSetSaveBtn_${idx}`);if(saveBtn)saveBtn.style.display="none";
+      const dispEl=document.getElementById(`liveEditTimerDisplay_${idx}`);
+      if(dispEl){const m=Math.floor(elapsed/60),sec=elapsed%60;dispEl.textContent=String(m).padStart(2,'0')+':'+String(sec).padStart(2,'0')}
+      liveEditSetTimers[idx]=setInterval(()=>{
+        liveEditSetSeconds[idx]=(liveEditSetTimerAccumAtStart[idx]||0)+Math.floor((Date.now()-liveEditSetTimerStartEpoch[idx])/1000);
+        const m=Math.floor(liveEditSetSeconds[idx]/60),sec2=liveEditSetSeconds[idx]%60;
+        const d2=document.getElementById(`liveEditTimerDisplay_${idx}`);if(d2)d2.textContent=String(m).padStart(2,'0')+':'+String(sec2).padStart(2,'0');
+        saveLiveEditDraft();
+      },1000);
+    } else if(s.timerAccumulated){
+      liveEditSetSeconds[idx]=s.timerAccumulated;
+      const dispEl=document.getElementById(`liveEditTimerDisplay_${idx}`);
+      if(dispEl){const m=Math.floor(s.timerAccumulated/60),sec=s.timerAccumulated%60;dispEl.textContent=String(m).padStart(2,'0')+':'+String(sec).padStart(2,'0');dispEl.style.display="inline"}
+    }
+  });
+
+  // Restore a running/paused break (between two new sets) if one was active
+  if(draft.liveBreak){
+    const{idx,total,running,auto,accumulated,startEpoch}=draft.liveBreak;
+    const row=document.getElementById(`liveEditBreakRow_${idx}`);
+    if(row){
+      row.style.display="block";
+      const timerEl=document.getElementById(`liveEditBreakTimer_${idx}`),msgEl=document.getElementById(`liveEditBreakMsg_${idx}`);
+      const titleEl=document.getElementById(`liveEditBreakTitle_${idx}`),inputsRow=document.getElementById(`liveEditBreakInputsRow_${idx}`),autoSkipBtn=document.getElementById(`liveEditBreakAutoSkip_${idx}`);
+      if(titleEl)titleEl.textContent=auto?"⏸ BREAK TIME (auto)":"⏸ BREAK TIME (optional)";
+      if(inputsRow)inputsRow.style.display=auto?"none":"flex";
+      if(autoSkipBtn)autoSkipBtn.style.display=auto?"inline-block":"none";
+      const elapsedNow=running?(accumulated+Math.floor((Date.now()-startEpoch)/1000)):accumulated;
+      const remNow=Math.max(total-elapsedNow,0);
+      liveEditBreakTotalSecs[idx]=total;
+      if(remNow<=0){
+        // Break already finished while away — fire the same completion path (minus the sound/wake-lock churn).
+        if(timerEl){timerEl.textContent="00:00";timerEl.style.display="none"}
+        if(msgEl){msgEl.textContent="🔔 Break over! Time to crush the next set!";msgEl.style.display="block"}
+        delete liveEditBreakTotalSecs[idx];
+        setTimeout(()=>{if(row)row.style.display="none";activateNextLiveEditSet(idx+1)},400);
+      } else {
+        liveEditBreakAccumAtStart[idx]=elapsedNow;liveEditBreakStartEpoch[idx]=Date.now();liveEditBreakSeconds[idx]=elapsedNow;
+        if(timerEl){timerEl.style.display="block";const m=Math.floor(remNow/60),sec=remNow%60;timerEl.textContent=String(m).padStart(2,'0')+':'+String(sec).padStart(2,'0')}
+        if(msgEl)msgEl.style.display="none";
+        runLiveEditBreakInterval(idx);
+      }
+    }
+  }
+  return true;
 }
 async function triggerWorkoutDelete(e,ci){
   e.stopPropagation();
