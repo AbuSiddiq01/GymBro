@@ -10593,7 +10593,13 @@ function loadNonLiveFormEntry(entry){
   window._selectedWorkoutEquipment=getExerciseEquipment(entry.name||'')!=='Unknown'?getExerciseEquipment(entry.name||''):null;
   _updateInlineClassBtn('workoutNameInput','_inlineClassBtnNonLive','nonlive');
   _updateInlineEquipBtn('workoutNameInput','_inlineEquipBtnNonLive','nonlive');
-  document.getElementById("prevPerfBadgeNonLive").classList.remove("visible");
+  // Previous Performance is looked up live from the DB per exercise name and isn't part of the
+  // queued entry's own saved data, so switching to this chip (or restoring it after a refresh)
+  // needs a fresh lookup — otherwise the badge stayed blank until the name box was touched again.
+  // Covers every set format (Kg-Reps, Reps only, Reps with Kg, Km-Time) since fetchPrevPerformance
+  // already handles all of them the same way for both modes.
+  if(entry.name)fetchPrevPerformance(entry.name,'nonlive');
+  else document.getElementById("prevPerfBadgeNonLive").classList.remove("visible");
   checkQuickFillVisibility();
   resetNlCopyAllState();
   updateTrackWorkoutBtnVisibility('nonlive');
@@ -10850,15 +10856,22 @@ async function restoreInProgressWorkoutFormIfAny(wasRefresh){
       if(isBodyweightNoWeightExercise((nlDraft.name||'').trim())&&nlDraft.sets.some(s=>parseFloat(s.w)>0))bwKgRevealed.nonlive=true;
       renderNonLiveSetsRows(nlDraft.sets.map(s=>s.w),nlDraft.sets.map(s=>s.r),nlDraft.sets.map(s=>s.locked),nlDraft.sets.map(s=>s.km),nlDraft.sets.map(s=>s.min),nlDraft.sets.map(s=>s.sec));
       restoreNlCardioTimers(nlDraft.sets);
+      // Previous Performance is looked up live from the DB and was never part of the persisted
+      // draft, so a refresh (or tab-switch/app-resume triggering this same restore path) left the
+      // badge blank until the name box was touched again. Re-run the lookup here, same as Live
+      // Mode's restoreLiveSessionUI/restoreLiveSetupUI already do, so it reappears automatically —
+      // for every set format (Kg-Reps, Reps only, Reps with Kg, Km-Time), since fetchPrevPerformance
+      // itself already handles all of them identically for both modes.
+      if(nlDraft.name)fetchPrevPerformance(nlDraft.name,'nonlive');
     } else if(nlWorkoutQueue.length){
       // No current draft, but queued entries survived — pull the first one back into the form.
       const first=nlWorkoutQueue.shift();
-      loadNonLiveFormEntry(first);
+      loadNonLiveFormEntry(first); // re-fetches Previous Performance for `first.name` itself
       saveNonLiveQueue();
     } else {
       document.getElementById("setsCountSelect").value="1";buildSetsInputFields();
+      document.getElementById("prevPerfBadgeNonLive").classList.remove("visible"); // truly nothing to restore — no name, nothing to look up
     }
-    document.getElementById("prevPerfBadgeNonLive").classList.remove("visible");
     checkQuickFillVisibility();
     resetNlCopyAllState();
     updateTrackWorkoutBtnVisibility('nonlive');
@@ -11742,11 +11755,17 @@ function showAddWorkoutForm(){
       document.getElementById("workoutNameInput").value=draft.name||"";
       document.getElementById("setsCountSelect").value=String(draft.setsCount||draft.sets.length||1);
       renderNonLiveSetsRows(draft.sets.map(s=>s.w),draft.sets.map(s=>s.r),draft.sets.map(s=>s.locked),draft.sets.map(s=>s.km),draft.sets.map(s=>s.min),draft.sets.map(s=>s.sec));
+      restoreNlCardioTimers(draft.sets);
+      // Same as Live Mode's restore path: Previous Performance is looked up live from the DB and
+      // was never part of the persisted draft, so re-run the lookup now that the name is back in
+      // the box — covers every set format (Kg-Reps, Reps only, Reps with Kg, Km-Time) since
+      // fetchPrevPerformance itself already handles all of them the same way for both modes.
+      if(draft.name)fetchPrevPerformance(draft.name,'nonlive');
       showToast('🔄 Restored your entry from before the refresh.');
     } else {
       document.getElementById("setsCountSelect").value="1";buildSetsInputFields();
+      document.getElementById("prevPerfBadgeNonLive").classList.remove("visible"); // truly nothing to restore
     }
-    document.getElementById("prevPerfBadgeNonLive").classList.remove("visible");
     resetPrevPerfCopyState('nonlive');
     document.getElementById("quickFillCopyAllBtn").classList.remove("visible");
     resetNlCopyAllState();
@@ -18131,4 +18150,4 @@ function closeLearnVideo(){
 
 </script>
 </body>
-</html>
+</html> 
