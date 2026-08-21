@@ -2031,6 +2031,14 @@ body.tracker-fs-lock{overflow:hidden}
 .fm-hms-sep{font-family:var(--font-display);font-size:20px;color:var(--text-primary);z-index:1;align-self:flex-start;margin-top:38px}
 .fm-hms-typed{display:flex;align-items:center;justify-content:center;gap:4px}
 .fm-hms-typed input{width:34px;padding:5px 2px;text-align:center;border-radius:7px;border:1px solid var(--border-col);background:var(--bg-panel);color:var(--text-primary);font-family:var(--font-alt);font-weight:700;font-size:13px}
+
+/* ---- Drag-to-close drop zone: appears bottom-center while dragging ANY floating-menu object
+   (launcher, timer/stopwatch full panel, timer/stopwatch minimized bubble) — release over it to
+   close that widget, same as tapping its own Close button. ---- */
+.fm-close-zone{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) scale(.5);width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,#dc2626,#b91c1c);box-shadow:0 8px 24px rgba(220,38,38,.45);display:flex;align-items:center;justify-content:center;z-index:99992;opacity:0;pointer-events:none;transition:opacity .18s ease,transform .18s cubic-bezier(0.34,1.56,0.64,1),background .15s ease,box-shadow .15s ease}
+.fm-close-zone svg{width:24px;height:24px;stroke:#fff}
+.fm-close-zone.fm-cz-visible{opacity:1;transform:translateX(-50%) scale(1)}
+.fm-close-zone.fm-cz-armed{transform:translateX(-50%) scale(1.28);background:linear-gradient(135deg,#ef4444,#991b1b);box-shadow:0 10px 32px rgba(239,68,68,.65)}
 </style>
 </head>
 <body>
@@ -17536,7 +17544,7 @@ function closeLearnVideo(){
   }
 
   /* ---------- DOM roots, built once ---------- */
-  let fmRoot,launcherEl,timerEl,swEl;
+  let fmRoot,launcherEl,timerEl,swEl,closeZoneEl;
   function buildRoot(){
     if(fmRoot)return;
     fmRoot=document.createElement('div');
@@ -17545,15 +17553,17 @@ function closeLearnVideo(){
       <div class="fm-widget" id="fmLauncherWidget" style="display:none"></div>
       <div class="fm-widget" id="fmTimerWidget" style="display:none"></div>
       <div class="fm-widget" id="fmSwWidget" style="display:none"></div>
+      <div class="fm-close-zone" id="fmCloseZone">${CLOSE_SVG}</div>
     `;
     document.body.appendChild(fmRoot);
     launcherEl=document.getElementById('fmLauncherWidget');
     timerEl=document.getElementById('fmTimerWidget');
     swEl=document.getElementById('fmSwWidget');
+    closeZoneEl=document.getElementById('fmCloseZone');
   }
 
   /* ---------- Gesture detection (double-tap / triple-tap / long-press) ---------- */
-  let tapTimestamps=[],longPressTimer=null,longPressFired=false,downX=0,downY=0;
+  let tapTimestamps=[],longPressTimer=null,longPressFired=false,downX=0,downY=0,lastRevealTs=0;
   function insideFM(el){return !!(el&&el.closest&&el.closest('.fm-root'))}
 
   function onPointerDown(e){
@@ -17604,8 +17614,22 @@ function closeLearnVideo(){
      need their own taps/scrolls to keep working normally even though they sit inside a now-
      draggable panel. */
   const DRAG_EXCLUDE_SEL='button,input,.minsec-scroll-list,.minsec-scroll-item,.minsec-type-input';
-  function attachDrag(handleEl,widgetEl,onDragEnd){
-    let dragging=false,startPX=0,startPY=0,startLeft=0,startTop=0,moved=false;
+  /* Bottom-center "drag here to close" drop zone, shared by every floating-menu object
+     (launcher, timer/stopwatch full panel, timer/stopwatch minimized bubble). */
+  function showCloseZone(){if(closeZoneEl)closeZoneEl.classList.add('fm-cz-visible')}
+  function hideCloseZone(){if(closeZoneEl){closeZoneEl.classList.remove('fm-cz-visible');closeZoneEl.classList.remove('fm-cz-armed')}}
+  function setCloseZoneArmed(on){if(closeZoneEl)closeZoneEl.classList.toggle('fm-cz-armed',on)}
+  function isOverCloseZone(x,y){
+    if(!closeZoneEl)return false;
+    const r=closeZoneEl.getBoundingClientRect();
+    const cx=r.left+r.width/2,cy=r.top+r.height/2;
+    const HIT_RADIUS=64; // generous — bigger than the visible circle, easy to hit on mobile
+    return Math.hypot(x-cx,y-cy)<=HIT_RADIUS;
+  }
+  /* onClose (optional): if provided, dropping the widget over the bottom-center close zone
+     closes it (same effect as its own Close button) instead of just saving its new position. */
+  function attachDrag(handleEl,widgetEl,onDragEnd,onClose){
+    let dragging=false,startPX=0,startPY=0,startLeft=0,startTop=0,moved=false,armed=false;
     handleEl.addEventListener('pointerdown',e=>{
       // Only exclude nested controls (buttons/inputs/scroll-pickers) INSIDE the handle — never
       // the handle itself. Without the `!==handleEl` check, a handle that is itself a <button>
@@ -17613,7 +17637,7 @@ function closeLearnVideo(){
       // to start a drag at all, since it's excluding itself.
       const excluded=e.target&&e.target.closest&&e.target.closest(DRAG_EXCLUDE_SEL);
       if(excluded&&excluded!==handleEl)return; // let nested controls behave normally
-      dragging=true;moved=false;
+      dragging=true;moved=false;armed=false;
       startPX=e.clientX;startPY=e.clientY;
       const rect=widgetEl.getBoundingClientRect();
       startLeft=rect.left;startTop=rect.top;
@@ -17625,12 +17649,22 @@ function closeLearnVideo(){
       if(Math.abs(dx)>4||Math.abs(dy)>4)moved=true;
       const c=clampPosFor(widgetEl,startLeft+dx,startTop+dy);
       widgetEl.style.left=c.x+'px';widgetEl.style.top=c.y+'px';
+      if(onClose&&moved){
+        showCloseZone();
+        const wRect=widgetEl.getBoundingClientRect();
+        armed=isOverCloseZone(wRect.left+wRect.width/2,wRect.top+wRect.height/2);
+        setCloseZoneArmed(armed);
+      }
     });
     handleEl.addEventListener('pointerup',e=>{
       if(!dragging)return;
       dragging=false;
       const rect=widgetEl.getBoundingClientRect();
       if(moved)handleEl._fmSuppressClick=true;
+      if(onClose&&moved){
+        hideCloseZone();
+        if(armed){onClose();return} // dropped on the X — close instead of saving position
+      }
       onDragEnd(rect.left,rect.top,moved);
     });
   }
@@ -17648,6 +17682,14 @@ function closeLearnVideo(){
     saveJSON(K.launcher(),ui);
     launcherEl.style.display='block';
     launcherEl.classList.add('fm-appear');
+    // The launcher button is inserted into the DOM synchronously, at the exact tap coordinates,
+    // from inside the document-level pointerup handler that detected the gesture. The browser's
+    // own follow-up "click" event for that same tap fires AFTER pointerup, and re-hit-tests the
+    // page at those same coordinates — which can now land squarely on the button we just created,
+    // firing a ghost click that immediately expands the dropdown. lastRevealTs lets the button's
+    // click handler recognize and ignore that ghost click, so the gesture ONLY ever reveals the
+    // collapsed launcher icon — Timer/Stopwatch stay hidden until a real, deliberate tap.
+    lastRevealTs=Date.now();
     renderLauncher();
   }
   function closeLauncher(){
@@ -17687,9 +17729,10 @@ function closeLearnVideo(){
     attachDrag(btn,launcherEl,(left,top)=>{
       const cur=loadJSON(K.launcher(),defaultLauncher());
       cur.x=left;cur.y=top;saveJSON(K.launcher(),cur);
-    });
+    },closeLauncher);
     btn.addEventListener('click',()=>{
       if(btn._fmSuppressClick){btn._fmSuppressClick=false;return}
+      if(Date.now()-lastRevealTs<400)return; // swallow the ghost click right after a gesture-reveal
       toggleLauncherExpanded();
     });
     document.getElementById('fmLauncherCloseBtn').addEventListener('click',closeLauncher);
@@ -17804,7 +17847,7 @@ function closeLearnVideo(){
     if(tm.minimized){
       timerEl.innerHTML=`<div class="fm-bubble${finished?' fm-finished':''}" id="fmTmBubble"><span class="fm-bubble-time">${finished?"TIME'S UP":fmtCountdown(remain)}</span></div>`;
       const bubble=document.getElementById('fmTmBubble');
-      attachDrag(bubble,timerEl,(left,top)=>{const cur=loadJSON(K.tm(),defaultTM());cur.x=left;cur.y=top;saveJSON(K.tm(),cur)});
+      attachDrag(bubble,timerEl,(left,top)=>{const cur=loadJSON(K.tm(),defaultTM());cur.x=left;cur.y=top;saveJSON(K.tm(),cur)},closeTimerWidget);
       bubble.addEventListener('click',()=>{if(bubble._fmSuppressClick){bubble._fmSuppressClick=false;return}toggleTimerMinimized()});
       positionEl(timerEl,tm.x,tm.y);
       return;
@@ -17846,7 +17889,7 @@ function closeLearnVideo(){
     positionEl(timerEl,tm.x,tm.y);
     // Drag from anywhere on the panel now (not just the thin header strip) — attachDrag skips
     // buttons/inputs/scroll-pickers internally so those keep working normally.
-    attachDrag(document.getElementById('fmTmPanel'),timerEl,(left,top)=>{const cur=loadJSON(K.tm(),defaultTM());cur.x=left;cur.y=top;saveJSON(K.tm(),cur)});
+    attachDrag(document.getElementById('fmTmPanel'),timerEl,(left,top)=>{const cur=loadJSON(K.tm(),defaultTM());cur.x=left;cur.y=top;saveJSON(K.tm(),cur)},closeTimerWidget);
     document.getElementById('fmTmMinBtn').addEventListener('click',toggleTimerMinimized);
     document.getElementById('fmTmCloseBtn').addEventListener('click',closeTimerWidget);
 
@@ -17911,7 +17954,7 @@ function closeLearnVideo(){
     if(sw.minimized){
       swEl.innerHTML=`<div class="fm-bubble${atLimit?' fm-finished':''}" id="fmSwBubble"><span class="fm-bubble-time">${fmtHMS(elapsed)}</span></div>`;
       const bubble=document.getElementById('fmSwBubble');
-      attachDrag(bubble,swEl,(left,top)=>{const cur=loadJSON(K.sw(),defaultSW());cur.x=left;cur.y=top;saveJSON(K.sw(),cur)});
+      attachDrag(bubble,swEl,(left,top)=>{const cur=loadJSON(K.sw(),defaultSW());cur.x=left;cur.y=top;saveJSON(K.sw(),cur)},closeSwWidget);
       bubble.addEventListener('click',()=>{if(bubble._fmSuppressClick){bubble._fmSuppressClick=false;return}toggleSwMinimized()});
       positionEl(swEl,sw.x,sw.y);
       return;
@@ -17935,7 +17978,7 @@ function closeLearnVideo(){
       </div>`;
     positionEl(swEl,sw.x,sw.y);
     // Drag from anywhere on the panel now (not just the thin header strip).
-    attachDrag(document.getElementById('fmSwPanel'),swEl,(left,top)=>{const cur=loadJSON(K.sw(),defaultSW());cur.x=left;cur.y=top;saveJSON(K.sw(),cur)});
+    attachDrag(document.getElementById('fmSwPanel'),swEl,(left,top)=>{const cur=loadJSON(K.sw(),defaultSW());cur.x=left;cur.y=top;saveJSON(K.sw(),cur)},closeSwWidget);
     document.getElementById('fmSwMinBtn').addEventListener('click',toggleSwMinimized);
     document.getElementById('fmSwCloseBtn').addEventListener('click',closeSwWidget);
     document.getElementById('fmSwResetBtn').addEventListener('click',()=>{
@@ -18088,4 +18131,4 @@ function closeLearnVideo(){
 
 </script>
 </body>
-</html> 
+</html>
