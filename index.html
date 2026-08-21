@@ -5356,7 +5356,7 @@ function showBwInfoModal(mode){
 /* Shows/hides the Kg box on EVERY currently-rendered set in the given context, and remembers the
    choice (bwKgRevealed) so any new set rows added afterward (more sets picked, next live set
    started, etc.) also come up revealed/hidden to match — until toggled again or the entry resets. */
-function toggleBwKgForAllSets(mode,reveal){
+function toggleBwKgForAllSets(mode,reveal,silent){
   bwKgRevealed[mode]=reveal;
   const prefix=BW_KG_ID_PREFIX[mode];
   document.querySelectorAll(`input[id^="${prefix}"]`).forEach(el=>{
@@ -5369,6 +5369,10 @@ function toggleBwKgForAllSets(mode,reveal){
       el.value='0';
     }
   });
+  // `silent` is used when this reveal is a side-effect of another action (e.g. "Copy previous
+  // performance" auto-revealing the Kg box because the previous session logged a Kg value) — that
+  // action shows its own toast, so a second one here would just be noise.
+  if(silent)return;
   showToast(reveal?'✅ Optional Kg box added to every set — leave blank if you don\'t use extra weight.':'✅ Kg box removed from every set.');
 }
 /* ===================== MUSCLE / EQUIPMENT DROPDOWNS (Add Workout + Tracker) ===================== */
@@ -10532,12 +10536,16 @@ async function restoreNonLiveEditDraftIfAny(){
   _updateInlineEquipBtn('workoutNameInput','_inlineEquipBtnNonLive','nonlive');
   document.getElementById("setsCountSelect").value=String(draft.setsCount||(draft.sets&&draft.sets.length)||1);
   applySetsCountMinConstraint();
-  document.getElementById("prevPerfBadgeNonLive").classList.remove("visible");
   resetPrevPerfCopyState('nonlive');
   updateTrackWorkoutBtnVisibility('nonlive');
   const sets=draft.sets||[];
   renderNonLiveSetsRows(sets.map(s=>s.w),sets.map(s=>s.r),sets.map(s=>s.locked),sets.map(s=>s.km),sets.map(s=>s.min),sets.map(s=>s.sec));
   restoreNlCardioTimers(sets);
+  // Same as the fresh-edit path (initiateWorkoutEdit): Previous Performance is looked up live from
+  // the DB and wasn't part of the persisted edit draft, so re-run it now — excluding this entry's
+  // own date so it shows the genuine prior occurrence, not the entry being edited.
+  if(draft.name)fetchPrevPerformance(draft.name,'nonlive',draft.date);
+  else document.getElementById("prevPerfBadgeNonLive").classList.remove("visible");
   return true;
 }
 
@@ -11058,8 +11066,14 @@ function applyTrackerFocus(){
   showTrackerAnalytics(match.name);
 }
 
-/* ===================== PREVIOUS PERFORMANCE LOOKUP ===================== */
-async function fetchPrevPerformance(exerciseName, mode){
+/* ===================== PREVIOUS PERFORMANCE LOOKUP =====================
+   excludeDate (optional): when looking this up for an EDIT form, the entry currently being edited
+   is itself already in the session history for its own date — without excluding that date, the
+   "previous performance" lookup would just find (and display) the very entry you're editing, not
+   a genuine prior session. Passing the edited entry's date here skips it, same for every set
+   format (Kg-Reps, Reps only, Reps with Kg, Km-Time), so the badge always shows the real most
+   recent PRIOR occurrence instead. Add-mode callers simply omit this and behave exactly as before. */
+async function fetchPrevPerformance(exerciseName, mode, excludeDate){
   if(isRoomMemberModeActive())return; // members: no history/previous-performance visibility
   const uid=getEffectiveUid();
   if(!uid||!exerciseName)return;
@@ -11079,6 +11093,7 @@ async function fetchPrevPerformance(exerciseName, mode){
     const nameLower=exerciseName.toLowerCase().trim();
     let found=null,foundDate=null;
     outer:for(const row of data){
+      if(excludeDate&&row.date===excludeDate)continue; // this is the entry being edited itself — not a genuine "previous" performance
       for(const wEntry of sessionWorkoutsArray(row)){
         const cellName=sessionDecodeWorkoutEntry(wEntry).name.toLowerCase();
         if(cellName===nameLower){found=sessionWorkoutEntryToText(wEntry);foundDate=row.date;break outer}
@@ -11136,9 +11151,11 @@ function resetPrevPerfCopyState(mode){
    is there and ready the moment that set becomes active, while the dimmed look itself is left
    completely alone (it's just CSS on the wrapping row, untouched by this). Records each field's
    PRIOR value into `orig` so the copy can be undone by a second tap. */
-function _applyPrevPerfToLiveFields(prevSets,totalSets,isCardio,orig){
+function _applyPrevPerfToLiveFields(prevSets,totalSets,isCardio,orig,startFrom){
   let filled=0;
-  for(let i=1;i<=totalSets;i++){
+  // `startFrom` lets a mid-session copy skip already-SAVED (locked) sets — defaults to 1 so the
+  // pre-session queued-copy path (applyPendingLivePrevPerfCopy, nothing saved yet) is unaffected.
+  for(let i=startFrom||1;i<=totalSets;i++){
     const s=prevSets[i-1];if(!s)continue;
     if(isCardio){
       if(s.type!=='cardio')continue;
@@ -11158,6 +11175,62 @@ function _applyPrevPerfToLiveFields(prevSets,totalSets,isCardio,orig){
     }
   }
   return filled;
+}
+/* Live-EDIT variant of _applyPrevPerfToLiveFields: fills EVERY set row — both the already-saved
+   sets (liveEditExistKg_/liveEditExistReps_) and the not-yet-saved NEW rows (liveEditKg_/
+   liveEditReps_) — aligned by absolute set number (existing sets 1..committedCount, then new sets
+   committedCount+1..committedCount+totalNewSets) so Set 5 always pulls from previous performance's
+   own Set 5. Matches Non-Live's edit-form behavior exactly: a field's current value (saved or not)
+   never blocks the copy — tap the icon and every set gets overwritten with the previous session's
+   values, no matter what's already in the boxes. Live Mode blocks cardio exercises entirely (see
+   _blockLiveModeCardio), so only the strength case applies here — covers Kg-Reps and Reps-only
+   (bodyweight) alike. `orig` is split into `existing`/`new` sub-maps (both keyed 1-based) since the
+   two field sets share overlapping index numbers but live under different element-id prefixes. */
+function _applyPrevPerfToLiveEditFields(prevSets,committedCount,totalNewSets,orig){
+  let filled=0;
+  orig.existing={};orig.new={};
+  for(let i=1;i<=committedCount;i++){
+    const s=prevSets[i-1];if(!s||s.type!=='strength')continue;
+    const kgEl=document.getElementById(`liveEditExistKg_${i}`),repsEl=document.getElementById(`liveEditExistReps_${i}`);
+    if(!kgEl&&!repsEl)continue;
+    orig.existing[i]={kg:kgEl?kgEl.value:'',reps:repsEl?repsEl.value:''};
+    if(kgEl)kgEl.value=s.kg;
+    if(repsEl)repsEl.value=s.reps;
+    // Keep liveEditValueOverrides in sync, same as handleLiveEditExistingInputChange does on a real
+    // keystroke — otherwise the next renderLiveEditSetsUI() rebuild would redraw with the stale value.
+    liveEditValueOverrides[i]=liveEditValueOverrides[i]||{};
+    liveEditValueOverrides[i].w=s.kg;
+    liveEditValueOverrides[i].r=s.reps;
+    filled++;
+  }
+  for(let idx=1;idx<=totalNewSets;idx++){
+    const s=prevSets[committedCount+idx-1];if(!s||s.type!=='strength')continue;
+    const kgEl=document.getElementById(`liveEditKg_${idx}`),repsEl=document.getElementById(`liveEditReps_${idx}`);
+    if(!kgEl&&!repsEl)continue;
+    orig.new[idx]={kg:kgEl?kgEl.value:'',reps:repsEl?repsEl.value:''};
+    if(kgEl)kgEl.value=s.kg;
+    if(repsEl)repsEl.value=s.reps;
+    filled++;
+  }
+  return filled;
+}
+function _undoPrevPerfLiveEditFields(orig){
+  if(!orig)return;
+  Object.keys(orig.existing||{}).forEach(i=>{
+    const o=orig.existing[i];
+    const kgEl=document.getElementById(`liveEditExistKg_${i}`),repsEl=document.getElementById(`liveEditExistReps_${i}`);
+    if(kgEl)kgEl.value=o.kg;
+    if(repsEl)repsEl.value=o.reps;
+    liveEditValueOverrides[i]=liveEditValueOverrides[i]||{};
+    liveEditValueOverrides[i].w=o.kg;
+    liveEditValueOverrides[i].r=o.reps;
+  });
+  Object.keys(orig.new||{}).forEach(idx=>{
+    const o=orig.new[idx];
+    const kgEl=document.getElementById(`liveEditKg_${idx}`),repsEl=document.getElementById(`liveEditReps_${idx}`);
+    if(kgEl)kgEl.value=o.kg;
+    if(repsEl)repsEl.value=o.reps;
+  });
 }
 /* Restores whatever _applyPrevPerfToLiveFields overwrote, using the `orig` map it recorded. */
 function _undoPrevPerfLiveFields(orig){
@@ -11209,6 +11282,9 @@ function copyPrevPerfToFields(mode){
       _undoPrevPerfNonLiveFields(window._prevPerfCopyOriginal.nonlive);
       handleNonLiveSetInputChange();
       checkQuickFillVisibility();
+    } else if(window._liveEditMode){
+      _undoPrevPerfLiveEditFields(window._prevPerfCopyOriginal.live);
+      saveLiveEditDraft();
     } else if(window._pendingLivePrevPerfCopy){
       // Session hasn't started yet — nothing was written to any field, just cancel the queued copy.
       window._pendingLivePrevPerfCopy=null;
@@ -11230,6 +11306,15 @@ function copyPrevPerfToFields(mode){
     const exName=document.getElementById('workoutNameInput')?.value.trim();
     const isCardio=isCardioExercise(exName);
     const count=parseInt(document.getElementById('setsCountSelect')?.value)||1;
+    // Bodyweight/Warmup exercises hide the Kg box by default (see bwKgRevealed). If the previous
+    // performance being copied in actually logged a Kg value on one of the sets we're about to fill,
+    // reveal the Kg box first so that value is both visible AND gets saved — instead of silently
+    // dropping it because the field looked like "Reps only" at copy time. If the previous performance
+    // has no Kg on any of these sets, leave the form exactly as it is (Reps-only stays Reps-only).
+    if(!isCardio&&isBodyweightNoWeightExercise(exName)&&!bwKgRevealed.nonlive){
+      const needsKg=prevSets.slice(0,count).some(s=>s&&s.type==='strength'&&parseFloat(s.kg)>0);
+      if(needsKg)toggleBwKgForAllSets('nonlive',true,true);
+    }
     let filled=0;const orig={};
     for(let i=1;i<=count;i++){
       const s=prevSets[i-1];if(!s)continue;
@@ -11257,14 +11342,39 @@ function copyPrevPerfToFields(mode){
     handleNonLiveSetInputChange();
     checkQuickFillVisibility();
     showToast('✅ Previous performance copied!');
+  } else if(window._liveEditMode){
+    // Live-EDIT: only fill the NOT-yet-saved new set rows, never the already-saved ones — same
+    // "don't overwrite real saved data" rule Non-Live's locked-set protection follows for edits.
+    // Checked before the liveTotalSets>0 branch below on purpose: liveTotalSets belongs to a
+    // regular (non-edit) Live session and can hold a stale value while editing, which would
+    // otherwise wrongly route here into fields (liveKg_/liveReps_) that don't exist during edit.
+    const committedCount=getLiveEditCommittedSegments().length;
+    const orig={};
+    const filled=_applyPrevPerfToLiveEditFields(prevSets,committedCount,liveEditTotalNewSets,orig);
+    if(!filled){showToast('⚠️ Nothing to copy for the current sets.');return}
+    window._prevPerfCopyOriginal.live=orig;
+    window._prevPerfCopyState.live=1;
+    saveLiveEditDraft();
+    showToast('✅ Previous performance copied into your sets!');
   } else if(liveTotalSets>0){
-    // Live session is already running — its per-set fields already exist, so fill them immediately
-    // across ALL sets at once (including upcoming/blurred ones), instead of queuing.
+    // Live session is already running — its per-set fields already exist, so fill them immediately,
+    // but ONLY from the next not-yet-saved set onward: any set already saved via saveLiveSet() is
+    // locked (liveSetResults holds one entry per saved set) and must never be overwritten by a copy
+    // tapped later in the session — same "don't touch locked data" rule Non-Live's ✓ lock follows.
     const exName=document.getElementById('liveWorkoutNameInput')?.value.trim();
     const isCardio=isCardioExercise(exName);
+    // Bodyweight/Warmup exercises hide the Kg box by default. If the previous performance being
+    // copied in actually logged a Kg value on one of the sets still open to fill, reveal the Kg box
+    // first so that value is both visible AND gets saved, instead of only the Reps field (which is
+    // all that's currently showing) taking the copy.
+    const startFrom=liveSetResults.length+1;
+    if(!isCardio&&isBodyweightNoWeightExercise(exName)&&!bwKgRevealed.live){
+      const needsKg=prevSets.slice(startFrom-1,liveTotalSets).some(s=>s&&s.type==='strength'&&parseFloat(s.kg)>0);
+      if(needsKg)toggleBwKgForAllSets('live',true,true);
+    }
     const orig={};
-    const filled=_applyPrevPerfToLiveFields(prevSets,liveTotalSets,isCardio,orig);
-    if(!filled){showToast('⚠️ Nothing to copy for the current sets.');return}
+    const filled=_applyPrevPerfToLiveFields(prevSets,liveTotalSets,isCardio,orig,startFrom);
+    if(!filled){showToast('⚠️ Nothing to copy for the remaining sets.');return}
     window._prevPerfCopyOriginal.live=orig;
     window._prevPerfCopyState.live=1;
     saveLiveDraft();
@@ -11287,6 +11397,14 @@ function applyPendingLivePrevPerfCopy(totalSets,isCardio){
   const prevSets=window._pendingLivePrevPerfCopy;
   window._pendingLivePrevPerfCopy=null;
   if(!prevSets||!prevSets.length){window._prevPerfCopyState.live=0;return}
+  // Same Bodyweight/Warmup Kg auto-reveal as the mid-session copy path (see copyPrevPerfToFields) —
+  // the fields have just this moment been created by startLiveSession(), all sets are still open
+  // (nothing saved yet this session), so no locked-set skipping is needed here.
+  const exName=document.getElementById('liveWorkoutNameInput')?.value.trim();
+  if(!isCardio&&isBodyweightNoWeightExercise(exName)&&!bwKgRevealed.live){
+    const needsKg=prevSets.slice(0,totalSets).some(s=>s&&s.type==='strength'&&parseFloat(s.kg)>0);
+    if(needsKg)toggleBwKgForAllSets('live',true,true);
+  }
   const orig={};
   const filled=_applyPrevPerfToLiveFields(prevSets,totalSets,isCardio,orig);
   if(filled){
@@ -12016,8 +12134,11 @@ function restoreLiveSetupUI(draft,fromQueue){
   handleLiveSearchAuto();
   updateTrackWorkoutBtnVisibility('live');
   // Same reasoning as restoreLiveSessionUI: Previous Performance isn't part of the persisted draft,
-  // so re-fetch it here too when a name was already picked before the refresh.
-  if(draft.name)fetchPrevPerformance(draft.name,'live');
+  // so re-fetch it here too when a name was already picked before the refresh. Excludes today's date
+  // so an earlier same-day entry for this exercise never gets shown back as "previous performance" —
+  // only a genuine prior day counts, same rule Non-Live's edit form already follows.
+  {const _setupTd=isRoomMemberModeActive()?getLocalDateString():document.getElementById("workoutCalendarFilter")?.value;
+  if(draft.name)fetchPrevPerformance(draft.name,'live',_setupTd);}
   _liveDraftSaveEnabled=true;
   if(!fromQueue)showToast('🔄 Restored your exercise selection after the refresh.');
 }
@@ -12043,7 +12164,12 @@ function restoreLiveSessionUI(draft,fromQueue){
   // Previous Performance is looked up live from the DB and was never part of the persisted draft,
   // so a refresh (or tab-switch/app-resume triggering this same restore path) left the badge blank
   // until the name box was touched again. Re-run the lookup here so it reappears automatically.
-  if(draft.name)fetchPrevPerformance(draft.name,'live');
+  // Excludes today's date: by the time this restore runs, Set 1 (or more) may already be saved to
+  // the DB for this exact session, and without excluding today the lookup would find that very
+  // in-progress row and show TODAY'S own just-saved set back as "previous performance" instead of
+  // the real prior day — same rule Non-Live's edit form already follows for its own entry's date.
+  {const _resTd=isRoomMemberModeActive()?getLocalDateString():document.getElementById("workoutCalendarFilter")?.value;
+  if(draft.name)fetchPrevPerformance(draft.name,'live',_resTd);}
 
   liveTotalSets=draft.totalSets;liveSetResults=(draft.results||[]).slice();liveSessionSlot=draft.sessionSlot||null;window._liveEntryPunchNotified=!!liveSessionSlot;
   liveCurrentSet=liveSetResults.length+1;
@@ -13578,11 +13704,13 @@ function initiateWorkoutEdit(e,ci,rv){
   // (the person manually added extra weight), reveal the Kg boxes now so the saved value shows
   // instead of being blanked/zeroed out by the hidden-input rendering path.
   if(isBodyweightNoWeightExercise(en)&&parsedSets.some(ps=>parseFloat(ps.w)>0))bwKgRevealed.nonlive=true;
-  // Editing — hide prev perf badge and kill any pending debounce lookup, but keep Track Workout available
-  document.getElementById("prevPerfBadgeNonLive").classList.remove("visible");
+  // Editing — show Previous Performance same as Add mode, but exclude this entry's own date so it
+  // shows the genuine PRIOR occurrence instead of the very entry being edited right now.
   resetPrevPerfCopyState('nonlive');
   if(_prevPerfNonLiveTimer){clearTimeout(_prevPerfNonLiveTimer);_prevPerfNonLiveTimer=null;}
   updateTrackWorkoutBtnVisibility('nonlive');
+  if(en)fetchPrevPerformance(en,'nonlive',_td);
+  else document.getElementById("prevPerfBadgeNonLive").classList.remove("visible");
 
   if(cardio){
     renderNonLiveSetsRows([],[],[],parsedSets.map(ps=>ps.km),parsedSets.map(ps=>ps.min),parsedSets.map(ps=>ps.sec));
@@ -13718,11 +13846,17 @@ function startLiveEditSession(ci,exerciseName,setsStr,segs){
   nameInput.readOnly=true;
   nameInput.style.opacity="0.7";
   updateNameClearIconVisibility('liveWorkoutNameInput','liveWorkoutNameClearIcon');
-  // Editing — hide prev perf badge and kill any pending debounce lookup, but keep Track Workout available
-  document.getElementById("prevPerfBadgeLive").classList.remove("visible");
+  // Editing — show Previous Performance same as Add mode, but exclude this entry's own date so it
+  // shows the genuine PRIOR occurrence instead of the very entry being edited right now. The date
+  // is re-derived here (rather than passed in) so this works identically whether reached directly
+  // from initiateWorkoutEdit or from restoreLiveEditDraftIfAny (which sets the calendar filter to
+  // the draft's date before calling in here).
   resetPrevPerfCopyState('live');
   if(_prevPerfLiveTimer){clearTimeout(_prevPerfLiveTimer);_prevPerfLiveTimer=null;}
   updateTrackWorkoutBtnVisibility('live');
+  const _editTd=isRoomMemberModeActive()?getLocalDateString():document.getElementById("workoutCalendarFilter")?.value;
+  if(exerciseName)fetchPrevPerformance(exerciseName,'live',_editTd);
+  else document.getElementById("prevPerfBadgeLive").classList.remove("visible");
 
   // Update the live setup panel title
   let titleEl=document.getElementById("liveSessionTitle");
@@ -18150,4 +18284,4 @@ function closeLearnVideo(){
 
 </script>
 </body>
-</html> 
+</html>
