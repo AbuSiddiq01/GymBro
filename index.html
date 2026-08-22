@@ -732,7 +732,7 @@ input::placeholder{color:var(--text-muted)}
 .sugg-clear-icon svg{width:14px;height:14px}
 .sugg-clear-icon.visible{display:flex}
 .sugg-clear-icon:hover{color:var(--accent)}
-.suggestions-list{position:absolute;left:0;right:0;background:var(--bg-card);border:1px solid var(--border-col);border-radius:11px;max-height:320px;overflow-y:auto;z-index:100;box-shadow:0 10px 30px rgba(0,0,0,0.12);display:none}
+.suggestions-list{position:absolute;left:0;right:0;background:var(--bg-card);border:1px solid var(--border-col);border-radius:11px;max-height:min(72vh,620px);overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;z-index:100;box-shadow:0 10px 30px rgba(0,0,0,0.12);display:none}
 .suggestions-list>div{padding:10px 14px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--border-col);color:var(--text-primary)}
 .suggestions-list>div:hover{background:var(--accent-soft);color:var(--accent)}
 /* "Your Workouts" quick-pick section — pinned to the top of the exercise-name suggestions dropdown
@@ -750,7 +750,13 @@ input::placeholder{color:var(--text-muted)}
 .yw-header:active{opacity:0.85}
 .yw-header-caret{font-size:10px;transition:transform 0.2s ease}
 .yw-header-caret.open{transform:rotate(180deg)}
-.yw-list{display:none;max-height:220px;overflow-y:auto;background:var(--bg-card)}
+/* No independent max-height/overflow here on purpose — nesting a second scroll container inside
+   .suggestions-list caused touch-scroll "traps" on mobile (a scroll gesture started over this
+   section wouldn't hand off to the outer list), which is exactly why the full exercise list felt
+   like it couldn't be scrolled all the way to the last item. This section now simply flows as part
+   of the single outer .suggestions-list scroll area, so one continuous scroll reaches everything —
+   Your Workouts items AND every catalog exercise below them. */
+.yw-list{display:none;background:var(--bg-card)}
 .yw-list.open{display:block}
 /* Mirrors the default catalog item's own row layout (name left, tag(s) right, single flex row,
    align-items:center) as closely as possible while also fitting the ×N frequency badge — the class
@@ -770,10 +776,10 @@ input::placeholder{color:var(--text-muted)}
    carries name + class tag + frequency count, so the name box has as much width as possible to keep
    wrapping in line with how the default list wraps the same name. */
 @media(min-width:481px){
-  .suggestions-list{left:-10px;right:-10px}
+  .suggestions-list{left:-20px;right:-20px}
 }
 @media(max-width:480px){
-  .suggestions-list{left:-6px;right:-6px}
+  .suggestions-list{left:-13px;right:-13px}
 }
 /* Default catalog section heading — rendered directly below the Your Workouts section (or at the
    very top if the person has no log history yet), visually distinct via a neutral (non-accent)
@@ -2844,7 +2850,7 @@ body.tracker-fs-lock{overflow:hidden}
               <input type="text" id="trackerSearchInput" placeholder="Search exercise... (e.g. Bench Press)" oninput="handleTrackerSearch()" autocomplete="off"
                 style="margin-top:0;padding-left:38px;padding-right:34px;border-radius:12px;font-size:13px">
               <span class="sugg-clear-icon" id="trackerSearchClearIcon" title="Clear" onclick="clearWorkoutNameInput('tracker')" style="right:8px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg></span>
-              <div id="trackerSearchSuggestions" style="display:none;position:absolute;left:0;right:0;top:calc(100% + 4px);background:var(--bg-card);border:1px solid var(--border-col);border-radius:12px;max-height:200px;overflow-y:auto;z-index:200;box-shadow:0 8px 24px rgba(0,0,0,0.12)"></div>
+              <div id="trackerSearchSuggestions" style="display:none;position:absolute;left:0;right:0;top:calc(100% + 4px);background:var(--bg-card);border:1px solid var(--border-col);border-radius:12px;max-height:min(70vh,560px);overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;z-index:200;box-shadow:0 8px 24px rgba(0,0,0,0.12)"></div>
             </div>
             <button onclick="closeTrackerResults()" title="Close"
               style="flex-shrink:0;padding:0 16px;height:36px;border-radius:10px;border:1px solid var(--border-col);background:var(--bg-card);color:var(--text-secondary);font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;transition:all 0.2s ease;font-weight:700;font-family:var(--font-alt);letter-spacing:0.4px;line-height:1;white-space:nowrap"
@@ -18711,4 +18717,4 @@ function closeLearnVideo(){
 
 </script>
 </body>
-</html> 
+</html>
