@@ -4851,6 +4851,25 @@ function calculateVolumeXP(s){
   });
   return Math.floor(t/100)*10+Math.floor(cardioSec/60)*10;
 }
+/* Writes the freshly-computed total XP into users.xp so every OTHER place in the app that needs this
+   user's XP/Rank (their public profile card, a future leaderboard, etc.) can just read that single
+   column instead of re-fetching this user's entire workout history and re-summing it themselves —
+   which is the expensive "recalculates from the database every time" pattern this column replaces.
+   The dashboard (syncCoreDashboardMetrics, the only place XP is actually computed from raw session
+   data) still does the real calculation — this function only persists that result. It's deliberately
+   fire-and-forget: XP is a display/ranking value, never something worth blocking or alerting the user
+   over if a single write fails (it'll simply resync next time the dashboard loads), and it silently
+   skips the write entirely if the value hasn't actually changed since last time, to avoid a wasted
+   round-trip on every single dashboard load. */
+window._lastPersistedXP=window._lastPersistedXP||{};
+async function persistUserXP(uid,xp){
+  if(!uid)return;
+  if(window._lastPersistedXP[uid]===xp)return; // unchanged since last persist — nothing to do
+  try{
+    const{error}=await db.from('users').update({xp}).eq('id',uid);
+    if(!error)window._lastPersistedXP[uid]=xp;
+  }catch(e){/* best-effort cache write — the next dashboard load will retry with a fresh total */}
+}
 
 /* ===================== EXERCISE CATALOG — expanded with class labels ===================== */
 /* Multi-class exercises: allow user to pick which class to assign when selecting */
@@ -6504,6 +6523,11 @@ async function syncCoreDashboardMetrics(){
   if(attData)attData.forEach(row=>{sessionWorkoutsArray(row).forEach(entry=>{xp+=calculateVolumeXP(sessionWorkoutEntryToText(entry))})});
   const prevXP=parseInt(localStorage.getItem('gymbro_xp')||'0');localStorage.setItem('gymbro_xp',xp);
   updateXPDisplay(xp);
+  // Cache this freshly-calculated total into users.xp (fire-and-forget — see persistUserXP) so any
+  // other screen that needs this user's XP/Rank (their profile card viewed by someone else, a future
+  // leaderboard, etc.) can read the column directly instead of re-fetching and re-summing their whole
+  // workout history like this function just did.
+  persistUserXP(uid,xp);
   document.getElementById("postCount").textContent=mw;
   renderTodayWorkoutBanner();
 }
@@ -15842,7 +15866,7 @@ async function openUserProfile(uid){
   const myId=localStorage.getItem("user_id");
 
   // Fetch target user
-  const{data:u,error}=await db.from("users").select("id,name,login_id,avatar_url,bio,is_private").eq("id",uid).single();
+  const{data:u,error}=await db.from("users").select("id,name,login_id,avatar_url,bio,is_private,xp").eq("id",uid).single();
   if(error||!u){showToast("❌ Could not load profile.");return}
 
   // Fetch follower counts + my relationship (use maybeSingle to avoid 406 when no row)
@@ -15858,24 +15882,13 @@ async function openUserProfile(uid){
   const isFollowing=followStatus==="accepted";
   const canSeeContent=!u.is_private||isFollowing||isMe;
 
-  // Fetch XP data for the user
-  let userXp=0,userRank="Beginner",userRankEmoji="🥋",userLevel=1;
-  try{
-    const{data:xpData}=await db.from(SESSION_TABLE).select("class,workouts").eq("user_id",uid);
-    if(xpData&&xpData.length){
-      userXp=xpData.length*50;
-      xpData.forEach(row=>{sessionWorkoutsArray(row).forEach(entry=>{userXp+=calculateVolumeXP(sessionWorkoutEntryToText(entry))})});
-    }
-    // Compute rank/level using same thresholds as main app
-    const RANKS=[
-      {name:"Beginner",emoji:"🥋",min:0},
-      {name:"Intermediate",emoji:"🏋",min:501},
-      {name:"Advanced",emoji:"💪",min:1501},
-      {name:"Elite",emoji:"🔥",min:3001},
-      {name:"Legend",emoji:"👑",min:6001}
-    ];
-    for(let i=RANKS.length-1;i>=0;i--){if(userXp>=RANKS[i].min){userRank=RANKS[i].name;userRankEmoji=RANKS[i].emoji;userLevel=i+1;break}}
-  }catch(e){}
+  // XP/Rank: read straight off the cached users.xp column (kept fresh by persistUserXP whenever the
+  // XP OWNER's own dashboard loads — see syncCoreDashboardMetrics) instead of re-fetching this user's
+  // entire workout history and re-summing it on every single profile view. Same RANK_TIERS/getRankForXP
+  // the dashboard itself uses, so a person's rank badge is identical everywhere it appears in the app.
+  const userXp=u.xp||0;
+  const _rank=getRankForXP(userXp);
+  const userRank=_rank.name,userRankEmoji=_rank.emoji,userLevel=RANK_TIERS.indexOf(_rank)+1;
 
   // Build full-screen page that covers everything
   const page=document.createElement("div");
@@ -18284,4 +18297,4 @@ function closeLearnVideo(){
 
 </script>
 </body>
-</html>
+</html> 
