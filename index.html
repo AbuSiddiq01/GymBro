@@ -141,8 +141,18 @@ body.theme-custom.has-bg-image .custom-theme-modal{
 }
 
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
-html{scroll-behavior:smooth}
-body{background:var(--bg-base);min-height:100vh;color:var(--text-primary);font-family:var(--font-body);overflow-x:hidden;transition:background 0.5s ease,color 0.5s ease}
+/* overscroll-behavior-y:none on both html and body disables the browser's native "pull-to-refresh"
+   gesture (the blue rotating spinner on Chrome/Android and installed PWAs) at the page level.
+   NOTE: "contain" alone only stops scroll from chaining into an ancestor — it does NOT switch off
+   the browser's own native action (the refresh) at the boundary, which is why it wasn't enough on
+   its own; "none" is the value that actually turns that native action off too. Without this, any
+   sudden height change right at the top of the page — e.g. the exercise-name suggestions box
+   opening/collapsing the instant you tap its dropdown icon or an item inside it — can register as
+   an overscroll-at-top gesture and trigger that spinner. Internal scroll areas (.suggestions-list,
+   .wf-modal-scroll, etc.) already set their own overscroll-behavior:contain, which confines their
+   own bounce to themselves and is untouched by this page-level rule. */
+html{scroll-behavior:smooth;overscroll-behavior-y:none}
+body{background:var(--bg-base);min-height:100vh;color:var(--text-primary);font-family:var(--font-body);overflow-x:hidden;transition:background 0.5s ease,color 0.5s ease;overscroll-behavior-y:none}
 .container{width:95%;max-width:1400px;margin:0 auto;padding:15px}
 
 /* ===================== WORKOUT ROOM ===================== */
@@ -721,7 +731,7 @@ input::placeholder{color:var(--text-muted)}
 .set-row .minsec-picker{flex:0 0 auto}
 .suggestion-box{position:relative;margin-bottom:8px}
 .suggestion-box input{padding-right:64px}
-.sugg-dropdown-icon{position:absolute;right:10px;top:0;bottom:0;width:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-muted);font-size:11px;user-select:none;transition:color 0.2s ease,transform 0.2s ease}
+.sugg-dropdown-icon{position:absolute;right:10px;top:0;bottom:0;width:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-muted);font-size:11px;user-select:none;transition:color 0.2s ease,transform 0.2s ease;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .sugg-dropdown-icon:hover{color:var(--accent)}
 .sugg-dropdown-icon.open{color:var(--accent);transform:translateY(1px) rotate(180deg)}
 /* Fixed SVG "X" icon (not an emoji, so it renders identically on every device/OS) that clears the
@@ -738,7 +748,7 @@ input::placeholder{color:var(--text-muted)}
    else on screen when the page scrolls, the on-screen keyboard opens, or the browser
    auto-scrolls a focused input into view. Sized generously (see min-height/max-height below) so
    it comfortably shows close to 10 rows before its own internal scrollbar kicks in. */
-.suggestions-list{position:absolute;left:0;right:0;background:var(--bg-card);border:1px solid var(--border-col);border-radius:11px;min-height:min(58vh,420px);max-height:min(75vh,620px);overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;z-index:100;box-shadow:0 10px 30px rgba(0,0,0,0.12);display:none}
+.suggestions-list{position:absolute;left:0;right:0;background:var(--bg-card);border:1px solid var(--border-col);border-radius:11px;min-height:min(58vh,420px);max-height:min(75vh,620px);overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;touch-action:pan-y;z-index:100;box-shadow:0 10px 30px rgba(0,0,0,0.12);display:none}
 /* Exercise-name selection dropdown — Add Workout (non-live) + Live Workout exercise-name suggestion
    boxes ONLY (#autoSuggestions / #liveAutoSuggestions). Every other dropdown/suggestion list that
    reuses .suggestions-list-style markup elsewhere (e.g. the Workout Tracker search box, which is its
@@ -18892,4 +18902,4 @@ function closeLearnVideo(){
 
 </script>
 </body>
-</html>
+</html> 
