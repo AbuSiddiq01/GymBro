@@ -732,9 +732,61 @@ input::placeholder{color:var(--text-muted)}
 .sugg-clear-icon svg{width:14px;height:14px}
 .sugg-clear-icon.visible{display:flex}
 .sugg-clear-icon:hover{color:var(--accent)}
-.suggestions-list{position:absolute;left:0;right:0;background:var(--bg-card);border:1px solid var(--border-col);border-radius:11px;max-height:180px;overflow-y:auto;z-index:100;box-shadow:0 10px 30px rgba(0,0,0,0.12);display:none}
-.suggestions-list div{padding:10px 14px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--border-col);color:var(--text-primary)}
-.suggestions-list div:hover{background:var(--accent-soft);color:var(--accent)}
+.suggestions-list{position:absolute;left:0;right:0;background:var(--bg-card);border:1px solid var(--border-col);border-radius:11px;max-height:320px;overflow-y:auto;z-index:100;box-shadow:0 10px 30px rgba(0,0,0,0.12);display:none}
+.suggestions-list>div{padding:10px 14px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--border-col);color:var(--text-primary)}
+.suggestions-list>div:hover{background:var(--accent-soft);color:var(--accent)}
+/* "Your Workouts" quick-pick section — pinned to the top of the exercise-name suggestions dropdown
+   (Add Workout + Live Workout, every format). Foldable: the header toggles a short list of the
+   current user's own logged exercises (most-frequent first, ×N badge on the right) without touching
+   the default catalog list rendered right below it — the two never merge or reorder each other.
+   Both this header and .default-ex-header below are position:sticky so whichever section you're
+   currently scrolled through keeps its heading pinned at the top of the dropdown the whole time.
+   IMPORTANT: their background must be fully OPAQUE (var(--bg-card), not the translucent
+   var(--accent-soft)/var(--bg-panel) tints used elsewhere) — those are deliberately semi-transparent
+   (see the --accent-soft/--bg-panel rgba() values in the theme blocks) so a sticky header using them
+   lets whatever sits behind the dropdown bleed through as it stays pinned over scrolling content. */
+.yw-section{border-bottom:3px solid var(--accent)}
+.yw-header{position:sticky;top:0;z-index:3;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 14px;cursor:pointer;font-family:var(--font-alt);font-weight:800;font-size:12px;color:var(--accent);background:var(--bg-card);letter-spacing:0.4px;border-bottom:1.5px solid var(--accent)}
+.yw-header:active{opacity:0.85}
+.yw-header-caret{font-size:10px;transition:transform 0.2s ease}
+.yw-header-caret.open{transform:rotate(180deg)}
+.yw-list{display:none;max-height:220px;overflow-y:auto;background:var(--bg-card)}
+.yw-list.open{display:block}
+/* Mirrors the default catalog item's own row layout (name left, tag(s) right, single flex row,
+   align-items:center) as closely as possible while also fitting the ×N frequency badge — the class
+   tag and count are STACKED vertically into one narrow column (roughly the width of a single badge,
+   same footprint the default list's lone class tag already takes) rather than sitting side by side,
+   so the name gets essentially the same amount of horizontal room the default list's name gets and
+   wraps the same way — never 2-3 lines just because a second badge ate the width. Left indent/accent
+   border is also kept slim (2px + 16px) instead of eating extra space, closer to the default list's
+   own 14px padding. */
+.yw-item{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px 14px 9px 16px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--border-col);color:var(--text-primary);border-left:2px solid var(--accent)}
+.yw-item-name{flex:1 1 auto;min-width:0;word-break:break-word;line-height:1.35}
+.yw-item-meta{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0}
+.yw-item:hover{background:var(--accent-soft);color:var(--accent)}
+.yw-empty{padding:9px 14px 9px 16px;font-size:12px;color:var(--text-muted);font-style:italic}
+/* Give the dropdown extra breathing room beyond the input's own width — on larger screens AND on
+   mobile (a smaller offset, still safely inside the page's own outer padding) — now that each row
+   carries name + class tag + frequency count, so the name box has as much width as possible to keep
+   wrapping in line with how the default list wraps the same name. */
+@media(min-width:481px){
+  .suggestions-list{left:-10px;right:-10px}
+}
+@media(max-width:480px){
+  .suggestions-list{left:-6px;right:-6px}
+}
+/* Default catalog section heading — rendered directly below the Your Workouts section (or at the
+   very top if the person has no log history yet), visually distinct via a neutral (non-accent)
+   color/border so the two lists are never mistaken for one another. Also sticky (see note above on
+   .yw-header) — opaque var(--bg-card) background, not the translucent var(--bg-panel). */
+.default-ex-header{position:sticky;top:0;z-index:2;padding:10px 14px;font-family:var(--font-alt);font-weight:800;font-size:12px;color:var(--text-muted);background:var(--bg-card);letter-spacing:0.4px;border-bottom:1.5px solid var(--border-col);border-top:3px solid var(--border-col)}
+@media(max-width:480px){
+  .yw-header{padding:9px 12px;font-size:11px}
+  .yw-item{padding:8px 12px 8px 14px;font-size:12.5px}
+  .yw-item .tracker-freq-badge{padding:2px 7px;font-size:10px}
+  .yw-empty{padding:8px 12px 8px 14px;font-size:11.5px}
+  .default-ex-header{padding:9px 12px;font-size:11px}
+}
 .workout-log-card{display:flex;align-items:stretch;gap:0;margin-bottom:10px;cursor:pointer;position:relative;touch-action:pan-y;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
 .workout-log-card *{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
 .workout-log-card:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:10px}
@@ -10116,6 +10168,211 @@ function finalizeCustomExerciseName(rawName,selectedClass,selectedEquipment){
   return equipment?`${finalBase} (${equipment})`:finalBase;
 }
 
+/* ===================== "YOUR WORKOUTS" QUICK-PICK SECTION =====================
+   Pinned to the top of the exercise-name suggestions dropdown, above the untouched default catalog
+   list — shared by Add Workout (non-live) and Live Workout, and every set format (Normal/Warmup/
+   Cardio, Kg-Reps/Reps only/Reps with Kg/Km-Time all reuse this same box). Lists the current user's
+   own previously-logged exercises, most-frequent first, each with a ×N badge — the same
+   window._exerciseFreqMap the Workout Tracker table itself is built from (see
+   loadExerciseFrequencyMap / runWorkoutTracker), so the count matches what Tracker already shows.
+   Folded by default so it never collides with or reorders the normal list; tapping the header
+   toggles it open per mode ('nonlive'/'live'). While open, typing in the box also filters THIS
+   section (same search text as the normal list, matched independently) so e.g. typing "Inc" while
+   open surfaces "Incline Bench Press (Dumbbell)" here first if the person has logged it before —
+   but only while the section is actually open; folded, the normal search is 100% untouched. */
+window._ywOpen={nonlive:false,live:false};
+/* Same Muscle/Equipment filtering rules as ctmGetFilteredCatalog, applied to the person's own
+   logged history: choosing Chest shows only Chest exercises they've done, adding Dumbbell narrows
+   that further to Chest+Dumbbell — exactly like the default catalog list right below it. No filters
+   selected means every class they've ever logged shows together, same as the default list's own
+   "no filter" behavior. Each name is resolved back to its class/equipment via
+   _resolveYourWorkoutItem; an exercise with no resolvable class (a custom entry never given one, or
+   one that's since vanished from both catalogs) only matches when no Muscle filter is active. */
+function _getYourWorkoutsMatches(textVal,muscleVal,equipmentVal){
+  const freqMap=window._exerciseFreqMap;
+  if(!freqMap)return[];
+  const text=(textVal||'').toLowerCase().trim();
+  const classes=ctmMuscleClassesFor(muscleVal);
+  let list=Object.entries(freqMap)
+    .filter(([name])=>name&&(!text||name.toLowerCase().includes(text)))
+    .map(([name,freq])=>{
+      const item=_resolveYourWorkoutItem(name);
+      return{name,freq,class:item?item.class:null,equipment:item?item.equipment:null};
+    })
+    .filter(m=>{
+      if(classes){
+        if(!m.class||m.class==='Unknown'||m.class==='multi')return false;
+        if(!classes.includes(m.class))return false;
+      }
+      if(equipmentVal){
+        if(!m.equipment||m.equipment==='Unknown'||m.equipment!==equipmentVal)return false;
+      }
+      return true;
+    });
+  // Sort order: with no Muscle filter chosen (or a super-group like "Upper Body" spanning several
+  // classes), group results by the SAME class order the default catalog itself is built in — see
+  // MUSCLE_LIST, which preserves EXERCISE_CATALOG's own Chest→Biceps→Triceps... ordering — exactly
+  // matching how the default list itself is grouped/ordered with no filter applied. The person's own
+  // most-frequently-logged exercise still leads within each class group. A single specific class
+  // filter (one exact muscle chosen) needs no class-grouping since everything left is already that
+  // one class — ranked purely by frequency there.
+  const classOrder=(cls)=>{const idx=MUSCLE_LIST.indexOf(cls);return idx===-1?MUSCLE_LIST.length:idx};
+  const groupByClass=!muscleVal||(classes&&classes.length>1);
+  list.sort((a,b)=>{
+    if(groupByClass){
+      const ca=classOrder(a.class),cb=classOrder(b.class);
+      if(ca!==cb)return ca-cb;
+    }
+    return b.freq-a.freq;
+  });
+  return list;
+}
+/* Small class-tag pill matching the default list's own tag styling (CLASS_COLORS) — shown on every
+   Your Workouts row so the class is always visible there too, same as the default list. Falls back
+   to a neutral "—" pill for the rare entry with no resolvable class (custom exercise never given
+   one, or logged history for something since removed from both catalogs). */
+function _ywClassTagHtml(cls){
+  if(cls&&cls!=='Unknown'&&cls!=='multi'){
+    const clr=CLASS_COLORS[cls]||'var(--text-muted)';
+    return `<span style="background:${clr};color:#fff;border-radius:6px;padding:1px 6px;font-size:9px;font-weight:800;white-space:nowrap">${cls}</span>`;
+  }
+  return `<span style="background:var(--text-muted);color:#fff;border-radius:6px;padding:1px 6px;font-size:9px;font-weight:800;white-space:nowrap;opacity:0.7">—</span>`;
+}
+/* Resolves a name from the person's own log history back into a full catalog-style item (class,
+   equipment, isCustom) so picking it behaves exactly like picking the same exercise from the normal
+   dropdown — same Class tag handling, same Cardio block in Live Mode, same custom-exercise handling.
+   Falls back to a bare name (no class) for the rare case of an exercise logged before that's since
+   vanished from both the built-in catalog and the custom-exercise registry. */
+function _resolveYourWorkoutItem(name){
+  const lower=(name||'').toLowerCase();
+  const builtIn=EXERCISE_CATALOG.find(e=>e.name.toLowerCase()===lower);
+  if(builtIn)return builtIn;
+  const custom=getCustomExerciseCatalog().find(c=>{
+    const hasEq=c.equipment&&c.equipment!=='Unknown';
+    const display=hasEq?`${c.name} (${c.equipment})`:c.name;
+    return display.toLowerCase()===lower;
+  });
+  if(custom){
+    const hasEq=custom.equipment&&custom.equipment!=='Unknown';
+    return{name:hasEq?`${custom.name} (${custom.equipment})`:custom.name,baseName:custom.name,class:custom.class||'Unknown',equipment:custom.equipment||'Unknown',isCustom:true};
+  }
+  return null;
+}
+/* Renders the foldable header + (if open) the filtered list into whichever suggestions box is
+   currently being built. onPick receives just the exercise name string. */
+function _renderYourWorkoutsSection(box,mode,textVal,muscleVal,equipmentVal,onPick){
+  const freqMap=window._exerciseFreqMap;
+  if(!freqMap||!Object.keys(freqMap).length)return; // brand-new user, nothing logged yet — section stays hidden entirely
+  const isOpen=!!window._ywOpen[mode];
+  const wrap=document.createElement('div');
+  wrap.className='yw-section';
+  const header=document.createElement('div');
+  header.className='yw-header';
+  header.innerHTML=`<span>⭐ Your Workouts</span><span class="yw-header-caret${isOpen?' open':''}">▼</span>`;
+  header.onclick=(e)=>{
+    e.stopPropagation();
+    window._ywOpen[mode]=!window._ywOpen[mode];
+    if(mode==='nonlive')handleWorkoutSearchAuto(true);else handleLiveSearchAuto(true);
+  };
+  wrap.appendChild(header);
+  const list=document.createElement('div');
+  list.className='yw-list'+(isOpen?' open':'');
+  if(isOpen){
+    const matches=_getYourWorkoutsMatches(textVal,muscleVal,equipmentVal);
+    if(matches.length){
+      matches.forEach(m=>{
+        const item=document.createElement('div');
+        item.className='yw-item';
+        item.innerHTML=`<span class="yw-item-name">${escapeHtml(m.name)}</span><span class="yw-item-meta">${_ywClassTagHtml(m.class)}<span class="tracker-freq-badge">×${m.freq}</span></span>`;
+        item.onclick=(e)=>{e.stopPropagation();onPick(m.name);};
+        list.appendChild(item);
+      });
+    }else{
+      list.innerHTML=`<div class="yw-empty">No matches in your workouts.</div>`;
+    }
+  }
+  wrap.appendChild(list);
+  box.appendChild(wrap);
+}
+/* Picking a name from "Your Workouts" in the non-live (Add Workout) form — mirrors the normal
+   catalog-match onclick in handleWorkoutSearchAuto exactly, just resolved via _resolveYourWorkoutItem
+   instead of already having the catalog item in hand. */
+function _pickYourWorkoutNonLive(name){
+  const box=document.getElementById("autoSuggestions");
+  const icon=document.getElementById("workoutNameDropdownIcon");
+  box.style.display="none";
+  if(icon)icon.classList.remove("open");
+  if(_prevPerfNonLiveTimer)clearTimeout(_prevPerfNonLiveTimer);
+  const nb=document.getElementById('_inlineClassBtnNonLive');if(nb)nb.style.display='none';
+  const eb0=document.getElementById('_inlineEquipBtnNonLive');if(eb0)eb0.style.display='none';
+  window._customConfirmedName['nonlive']=null;
+  const acb0=document.getElementById('_addCustomBtnNonLive');if(acb0)acb0.style.display='none';
+  const item=_resolveYourWorkoutItem(name);
+  if(item&&item.isCustom){
+    document.getElementById("workoutNameInput").value=item.name;
+    window._selectedWorkoutClass=(item.class&&item.class!=='Unknown')?item.class:null;
+    window._selectedWorkoutEquipment=(item.equipment&&item.equipment!=='Unknown')?item.equipment:null;
+    _updateInlineEquipBtn('workoutNameInput','_inlineEquipBtnNonLive','nonlive');
+    fetchPrevPerformance(item.name,'nonlive');
+  }else if(item&&item.class==='multi'){
+    document.getElementById("workoutNameInput").value=item.name;
+    updateTrackWorkoutBtnVisibility('nonlive');
+    _showClassPickerForInput('workoutNameInput',item.name,'nonlive');
+  }else if(item){
+    document.getElementById("workoutNameInput").value=item.name;
+    window._selectedWorkoutClass=item.class;
+    fetchPrevPerformance(item.name,'nonlive');
+  }else{
+    document.getElementById("workoutNameInput").value=name;
+    fetchPrevPerformance(name,'nonlive');
+  }
+  bwKgRevealed.nonlive=false;
+  buildSetsInputFields();
+  updateNonLiveSetsStructureVisibility();
+  updateNameClearIconVisibility('workoutNameInput','workoutNameClearIcon');
+  saveNonLiveDraft();
+}
+/* Same idea for Live Mode — including the same Cardio block Live Mode always applies. */
+function _pickYourWorkoutLive(name){
+  const box=document.getElementById("liveAutoSuggestions");
+  const icon=document.getElementById("liveWorkoutNameDropdownIcon");
+  const item=_resolveYourWorkoutItem(name);
+  if(item&&item.class==='Cardio'){
+    box.style.display="none";
+    if(icon)icon.classList.remove("open");
+    _blockLiveModeCardio();
+    return;
+  }
+  box.style.display="none";
+  if(icon)icon.classList.remove("open");
+  if(_prevPerfLiveTimer)clearTimeout(_prevPerfLiveTimer);
+  const lb=document.getElementById('_inlineClassBtnLive');if(lb)lb.style.display='none';
+  const eb1=document.getElementById('_inlineEquipBtnLive');if(eb1)eb1.style.display='none';
+  window._customConfirmedName['live']=null;
+  const acb1=document.getElementById('_addCustomBtnLive');if(acb1)acb1.style.display='none';
+  if(item&&item.isCustom){
+    document.getElementById("liveWorkoutNameInput").value=item.name;
+    window._selectedLiveWorkoutClass=(item.class&&item.class!=='Unknown')?item.class:null;
+    window._selectedLiveWorkoutEquipment=(item.equipment&&item.equipment!=='Unknown')?item.equipment:null;
+    _updateInlineEquipBtn('liveWorkoutNameInput','_inlineEquipBtnLive','live');
+    fetchPrevPerformance(item.name,'live');
+  }else if(item&&item.class==='multi'){
+    document.getElementById("liveWorkoutNameInput").value=item.name;
+    updateTrackWorkoutBtnVisibility('live');
+    _showClassPickerForInput('liveWorkoutNameInput',item.name,'live');
+  }else if(item){
+    document.getElementById("liveWorkoutNameInput").value=item.name;
+    window._selectedLiveWorkoutClass=item.class;
+    fetchPrevPerformance(item.name,'live');
+  }else{
+    document.getElementById("liveWorkoutNameInput").value=name;
+    fetchPrevPerformance(name,'live');
+  }
+  bwKgRevealed.live=false;
+  updateLiveSetsStructureVisibility();
+  updateNameClearIconVisibility('liveWorkoutNameInput','liveWorkoutNameClearIcon');
+  saveLiveDraft();
+}
 function toggleWorkoutNameDropdown(e){
   if(e)e.stopPropagation();
   const box=document.getElementById("autoSuggestions");
@@ -10149,10 +10406,18 @@ function handleWorkoutSearchAuto(forceShow){
   // dropdown icon wasn't clicked — choosing either dropdown (even with the text box empty), or
   // clicking the dropdown icon itself, should instantly show the (filtered) full list.
   if(!forceShow&&!val&&!muscleVal&&!equipVal){const nb=document.getElementById('_inlineClassBtnNonLive');if(nb)nb.style.display='none';const eb=document.getElementById('_inlineEquipBtnNonLive');if(eb)eb.style.display='none';return;}
+  const _ywHasHistoryNL=!!(window._exerciseFreqMap&&Object.keys(window._exerciseFreqMap).length);
+  _renderYourWorkoutsSection(box,'nonlive',val,muscleVal,equipVal,_pickYourWorkoutNonLive);
   let matches=ctmGetFilteredCatalog(muscleVal,equipVal,val,true);
-  if(matches.length){
+  if(matches.length||_ywHasHistoryNL){
     box.style.display="block";
     if(icon)icon.classList.add("open");
+  }
+  if(matches.length){
+    const defHeader=document.createElement('div');
+    defHeader.className='default-ex-header';
+    defHeader.textContent='🏋 All Exercises';
+    box.appendChild(defHeader);
     matches.forEach(item=>{
       let div=document.createElement("div");
       const clr=CLASS_COLORS[item.class]||'var(--text-muted)';
@@ -12130,10 +12395,18 @@ function handleLiveSearchAuto(forceShow){
   // Show nothing only when there's no typed text AND no Muscle/Equipment filter selected AND the
   // dropdown icon wasn't clicked — mirrors the non-live Add Workout behavior exactly.
   if(!forceShow&&!val&&!muscleVal&&!equipVal){const lb=document.getElementById('_inlineClassBtnLive');if(lb)lb.style.display='none';const eb=document.getElementById('_inlineEquipBtnLive');if(eb)eb.style.display='none';return;}
+  const _ywHasHistoryLV=!!(window._exerciseFreqMap&&Object.keys(window._exerciseFreqMap).length);
+  _renderYourWorkoutsSection(box,'live',val,muscleVal,equipVal,_pickYourWorkoutLive);
   let matches=ctmGetFilteredCatalog(muscleVal,equipVal,val,true);
-  if(matches.length){
+  if(matches.length||_ywHasHistoryLV){
     box.style.display="block";
     if(icon)icon.classList.add("open");
+  }
+  if(matches.length){
+    const defHeaderLv=document.createElement('div');
+    defHeaderLv.className='default-ex-header';
+    defHeaderLv.textContent='🏋 All Exercises';
+    box.appendChild(defHeaderLv);
     matches.forEach(item=>{
       let div=document.createElement("div");
       const clr=CLASS_COLORS[item.class]||'var(--text-muted)';
@@ -18438,4 +18711,4 @@ function closeLearnVideo(){
 
 </script>
 </body>
-</html>
+</html> 
