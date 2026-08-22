@@ -2142,7 +2142,7 @@ body.tracker-fs-lock{overflow:hidden}
             <div class="xp-label">TOTAL XP EARNED</div>
             <div class="xp-value" id="xpValue">0 XP</div>
           </div>
-          <div class="rank-badge" id="rankEmoji" style="font-size:24px;background:transparent;box-shadow:none;padding:6px 8px">🥋</div>
+          <div class="rank-badge" id="rankEmoji" style="font-size:24px;background:transparent;box-shadow:none;padding:6px 8px"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg></div>
         </div>
         <div class="xp-bar-track"><div class="xp-bar-fill" id="xpBarFill" style="width:0%"></div></div>
         <div class="xp-next-label" id="xpNextLabel">Next rank: Intermediate at 501 XP</div>
@@ -3494,7 +3494,7 @@ body.tracker-fs-lock{overflow:hidden}
 <!-- RANK-UP OVERLAY -->
 <div class="rankup-overlay" id="rankupOverlay">
   <div class="rankup-card">
-    <div class="rankup-icon" id="rankupIcon">🏆</div>
+    <div class="rankup-icon" id="rankupIcon"><svg viewBox="0 0 24 24" width="64" height="64" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle"><path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7z"/><line x1="5" y1="20" x2="19" y2="20"/></svg></div>
     <div class="rankup-title" id="rankupTitle">RANK UP!</div>
     <div class="rankup-subtitle" id="rankupSubtitle">You have ascended to a new level of power.</div>
     <button class="rankup-close" onclick="closeRankupOverlay()">LET'S GO 🔥</button>
@@ -4807,36 +4807,69 @@ function deriveDayClasses(dataRows){
   return classes;
 }
 
+/* ===================== RANK SYSTEM =====================
+   5 ranks, each defined by a cumulative XP threshold (TOTAL elapsed time since joining, not "N more
+   months on top of the last rank"):
+     BEGINNER      :       0 XP
+     INTERMEDIATE  :  50,000 XP
+     ADVANCED      : 150,000 XP
+     PRO           : 250,000 XP
+     GYMRAT        : 350,000 XP — final rank, pure XP threshold, no ongoing monthly requirement to
+                      reach OR keep it. (A monthly attendance-based maintenance rule for GYMRAT was
+                      considered and explicitly dropped for now — flag it if you want that revisited
+                      later.)
+   Nothing here special-cases "how experienced someone is" directly — it doesn't need to. XP itself
+   already scales with weight × reps lifted, so a more experienced lifter simply EARNS more XP per
+   session than a beginner would, and crosses these same fixed thresholds faster automatically. */
 const RANK_TIERS=[
-  {name:'BEGINNER',emoji:'🥋',min:0,max:500},{name:'INTERMEDIATE',emoji:'🥊',min:501,max:1500},
-  {name:'PRO',emoji:'💪',min:1501,max:4000},{name:'LEGEND',emoji:'⚡',min:4001,max:8000},
-  {name:'GRANDMASTER',emoji:'🔥',min:8001,max:15000},{name:'G.O.A.T.',emoji:'🐐',min:15001,max:Infinity}
+  {name:'BEGINNER',icon:'flag',min:0,max:49999},
+  {name:'INTERMEDIATE',icon:'zap',min:50000,max:149999},
+  {name:'ADVANCED',icon:'trending-up',min:150000,max:249999},
+  {name:'PRO',icon:'flame',min:250000,max:349999},
+  {name:'GYMRAT',icon:'crown',min:350000,max:Infinity}
 ];
 function getRankForXP(xp){return RANK_TIERS.find(r=>xp>=r.min&&xp<=r.max)||RANK_TIERS[0]}
+
+/* Inline SVG icons for each rank — replaces the old emoji badges (emoji render inconsistently across
+   OS/browser and can't be recolored to match the app's theme). Each is a small Feather/Lucide-style
+   stroke icon: BEGINNER = flag (starting the journey), INTERMEDIATE = bolt (building momentum),
+   ADVANCED = trending-up (steady progress), PRO = flame (high intensity), GYMRAT = crown (final,
+   top rank). `size` in px, `color` defaults to 'currentColor' so it inherits whatever text color the
+   containing element already has (e.g. the white rank-badge text, or var(--accent) elsewhere). */
+const RANK_ICON_PATHS={
+  'flag':'<path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/>',
+  'zap':'<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>',
+  'trending-up':'<polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/>',
+  'flame':'<path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>',
+  'crown':'<path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7z"/><line x1="5" y1="20" x2="19" y2="20"/>'
+};
+function rankIconSVG(iconName,size,color){
+  size=size||20;color=color||'currentColor';
+  const inner=RANK_ICON_PATHS[iconName]||RANK_ICON_PATHS['flag'];
+  return `<svg viewBox="0 0 24 24" width="${size}" height="${size}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle">${inner}</svg>`;
+}
 function updateXPDisplay(xp,prevXP){
   const rank=getRankForXP(xp);
   document.getElementById('xpValue').textContent=xp+' XP';
   document.getElementById('rankBadge').textContent=rank.name;
-  document.getElementById('rankEmoji').textContent=rank.emoji;
+  document.getElementById('rankEmoji').innerHTML=rankIconSVG(rank.icon,24,'#fff');
   let pct=rank.max===Infinity?100:Math.min(100,Math.round(((xp-rank.min)/(rank.max-rank.min))*100));
   document.getElementById('xpBarFill').style.width=pct+'%';
   const nr=RANK_TIERS[RANK_TIERS.indexOf(rank)+1];
-  document.getElementById('xpNextLabel').textContent=nr?`Next rank: ${nr.name} at ${nr.min} XP — ${nr.min-xp} XP to go`:'🐐 Maximum Rank Achieved — You are the G.O.A.T.';
+  document.getElementById('xpNextLabel').textContent=nr?`Next rank: ${nr.name} at ${nr.min} XP — ${nr.min-xp} XP to go`:'👑 Maximum Rank Achieved — You are a GYMRAT.';
 
-  // Rank-up overlay: only show when rank name actually changes from what was last SAVED to localStorage.
-  // This means it only fires once — when you cross the threshold — never again on re-login.
+  // Rank-up overlay only fires when the rank actually changes from what was last SAVED to
+  // localStorage — so it fires once per real transition, never again on re-login.
   const uid=localStorage.getItem('user_id')||'default';
   const storedRankKey='gymbro_rank_'+uid;
   const storedRank=localStorage.getItem(storedRankKey);
   if(storedRank && storedRank !== rank.name){
-    // Rank actually changed — show overlay once
     showRankupOverlay(rank);
   }
-  // Always update stored rank to current rank
   localStorage.setItem(storedRankKey, rank.name);
 }
 function showRankupOverlay(rank){
-  document.getElementById('rankupIcon').textContent=rank.emoji;
+  document.getElementById('rankupIcon').innerHTML=rankIconSVG(rank.icon,64,'var(--accent)');
   document.getElementById('rankupTitle').textContent='RANK UP: '+rank.name;
   document.getElementById('rankupSubtitle').textContent=`You have ascended to ${rank.name}. The iron never lies.`;
   document.getElementById('rankupOverlay').classList.add('show');
@@ -4852,15 +4885,14 @@ function calculateVolumeXP(s){
   return Math.floor(t/100)*10+Math.floor(cardioSec/60)*10;
 }
 /* Writes the freshly-computed total XP into users.xp so every OTHER place in the app that needs this
-   user's XP/Rank (their public profile card, a future leaderboard, etc.) can just read that single
-   column instead of re-fetching this user's entire workout history and re-summing it themselves —
-   which is the expensive "recalculates from the database every time" pattern this column replaces.
+   user's XP/Rank (their public profile card, a future leaderboard, etc.) can just read that column
+   instead of re-fetching this user's entire workout history and re-summing it themselves — which is
+   the expensive "recalculates from the database every time" pattern this replaces.
    The dashboard (syncCoreDashboardMetrics, the only place XP is actually computed from raw session
    data) still does the real calculation — this function only persists that result. It's deliberately
-   fire-and-forget: XP is a display/ranking value, never something worth blocking or alerting the user
-   over if a single write fails (it'll simply resync next time the dashboard loads), and it silently
-   skips the write entirely if the value hasn't actually changed since last time, to avoid a wasted
-   round-trip on every single dashboard load. */
+   fire-and-forget: never worth blocking or alerting the user over if a single write fails (it'll
+   simply resync next dashboard load), and it silently skips the write entirely if the value hasn't
+   actually changed since last time, to avoid a wasted round-trip on every dashboard load. */
 window._lastPersistedXP=window._lastPersistedXP||{};
 async function persistUserXP(uid,xp){
   if(!uid)return;
@@ -4870,6 +4902,7 @@ async function persistUserXP(uid,xp){
     if(!error)window._lastPersistedXP[uid]=xp;
   }catch(e){/* best-effort cache write — the next dashboard load will retry with a fresh total */}
 }
+
 
 /* ===================== EXERCISE CATALOG — expanded with class labels ===================== */
 /* Multi-class exercises: allow user to pick which class to assign when selecting */
@@ -6519,14 +6552,19 @@ async function syncCoreDashboardMetrics(){
     attData.forEach(r=>{let rd=new Date(r.date);if(rd>=som){mci++;if(r.class)mw+=sessionParseClassField(r.class).length}});
   }
   document.getElementById("totalWorkout").innerText=mw;document.getElementById("checkinsMonth").innerText=mci;
-  let xp=mci*50;
+  // XP's check-in bonus counts EVERY present day all-time (not just this month — "mci" above is a
+  // separate, month-scoped figure used only for the "Check-ins this month" dashboard stat). Ranks are
+  // meant to represent months/years of accumulated effort, so the XP that drives them has to actually
+  // accumulate across months too, rather than resetting its check-in component back to 0 every month.
+  const totalCheckins=attData?attData.length:0;
+  let xp=totalCheckins*50;
   if(attData)attData.forEach(row=>{sessionWorkoutsArray(row).forEach(entry=>{xp+=calculateVolumeXP(sessionWorkoutEntryToText(entry))})});
   const prevXP=parseInt(localStorage.getItem('gymbro_xp')||'0');localStorage.setItem('gymbro_xp',xp);
-  updateXPDisplay(xp);
-  // Cache this freshly-calculated total into users.xp (fire-and-forget — see persistUserXP) so any
+  updateXPDisplay(xp,prevXP);
+  // Cache this freshly-calculated XP total into users.xp (fire-and-forget — see persistUserXP) so any
   // other screen that needs this user's XP/Rank (their profile card viewed by someone else, a future
-  // leaderboard, etc.) can read the column directly instead of re-fetching and re-summing their whole
-  // workout history like this function just did.
+  // leaderboard, etc.) can read it directly instead of re-fetching and re-summing their whole workout
+  // history like this function just did.
   persistUserXP(uid,xp);
   document.getElementById("postCount").textContent=mw;
   renderTodayWorkoutBanner();
@@ -15888,7 +15926,8 @@ async function openUserProfile(uid){
   // the dashboard itself uses, so a person's rank badge is identical everywhere it appears in the app.
   const userXp=u.xp||0;
   const _rank=getRankForXP(userXp);
-  const userRank=_rank.name,userRankEmoji=_rank.emoji,userLevel=RANK_TIERS.indexOf(_rank)+1;
+  const userRank=_rank.name,userRankIconHtml=rankIconSVG(_rank.icon,14,'var(--text-muted)'),userLevel=RANK_TIERS.indexOf(_rank)+1;
+
 
   // Build full-screen page that covers everything
   const page=document.createElement("div");
@@ -15912,7 +15951,7 @@ async function openUserProfile(uid){
       <div style="background:var(--accent-soft);border:1px solid var(--border-col);border-radius:14px;padding:14px;text-align:center">
         <div style="font-size:10px;font-weight:700;color:var(--text-muted);font-family:var(--font-alt);letter-spacing:0.8px;text-transform:uppercase;margin-bottom:4px">Level</div>
         <div style="font-family:var(--font-display);font-size:28px;color:var(--accent);letter-spacing:1px">${userLevel}</div>
-        <div style="font-size:10px;color:var(--text-muted);font-family:var(--font-alt);margin-top:2px">${userRankEmoji}</div>
+        <div style="font-size:10px;color:var(--text-muted);font-family:var(--font-alt);margin-top:2px">${userRankIconHtml}</div>
       </div>
       <div style="background:var(--accent-soft);border:1px solid var(--border-col);border-radius:14px;padding:14px;text-align:center">
         <div style="font-size:10px;font-weight:700;color:var(--text-muted);font-family:var(--font-alt);letter-spacing:0.8px;text-transform:uppercase;margin-bottom:4px">Total XP</div>
@@ -18297,4 +18336,4 @@ function closeLearnVideo(){
 
 </script>
 </body>
-</html> 
+</html>
