@@ -758,9 +758,11 @@ input::placeholder{color:var(--text-muted)}
    backdrop-filter:blur + a soft shadow — see .fm-panel/.fm-menu-dropdown) so it reads as an opaque,
    on-theme card (var(--bg-card) alone is a translucent rgba() in every theme, so pairing it with its
    own blur is what keeps it legible against whatever's behind it).
-   A small sticky close-bar (see .ex-list-topbar below) is always the first child, so there's an
-   explicit close (✕) button pinned to the top of the list at all times, in addition to the existing
-   tap-outside-to-close behavior. */
+   A fixed round "✕" icon button is always pinned to the top-right corner (see
+   .ex-list-fixed-close-wrap), in addition to the existing tap-outside-to-close behavior. It's a
+   zero-height sticky overlay — reserves no row and adds no empty space of its own — small enough,
+   and positioned far enough right, that it never sits on top of the "Your Workouts" header text or
+   its caret (see .yw-header's right padding + left-aligned caret below). */
 #autoSuggestions,#liveAutoSuggestions{
   position:static;
   margin-top:6px;
@@ -771,14 +773,27 @@ input::placeholder{color:var(--text-muted)}
   max-height:460px;
   box-shadow:0 6px 20px rgba(0,0,0,0.12);
 }
-/* Sticky close-bar pinned to the very top of the exercise-name list while it scrolls — always the
-   first child appended (see _appendExListCloseBar). Sits above .yw-header/.default-ex-header, whose
-   own "top" offset (38px) is set to this bar's height so the two never overlap while stacked. */
-.ex-list-topbar,#autoSuggestions .ex-list-topbar,#liveAutoSuggestions .ex-list-topbar{position:sticky;top:0;z-index:5;display:flex;justify-content:flex-end;align-items:center;padding:6px 8px;background:var(--bg-card);border-bottom:1px solid var(--border-col)}
-.ex-list-close-btn{width:26px;height:26px;flex-shrink:0;border-radius:50%;border:none;background:var(--bg-panel);color:var(--text-secondary);display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;transition:all 0.2s ease}
-.ex-list-close-btn:hover{background:var(--accent-soft);color:var(--accent)}
-.ex-list-close-btn svg{width:13px;height:13px}
-.suggestions-list>div{padding:10px 14px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--border-col);color:var(--text-primary)}
+/* Fixed round "✕" icon button pinned to the TOP-RIGHT CORNER of the exercise-name suggestions box —
+   Add Workout + Live Workout, every format. A zero-height sticky wrapper (position:sticky + height:0)
+   so it overlays the corner without reserving a row of its own or pushing any content down (no
+   empty gap above "Your Workouts"), and stays fixed there for as long as the list is open, no
+   matter how far it's scrolled. To keep it from ever interrupting the "Your Workouts" dropdown:
+   the header's own caret (▼) now sits directly next to the "Your Workouts" text on the LEFT
+   (justify-content:flex-start, see .yw-header) instead of being pushed to the far-right edge, and
+   the header reserves right-side padding matching the icon's footprint — so the icon only ever
+   overlays genuinely empty space at the far right, never the text or the caret. Icon-only (no
+   label) to match the app's other circular close buttons (see .fm-widget-close /
+   .tracker-fullscreen-close / .workout-edit-overlay-close). Always the first child appended (see
+   _buildExListFixedClose) so it sits above everything else while scrolling. */
+.ex-list-fixed-close-wrap{position:sticky;top:0;height:0;z-index:21;display:flex;justify-content:flex-end;pointer-events:none}
+.ex-list-fixed-close-btn{pointer-events:auto;display:flex;align-items:center;justify-content:center;width:24px;height:24px;flex-shrink:0;margin:5px 8px 0 0;border-radius:50%;border:none;background:var(--btn-bg);color:var(--follow-btn-text);box-shadow:var(--btn-shadow);cursor:pointer;padding:0;transition:transform 0.12s ease}
+.ex-list-fixed-close-btn:hover{transform:scale(1.1)}
+.ex-list-fixed-close-btn svg{width:12px;height:12px;display:block;stroke:currentColor}
+/* .ex-list-fixed-close-wrap and .yw-section are excluded here — they are structural wrappers, not
+   selectable rows, so they must never pick up a row's padding/border-bottom (that stray border on a
+   height:0/zero-content wrapper was rendering as a floating unwanted rule near the close icon, and it
+   was also clobbering .yw-section's own intentional accent border-bottom below). */
+.suggestions-list>div:not(.ex-list-fixed-close-wrap):not(.yw-section){padding:10px 14px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--border-col);color:var(--text-primary)}
 .suggestions-list>div:hover{background:var(--accent-soft);color:var(--accent)}
 /* "Your Workouts" quick-pick section — pinned to the top of the exercise-name suggestions dropdown
    (Add Workout + Live Workout, every format). Foldable: the header toggles a short list of the
@@ -791,7 +806,7 @@ input::placeholder{color:var(--text-muted)}
    (see the --accent-soft/--bg-panel rgba() values in the theme blocks) so a sticky header using them
    lets whatever sits behind the dropdown bleed through as it stays pinned over scrolling content. */
 .yw-section{border-bottom:3px solid var(--accent)}
-.yw-header{position:sticky;top:38px;z-index:3;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 14px;cursor:pointer;font-family:var(--font-alt);font-weight:800;font-size:12px;color:var(--accent);background:var(--bg-card);letter-spacing:0.4px;border-bottom:1.5px solid var(--accent)}
+.yw-header{position:sticky;top:0;z-index:3;display:flex;align-items:center;justify-content:flex-start;gap:6px;padding:10px 40px 10px 14px;cursor:pointer;font-family:var(--font-alt);font-weight:800;font-size:12px;color:var(--accent);background:var(--bg-card);letter-spacing:0.4px;border-bottom:1.5px solid var(--accent)}
 .yw-header:active{opacity:0.85}
 .yw-header-caret{font-size:10px;transition:transform 0.2s ease}
 .yw-header-caret.open{transform:rotate(180deg)}
@@ -830,7 +845,7 @@ input::placeholder{color:var(--text-muted)}
    very top if the person has no log history yet), visually distinct via a neutral (non-accent)
    color/border so the two lists are never mistaken for one another. Also sticky (see note above on
    .yw-header) — opaque var(--bg-card) background, not the translucent var(--bg-panel). */
-.default-ex-header{position:sticky;top:38px;z-index:2;padding:10px 14px;font-family:var(--font-alt);font-weight:800;font-size:12px;color:var(--text-muted);background:var(--bg-card);letter-spacing:0.4px;border-bottom:1.5px solid var(--border-col);border-top:3px solid var(--border-col)}
+.default-ex-header{position:sticky;top:0;z-index:2;padding:10px 40px 10px 14px;font-family:var(--font-alt);font-weight:800;font-size:12px;color:var(--text-muted);background:var(--bg-card);letter-spacing:0.4px;border-bottom:1.5px solid var(--border-col);border-top:3px solid var(--border-col)}
 @media(max-width:480px){
   .yw-header{padding:9px 12px;font-size:11px}
   .yw-item{padding:8px 12px 8px 14px;font-size:12.5px}
@@ -10344,7 +10359,7 @@ function _resolveYourWorkoutItem(name){
    currently being built. onPick receives just the exercise name string. */
 function _renderYourWorkoutsSection(box,mode,textVal,muscleVal,equipmentVal,onPick){
   const freqMap=window._exerciseFreqMap;
-  if(!freqMap||!Object.keys(freqMap).length)return; // brand-new user, nothing logged yet — section stays hidden entirely
+  if(!freqMap||!Object.keys(freqMap).length)return false; // brand-new user, nothing logged yet — section stays hidden entirely
   const isOpen=!!window._ywOpen[mode];
   const wrap=document.createElement('div');
   wrap.className='yw-section';
@@ -10375,6 +10390,7 @@ function _renderYourWorkoutsSection(box,mode,textVal,muscleVal,equipmentVal,onPi
   }
   wrap.appendChild(list);
   box.appendChild(wrap);
+  return true;
 }
 /* Picking a name from "Your Workouts" in the non-live (Add Workout) form — mirrors the normal
    catalog-match onclick in handleWorkoutSearchAuto exactly, just resolved via _resolveYourWorkoutItem
@@ -10453,18 +10469,25 @@ function _pickYourWorkoutLive(name){
   bwKgRevealed.live=false;
   updateLiveSetsStructureVisibility();
   updateNameClearIconVisibility('liveWorkoutNameInput','liveWorkoutNameClearIcon');
+  _syncLiveEditTitle();
   saveLiveDraft();
 }
-/* Builds and appends the sticky close-bar (✕ button) that's always the first child of the exercise-
-   name suggestions box — see .ex-list-topbar. Called every time the box is rebuilt (both the typed-
-   search path and the dropdown-icon click share this same rebuild, so the close bar is identical and
-   always present either way). Clicking it just closes the list, same as tapping outside it. */
-function _appendExListCloseBar(box,mode){
-  const bar=document.createElement('div');
-  bar.className='ex-list-topbar';
+/* Builds the fixed round "✕" icon button pinned to the top-right corner of the exercise-name
+   suggestions box — see .ex-list-fixed-close-wrap/.ex-list-fixed-close-btn. A zero-height sticky
+   wrapper, so it overlays the corner without reserving a row or leaving any empty space, and stays
+   fixed there for as long as the list is open, no matter how far it's scrolled — WITHOUT sitting on
+   top of the "Your Workouts" header/caret (that header's caret sits right next to its own text on
+   the left, and the header reserves matching right padding, so this icon only overlays empty space
+   at the far right). Always appended as the very first child of the box (see
+   handleWorkoutSearchAuto/handleLiveSearchAuto), regardless of whether the person has a "Your
+   Workouts" section or not. Icon-only, no text label, matching the app's other circular theme close
+   buttons. Clicking it just closes the whole list, same as tapping outside it. */
+function _buildExListFixedClose(box,mode){
+  const wrap=document.createElement('div');
+  wrap.className='ex-list-fixed-close-wrap';
   const btn=document.createElement('button');
   btn.type='button';
-  btn.className='ex-list-close-btn';
+  btn.className='ex-list-fixed-close-btn';
   btn.title='Close';
   btn.setAttribute('aria-label','Close exercise list');
   btn.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg>';
@@ -10475,8 +10498,8 @@ function _appendExListCloseBar(box,mode){
     const icon=document.getElementById(iconId);
     if(icon)icon.classList.remove('open');
   };
-  bar.appendChild(btn);
-  box.appendChild(bar);
+  wrap.appendChild(btn);
+  return wrap;
 }
 function toggleWorkoutNameDropdown(e){
   if(e)e.stopPropagation();
@@ -10499,7 +10522,6 @@ async function handleWorkoutSearchAuto(forceShow){
   const muscleVal=document.getElementById("addWorkoutMuscleFilter")?document.getElementById("addWorkoutMuscleFilter").value:"";
   const equipVal=document.getElementById("addWorkoutEquipmentFilter")?document.getElementById("addWorkoutEquipmentFilter").value:"";
   let box=document.getElementById("autoSuggestions");box.innerHTML="";box.style.display="none";
-  _appendExListCloseBar(box,'nonlive');
   const icon=document.getElementById("workoutNameDropdownIcon");if(icon)icon.classList.remove("open");
   document.getElementById("prevPerfBadgeNonLive").classList.remove("visible");
   updateTrackWorkoutBtnVisibility('nonlive');
@@ -10521,10 +10543,10 @@ async function handleWorkoutSearchAuto(forceShow){
     try{await window._exerciseFreqMapPromise;}catch(e){}
     if(_wsaReqId!==window._wsaReqId)return; // superseded by a newer call while we were waiting
   }
-  const _ywHasHistoryNL=!!(window._exerciseFreqMap&&Object.keys(window._exerciseFreqMap).length);
-  _renderYourWorkoutsSection(box,'nonlive',val,muscleVal,equipVal,_pickYourWorkoutNonLive);
+  const _ywHasHistoryNL=_renderYourWorkoutsSection(box,'nonlive',val,muscleVal,equipVal,_pickYourWorkoutNonLive);
   let matches=ctmGetFilteredCatalog(muscleVal,equipVal,val,true);
   if(matches.length||_ywHasHistoryNL){
+    box.prepend(_buildExListFixedClose(box,'nonlive'));
     box.style.display="block";
     if(icon)icon.classList.add("open");
   }
@@ -10635,6 +10657,11 @@ function liveSetupPanelEnterActiveSession(){
   const filterRow=document.getElementById("liveSetupFilterRow");if(filterRow)filterRow.style.display="none";
   const wrap=document.getElementById("liveSetsStructureWrap");if(wrap)wrap.style.display="none";
   ["_addCustomBtnLive","_inlineClassBtnLive","_inlineEquipBtnLive"].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display="none";});
+  // Fresh Live Add only (never Live-EDIT — see startLiveEditSession, which never calls this):
+  // once the session actually starts, the exercise name is fixed for the rest of it. Locking +
+  // hiding the editable box here (instead of leaving it editable) is intentional — if the wrong
+  // exercise was picked, the fix is to edit the saved entry afterward via Live-EDIT, not to let the
+  // name change mid-session. The fixed blue "🏆 Name — N Sets" display below is what shows instead.
   const nameInput=document.getElementById("liveWorkoutNameInput");if(nameInput)nameInput.readOnly=true;
   const nameLabel=document.getElementById("liveExerciseNameLabel");if(nameLabel)nameLabel.style.display="none";
   const nameBox=document.getElementById("liveWorkoutNameBox");if(nameBox)nameBox.style.display="none";
@@ -12496,6 +12523,14 @@ function toggleLiveNameDropdown(e){
 function _blockLiveModeCardio(){
   showToast('⛔ Live Mode is not available for Cardio workouts');
 }
+/* Keeps the "✏️ <name> — Edit Sets" heading above the sets in sync while Live-EDITing, since the
+   exercise name can now be changed mid-edit (see startLiveEditSession). No-op outside edit mode. */
+function _syncLiveEditTitle(){
+  if(!window._liveEditMode)return;
+  const titleEl=document.getElementById("liveSessionTitle");if(!titleEl)return;
+  const name=document.getElementById("liveWorkoutNameInput")?.value.trim();
+  if(name)titleEl.textContent="✏️ "+name+" — Edit Sets";
+}
 window._lsaReqId=0;
 async function handleLiveSearchAuto(forceShow){
   const _lsaReqId=++window._lsaReqId;
@@ -12503,6 +12538,7 @@ async function handleLiveSearchAuto(forceShow){
   let val=document.getElementById("liveWorkoutNameInput").value.toLowerCase();
   updateLiveSetsStructureVisibility();
   updateNameClearIconVisibility('liveWorkoutNameInput','liveWorkoutNameClearIcon');
+  _syncLiveEditTitle();
   // "Cardio" may be typed, searched, or scrolled to in the Muscle/Class filter and autosuggest
   // dropdown like any other class — browsing is fine. Only actually SELECTING a Cardio exercise
   // (a click in the dropdown, choosing "Cardio" for a multi-class exercise, or pressing Start Live
@@ -12510,7 +12546,6 @@ async function handleLiveSearchAuto(forceShow){
   let muscleVal=document.getElementById("liveWorkoutMuscleFilter")?document.getElementById("liveWorkoutMuscleFilter").value:"";
   const equipVal=document.getElementById("liveWorkoutEquipmentFilter")?document.getElementById("liveWorkoutEquipmentFilter").value:"";
   let box=document.getElementById("liveAutoSuggestions");box.innerHTML="";box.style.display="none";
-  _appendExListCloseBar(box,'live');
   const icon=document.getElementById("liveWorkoutNameDropdownIcon");if(icon)icon.classList.remove("open");
   document.getElementById("prevPerfBadgeLive").classList.remove("visible");
   updateTrackWorkoutBtnVisibility('live');
@@ -12529,10 +12564,10 @@ async function handleLiveSearchAuto(forceShow){
     try{await window._exerciseFreqMapPromise;}catch(e){}
     if(_lsaReqId!==window._lsaReqId)return; // superseded by a newer call while we were waiting
   }
-  const _ywHasHistoryLV=!!(window._exerciseFreqMap&&Object.keys(window._exerciseFreqMap).length);
-  _renderYourWorkoutsSection(box,'live',val,muscleVal,equipVal,_pickYourWorkoutLive);
+  const _ywHasHistoryLV=_renderYourWorkoutsSection(box,'live',val,muscleVal,equipVal,_pickYourWorkoutLive);
   let matches=ctmGetFilteredCatalog(muscleVal,equipVal,val,true);
   if(matches.length||_ywHasHistoryLV){
+    box.prepend(_buildExListFixedClose(box,'live'));
     box.style.display="block";
     if(icon)icon.classList.add("open");
   }
@@ -12588,6 +12623,7 @@ async function handleLiveSearchAuto(forceShow){
         bwKgRevealed.live=false;
         updateLiveSetsStructureVisibility();
         updateNameClearIconVisibility('liveWorkoutNameInput','liveWorkoutNameClearIcon');
+        _syncLiveEditTitle();
         saveLiveDraft();
       };
       box.appendChild(div);
@@ -14420,8 +14456,13 @@ function startLiveEditSession(ci,exerciseName,setsStr,segs){
   // Pre-fill the exercise name and lock it
   const nameInput=document.getElementById("liveWorkoutNameInput");
   nameInput.value=exerciseName;
-  nameInput.readOnly=true;
-  nameInput.style.opacity="0.7";
+  // Editable during Live-EDIT too (used to be locked read-only here) — same as Add Workout
+  // (non-live): typing, the dropdown/"Your Workouts", and the Muscle/Equipment filters (shown via
+  // liveSetupPanelExitActiveSession just below) all work. Every save function that persists this
+  // entry (updateLiveEditExistingSets, the new-set save flow, etc.) already re-reads whatever is
+  // currently in this input at save-time, so unlocking the field is all that's needed here.
+  nameInput.readOnly=false;
+  nameInput.style.opacity="1";
   updateNameClearIconVisibility('liveWorkoutNameInput','liveWorkoutNameClearIcon');
   // Editing — show Previous Performance same as Add mode, but exclude this entry's own date so it
   // shows the genuine PRIOR occurrence instead of the very entry being edited right now. The date
