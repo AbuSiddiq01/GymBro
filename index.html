@@ -732,7 +732,13 @@ input::placeholder{color:var(--text-muted)}
 .sugg-clear-icon svg{width:14px;height:14px}
 .sugg-clear-icon.visible{display:flex}
 .sugg-clear-icon:hover{color:var(--accent)}
-.suggestions-list{position:absolute;left:0;right:0;background:var(--bg-card);border:1px solid var(--border-col);border-radius:11px;max-height:min(72vh,620px);overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;z-index:100;box-shadow:0 10px 30px rgba(0,0,0,0.12);display:none}
+/* Stays position:absolute, anchored to .suggestion-box (its positioned parent), so it always
+   sits glued directly under the exercise-name input as part of normal document flow — it moves
+   with the page/modal exactly like the input does, with no risk of ending up stranded somewhere
+   else on screen when the page scrolls, the on-screen keyboard opens, or the browser
+   auto-scrolls a focused input into view. Sized generously (see min-height/max-height below) so
+   it comfortably shows close to 10 rows before its own internal scrollbar kicks in. */
+.suggestions-list{position:absolute;left:0;right:0;background:var(--bg-card);border:1px solid var(--border-col);border-radius:11px;min-height:min(58vh,420px);max-height:min(75vh,620px);overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;z-index:100;box-shadow:0 10px 30px rgba(0,0,0,0.12);display:none}
 .suggestions-list>div{padding:10px 14px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--border-col);color:var(--text-primary)}
 .suggestions-list>div:hover{background:var(--accent-soft);color:var(--accent)}
 /* "Your Workouts" quick-pick section — pinned to the top of the exercise-name suggestions dropdown
@@ -1363,7 +1369,13 @@ input:checked+.privacy-toggle-slider:before{transform:translateX(20px)}
    spot on close, so the "+ ADD WORKOUT ENTRY" flow is completely untouched. */
 .workout-edit-overlay{display:none;position:fixed;inset:0;z-index:9999;background:rgba(5,8,14,0.72);backdrop-filter:blur(4px);align-items:flex-start;justify-content:center;padding:40px 14px 24px;overflow-y:auto;box-sizing:border-box}
 .workout-edit-overlay.active{display:flex}
-.workout-edit-overlay-stage{width:100%;max-width:520px;margin:auto;box-sizing:border-box;max-height:calc(100vh - 64px);overflow-y:auto;-webkit-overflow-scrolling:touch;border-radius:18px;box-shadow:0 20px 50px rgba(0,0,0,0.4);position:relative}
+/* No max-height/overflow of its own on purpose (that's what used to clip the exercise-name
+   dropdown to whatever portion happened to fall inside this box's own scroll viewport). The
+   outer .workout-edit-overlay is the one and only scroll container now — it already has
+   overflow-y:auto and covers the full screen, so this stage simply grows to fit whatever it
+   contains (including an open dropdown) and the overlay itself scrolls to reach any of it,
+   exactly like scrolling a normal page. */
+.workout-edit-overlay-stage{width:100%;max-width:520px;margin:auto;box-sizing:border-box;border-radius:18px;box-shadow:0 20px 50px rgba(0,0,0,0.4);position:relative}
 .workout-edit-overlay-stage .workout-form-wrapper{margin-top:0;max-width:100%;box-sizing:border-box}
 .workout-edit-overlay-close{position:fixed;top:16px;right:16px;width:38px;height:38px;border-radius:50%;border:none;background:var(--btn-bg);color:var(--follow-btn-text);cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:var(--btn-shadow);z-index:2;padding:0}
 .workout-edit-overlay-close svg{width:16px;height:16px;display:block}
@@ -5618,6 +5630,11 @@ function ctmInitMuscleEquipmentDropdowns(){
    cached — an empty map (brand-new user with no logged history yet) naturally falls back to the
    catalog's own built-in order as a "most popular first" default. */
 window._exerciseFreqMap=null;
+/* The in-flight fetch promise for the block below — exposed so the exercise-name dropdown renderers
+   (handleWorkoutSearchAuto/handleLiveSearchAuto) can await it the very first time they're asked to
+   show a list before it has resolved, instead of silently rendering as if the person had no history
+   yet. See _refreshExerciseDropdownsAfterFreqMapLoad for the other half of this fix. */
+window._exerciseFreqMapPromise=null;
 async function loadExerciseFrequencyMap(){
   const uid=localStorage.getItem("user_id");
   const map={};
@@ -5636,7 +5653,27 @@ async function loadExerciseFrequencyMap(){
     }catch(e){console.log('[ExerciseFreq] load failed',e);}
   }
   window._exerciseFreqMap=map;
+  _refreshExerciseDropdownsAfterFreqMapLoad();
   return map;
+}
+/* BUG FIX: window._exerciseFreqMap is loaded fire-and-forget right after login (see
+   loadExerciseFrequencyMap's call site) so it doesn't block the initial page render. But the
+   exercise-name suggestions dropdown (Add Workout + Live Workout + both their Edit forms) used to
+   check the map at render time only — if this fetch hadn't resolved yet (very likely if the person
+   lands straight on the Workout tab and taps "+ ADD WORKOUT ENTRY" right away), the "⭐ Your
+   Workouts" section was silently skipped for that render and stayed skipped until the box was closed
+   and reopened, which is why the very first exercise picked each session showed a noticeably shorter
+   list than every one after it. This refreshes any dropdown that's still open the moment the map
+   finishes loading, and handleWorkoutSearchAuto/handleLiveSearchAuto (see below) now also await the
+   fetch themselves the first time they're opened before it resolves, so even a dropdown opened and
+   picked from in the couple hundred ms before the fetch finishes renders the full list immediately. */
+function _refreshExerciseDropdownsAfterFreqMapLoad(){
+  try{
+    const nlBox=document.getElementById('autoSuggestions');
+    if(nlBox&&nlBox.style.display==='block')handleWorkoutSearchAuto(true);
+    const lvBox=document.getElementById('liveAutoSuggestions');
+    if(lvBox&&lvBox.style.display==='block')handleLiveSearchAuto(true);
+  }catch(e){}
 }
 /* Core filter+sort used by both the Add Workout suggestion box and the Tracker search.
    - muscleVal / equipmentVal: current dropdown selections ('' = no filter)
@@ -5807,7 +5844,7 @@ async function mountMemberDashboard(data,initialTab){
   // Populate the Muscle/Equipment filter dropdowns (Add Workout + Tracker) and preload this
   // user's exercise-frequency map (used to sort those dropdowns' results by "most done first").
   ctmInitMuscleEquipmentDropdowns();
-  loadExerciseFrequencyMap();
+  window._exerciseFreqMapPromise=loadExerciseFrequencyMap();
   // Check for pending follow requests (for private accounts) — show pop-up notification
   setTimeout(checkIncomingFollowRequests,2000);
   // Show the fixed homepage billing box — fee-due notice (non-cancellable) OR, if nothing is due,
@@ -10186,7 +10223,7 @@ function finalizeCustomExerciseName(rawName,selectedClass,selectedEquipment){
    section (same search text as the normal list, matched independently) so e.g. typing "Inc" while
    open surfaces "Incline Bench Press (Dumbbell)" here first if the person has logged it before —
    but only while the section is actually open; folded, the normal search is 100% untouched. */
-window._ywOpen={nonlive:false,live:false};
+window._ywOpen={nonlive:true,live:true};
 /* Same Muscle/Equipment filtering rules as ctmGetFilteredCatalog, applied to the person's own
    logged history: choosing Chest shows only Chest exercises they've done, adding Dumbbell narrows
    that further to Chest+Dumbbell — exactly like the default catalog list right below it. No filters
@@ -10391,7 +10428,9 @@ function toggleWorkoutNameDropdown(e){
     if(icon)icon.classList.add("open");
   }
 }
-function handleWorkoutSearchAuto(forceShow){
+window._wsaReqId=0;
+async function handleWorkoutSearchAuto(forceShow){
+  const _wsaReqId=++window._wsaReqId;
   let val=document.getElementById("workoutNameInput").value.toLowerCase();
   updateNonLiveSetsStructureVisibility();
   updateNameClearIconVisibility('workoutNameInput','workoutNameClearIcon');
@@ -10412,6 +10451,13 @@ function handleWorkoutSearchAuto(forceShow){
   // dropdown icon wasn't clicked — choosing either dropdown (even with the text box empty), or
   // clicking the dropdown icon itself, should instantly show the (filtered) full list.
   if(!forceShow&&!val&&!muscleVal&&!equipVal){const nb=document.getElementById('_inlineClassBtnNonLive');if(nb)nb.style.display='none';const eb=document.getElementById('_inlineEquipBtnNonLive');if(eb)eb.style.display='none';return;}
+  // First open of the session, opened before the fire-and-forget freq-map fetch has resolved yet —
+  // wait for it so "Your Workouts" doesn't get skipped on this very first render (see
+  // _refreshExerciseDropdownsAfterFreqMapLoad's comment above for the full story).
+  if(!window._exerciseFreqMap&&window._exerciseFreqMapPromise){
+    try{await window._exerciseFreqMapPromise;}catch(e){}
+    if(_wsaReqId!==window._wsaReqId)return; // superseded by a newer call while we were waiting
+  }
   const _ywHasHistoryNL=!!(window._exerciseFreqMap&&Object.keys(window._exerciseFreqMap).length);
   _renderYourWorkoutsSection(box,'nonlive',val,muscleVal,equipVal,_pickYourWorkoutNonLive);
   let matches=ctmGetFilteredCatalog(muscleVal,equipVal,val,true);
@@ -12283,6 +12329,12 @@ function showAddWorkoutForm(){
     const lqs=document.getElementById("liveQueueStrip");if(lqs)lqs.style.display="none";
     document.getElementById("initialWorkoutBox").style.display="";document.getElementById("liveWorkoutForm").style.display="block";document.getElementById("workoutFormStructure").style.display="none";
     document.getElementById("liveWorkoutNameInput").value="";document.getElementById("liveSetsCountSelect").value="1";document.getElementById("liveSetsContainer").innerHTML="";
+    // BUG FIX: these selects were never reset — a Muscle/Equipment filter chosen while browsing for
+    // one exercise used to silently stay applied (and keep narrowing/emptying the dropdown) for
+    // every entry after it, for the rest of the session. Always reset to "All" here; the draft
+    // restore further down intentionally re-applies a saved value on top of this if one exists.
+    const _lmf=document.getElementById("liveWorkoutMuscleFilter");if(_lmf)_lmf.value="";
+    const _lef=document.getElementById("liveWorkoutEquipmentFilter");if(_lef)_lef.value="";
     document.getElementById("liveSetupPanel").style.display="block";liveSetupPanelExitActiveSession();document.getElementById("liveSessionTitle").style.display="none";
     updateLiveSetsStructureVisibility();
     updateNameClearIconVisibility('liveWorkoutNameInput','liveWorkoutNameClearIcon');
@@ -12301,6 +12353,9 @@ function showAddWorkoutForm(){
     // another workout entry instead of the person having to close this one first.
     document.getElementById("initialWorkoutBox").style.display="";document.getElementById("workoutFormStructure").style.display="block";document.getElementById("liveWorkoutForm").style.display="none";
     applySetsCountMinConstraint();
+    // BUG FIX: same stale-filter issue as the live branch above — reset before anything else runs.
+    const _amf=document.getElementById("addWorkoutMuscleFilter");if(_amf)_amf.value="";
+    const _aef=document.getElementById("addWorkoutEquipmentFilter");if(_aef)_aef.value="";
     window._selectedWorkoutClass=null;window._selectedWorkoutEquipment=null;
     // Restore a refresh-proof draft if the person had anything typed before an accidental reload
     const draft=loadNonLiveDraft();
@@ -12378,7 +12433,9 @@ function toggleLiveNameDropdown(e){
 function _blockLiveModeCardio(){
   showToast('⛔ Live Mode is not available for Cardio workouts');
 }
-function handleLiveSearchAuto(forceShow){
+window._lsaReqId=0;
+async function handleLiveSearchAuto(forceShow){
+  const _lsaReqId=++window._lsaReqId;
   saveLiveDraft();
   let val=document.getElementById("liveWorkoutNameInput").value.toLowerCase();
   updateLiveSetsStructureVisibility();
@@ -12401,6 +12458,13 @@ function handleLiveSearchAuto(forceShow){
   // Show nothing only when there's no typed text AND no Muscle/Equipment filter selected AND the
   // dropdown icon wasn't clicked — mirrors the non-live Add Workout behavior exactly.
   if(!forceShow&&!val&&!muscleVal&&!equipVal){const lb=document.getElementById('_inlineClassBtnLive');if(lb)lb.style.display='none';const eb=document.getElementById('_inlineEquipBtnLive');if(eb)eb.style.display='none';return;}
+  // First open of the session, opened before the fire-and-forget freq-map fetch has resolved yet —
+  // wait for it so "Your Workouts" doesn't get skipped on this very first render (see
+  // _refreshExerciseDropdownsAfterFreqMapLoad's comment above for the full story).
+  if(!window._exerciseFreqMap&&window._exerciseFreqMapPromise){
+    try{await window._exerciseFreqMapPromise;}catch(e){}
+    if(_lsaReqId!==window._lsaReqId)return; // superseded by a newer call while we were waiting
+  }
   const _ywHasHistoryLV=!!(window._exerciseFreqMap&&Object.keys(window._exerciseFreqMap).length);
   _renderYourWorkoutsSection(box,'live',val,muscleVal,equipVal,_pickYourWorkoutLive);
   let matches=ctmGetFilteredCatalog(muscleVal,equipVal,val,true);
@@ -14094,6 +14158,9 @@ function initiateWorkoutEdit(e,ci,rv){
   if(!isWorkoutEditableDate(_td)){alert("You can only edit workouts for today, yesterday, or the day before yesterday.");return}
   currentEditingIndex=ci;
   bwKgRevealed.nonlive=false;
+  // BUG FIX: Edit never reset these either — see the matching fix in showAddWorkoutForm.
+  const _eamf=document.getElementById("addWorkoutMuscleFilter");if(_eamf)_eamf.value="";
+  const _eaef=document.getElementById("addWorkoutEquipmentFilter");if(_eaef)_eaef.value="";
   if(typeof updateRoomTargetBadge==='function')updateRoomTargetBadge();
   editOriginalDurations={};
 
@@ -14267,6 +14334,9 @@ function getLiveEditCommittedSegments(){
 function startLiveEditSession(ci,exerciseName,setsStr,segs){
   if(typeof updateRoomTargetBadge==='function')updateRoomTargetBadge();
   bwKgRevealed.liveEditExisting=false;bwKgRevealed.liveEditNew=false;
+  // BUG FIX: Live Edit never reset these either — see the matching fix in showAddWorkoutForm.
+  const _elmf=document.getElementById("liveWorkoutMuscleFilter");if(_elmf)_elmf.value="";
+  const _elef=document.getElementById("liveWorkoutEquipmentFilter");if(_elef)_elef.value="";
   // Parse existing saved sets so we can re-build the combined entry on every save
   liveEditSlot=(window._workoutCiMap&&window._workoutCiMap[ci])||null;
   liveEditExistingResults=segs.map(s=>s.trim()).filter(Boolean);
@@ -18717,4 +18787,4 @@ function closeLearnVideo(){
 
 </script>
 </body>
-</html>
+</html> 
