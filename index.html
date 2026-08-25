@@ -5073,7 +5073,7 @@ function calculateVolumeXP(s){
   s.split(':')[1].split(',').forEach(seg=>{
     seg=seg.trim();
     if(isCardioSetString(seg)){cardioSec+=parseCardioSetSegment(seg).totalSec;return}
-    const m=seg.match(/(\d+)\s*kg\s*x\s*(\d+)/i);if(m)t+=parseInt(m[1])*parseInt(m[2]);
+    const m=seg.match(/([\d.]+)\s*kg\s*x\s*(\d+)/i);if(m)t+=parseFloat(m[1])*parseInt(m[2]);
   });
   return Math.floor(t/100)*10+Math.floor(cardioSec/60)*10;
 }
@@ -5460,7 +5460,7 @@ function isCardioSetString(seg){
    widget is tap-to-type: tapping the currently-visible value swaps it for an inline number
    input (see setupMinSecScrollList's click handler) — no separate icon or external box. */
 function mountCardioDurationPicker(containerId,pickerKey,initMin,initSec,locked,onChange){
-  mountMinSecPicker(containerId,pickerKey,initMin,initSec,onChange);
+  mountMinSecPicker(containerId,pickerKey,initMin,initSec,onChange,300);
   setCardioPickerLocked(pickerKey,locked);
 }
 /* Keeps a Live-mode cardio set's timer readout (liveTimerDisplay_) in sync with its Duration
@@ -6135,12 +6135,17 @@ function formatMinSec(totalSecs){
 /* ===================== REUSABLE MIN:SEC SCROLL PICKER ===================== */
 /* Mounts a scrollable-only min/sec picker into the given container id.
    pickerKey is used to namespace the DOM ids so multiple pickers can co-exist on the page. */
-function mountMinSecPicker(containerId,pickerKey,initMin,initSec,onChange){
+/* maxMin optionally overrides the minute column's ceiling (defaults to 60 — used by the Break/Rest
+   timer picker, where a 5-hour rest between sets would never make sense). Cardio Duration passes
+   300 (5 hours) via mountCardioDurationPicker below, since a single cardio set can legitimately run
+   that long (e.g. an ultra-endurance session) — see SET_FIELD_MAX for the matching Kg/Reps/Km caps. */
+function mountMinSecPicker(containerId,pickerKey,initMin,initSec,onChange,maxMin){
   const mount=document.getElementById(containerId);
   if(!mount)return;
   initMin=initMin||0;initSec=initSec||0;
+  maxMin=maxMin||60;
   mount.dataset.pickedMin=initMin;mount.dataset.pickedSec=initSec;
-  const minItems=Array.from({length:61},(_,i)=>i); // 0-60
+  const minItems=Array.from({length:maxMin+1},(_,i)=>i); // 0-maxMin
   const secItems=Array.from({length:60},(_,i)=>i); // 0-59
   mount.innerHTML=`
     <div class="minsec-picker">
@@ -6156,7 +6161,7 @@ function mountMinSecPicker(containerId,pickerKey,initMin,initSec,onChange){
         </div>
       </div>
     </div>`;
-  setupMinSecScrollList(`minsecMinList_${pickerKey}`,initMin,(val)=>{mount.dataset.pickedMin=val;if(onChange)onChange()},60);
+  setupMinSecScrollList(`minsecMinList_${pickerKey}`,initMin,(val)=>{mount.dataset.pickedMin=val;if(onChange)onChange()},maxMin);
   setupMinSecScrollList(`minsecSecList_${pickerKey}`,initSec,(val)=>{mount.dataset.pickedSec=val;if(onChange)onChange()},59);
   // store mount container id alongside pickerKey so getPickerSeconds can find it
   mount.dataset.pickerKey=pickerKey;
@@ -10767,7 +10772,7 @@ function renderNonLiveSetsRows(weights,reps,locks,kms,mins,secs){
     const lockHtml=`<label class="set-lock-check" title="Tick to lock this set's values (or swipe the row →)"><input type="checkbox" id="lock_set_${i}" ${locked?'checked':''} onchange="handleSetLockToggle(${i})"><span class="set-lock-box"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span></label>`;
     if(isCardio){
       const km=kms[i-1]||'',min=mins[i-1]||'0',sec=secs[i-1]||'0';
-      const kmInputHtml=`<input type="number" placeholder="Km" id="km_set_${i}" min="0" step="0.01" value="${km}" ${locked?'readonly':''} class="km-input" oninput="handleNonLiveSetInputChange()">`;
+      const kmInputHtml=`<input type="number" placeholder="Km" id="km_set_${i}" min="0" max="300" step="0.01" value="${km}" ${locked?'readonly':''} class="km-input" oninput="handleNonLiveSetInputChange()">`;
       // Stopwatch control: ▶ (idle) swaps to a live MM:SS readout + ⏸ Pause / 💾 Save once started.
       // Save writes the elapsed time straight into the Duration picker up in line 1 (setCardioPickerValue) —
       // see toggleNlCardioTimer/saveNlCardioTimer. Manual typing into the picker (tap-to-type) still works
@@ -10788,14 +10793,72 @@ function renderNonLiveSetsRows(weights,reps,locks,kms,mins,secs){
         extraHtml=`<span class="set-time-locked" title="Original duration is preserved and cannot be changed">⏱ ${editOriginalDurations[i]}</span>`;
       }
       const bwHidden=isBW&&!bwKgRevealed.nonlive;
-      const weightInputHtml=bwHidden?`<input type="number" id="weight_set_${i}" value="0" style="display:none">`:(isBW?`<input type="number" placeholder="Kgs (optional)" id="weight_set_${i}" min="0" step="0.5" value="${w}" ${locked?'readonly':''} style="margin-top:0;padding:9px;flex:1" oninput="handleNonLiveSetInputChange()">`:`<input type="number" placeholder="Kgs" id="weight_set_${i}" min="0.5" step="0.5" value="${w}" ${locked?'readonly':''} style="margin-top:0;padding:9px;flex:1" oninput="handleNonLiveSetInputChange()">`);
+      const weightInputHtml=bwHidden?`<input type="number" id="weight_set_${i}" value="0" style="display:none">`:(isBW?`<input type="number" placeholder="Kgs (optional)" id="weight_set_${i}" min="0" max="500" step="0.5" value="${w}" ${locked?'readonly':''} class="kg-input" style="margin-top:0;padding:9px;flex:1" oninput="handleNonLiveSetInputChange()">`:`<input type="number" placeholder="Kgs" id="weight_set_${i}" min="0.5" max="500" step="0.5" value="${w}" ${locked?'readonly':''} class="kg-input" style="margin-top:0;padding:9px;flex:1" oninput="handleNonLiveSetInputChange()">`);
       const bwIcon=(isBW&&i===1)?bwInfoIconHtml('nonlive'):'';
-      c.innerHTML+=`<div class="set-row${locked?' set-row-locked':''}" ontouchstart="nlSetSwipeStart(event)" ontouchend="nlSetSwipeEnd(event,${i})">${labelHtml}${weightInputHtml}<input type="number" placeholder="Reps" id="reps_set_${i}" min="1" value="${r}" ${locked?'readonly':''} style="margin-top:0;padding:9px;flex:1" oninput="handleNonLiveSetInputChange()">${bwIcon}${extraHtml}${copyBtn}${lockHtml}${delBtn}</div>`;
+      c.innerHTML+=`<div class="set-row${locked?' set-row-locked':''}" ontouchstart="nlSetSwipeStart(event)" ontouchend="nlSetSwipeEnd(event,${i})">${labelHtml}${weightInputHtml}<input type="number" placeholder="Reps" id="reps_set_${i}" min="1" max="500" value="${r}" ${locked?'readonly':''} class="reps-input" style="margin-top:0;padding:9px;flex:1" oninput="handleNonLiveSetInputChange()">${bwIcon}${extraHtml}${copyBtn}${lockHtml}${delBtn}</div>`;
     }
   }
+  guardAllNumericSetInputs(c);
   mountList.forEach(({i,min,sec,locked})=>mountCardioDurationPicker(`cardioDurMount_set_${i}`,`nlSet_${i}`,min,sec,locked,handleNonLiveSetInputChange));
   // Re-check Quick Fill visibility after rebuild
   checkQuickFillVisibility();
+}
+
+/* ===================== NUMERIC-ONLY SET-FIELD GUARDS (Kg / Reps / Km) =====================
+   Applies to every Kg, Reps, and Km input across every Add/Edit form, both Live and Non-Live:
+   weight_set_N, reps_set_N, km_set_N (Non-Live add/edit), liveKg_N, liveReps_N, liveKm_N (Live
+   add), liveEditExistKg_N, liveEditExistReps_N (Live edit — existing saved sets), and
+   liveEditKg_N, liveEditReps_N (Live edit — newly added sets). Two layers of defense:
+   1) keydown blocks the actual keys HTML5 number inputs otherwise still accept that aren't digits
+      (e, E, +, -), so letters/symbols can never even land in the field;
+   2) input strips anything non-numeric that still gets in another way (paste, autofill, browser
+      quirks), TRUNCATES the decimal part down to that field's realistic precision (see
+      SET_FIELD_MAX_DECIMALS below — this was the actual bug: the old version only collapsed a
+      SECOND decimal point down to one, but never limited how many digits could follow that one
+      point, so e.g. "99.757575757575757" typed straight through untouched), and clamps the whole
+      value to the realistic human-effort ceiling for that field — all the moment it's typed,
+      rather than only on blur/submit.
+   Ceilings (generous but real-world — no one is logging heavier/further/longer than this):
+   - Kg: 500 max, 1 decimal place (12.5, 7.5, 0.5 — everyday plate/dumbbell increments)
+   - Reps: 500 max, whole numbers only (no decimals — a rep is never fractional)
+   - Km: 300 max, 2 decimal places (5.25 km — typical distance-tracking precision)
+   - Cardio duration: 5 hours (300 minutes) per set — see mountMinSecPicker's minute-column max. */
+const SET_FIELD_MAX={kg:500,reps:500,km:300};
+const SET_FIELD_MAX_DECIMALS={kg:1,km:2};
+function _sanitizeNumericSetInput(el,kind,allowDecimal){
+  let v=el.value;
+  if(allowDecimal){
+    // digits + at most one decimal point ...
+    v=v.replace(/[^0-9.]/g,'').replace(/(\..*)\./g,'$1');
+    // ... and at most SET_FIELD_MAX_DECIMALS[kind] digits after that point — this is the piece
+    // that was missing before, letting values like "99.757575757575757" through untouched.
+    const maxDec=SET_FIELD_MAX_DECIMALS[kind]||2;
+    const dot=v.indexOf('.');
+    if(dot!==-1&&v.length-dot-1>maxDec)v=v.slice(0,dot+1+maxDec);
+  } else {
+    v=v.replace(/[^0-9]/g,''); // Reps: no decimal point at all
+  }
+  if(v!==''){
+    let n=parseFloat(v);
+    if(!isNaN(n)&&n>SET_FIELD_MAX[kind]){v=String(SET_FIELD_MAX[kind]);n=SET_FIELD_MAX[kind]}
+  }
+  if(v!==el.value)el.value=v;
+}
+function guardNumericSetInput(el,kind,allowDecimal){
+  if(!el||el._numGuarded)return; // avoid double-binding if a row is re-rendered onto the same element
+  el._numGuarded=true;
+  el.setAttribute('inputmode',allowDecimal?'decimal':'numeric');
+  el.addEventListener('keydown',e=>{
+    if(['e','E','+','-'].includes(e.key))e.preventDefault(); // block sci-notation/sign keys HTML5 number inputs otherwise allow
+  });
+  el.addEventListener('input',()=>_sanitizeNumericSetInput(el,kind,allowDecimal));
+}
+/* Call once after any batch of set rows is (re)built — scans the container for every Kg/Reps/Km
+   field via their shared classes and wires the guard onto whichever ones aren't already bound. */
+function guardAllNumericSetInputs(root){
+  (root||document).querySelectorAll('.kg-input').forEach(el=>guardNumericSetInput(el,'kg',true));
+  (root||document).querySelectorAll('.reps-input').forEach(el=>guardNumericSetInput(el,'reps',false));
+  (root||document).querySelectorAll('.km-input').forEach(el=>guardNumericSetInput(el,'km',true));
 }
 
 /* Combined handler for every Kg/Reps keystroke on a non-live set: keeps the Quick Fill button's
@@ -12815,6 +12878,7 @@ function restoreLiveSessionUI(draft,fromQueue){
     if(doneHasKg||pendingHasKg)bwKgRevealed.live=true;
   }
   for(let i=1;i<=liveTotalSets;i++)container.innerHTML+=buildLiveSetHTML(i,i===activeIdxForBuild);
+  guardAllNumericSetInputs(container);
   if(isCardioLive)for(let i=1;i<=liveTotalSets;i++)mountCardioDurationPicker(`liveCardioDurMount_${i}`,`liveSet_${i}`,0,0,false,()=>syncLiveCardioDurDisplay(i));
   const hasDefault=getDefaultBreakSeconds()>0;
   if(!hasDefault)for(let i=1;i<=liveTotalSets;i++)mountMinSecPicker(`liveBreakPickerMount_${i}`,`liveBreak_${i}`,0,0);
@@ -12971,6 +13035,7 @@ function startLiveSession(){
   document.getElementById("liveSessionTitle").style.display="none";
   const container=document.getElementById("liveSetsContainer");container.innerHTML="";
   for(let i=1;i<=liveTotalSets;i++){container.innerHTML+=buildLiveSetHTML(i,i===1)}
+  guardAllNumericSetInputs(container);
   const _isCardioName=isCardioExercise(name);
   if(_isCardioName)for(let i=1;i<=liveTotalSets;i++)mountCardioDurationPicker(`liveCardioDurMount_${i}`,`liveSet_${i}`,0,0,false,()=>syncLiveCardioDurDisplay(i));
   // Only mount the manual scrollable picker when the user has NOT configured a default break time.
@@ -12995,7 +13060,7 @@ function buildLiveSetHTML(idx,active){
     return `<div class="live-set-block${active?' set-active':''}" id="liveSetBlock_${idx}">
     <div class="live-set-header"><span class="live-set-title">SET ${idx}</span><span class="live-set-done-badge" id="liveSetDoneBadge_${idx}" style="display:none">✓ DONE</span></div>
     <div class="live-set-inputs" id="liveSetInputs_${idx}" ${!active?'style="opacity:0.4;pointer-events:none"':''}>
-      <input type="number" id="liveKm_${idx}" placeholder="Km" min="0" step="0.01" class="km-input" oninput="saveLiveDraft()">
+      <input type="number" id="liveKm_${idx}" placeholder="Km" min="0" max="300" step="0.01" class="km-input" oninput="saveLiveDraft()">
       ${copyBtn}
     </div>
     <div class="live-timer-row" id="liveTimerRow_${idx}" ${!active?'style="display:none"':''}>
@@ -13033,13 +13098,13 @@ function buildLiveSetHTML(idx,active){
   </div>`;
   }
   const bwHidden=isBW&&!bwKgRevealed.live;
-  const weightInputHtml=bwHidden?`<input type="number" id="liveKg_${idx}" value="0" style="display:none">`:(isBW?`<input type="number" id="liveKg_${idx}" placeholder="Kgs (optional)" min="0" step="0.5" style="margin-top:0;padding:9px" oninput="saveLiveDraft()">`:`<input type="number" id="liveKg_${idx}" placeholder="Kgs" min="0.5" step="0.5" style="margin-top:0;padding:9px" oninput="saveLiveDraft()">`);
+  const weightInputHtml=bwHidden?`<input type="number" id="liveKg_${idx}" value="0" style="display:none">`:(isBW?`<input type="number" id="liveKg_${idx}" placeholder="Kgs (optional)" min="0" max="500" step="0.5" class="kg-input" style="margin-top:0;padding:9px" oninput="saveLiveDraft()">`:`<input type="number" id="liveKg_${idx}" placeholder="Kgs" min="0.5" max="500" step="0.5" class="kg-input" style="margin-top:0;padding:9px" oninput="saveLiveDraft()">`);
   const bwIcon=(isBW&&idx===1)?bwInfoIconHtml('live'):'';
   return `<div class="live-set-block${active?' set-active':''}" id="liveSetBlock_${idx}">
     <div class="live-set-header"><span class="live-set-title">SET ${idx}</span><span class="live-set-done-badge" id="liveSetDoneBadge_${idx}" style="display:none">✓ DONE</span></div>
     <div class="live-set-inputs" id="liveSetInputs_${idx}" ${!active?'style="opacity:0.4;pointer-events:none"':''}>
       ${weightInputHtml}
-      <input type="number" id="liveReps_${idx}" placeholder="Reps" min="1" style="margin-top:0;padding:9px" oninput="saveLiveDraft()">
+      <input type="number" id="liveReps_${idx}" placeholder="Reps" min="1" max="500" class="reps-input" style="margin-top:0;padding:9px" oninput="saveLiveDraft()">
       ${bwIcon}
       ${copyBtn}
     </div>
@@ -14555,9 +14620,9 @@ function renderLiveEditSetsUI(){
     const w=ov.w!==undefined?ov.w:parsed.w,r=ov.r!==undefined?ov.r:parsed.r;
     const durTag=parsed.duration?`<span class="set-time-locked" title="Original duration is preserved and cannot be changed">⏱ ${parsed.duration}</span>`:'';
     const bwHidden=isBWExisting&&!bwKgRevealed.liveEditExisting;
-    const weightInputHtml=bwHidden?`<input type="number" id="liveEditExistKg_${i}" value="0" style="display:none">`:(isBWExisting?`<input type="number" placeholder="Kgs (optional)" id="liveEditExistKg_${i}" min="0" step="0.5" value="${w}" oninput="handleLiveEditExistingInputChange(${i})" style="margin-top:0;padding:9px;flex:1">`:`<input type="number" placeholder="Kgs" id="liveEditExistKg_${i}" min="0.5" step="0.5" value="${w}" oninput="handleLiveEditExistingInputChange(${i})" style="margin-top:0;padding:9px;flex:1">`);
+    const weightInputHtml=bwHidden?`<input type="number" id="liveEditExistKg_${i}" value="0" style="display:none">`:(isBWExisting?`<input type="number" placeholder="Kgs (optional)" id="liveEditExistKg_${i}" min="0" max="500" step="0.5" value="${w}" oninput="handleLiveEditExistingInputChange(${i})" class="kg-input" style="margin-top:0;padding:9px;flex:1">`:`<input type="number" placeholder="Kgs" id="liveEditExistKg_${i}" min="0.5" max="500" step="0.5" value="${w}" oninput="handleLiveEditExistingInputChange(${i})" class="kg-input" style="margin-top:0;padding:9px;flex:1">`);
     const bwIcon=(isBWExisting&&i===1)?bwInfoIconHtml('liveEditExisting'):'';
-    html+=`<div class="set-row" style="margin-top:8px" ontouchstart="nlSetSwipeStart(event)" ontouchend="nlSetSwipeEnd(event,${i})"><span onclick="toggleSetRowSelection(this)" style="cursor:pointer" title="Tap to show delete option">Set ${i}</span>${weightInputHtml}<input type="number" placeholder="Reps" id="liveEditExistReps_${i}" min="1" value="${r}" oninput="handleLiveEditExistingInputChange(${i})" style="margin-top:0;padding:9px;flex:1">${bwIcon}${durTag}<button type="button" class="set-delete-btn" title="Delete this set" onclick="deleteLiveEditSavedSet(${i})">${ICON_DELETE}</button></div>`;
+    html+=`<div class="set-row" style="margin-top:8px" ontouchstart="nlSetSwipeStart(event)" ontouchend="nlSetSwipeEnd(event,${i})"><span onclick="toggleSetRowSelection(this)" style="cursor:pointer" title="Tap to show delete option">Set ${i}</span>${weightInputHtml}<input type="number" placeholder="Reps" id="liveEditExistReps_${i}" min="1" max="500" value="${r}" oninput="handleLiveEditExistingInputChange(${i})" class="reps-input" style="margin-top:0;padding:9px;flex:1">${bwIcon}${durTag}<button type="button" class="set-delete-btn" title="Delete this set" onclick="deleteLiveEditSavedSet(${i})">${ICON_DELETE}</button></div>`;
   }
   html+=`<button class="workout-form-action-btn" id="liveEditSaveEntryBtn" onclick="updateLiveEditExistingSets()">💾 SAVE ENTRY</button>
   </div>`;
@@ -14574,6 +14639,7 @@ function renderLiveEditSetsUI(){
       for(let i=1;i<=liveEditTotalNewSets;i++){mountMinSecPicker(`liveEditBreakPickerMount_${i}`,`liveEditBreak_${i}`,0,0)}
     }
   }
+  guardAllNumericSetInputs(container);
 }
 
 function handleLiveSetsCountSelectChange(){
@@ -14704,13 +14770,13 @@ function buildLiveEditSetHTML(idx,active){
   const isBW=isBodyweightNoWeightExercise(document.getElementById("liveWorkoutNameInput")?.value.trim());
   const copyBtn=`<button class="live-copy-prev-btn" id="liveEditCopyPrevBtn_${idx}" onclick="liveEditCopyFromPrevSet(${idx})" title="Auto-fill from the previous set's values">${ICON_COPY} Copy from previous set</button>`;
   const bwHidden=isBW&&!bwKgRevealed.liveEditNew;
-  const weightInputHtml=bwHidden?`<input type="number" id="liveEditKg_${idx}" value="0" style="display:none">`:(isBW?`<input type="number" id="liveEditKg_${idx}" placeholder="Kgs (optional)" min="0" step="0.5" oninput="saveLiveEditDraft()" style="margin-top:0;padding:9px">`:`<input type="number" id="liveEditKg_${idx}" placeholder="Kgs" min="0.5" step="0.5" oninput="saveLiveEditDraft()" style="margin-top:0;padding:9px">`);
+  const weightInputHtml=bwHidden?`<input type="number" id="liveEditKg_${idx}" value="0" style="display:none">`:(isBW?`<input type="number" id="liveEditKg_${idx}" placeholder="Kgs (optional)" min="0" max="500" step="0.5" oninput="saveLiveEditDraft()" class="kg-input" style="margin-top:0;padding:9px">`:`<input type="number" id="liveEditKg_${idx}" placeholder="Kgs" min="0.5" max="500" step="0.5" oninput="saveLiveEditDraft()" class="kg-input" style="margin-top:0;padding:9px">`);
   const bwIcon=(isBW&&displayIdx===1)?bwInfoIconHtml('liveEditNew'):'';
   return `<div class="live-set-block${active?' set-active':''}" id="liveEditSetBlock_${idx}">
     <div class="live-set-header"><span class="live-set-title">NEW SET ${displayIdx}</span><span class="live-set-done-badge" id="liveEditSetDoneBadge_${idx}" style="display:none">✓ DONE</span></div>
     <div class="live-set-inputs" id="liveEditSetInputs_${idx}" ${!active?'style="opacity:0.4;pointer-events:none"':''}>
       ${weightInputHtml}
-      <input type="number" id="liveEditReps_${idx}" placeholder="Reps" min="1" oninput="saveLiveEditDraft()" style="margin-top:0;padding:9px">
+      <input type="number" id="liveEditReps_${idx}" placeholder="Reps" min="1" max="500" oninput="saveLiveEditDraft()" class="reps-input" style="margin-top:0;padding:9px">
       ${bwIcon}
       ${copyBtn}
     </div>
