@@ -415,6 +415,20 @@ input::placeholder{color:var(--text-muted)}
   text-align:center;display:none;
 }
 .login-id-display small{display:block;font-family:var(--font-alt);font-size:12px;color:var(--text-muted);font-weight:600;letter-spacing:1px;margin-bottom:6px}
+/* Password show/hide — wraps the input so the eye button can sit inside it, on the right, without
+   affecting the input's own width/layout. Reuses the same visual language as the rest of the app's
+   small icon buttons (border, --accent-soft/--accent on hover, matches --border-col). The wrapper
+   (not the input) carries the margin-top that inputs normally get, so top:0/bottom:0 on the button
+   lines up exactly with the input's own box — same top:0/bottom:0 pattern as .sugg-dropdown-icon. */
+.auth-password-wrap{position:relative;margin-top:8px}
+.auth-password-wrap input{margin-top:0;padding-right:44px}
+.auth-eye-btn{position:absolute;right:6px;top:0;bottom:0;width:34px;border-radius:8px;border:1px solid transparent;background:transparent;color:var(--text-muted);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s ease}
+.auth-eye-btn:hover{background:var(--accent-soft);color:var(--accent)}
+.auth-eye-btn.active{color:var(--accent)}
+/* Live Re-enter-Password match/mismatch feedback shown under both password fields. */
+.auth-field-msg{font-size:12px;font-family:var(--font-alt);font-weight:700;text-align:left;margin-top:6px;letter-spacing:0.2px}
+.auth-field-msg.match{color:#16a34a}
+.auth-field-msg.mismatch{color:#dc2626}
 
 /* ===================== DASHBOARD CARDS ===================== */
 .cards{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:14px}
@@ -1231,8 +1245,6 @@ body:not(.theme-dark) .dur-graph-detail-divider strong{color:#1e3a8a}
 .menuClose{background:var(--btn-bg);color:var(--follow-btn-text);border:none;padding:9px 14px;border-radius:11px;cursor:pointer}
 .menuCard{background:var(--accent-soft);border:1px solid var(--border-col);border-radius:14px;padding:8px;margin-bottom:12px}
 .menuCard button{width:100%;background:none;border:none;padding:11px;font-size:15px;font-weight:600;cursor:pointer;color:var(--text-primary);text-align:left;font-family:var(--font-alt)}
-#memberSubMenu{padding-left:14px;display:none}
-#memberSubMenu button{font-size:13px;padding-left:24px}
 .heroBanner{background:var(--header-bg);padding:26px;border-radius:20px;color:var(--header-text);margin-bottom:18px}
 .heroBanner h1{font-family:var(--font-display);font-size:30px;margin-bottom:4px;letter-spacing:1px}
 .heroBanner p{opacity:.8;font-size:13px;font-family:var(--font-alt)}
@@ -2211,11 +2223,10 @@ body.tracker-fs-lock{overflow:hidden}
     <label class="form-label">Login ID</label>
     <input type="text" placeholder="Your Login ID (e.g. 1001)" id="loginId" autocomplete="username">
     <label class="form-label">Password</label>
-    <input type="password" placeholder="Password" id="loginPassword" autocomplete="current-password">
-    <select id="userType" style="margin-top:14px">
-      <option value="member">Member</option>
-      <option value="admin">Admin</option>
-    </select>
+    <div class="auth-password-wrap">
+      <input type="password" placeholder="Password" id="loginPassword" autocomplete="current-password">
+      <button type="button" class="auth-eye-btn" onclick="togglePasswordVisibility('loginPassword',this)" title="Show password" aria-label="Show password"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/><circle cx="12" cy="12" r="3"/></svg></button>
+    </div>
     <button class="btn" onclick="login()">⚡ ENTER THE ARENA</button>
     <div class="auth-toggle">
       New here? <a onclick="showRegisterPage()">Create an account →</a>
@@ -2227,11 +2238,20 @@ body.tracker-fs-lock{overflow:hidden}
     <h2>🏋 SIGN UP</h2>
     <p>JOIN THE ARENA — BEGIN YOUR JOURNEY</p>
     <label class="form-label">Username</label>
-    <input type="text" placeholder="Your name (e.g. Abu)" id="regName" autocomplete="name">
+    <input type="text" placeholder="Your name (e.g. Abu)" id="regName" autocomplete="name" maxlength="30" oninput="sanitizeNameInput(this)">
     <label class="form-label">Phone Number</label>
-    <input type="tel" placeholder="10-digit phone number" id="regPhone" autocomplete="tel" maxlength="15">
+    <input type="tel" inputmode="numeric" placeholder="10-digit phone number" id="regPhone" autocomplete="tel" maxlength="10" oninput="sanitizePhoneInput(this)">
     <label class="form-label">Password</label>
-    <input type="password" placeholder="Create a password" id="regPassword" autocomplete="new-password">
+    <div class="auth-password-wrap">
+      <input type="password" placeholder="Create a password" id="regPassword" autocomplete="new-password" oninput="checkPasswordsMatch()">
+      <button type="button" class="auth-eye-btn" onclick="togglePasswordVisibility('regPassword',this)" title="Show password" aria-label="Show password"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/><circle cx="12" cy="12" r="3"/></svg></button>
+    </div>
+    <label class="form-label">Re-enter Password</label>
+    <div class="auth-password-wrap">
+      <input type="password" placeholder="Re-enter your password" id="regPasswordConfirm" autocomplete="new-password" oninput="checkPasswordsMatch()">
+      <button type="button" class="auth-eye-btn" onclick="togglePasswordVisibility('regPasswordConfirm',this)" title="Show password" aria-label="Show password"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/><circle cx="12" cy="12" r="3"/></svg></button>
+    </div>
+    <div class="auth-field-msg" id="regPasswordMatchMsg" style="display:none"></div>
     <div class="login-id-display" id="loginIdDisplay">
       <small>YOUR LOGIN ID IS</small>
       <span id="generatedLoginId">—</span>
@@ -3585,43 +3605,6 @@ body.tracker-fs-lock{overflow:hidden}
         <button class="ctm-btn ctm-save-btn" onclick="ctmApplyCrop()">✓ Apply Crop</button>
         <button class="ctm-btn ctm-cancel-btn" onclick="ctmCancelCrop()">Cancel</button>
       </div>
-    </div>
-  </div>
-
-  <!-- ADMIN -->
-  <div id="adminDashboard" class="dashboard admin-panel">
-    <div class="gymbroTop">
-      <div><h2>🏋 GYMBRO ADMIN</h2><p>CONTROL CENTER</p></div>
-      <div class="headerRight">
-        <div class="themeToggle">
-          <button class="themeBtn active" onclick="setTheme('light')">☀ LIGHT</button>
-          <button class="themeBtn" onclick="setTheme('dark')">🌙 DARK</button>
-        </div>
-        <button class="logoutBtn" onclick="logoutUser()">LOGOUT</button>
-      </div>
-    </div>
-    <div class="heroBanner"><h1>👑 ADMIN CONTROL CENTER</h1><p>Manage members, fees, attendance, reports and gym analytics.</p></div>
-    <div style="display:flex;align-items:center;gap:15px">
-      <button onclick="toggleMenu()" class="btn" style="width:60px;font-size:22px;padding:8px;margin-top:0">☰</button>
-      <h2 id="adminWelcome" style="margin:15px;font-family:var(--font-display);letter-spacing:1px;color:var(--section-title-col)">Welcome Admin</h2>
-    </div>
-    <div id="adminMenu" class="sideMenu">
-      <div class="menuHeader">
-        <div><h2>GymBro</h2><p style="color:var(--text-muted);font-family:var(--font-alt)">Admin Panel</p></div>
-        <button class="menuClose" onclick="toggleMenu()">✕</button>
-      </div>
-      <div class="menuCard">
-        <button onclick="toggleMemberMenu()">👥 Manage Members</button>
-        <div id="memberSubMenu">
-          <button onclick="alert('Add Member feature')">➕ Add Member</button>
-          <button onclick="alert('View Members feature')">📋 View Members</button>
-        </div>
-      </div>
-      <div class="menuCard"><button onclick="alert('Fee collection service online')">💰 Fee Collection</button></div>
-    </div>
-    <div class="cards" id="adminCards" style="margin-top:14px">
-      <div class="card glass"><div class="card-label">Total Members</div><h3 id="totalMembers">1</h3></div>
-      <div class="card glass"><div class="card-label">Present Today</div><h3 id="presentToday">0</h3></div>
     </div>
   </div>
 
@@ -5808,15 +5791,145 @@ function _unusedFreqSort(list){
 }
 document.getElementById('workoutCalendarFilter').value=getLocalDateString();
 
+/* ===================== SIGN UP FIELD VALIDATION (Username / Phone / Password) =====================
+   Username (regName): letters and spaces ONLY — no digits, no symbols (a real name isn't numeric).
+   Collapses any run of 2+ spaces down to a single space as it's typed (so "John   Smith" can never
+   happen), strips a leading space, so at most a single space ever separates two name parts — e.g.
+   "Steve R" for an initial is fine, "Steve  R" (double space) is not — and is hard-capped to 30
+   characters both by the `maxlength="30"` attribute in the HTML and here (belt-and-braces in case a
+   paste bypasses maxlength).
+   Phone (regPhone): digits ONLY, no decimal point, no +91/country code, no symbols — hard-capped to
+   10 digits both by the `maxlength="10"` attribute in the HTML and here (belt-and-braces in case a
+   paste bypasses maxlength). */
+const REG_NAME_MAX_LEN=30;
+function sanitizeNameInput(el){
+  let v=el.value;
+  v=v.replace(/[^A-Za-z ]/g,''); // letters + spaces only — no digits/symbols
+  v=v.replace(/ {2,}/g,' '); // collapse any run of 2+ spaces to exactly 1
+  v=v.replace(/^ /,''); // no leading space
+  if(v.length>REG_NAME_MAX_LEN)v=v.slice(0,REG_NAME_MAX_LEN);
+  if(v!==el.value)el.value=v;
+}
+function sanitizePhoneInput(el){
+  let v=el.value.replace(/[^0-9]/g,''); // digits only — no '.', '+', or any other character
+  if(v.length>10)v=v.slice(0,10);
+  if(v!==el.value)el.value=v;
+}
+/* Live "do the two password fields match" feedback shown under the Re-enter Password box. Doesn't
+   block typing — just surfaces the current state; registerUser() below is the actual gate that
+   refuses to submit on a mismatch. */
+function checkPasswordsMatch(){
+  const p=document.getElementById('regPassword').value,c=document.getElementById('regPasswordConfirm').value;
+  const msg=document.getElementById('regPasswordMatchMsg');if(!msg)return;
+  if(!c){msg.style.display='none';return}
+  msg.style.display='block';
+  if(p===c){msg.textContent='✓ Passwords match';msg.className='auth-field-msg match'}
+  else{msg.textContent='✗ Passwords do not match';msg.className='auth-field-msg mismatch'}
+}
+/* Toggles a password field between hidden (••••) and plain text, swapping the eye icon between
+   "open eye" (tap to reveal) and "eye with a slash through it" (tap to hide again) so the icon
+   itself always reflects the action tapping it will perform next. */
+function togglePasswordVisibility(inputId,btn){
+  const inp=document.getElementById(inputId);if(!inp)return;
+  const showing=inp.type==='text';
+  inp.type=showing?'password':'text';
+  btn.classList.toggle('active',!showing);
+  btn.title=showing?'Show password':'Hide password';
+  btn.setAttribute('aria-label',btn.title);
+  btn.innerHTML=showing
+    ?'<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/><circle cx="12" cy="12" r="3"/></svg>'
+    :'<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a18.7 18.7 0 0 1 5.06-5.94M9.9 4.24A10.4 10.4 0 0 1 12 4c7 0 11 8 11 8a18.7 18.7 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>';
+}
+
+/* ===================== SIGN IN / SIGN UP RATE LIMITING =====================
+   Client-side brute-force / spam deterrent, keyed in localStorage so it survives a refresh (but
+   NOT a cleared browser or a different device — see the important caveat at the bottom of this
+   comment). Two independent layers, same idea as most login systems:
+   1) BURST lockout: too many wrong attempts in a short rolling window → short timed lockout.
+      Stops someone rapid-fire guessing a specific Login ID's password.
+   2) DAILY cap: a hard ceiling on attempts per calendar day (this device), even spread out slowly
+      enough to dodge the burst window. Stops a slow/patient brute-force attempt.
+   Login is limited PER LOGIN ID being attempted (so guessing one victim's password is what gets
+   throttled, not just "this device's total attempts"), reset the moment that ID logs in
+   successfully. Signup is limited PER DEVICE (an unregistered phone has no ID yet to key against),
+   guarding the "check phone exists" + "insert new user" calls from spam/scripted account creation.
+   IMPORTANT CAVEAT: this is a genuine first line of defense and stops casual/careless abuse, but
+   it is enforced in the browser, not the server — someone willing to script direct calls against
+   the Supabase endpoint (bypassing this page's JS entirely) is not stopped by it. Real protection
+   against a determined attacker needs this enforced server-side too (Supabase Auth rate limiting,
+   a Row Level Security policy, or an Edge Function sitting in front of these queries) — that's
+   outside what a front-end file edit can add, since it has to live on the database/API side. */
+const RATE_LIMIT_BURST_MAX=5; // wrong attempts allowed inside the rolling window before a lockout
+const RATE_LIMIT_BURST_WINDOW_MS=15*60*1000; // 15-minute rolling window
+const RATE_LIMIT_BURST_LOCKOUT_MS=15*60*1000; // lockout length once the burst max is hit
+const RATE_LIMIT_LOGIN_DAILY_MAX=10; // hard cap on failed sign-in attempts per Login ID, per day
+const RATE_LIMIT_SIGNUP_DAILY_MAX=5; // hard cap on account-creation attempts per device, per day
+function _rlLoad(key){try{return JSON.parse(localStorage.getItem(key))}catch(e){return null}}
+function _rlSave(key,obj){try{localStorage.setItem(key,JSON.stringify(obj))}catch(e){}}
+/* Peek-only: true/false + a human-readable reason, doesn't change any counter. Call this BEFORE
+   attempting the sign-in/sign-up so a locked-out attempt never even reaches the database. */
+function checkLoginRateLimit(loginId){
+  const key='gymbro_rl_login_'+loginId,today=getLocalDateString();
+  let st=_rlLoad(key)||{burstCount:0,burstStart:0,dayCount:0,day:today,lockUntil:0};
+  if(st.day!==today){st.dayCount=0;st.day=today} // new calendar day resets the daily counter
+  const now=Date.now();
+  if(st.lockUntil&&now<st.lockUntil){
+    const mins=Math.ceil((st.lockUntil-now)/60000);
+    return{allowed:false,reason:`🔒 Too many failed attempts for this Login ID. Please try again in ${mins} minute${mins===1?'':'s'}.`};
+  }
+  if(st.dayCount>=RATE_LIMIT_LOGIN_DAILY_MAX){
+    return{allowed:false,reason:`🔒 You've reached today's sign-in attempt limit for this Login ID. Please try again tomorrow.`};
+  }
+  return{allowed:true};
+}
+/* Call after a FAILED attempt (wrong ID or wrong password) — advances both counters and applies a
+   burst lockout the moment the rolling-window threshold is crossed. */
+function recordLoginFailure(loginId){
+  const key='gymbro_rl_login_'+loginId,today=getLocalDateString();
+  let st=_rlLoad(key)||{burstCount:0,burstStart:0,dayCount:0,day:today,lockUntil:0};
+  if(st.day!==today){st.dayCount=0;st.day=today}
+  const now=Date.now();
+  if(!st.burstStart||now-st.burstStart>RATE_LIMIT_BURST_WINDOW_MS){st.burstStart=now;st.burstCount=0}
+  st.burstCount++;st.dayCount++;
+  if(st.burstCount>=RATE_LIMIT_BURST_MAX){st.lockUntil=now+RATE_LIMIT_BURST_LOCKOUT_MS;st.burstCount=0}
+  _rlSave(key,st);
+}
+/* Call after a SUCCESSFUL login for that ID — clears its counters so a legitimate owner who
+   fat-fingered their password a couple of times isn't left sitting near the lockout threshold. */
+function recordLoginSuccess(loginId){try{localStorage.removeItem('gymbro_rl_login_'+loginId)}catch(e){}}
+function checkSignupRateLimit(){
+  const key='gymbro_rl_signup_device',today=getLocalDateString();
+  let st=_rlLoad(key)||{count:0,day:today};
+  if(st.day!==today){st.count=0;st.day=today}
+  if(st.count>=RATE_LIMIT_SIGNUP_DAILY_MAX){
+    return{allowed:false,reason:`🔒 You've reached today's account-creation limit on this device. Please try again tomorrow.`};
+  }
+  return{allowed:true};
+}
+function recordSignupAttempt(){
+  const key='gymbro_rl_signup_device',today=getLocalDateString();
+  let st=_rlLoad(key)||{count:0,day:today};
+  if(st.day!==today){st.count=0;st.day=today}
+  st.count++;
+  _rlSave(key,st);
+}
+
 /* ===================== TASK 1: REGISTRATION ===================== */
 async function registerUser(){
   const name=document.getElementById('regName').value.trim();
   const phone=document.getElementById('regPhone').value.trim();
   const password=document.getElementById('regPassword').value.trim();
-  if(!name||!phone||!password){alert('Please fill in all fields.');return}
-  if(phone.length<7){alert('Please enter a valid phone number.');return}
+  const passwordConfirm=document.getElementById('regPasswordConfirm').value.trim();
+  if(!name||!phone||!password||!passwordConfirm){alert('Please fill in all fields.');return}
+  if(!/^[A-Za-z]+( [A-Za-z]+)*$/.test(name)){alert('Please enter a valid name — letters only, with a single space between words.');return}
+  if(name.length>REG_NAME_MAX_LEN){alert(`Name can't be longer than ${REG_NAME_MAX_LEN} characters.`);return}
+  if(!/^[0-9]{10}$/.test(phone)){alert('Please enter a valid 10-digit phone number (numbers only).');return}
+  if(password!==passwordConfirm){alert('⚠ Passwords do not match. Please re-enter them.');return}
+  const signupRl=checkSignupRateLimit();
+  if(!signupRl.allowed){alert(signupRl.reason);return}
   const btn=document.getElementById('regSubmitBtn');
   btn.disabled=true;btn.textContent='Creating account...';
+  recordSignupAttempt(); // counts every real submission attempt from here, success or failure
 
   // Check if phone already exists
   const{data:existing,error:checkErr}=await db.from('users').select('id,phone').eq('phone',phone);
@@ -5851,18 +5964,14 @@ async function registerUser(){
 async function login(){
   const id=document.getElementById("loginId").value.trim();
   const password=document.getElementById("loginPassword").value.trim();
-  const type=document.getElementById("userType").value;
   if(!id){alert("Please enter your Login ID.");return}
-  if(type==="admin"){
-    // Admin bypass — kept as-is from original
-    document.getElementById("loginPage").style.display="none";
-    document.getElementById("adminDashboard").style.display="block";
-    return;
-  }
   if(!password){alert("Please enter your password.");return}
+  const loginRl=checkLoginRateLimit(id);
+  if(!loginRl.allowed){alert(loginRl.reason);return}
   const{data,error}=await db.from("users").select("*").eq("login_id",id).single();
-  if(error||!data){alert("❌ Invalid Login ID. Please check your credentials.");return}
-  if(data.password!==password){alert("❌ Incorrect password. Please try again.");return}
+  if(error||!data){recordLoginFailure(id);alert("❌ Invalid Login ID. Please check your credentials.");return}
+  if(data.password!==password){recordLoginFailure(id);alert("❌ Incorrect password. Please try again.");return}
+  recordLoginSuccess(id);
   // Credentials valid — persist session indefinitely
   localStorage.setItem("user_id",data.id);
   localStorage.setItem("user_uuid",data.id);
@@ -6697,7 +6806,6 @@ function logoutUser(){
   chronometerSeconds=0;
   hideBottomNav();
   document.getElementById("memberDashboard").style.display="none";
-  document.getElementById("adminDashboard").style.display="none";
   document.getElementById("loginPage").style.display="block";
   document.getElementById("loginPassword").value="";
   document.getElementById("loginId").value="";
@@ -6720,8 +6828,6 @@ function logoutUser(){
   document.getElementById("checkinsMonth").innerText="0";
   document.getElementById("stopwatch").innerText="00:00:00";
 }
-function toggleMenu(){document.getElementById("adminMenu").classList.toggle("active")}
-function toggleMemberMenu(){let s=document.getElementById("memberSubMenu");s.style.display=s.style.display==="block"?"none":"block"}
 
 /* ===================== HAMBURGER MENU TOGGLE ===================== */
 function toggleHamburgerMenu(){
