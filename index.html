@@ -1050,6 +1050,8 @@ body.wlc-dragging-active .workout-log-card:not(.wlc-drag-source){cursor:grabbing
   .stats-period-row .week-nav-btn{width:32px;height:32px;font-size:15px}
   .stats-period-row .week-range-label{max-width:118px;font-size:10px}
   .stats-period-row select{flex:0.6 1 55px;padding:6px 3px;font-size:9px}
+  .ups-value{font-size:20px}
+  .user-profile-hero{padding:22px 14px 20px}
 }
 
 /* Volume bar glossy hover */
@@ -1364,21 +1366,32 @@ input:checked+.privacy-toggle-slider:before{transform:translateX(20px)}
 .fee-due-toast-msg{font-size:13px;font-weight:700;color:var(--text-primary);font-family:var(--font-alt)}
 .fee-due-toast-sub{font-size:11px;color:var(--text-muted);margin-top:2px}
 .fee-due-toast-close{background:none;border:none;color:var(--text-muted);font-size:15px;padding:4px;cursor:pointer;flex-shrink:0}
-/* User profile view page (fullscreen overlay) */
-.user-profile-page{position:fixed;inset:0;z-index:99990;background:var(--bg-main);overflow-y:auto;animation:slideUp 0.25s ease}
-.user-profile-topbar{display:flex;align-items:center;gap:12px;padding:16px 18px;border-bottom:1px solid var(--border-col);background:var(--bg-card);position:sticky;top:0;z-index:2}
-.user-profile-back{background:none;border:none;font-size:22px;color:var(--text-primary);cursor:pointer;padding:0 4px;line-height:1}
-.user-profile-topbar-name{font-family:var(--font-alt);font-size:16px;font-weight:800;color:var(--text-primary);letter-spacing:0.5px}
-.user-profile-content{padding:20px 16px 40px}
-.user-profile-ava-wrap{position:relative;width:90px;height:90px;margin:0 auto 16px}
-.user-profile-ava{width:90px;height:90px;border-radius:50%;background:var(--accent-soft);display:flex;align-items:center;justify-content:center;font-size:36px;overflow:hidden;border:3px solid var(--accent);box-shadow:0 0 0 2px var(--bg-card),0 6px 20px var(--accent-glow);cursor:pointer}
+/* User profile view page (fullscreen overlay) — restyled to match the app's own glass/card
+   language (see .glass, .card, .rank-badge) instead of plain unstyled blocks. */
+.user-profile-page{position:fixed;inset:0;z-index:99990;background:var(--bg-base);overflow-y:auto;animation:slideUp 0.25s ease}
+.user-profile-topbar{display:grid;grid-template-columns:34px 1fr 34px;align-items:center;gap:10px;padding:16px 18px;border-bottom:1px solid var(--border-col);background:var(--bg-card);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);position:sticky;top:0;z-index:2;box-shadow:0 4px 18px rgba(0,0,0,0.06)}
+.user-profile-back{grid-column:1;background:var(--accent-soft);border:none;border-radius:50%;width:34px;height:34px;font-size:18px;color:var(--accent);cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;transition:transform 0.15s ease}
+.user-profile-back:hover{transform:scale(1.08)}
+.user-profile-topbar-name{grid-column:2;text-align:center;font-family:var(--font-alt);font-size:15px;font-weight:800;color:var(--text-primary);letter-spacing:0.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.user-profile-content{padding:22px 16px 48px;max-width:480px;margin:0 auto}
+.user-profile-hero{padding:28px 20px 24px;text-align:center;margin-bottom:18px}
+.user-profile-ava-wrap{position:relative;width:96px;height:96px;margin:0 auto 14px;border-radius:50%;background:var(--btn-bg);padding:3px;box-shadow:0 0 0 2px var(--accent),0 8px 24px var(--accent-glow)}
+.user-profile-ava{width:100%;height:100%;border-radius:50%;background:var(--accent-soft);display:flex;align-items:center;justify-content:center;font-size:36px;overflow:hidden;cursor:pointer}
 .user-profile-ava img{width:100%;height:100%;object-fit:cover;border-radius:50%}
-.user-profile-name{font-family:var(--font-display);font-size:22px;color:var(--text-primary);text-align:center;letter-spacing:1px}
-.user-profile-lid{font-size:12px;color:var(--text-muted);text-align:center;margin-top:2px;font-family:var(--font-alt)}
-.user-profile-joined{font-size:11px;color:var(--text-muted);text-align:center;margin-top:4px;font-family:var(--font-alt);letter-spacing:0.3px}
-.user-profile-bio{font-size:13px;color:var(--text-secondary);text-align:center;margin-top:10px;line-height:1.55;padding:0 16px}
-.user-profile-private-notice{text-align:center;margin-top:24px;padding:20px;color:var(--text-muted);font-size:13px;font-family:var(--font-alt)}
-.user-profile-private-notice .lock-icon{font-size:36px;display:block;margin-bottom:8px}
+.user-profile-name{font-family:var(--font-display);font-size:24px;color:var(--text-primary);letter-spacing:1px;margin-top:2px}
+.user-profile-lid{font-size:13px;color:var(--text-muted);margin-top:3px;font-family:var(--font-alt)}
+.user-profile-joined-chip{display:inline-flex;align-items:center;gap:5px;margin-top:12px;padding:5px 14px;background:var(--accent-soft);border:1px solid var(--border-col);border-radius:99px;font-size:11px;color:var(--text-secondary);font-family:var(--font-alt);letter-spacing:0.3px}
+.user-profile-bio{font-size:13.5px;color:var(--text-secondary);margin-top:14px;line-height:1.55;padding:0 8px}
+.user-profile-stats-title{margin:2px 4px 12px;font-size:12px;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.8px;font-family:var(--font-alt);display:flex;align-items:center;gap:6px}
+.user-profile-stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.ups-card{background:var(--bg-card);border:1px solid var(--border-col);border-radius:16px;padding:16px 8px 14px;text-align:center;box-shadow:var(--card-shadow);transition:transform 0.25s ease,box-shadow 0.25s ease}
+.ups-card:hover{transform:translateY(-3px);box-shadow:0 12px 26px var(--accent-glow)}
+.ups-icon-wrap{width:34px;height:34px;border-radius:11px;background:var(--rank-badge-bg);display:flex;align-items:center;justify-content:center;margin:0 auto 8px;box-shadow:0 4px 12px var(--accent-glow)}
+.ups-label{font-size:9.5px;font-weight:700;color:var(--text-muted);font-family:var(--font-alt);letter-spacing:0.7px;text-transform:uppercase}
+.ups-value{font-family:var(--font-display);font-size:24px;color:var(--accent);letter-spacing:0.5px;margin-top:4px;line-height:1.1}
+.ups-sub{font-size:9.5px;color:var(--text-muted);font-family:var(--font-alt);margin-top:3px}
+.user-profile-private-notice{text-align:center;margin-top:8px;padding:36px 20px;color:var(--text-muted);font-size:13px;font-family:var(--font-alt);background:var(--bg-card);border:1px solid var(--border-col);border-radius:18px;box-shadow:var(--card-shadow)}
+.user-profile-private-notice .lock-icon{font-size:38px;display:block;margin-bottom:10px}
 .feed-grid-title{font-size:13px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.8px;font-family:var(--font-alt);margin:20px 0 12px}
 .feed-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:4px}
 .feed-item{aspect-ratio:1;background:var(--accent-soft);border-radius:8px;border:1px solid var(--border-col);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px;cursor:pointer;position:relative;overflow:hidden;transition:transform 0.2s}
@@ -1884,6 +1897,8 @@ body.tracker-fs-lock{overflow:hidden}
   .profile-avatar-row{flex-direction:column;align-items:center}
   .profile-info{text-align:center;width:100%}
   .bio-edit-trigger{margin:7px auto 0}
+  .user-profile-stats-grid{gap:8px}
+  .ups-card{padding:14px 6px 12px}
   .gymbroTop{flex-direction:column;gap:12px;text-align:center}
   .headerRight{justify-content:center}
   .tracker-date-row{flex-direction:column}
@@ -16463,15 +16478,13 @@ async function openUserProfile(uid){
   // the dashboard itself uses, so a person's rank badge is identical everywhere it appears in the app.
   const userXp=u.xp||0;
   const _rank=getRankForXP(userXp);
-  const userRank=_rank.name,userRankIconHtml=rankIconSVG(_rank.icon,14,'var(--text-muted)'),userLevel=RANK_TIERS.indexOf(_rank)+1;
+  const userRank=_rank.name,userLevel=RANK_TIERS.indexOf(_rank)+1;
 
 
   // Build full-screen page that covers everything
   const page=document.createElement("div");
   page.id="userProfilePage";
   page.className="user-profile-page";
-  // Ensure it sits on top of everything including the dashboard
-  page.style.cssText="position:fixed;inset:0;z-index:999900;background:var(--bg-base);overflow-y:auto;animation:slideUp 0.22s ease";
 
   const avaHtml=u.avatar_url
     ?`<img src="${u.avatar_url}?t=${Date.now()}" alt="Avatar" onerror="this.parentElement.textContent='🏋'">`
@@ -16482,24 +16495,32 @@ async function openUserProfile(uid){
     contentHtml=`<div class="user-profile-private-notice"><span class="lock-icon">🔒</span>This account is private.</div>`;
   }
 
-  // XP & Level boxes — only shown when this profile's content is visible to us. A private
-  // account's Level/Rank/XP stay hidden from everyone but the account owner — see canSeeContent above.
+  // XP & Level stat cards — same icon-badge language as the app's other stat cards (.card /
+  // .rank-badge on the Dashboard tab), only shown when this profile's content is visible to us.
+  // A private account's Level/Rank/XP stay hidden from everyone but the account owner — see
+  // canSeeContent above.
+  const zapIconHtml=rankIconSVG('zap',18,'#fff');
+  const levelIconHtml=rankIconSVG(_rank.icon,18,'#fff');
   const xpBoxesHtml=!canSeeContent?"":`
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:16px 0 4px">
-      <div style="background:var(--accent-soft);border:1px solid var(--border-col);border-radius:14px;padding:14px;text-align:center">
-        <div style="font-size:10px;font-weight:700;color:var(--text-muted);font-family:var(--font-alt);letter-spacing:0.8px;text-transform:uppercase;margin-bottom:4px">Level</div>
-        <div style="font-family:var(--font-display);font-size:28px;color:var(--accent);letter-spacing:1px">${userLevel}</div>
-        <div style="font-size:10px;color:var(--text-muted);font-family:var(--font-alt);margin-top:2px">${userRankIconHtml}</div>
+    <div class="user-profile-stats-title">🏆 Fitness Stats</div>
+    <div class="user-profile-stats-grid">
+      <div class="ups-card">
+        <div class="ups-icon-wrap">${levelIconHtml}</div>
+        <div class="ups-label">Level</div>
+        <div class="ups-value">${userLevel}</div>
+        <div class="ups-sub">${userRank}</div>
       </div>
-      <div style="background:var(--accent-soft);border:1px solid var(--border-col);border-radius:14px;padding:14px;text-align:center">
-        <div style="font-size:10px;font-weight:700;color:var(--text-muted);font-family:var(--font-alt);letter-spacing:0.8px;text-transform:uppercase;margin-bottom:4px">Total XP</div>
-        <div style="font-family:var(--font-display);font-size:28px;color:var(--accent);letter-spacing:1px">${userXp}</div>
-        <div style="font-size:10px;color:var(--text-muted);font-family:var(--font-alt);margin-top:2px">XP Earned</div>
+      <div class="ups-card">
+        <div class="ups-icon-wrap">${zapIconHtml}</div>
+        <div class="ups-label">Total XP</div>
+        <div class="ups-value">${userXp}</div>
+        <div class="ups-sub">XP Earned</div>
       </div>
-      <div style="background:var(--accent-soft);border:1px solid var(--border-col);border-radius:14px;padding:14px;text-align:center">
-        <div style="font-size:10px;font-weight:700;color:var(--text-muted);font-family:var(--font-alt);letter-spacing:0.8px;text-transform:uppercase;margin-bottom:4px">Rank</div>
-        <div style="font-family:var(--font-display);font-size:20px;color:var(--accent);letter-spacing:1px;line-height:1.2">${userRank}</div>
-        <div style="font-size:10px;color:var(--text-muted);font-family:var(--font-alt);margin-top:4px">Current Rank</div>
+      <div class="ups-card">
+        <div class="ups-icon-wrap">${levelIconHtml}</div>
+        <div class="ups-label">Rank</div>
+        <div class="ups-value" style="font-size:16px;line-height:1.5">${userRank}</div>
+        <div class="ups-sub">Current Rank</div>
       </div>
     </div>`;
 
@@ -16507,17 +16528,20 @@ async function openUserProfile(uid){
 
   page.innerHTML=`
     <div class="user-profile-topbar">
-      <button class="user-profile-back" onclick="closeUserProfile()">‹ Back</button>
+      <button class="user-profile-back" onclick="closeUserProfile()">‹</button>
       <span class="user-profile-topbar-name">@${u.login_id||u.name}</span>
+      <span></span>
     </div>
     <div class="user-profile-content">
-      <div class="user-profile-ava-wrap">
-        <div class="user-profile-ava" onclick="upViewAvatarLightbox('${u.avatar_url||""}')">${avaHtml}</div>
+      <div class="user-profile-hero glass">
+        <div class="user-profile-ava-wrap">
+          <div class="user-profile-ava" onclick="upViewAvatarLightbox('${u.avatar_url||""}')">${avaHtml}</div>
+        </div>
+        <div class="user-profile-name">${u.name||"GymBro"}</div>
+        <div class="user-profile-lid">@${u.login_id||"—"} ${u.is_private?'· 🔒 Private':''}</div>
+        ${joinedLabel?`<div class="user-profile-joined-chip">📅 ${joinedLabel}</div>`:""}
+        ${u.bio&&canSeeContent?`<div class="user-profile-bio">${u.bio}</div>`:""}
       </div>
-      <div class="user-profile-name">${u.name||"GymBro"}</div>
-      <div class="user-profile-lid">@${u.login_id||"—"} ${u.is_private?'· 🔒 Private':''}</div>
-      ${joinedLabel?`<div class="user-profile-joined">${joinedLabel}</div>`:""}
-      ${u.bio&&canSeeContent?`<div class="user-profile-bio">${u.bio}</div>`:""}
       ${xpBoxesHtml}
       ${contentHtml}
     </div>`;
