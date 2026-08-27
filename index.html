@@ -15923,32 +15923,22 @@ function openCropModal(){
     // Store crop rect in _c for confirmCrop
     _c.cropRect={l,t,r,b,side};
 
-    /* Draw the rectangular crop mask SVG with corner guides (Instagram style) */
-    const sw=2; // guide line stroke width
-    const gs=22; // guide corner size
+    /* Draw a circular DP crop mask (Instagram profile-picture style) — this editor is only ever
+       used for the avatar, so the crop window itself should be a circle, not a square, so it's
+       obvious exactly what will show up as a round DP. The export below still grabs the square
+       bounding box of this circle (so the saved image is a normal square JPEG); the circle is
+       what gets cropped to and is also what every avatar display already renders as (border-radius:50%). */
+    const radius=side/2;
     document.getElementById("cropMaskSvg").innerHTML=`
       <defs>
         <mask id="cm">
           <rect width="${vw}" height="${vh}" fill="white"/>
-          <rect x="${l}" y="${t}" width="${side}" height="${side}" fill="black"/>
+          <circle cx="${cx}" cy="${cy}" r="${radius}" fill="black"/>
         </mask>
       </defs>
-      <rect width="${vw}" height="${vh}" fill="rgba(0,0,0,0.55)" mask="url(#cm)"/>
-      <!-- Crop border -->
-      <rect x="${l}" y="${t}" width="${side}" height="${side}" fill="none" stroke="rgba(255,255,255,0.85)" stroke-width="1"/>
-      <!-- Rule-of-thirds grid lines -->
-      <line x1="${l+side/3}" y1="${t}" x2="${l+side/3}" y2="${b}" stroke="rgba(255,255,255,0.2)" stroke-width="0.5"/>
-      <line x1="${l+2*side/3}" y1="${t}" x2="${l+2*side/3}" y2="${b}" stroke="rgba(255,255,255,0.2)" stroke-width="0.5"/>
-      <line x1="${l}" y1="${t+side/3}" x2="${r}" y2="${t+side/3}" stroke="rgba(255,255,255,0.2)" stroke-width="0.5"/>
-      <line x1="${l}" y1="${t+2*side/3}" x2="${r}" y2="${t+2*side/3}" stroke="rgba(255,255,255,0.2)" stroke-width="0.5"/>
-      <!-- Corner guides — top-left -->
-      <polyline points="${l},${t+gs} ${l},${t} ${l+gs},${t}" fill="none" stroke="#fff" stroke-width="${sw}" stroke-linecap="round"/>
-      <!-- top-right -->
-      <polyline points="${r-gs},${t} ${r},${t} ${r},${t+gs}" fill="none" stroke="#fff" stroke-width="${sw}" stroke-linecap="round"/>
-      <!-- bottom-left -->
-      <polyline points="${l},${b-gs} ${l},${b} ${l+gs},${b}" fill="none" stroke="#fff" stroke-width="${sw}" stroke-linecap="round"/>
-      <!-- bottom-right -->
-      <polyline points="${r-gs},${b} ${r},${b} ${r},${b-gs}" fill="none" stroke="#fff" stroke-width="${sw}" stroke-linecap="round"/>`;
+      <rect width="${vw}" height="${vh}" fill="rgba(0,0,0,0.6)" mask="url(#cm)"/>
+      <!-- Circle crop border -->
+      <circle cx="${cx}" cy="${cy}" r="${radius}" fill="none" stroke="rgba(255,255,255,0.9)" stroke-width="2"/>`;
 
     /* Initial zoom: image covers the crop square (like Instagram) */
     const coverScale=Math.max(side/_c.img.width,side/_c.img.height);
@@ -16261,6 +16251,13 @@ async function saveBio(){
   showToast("✅ Bio updated!");
 }
 /* ===================== SEARCH ===================== */
+// Bumped once per keystroke. The response for a given call is only ever allowed to render if
+// its token still matches the latest one when the DB call returns — this is what stops a slower,
+// earlier keystroke's response from landing AFTER a newer one and corrupting the dropdown (the
+// real cause of duplicate entries, unrelated names showing up, and "No GymBros found" appearing
+// together with a stray result: without this guard, an old call's late render could overwrite or
+// get appended onto a newer call's already-correct render).
+let _gymBroSearchSeq=0;
 async function searchGymBros(){
   const q=document.getElementById("gymBroSearchInput").value.trim();
   const rd=document.getElementById("gymBroSearchResults");
@@ -16268,6 +16265,9 @@ async function searchGymBros(){
   // (e.g. one using clip-path) becoming an unwanted containing block for this
   // position:fixed child. Reparenting to body keeps behavior consistent everywhere.
   if(rd && rd.parentElement !== document.body){document.body.appendChild(rd);}
+
+  const mySeq=++_gymBroSearchSeq;
+
   rd.innerHTML="";rd.style.display="none";
   if(q.length<2)return;
   // Position fixed dropdown under the input
@@ -16288,15 +16288,26 @@ async function searchGymBros(){
     const{data}=await db.from("users").select("id,name,login_id,avatar_url,is_private").ilike("name",`%${q}%`).limit(10);
     rows=data||[];
   }
-  // Defensive de-dupe by id — guarantees a user can never appear as more than one result box,
-  // even if the query somehow returned the same row twice.
+
+  // STALE RESPONSE GUARD — a newer search has already started since this one was fired
+  // (e.g. the user kept typing). Silently drop this result instead of touching the dropdown.
+  if(mySeq!==_gymBroSearchSeq)return;
+  if(document.getElementById("gymBroSearchInput").value.trim()!==q)return;
+
+  // De-dupe by login_id (the user-facing identity) rather than the raw row id, so this can
+  // never render the same account more than once even if duplicate rows exist for it.
   const seen=new Set();
   const results=rows.filter(u=>{
     if(u.id===myId)return false;
-    if(seen.has(u.id))return false;
-    seen.add(u.id);
+    const key=u.login_id||u.id;
+    if(seen.has(key))return false;
+    seen.add(key);
     return true;
   });
+
+  // Now guaranteed to be the latest, authoritative render — clear once more right before
+  // writing so nothing an earlier call may have touched can linger.
+  rd.innerHTML="";
 
   if(!results.length){
     rd.innerHTML=`<div style="padding:12px;color:var(--text-muted);font-size:13px;font-family:var(--font-alt)">No GymBros found.</div>`;
