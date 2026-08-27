@@ -1330,10 +1330,6 @@ body:not(.theme-dark) .dur-graph-detail-divider strong{color:#1e3a8a}
 .suggested-card:hover{transform:translateY(-3px);box-shadow:0 8px 20px var(--accent-glow)}
 .suggested-avatar{font-size:26px;margin-bottom:6px}
 .suggested-name{font-size:12px;font-weight:700;color:var(--text-primary);font-family:var(--font-alt);margin-bottom:8px}
-.follow-btn{background:var(--follow-btn-bg);color:var(--follow-btn-text);border:none;border-radius:8px;padding:5px 12px;font-size:11px;font-weight:700;font-family:var(--font-alt);cursor:pointer;letter-spacing:0.5px;transition:all 0.2s}
-.follow-btn:hover{opacity:0.85;transform:scale(1.05)}
-.follow-btn.following{background:var(--accent-soft);color:var(--accent);border:1px solid var(--accent)}
-.follow-btn.requested{background:var(--accent-soft);color:var(--text-muted);border:1px solid var(--border-col)}
 /* Edit Profile Panel */
 .edit-profile-btn{display:inline-flex;align-items:center;gap:6px;margin-top:10px;padding:7px 16px;background:var(--bg-panel);border:1px solid var(--border-col);border-radius:10px;font-size:12px;font-weight:700;font-family:var(--font-alt);color:var(--text-primary);cursor:pointer;letter-spacing:0.3px;transition:background 0.2s}
 .edit-profile-btn:hover{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
@@ -1356,17 +1352,8 @@ body:not(.theme-dark) .dur-graph-detail-divider strong{color:#1e3a8a}
 .privacy-toggle-slider:before{content:'';position:absolute;width:18px;height:18px;left:3px;top:3px;background:#fff;border-radius:50%;transition:transform 0.2s;box-shadow:0 1px 4px rgba(0,0,0,0.3)}
 input:checked+.privacy-toggle-slider{background:var(--accent);border-color:var(--accent)}
 input:checked+.privacy-toggle-slider:before{transform:translateX(20px)}
-/* Follow Request Notification */
-.follow-req-popup{position:fixed;top:0;left:0;right:0;z-index:999995;display:flex;flex-direction:column;gap:10px;padding:16px;pointer-events:none}
-.follow-req-toast{background:var(--bg-card);border:1px solid var(--border-col);border-radius:16px;padding:14px 16px;box-shadow:0 10px 40px rgba(0,0,0,0.35);display:flex;align-items:center;gap:12px;pointer-events:all;animation:slideUp 0.3s ease;max-width:400px;margin:0 auto;width:100%}
-.follow-req-toast-ava{width:42px;height:42px;border-radius:50%;background:var(--accent-soft);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;overflow:hidden;border:2px solid var(--accent)}
-.follow-req-toast-ava img{width:100%;height:100%;object-fit:cover;border-radius:50%}
-.follow-req-toast-text{flex:1;min-width:0}
-.follow-req-toast-msg{font-size:13px;font-weight:700;color:var(--text-primary);font-family:var(--font-alt)}
-.follow-req-toast-sub{font-size:11px;color:var(--text-muted);margin-top:2px}
-.follow-req-toast-actions{display:flex;gap:6px;flex-shrink:0}
 
-/* ---- Fee-due notification (mirrors .follow-req-toast pattern) ---- */
+/* ---- Fee-due notification ---- */
 .fee-due-popup{position:fixed;top:0;left:0;right:0;z-index:999994;display:flex;flex-direction:column;gap:10px;padding:16px;pointer-events:none}
 .fee-due-toast{background:var(--bg-card);border-radius:16px;padding:14px 16px;box-shadow:0 10px 40px rgba(0,0,0,0.35);display:flex;align-items:center;gap:12px;pointer-events:all;animation:slideUp 0.3s ease;max-width:400px;margin:0 auto;width:100%;border-left:4px solid var(--accent)}
 .fee-due-toast.fee-due-urgent{border-left-color:#dc2626}
@@ -1377,19 +1364,6 @@ input:checked+.privacy-toggle-slider:before{transform:translateX(20px)}
 .fee-due-toast-msg{font-size:13px;font-weight:700;color:var(--text-primary);font-family:var(--font-alt)}
 .fee-due-toast-sub{font-size:11px;color:var(--text-muted);margin-top:2px}
 .fee-due-toast-close{background:none;border:none;color:var(--text-muted);font-size:15px;padding:4px;cursor:pointer;flex-shrink:0}
-.freq-accept-btn{padding:6px 12px;border-radius:8px;font-size:11px;font-weight:700;font-family:var(--font-alt);cursor:pointer;background:var(--btn-bg);color:var(--follow-btn-text);border:none}
-.freq-decline-btn{padding:6px 12px;border-radius:8px;font-size:11px;font-weight:700;font-family:var(--font-alt);cursor:pointer;background:var(--accent-soft);color:var(--text-muted);border:1px solid var(--border-col)}
-/* Follow Request section on profile page */
-.freq-section{background:var(--bg-panel);border:1px solid var(--border-col);border-radius:16px;padding:14px;margin-top:14px}
-.freq-section-title{font-size:12px;font-weight:800;color:var(--text-muted);font-family:var(--font-alt);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:10px}
-.freq-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border-col)}
-.freq-item:last-child{border-bottom:none}
-.freq-item-ava{width:36px;height:36px;border-radius:50%;background:var(--accent-soft);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;overflow:hidden}
-.freq-item-ava img{width:100%;height:100%;object-fit:cover;border-radius:50%}
-.freq-item-info{flex:1;min-width:0}
-.freq-item-name{font-size:13px;font-weight:700;color:var(--text-primary);font-family:var(--font-alt)}
-.freq-item-sub{font-size:11px;color:var(--text-muted)}
-.freq-item-actions{display:flex;gap:6px;flex-shrink:0}
 /* User profile view page (fullscreen overlay) */
 .user-profile-page{position:fixed;inset:0;z-index:99990;background:var(--bg-main);overflow-y:auto;animation:slideUp 0.25s ease}
 .user-profile-topbar{display:flex;align-items:center;gap:12px;padding:16px 18px;border-bottom:1px solid var(--border-col);background:var(--bg-card);position:sticky;top:0;z-index:2}
@@ -1401,14 +1375,8 @@ input:checked+.privacy-toggle-slider:before{transform:translateX(20px)}
 .user-profile-ava img{width:100%;height:100%;object-fit:cover;border-radius:50%}
 .user-profile-name{font-family:var(--font-display);font-size:22px;color:var(--text-primary);text-align:center;letter-spacing:1px}
 .user-profile-lid{font-size:12px;color:var(--text-muted);text-align:center;margin-top:2px;font-family:var(--font-alt)}
+.user-profile-joined{font-size:11px;color:var(--text-muted);text-align:center;margin-top:4px;font-family:var(--font-alt);letter-spacing:0.3px}
 .user-profile-bio{font-size:13px;color:var(--text-secondary);text-align:center;margin-top:10px;line-height:1.55;padding:0 16px}
-.user-profile-counters{display:flex;justify-content:center;gap:28px;margin-top:16px}
-.user-profile-counter{text-align:center}
-.upc-num{font-family:var(--font-display);font-size:22px;color:var(--text-primary);line-height:1}
-.upc-label{font-size:11px;color:var(--text-muted);font-family:var(--font-alt);margin-top:2px}
-.user-profile-follow-btn{display:block;width:calc(100% - 40px);margin:18px auto 0;padding:12px;border-radius:13px;font-size:14px;font-weight:800;font-family:var(--font-alt);letter-spacing:0.5px;cursor:pointer;border:none;background:var(--btn-bg);color:var(--follow-btn-text);box-shadow:var(--btn-shadow);transition:opacity 0.2s}
-.user-profile-follow-btn.following{background:var(--accent-soft);color:var(--accent);border:1px solid var(--accent);box-shadow:none}
-.user-profile-follow-btn.requested{background:var(--accent-soft);color:var(--text-muted);border:1px solid var(--border-col);box-shadow:none}
 .user-profile-private-notice{text-align:center;margin-top:24px;padding:20px;color:var(--text-muted);font-size:13px;font-family:var(--font-alt)}
 .user-profile-private-notice .lock-icon{font-size:36px;display:block;margin-bottom:8px}
 .feed-grid-title{font-size:13px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.8px;font-family:var(--font-alt);margin:20px 0 12px}
@@ -3076,14 +3044,6 @@ body.tracker-fs-lock{overflow:hidden}
 
             <!-- Edit Profile button -->
             <button class="edit-profile-btn" onclick="openEditProfileSheet()">⚙️ Edit Profile</button>
-          </div>
-        </div>
-
-        <!-- Follow Requests section (only visible if private + has requests) -->
-        <div id="followRequestsSection" style="display:none">
-          <div class="freq-section">
-            <div class="freq-section-title">📬 Follow Requests</div>
-            <div id="followRequestsList"></div>
           </div>
         </div>
 
@@ -4973,15 +4933,23 @@ function rankIconSVG(iconName,size,color){
   const inner=RANK_ICON_PATHS[iconName]||RANK_ICON_PATHS['flag'];
   return `<svg viewBox="0 0 24 24" width="${size}" height="${size}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle">${inner}</svg>`;
 }
+function renderProfileRankXPLabel(xp){
+  const gymTitleEl=document.getElementById('profileGymTitle');
+  if(!gymTitleEl)return;
+  const rank=getRankForXP(xp);
+  gymTitleEl.textContent=`🏆 ${rank.name} · ${xp} XP`;
+}
 function updateXPDisplay(xp,prevXP){
   const rank=getRankForXP(xp);
   document.getElementById('xpValue').textContent=xp+' XP';
   document.getElementById('rankBadge').textContent=rank.name;
   document.getElementById('rankEmoji').innerHTML=rankIconSVG(rank.icon,24,'#fff');
   // Profile page header used to show a static "Elite Lifter · GymBro Premium" line — now shows
-  // this user's own live Rank + XP instead, so it always reflects RANK_TIERS/getRankForXP directly.
-  const gymTitleEl=document.getElementById('profileGymTitle');
-  if(gymTitleEl)gymTitleEl.textContent=`🏆 ${rank.name} · ${xp} XP`;
+  // this user's own live Rank + XP instead. syncCoreDashboardMetrics recomputes xp from the full
+  // workout/attendance history and calls this, so pushing it into the label here means the Profile
+  // tab reflects it instantly too, without waiting for a fresh DB read (loadUserProfile does that
+  // DB read as a fallback whenever the Profile tab itself is opened — see there).
+  renderProfileRankXPLabel(xp);
   let pct=rank.max===Infinity?100:Math.min(100,Math.round(((xp-rank.min)/(rank.max-rank.min))*100));
   document.getElementById('xpBarFill').style.width=pct+'%';
   const nr=RANK_TIERS[RANK_TIERS.indexOf(rank)+1];
@@ -6009,8 +5977,6 @@ async function mountMemberDashboard(data,initialTab){
   // user's exercise-frequency map (used to sort those dropdowns' results by "most done first").
   ctmInitMuscleEquipmentDropdowns();
   window._exerciseFreqMapPromise=loadExerciseFrequencyMap();
-  // Check for pending follow requests (for private accounts) — show pop-up notification
-  setTimeout(checkIncomingFollowRequests,2000);
   // Show the fixed homepage billing box — fee-due notice (non-cancellable) OR, if nothing is due,
   // the last payment receipt (cancellable only once downloaded). Same slot, same logic every load.
   setupMemberBillingBox(data);
@@ -15827,7 +15793,6 @@ function escapeHtml(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").repla
 function loadSocialPage(){
   document.getElementById("profileDisplayName").textContent=localStorage.getItem("user_name")||"GymBro";
   const uid=localStorage.getItem("user_id");
-  loadFollowRequests();
   loadUserProfile();
 }
 
@@ -15835,7 +15800,7 @@ async function loadUserProfile(){
   const uid=localStorage.getItem("user_id");
   if(!uid)return;
   try{
-    const{data,error}=await db.from("users").select("avatar_url,bio,is_private").eq("id",uid).single();
+    const{data,error}=await db.from("users").select("avatar_url,bio,is_private,xp").eq("id",uid).single();
     if(error||!data)return;
     if(data.avatar_url){
       renderAvatarImage(data.avatar_url);
@@ -15845,6 +15810,11 @@ async function loadUserProfile(){
     document.getElementById("profileBio").textContent=bio||"No days off. Every rep counts. 💪";
     localStorage.setItem("gymbro_bio",bio);
     localStorage.setItem("gymbro_is_private",String(!!data.is_private));
+    // Rank/XP line on the profile page is read straight from the users.xp column (the same
+    // column syncCoreDashboardMetrics keeps fresh via persistUserXP) every time this page loads,
+    // rather than relying on whatever the dashboard happened to compute earlier in this session —
+    // that's what was causing it to show 0 XP if Profile was opened before Dashboard ever ran.
+    renderProfileRankXPLabel(data.xp||0);
   }catch(e){console.error("loadUserProfile:",e)}
 }
 
@@ -16331,149 +16301,6 @@ document.addEventListener("click",e=>{
   if(inp&&rd&&!inp.contains(e.target)&&!rd.contains(e.target)){rd.style.display="none"}
 });
 
-/* ===================== FOLLOW LOGIC ===================== */
-async function sendFollowUser(tid,btn,isPrivate){
-  const myId=localStorage.getItem("user_id");if(!myId)return;
-  btn.disabled=true;
-  const newStatus=isPrivate?"pending":"accepted";
-  // Check if row already exists to avoid 409
-  const{data:existing}=await db.from("followers").select("id,status").eq("follower_id",myId).eq("following_id",tid);
-  let error;
-  if(existing&&existing.length>0){
-    // Row exists — update status
-    ({error}=await db.from("followers").update({status:newStatus}).eq("follower_id",myId).eq("following_id",tid));
-  }else{
-    // No row — insert
-    ({error}=await db.from("followers").insert([{follower_id:myId,following_id:tid,status:newStatus}]));
-  }
-  if(!error){
-    if(isPrivate){btn.textContent="Requested";btn.className="follow-btn requested";btn.onclick=()=>cancelFollowRequest(tid,btn);}
-    else{btn.textContent="Following ✓";btn.className="follow-btn following";btn.onclick=()=>unfollowUser(tid,btn);}
-  }else{showToast("❌ Follow failed: "+error.message);}
-  btn.disabled=false;
-}
-
-async function unfollowUser(tid,btn){
-  const myId=localStorage.getItem("user_id");if(!myId)return;
-  btn.disabled=true;
-  await db.from("followers").delete().eq("follower_id",myId).eq("following_id",tid);
-  btn.textContent="Follow";btn.className="follow-btn";
-  btn.onclick=async()=>{
-    // Re-check if private
-    const{data}=await db.from("users").select("is_private").eq("id",tid).single();
-    sendFollowUser(tid,btn,data&&data.is_private);
-  };
-  btn.disabled=false;
-}
-
-async function cancelFollowRequest(tid,btn){
-  const myId=localStorage.getItem("user_id");if(!myId)return;
-  btn.disabled=true;
-  await db.from("followers").delete().eq("follower_id",myId).eq("following_id",tid).eq("status","pending");
-  btn.textContent="Follow";btn.className="follow-btn";
-  btn.onclick=async()=>{
-    const{data}=await db.from("users").select("is_private").eq("id",tid).single();
-    sendFollowUser(tid,btn,data&&data.is_private);
-  };
-  btn.disabled=false;
-}
-
-/* Keeping old followUser for backward compat */
-async function followUser(tid,btn){
-  const{data}=await db.from("users").select("is_private").eq("id",tid).single();
-  sendFollowUser(tid,btn,data&&data.is_private);
-}
-
-/* ===================== FOLLOW REQUESTS (incoming) ===================== */
-async function loadFollowRequests(){
-  const uid=localStorage.getItem("user_id");if(!uid)return;
-  const{data:me}=await db.from("users").select("is_private").eq("id",uid).single();
-  if(!me||!me.is_private){document.getElementById("followRequestsSection").style.display="none";return}
-
-  const{data:reqs}=await db.from("followers").select("follower_id,created_at").eq("following_id",uid).eq("status","pending");
-  if(!reqs||!reqs.length){document.getElementById("followRequestsSection").style.display="none";return}
-
-  // Fetch requester profiles
-  const ids=reqs.map(r=>r.follower_id);
-  const{data:users}=await db.from("users").select("id,name,login_id,avatar_url").in("id",ids);
-  const userMap={};(users||[]).forEach(u=>{userMap[u.id]=u});
-
-  const list=document.getElementById("followRequestsList");
-  list.innerHTML="";
-  reqs.forEach(req=>{
-    const u=userMap[req.follower_id]||{};
-    const avaHtml=u.avatar_url?`<img src="${u.avatar_url}" onerror="this.parentElement.textContent='🏋'">`:`🏋`;
-    const item=document.createElement("div");
-    item.className="freq-item";
-    item.id=`freq-${req.follower_id}`;
-    item.innerHTML=`
-      <div class="freq-item-ava">${avaHtml}</div>
-      <div class="freq-item-info">
-        <div class="freq-item-name">${u.name||"GymBro"}</div>
-        <div class="freq-item-sub">@${u.login_id||"—"} wants to follow you</div>
-      </div>
-      <div class="freq-item-actions">
-        <button class="freq-accept-btn" onclick="acceptFollowRequest('${req.follower_id}','${uid}')">✓ Accept</button>
-        <button class="freq-decline-btn" onclick="declineFollowRequest('${req.follower_id}','${uid}')">✕</button>
-      </div>`;
-    list.appendChild(item);
-  });
-  document.getElementById("followRequestsSection").style.display="block";
-}
-
-async function acceptFollowRequest(followerId,myId){
-  await db.from("followers").update({status:"accepted"}).eq("follower_id",followerId).eq("following_id",myId).eq("status","pending");
-  document.getElementById(`freq-${followerId}`)?.remove();
-  const list=document.getElementById("followRequestsList");
-  if(!list.children.length)document.getElementById("followRequestsSection").style.display="none";
-  showToast("✅ Follow request accepted!");
-}
-
-async function declineFollowRequest(followerId,myId){
-  await db.from("followers").delete().eq("follower_id",followerId).eq("following_id",myId).eq("status","pending");
-  document.getElementById(`freq-${followerId}`)?.remove();
-  const list=document.getElementById("followRequestsList");
-  if(!list.children.length)document.getElementById("followRequestsSection").style.display="none";
-  showToast("🗑️ Request declined.");
-}
-
-/* Pop-up notification on app load */
-async function checkIncomingFollowRequests(){
-  const uid=localStorage.getItem("user_id");if(!uid)return;
-  const{data:me}=await db.from("users").select("is_private").eq("id",uid).single();
-  if(!me||!me.is_private)return;
-  const{data:reqs}=await db.from("followers").select("follower_id").eq("following_id",uid).eq("status","pending");
-  if(!reqs||!reqs.length)return;
-  const ids=reqs.map(r=>r.follower_id);
-  const{data:users}=await db.from("users").select("id,name,login_id,avatar_url").in("id",ids);
-  if(!users||!users.length)return;
-
-  // Show toasts one by one with delay
-  let container=document.getElementById("followReqPopupContainer");
-  if(!container){container=document.createElement("div");container.id="followReqPopupContainer";container.className="follow-req-popup";document.body.appendChild(container)}
-
-  users.slice(0,3).forEach((u,i)=>{
-    setTimeout(()=>{
-      const toast=document.createElement("div");
-      toast.className="follow-req-toast";
-      const avaHtml=u.avatar_url?`<img src="${u.avatar_url}" onerror="this.parentElement.textContent='🏋'">`:`🏋`;
-      const myId=localStorage.getItem("user_id");
-      toast.innerHTML=`
-        <div class="follow-req-toast-ava">${avaHtml}</div>
-        <div class="follow-req-toast-text">
-          <div class="follow-req-toast-msg">${u.name||"Someone"} wants to follow you</div>
-          <div class="follow-req-toast-sub">@${u.login_id||"—"} · Tap to manage</div>
-        </div>
-        <div class="follow-req-toast-actions">
-          <button class="freq-accept-btn" onclick="acceptFollowRequest('${u.id}','${myId}');this.closest('.follow-req-toast').remove()">✓</button>
-          <button class="freq-decline-btn" onclick="declineFollowRequest('${u.id}','${myId}');this.closest('.follow-req-toast').remove()">✕</button>
-        </div>`;
-      container.appendChild(toast);
-      setTimeout(()=>{toast.style.opacity="0";toast.style.transition="opacity 0.4s";setTimeout(()=>toast.remove(),400)},8000);
-    },i*600);
-  });
-}
-
 /* ===================== EDIT PROFILE SHEET ===================== */
 function openEditProfileSheet(){
   if(document.getElementById("editProfileSheet"))return;
@@ -16515,7 +16342,7 @@ function openEditProfileSheet(){
         <div class="edit-profile-row-icon">🔒</div>
         <div class="edit-profile-row-text">
           <div class="edit-profile-row-label">Private Account</div>
-          <div class="edit-profile-row-sub">Only approved followers can see your profile</div>
+          <div class="edit-profile-row-sub">Hide your Level, Rank &amp; XP from other GymBros</div>
         </div>
         <label class="privacy-toggle-switch">
           <input type="checkbox" id="privacyToggle" ${isPrivate?"checked":""} onchange="savePrivacySetting(this.checked)">
@@ -16592,8 +16419,18 @@ async function savePrivacySetting(isPrivate){
   if(error){showToast("❌ Could not update privacy setting.");return}
   localStorage.setItem("gymbro_is_private",String(isPrivate));
   showToast(isPrivate?"🔒 Account set to Private":"🌐 Account set to Public");
-  // Reload follow requests section
-  loadFollowRequests();
+}
+
+/* Formats a users.join_date value as "Since 16 July 2026" for the profile view.
+   join_date is stored as a plain date string (YYYY-MM-DD, see registration), which JS parses as
+   UTC midnight — so this reads it back with the UTC getters, not local ones, to avoid the date
+   shifting a day earlier for anyone west of UTC. */
+function formatJoinedSince(dateStr){
+  if(!dateStr)return "";
+  const d=new Date(dateStr);
+  if(isNaN(d.getTime()))return "";
+  const months=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  return `Since ${d.getUTCDate()} ${months[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
 }
 
 /* ===================== USER PROFILE VIEW PAGE ===================== */
@@ -16611,18 +16448,14 @@ async function openUserProfile(uid){
   const myId=localStorage.getItem("user_id");
 
   // Fetch target user
-  const{data:u,error}=await db.from("users").select("id,name,login_id,avatar_url,bio,is_private,xp").eq("id",uid).single();
+  const{data:u,error}=await db.from("users").select("id,name,login_id,avatar_url,bio,is_private,xp,join_date").eq("id",uid).single();
   if(error||!u){showToast("❌ Could not load profile.");return}
 
-  // Fetch my relationship to this user (used to decide follow button state + whether a private
-  // account's content, including their Rank/Level/XP, is visible to me — see canSeeContent below)
-  const{data:myRelArr}=await db.from("followers").select("status").eq("follower_id",myId).eq("following_id",uid);
-
-  const myRel=(myRelArr&&myRelArr.length>0)?myRelArr[0]:null;
-  const followStatus=myRel?myRel.status:null; // null | 'pending' | 'accepted'
+  // No followers table / follow-to-unlock mechanism anymore: a private account simply keeps its
+  // Level/Rank/XP (and bio) hidden from everyone except themselves — that's the whole point of
+  // setting the account private, so visibility here is a plain is_private + "is this me" check.
   const isMe=uid===myId;
-  const isFollowing=followStatus==="accepted";
-  const canSeeContent=!u.is_private||isFollowing||isMe;
+  const canSeeContent=!u.is_private||isMe;
 
   // XP/Rank: read straight off the cached users.xp column (kept fresh by persistUserXP whenever the
   // XP OWNER's own dashboard loads — see syncCoreDashboardMetrics) instead of re-fetching this user's
@@ -16646,12 +16479,11 @@ async function openUserProfile(uid){
 
   let contentHtml="";
   if(!canSeeContent){
-    contentHtml=`<div class="user-profile-private-notice"><span class="lock-icon">🔒</span>This account is private.<br>Follow to see their profile.</div>`;
+    contentHtml=`<div class="user-profile-private-notice"><span class="lock-icon">🔒</span>This account is private.</div>`;
   }
 
-  // XP & Level boxes — only shown when this profile's content is visible to us. For a private
-  // account we haven't been accepted to follow (and isn't our own), Level/Rank/XP must stay hidden
-  // just like the rest of their content (bio, etc.) — see canSeeContent above.
+  // XP & Level boxes — only shown when this profile's content is visible to us. A private
+  // account's Level/Rank/XP stay hidden from everyone but the account owner — see canSeeContent above.
   const xpBoxesHtml=!canSeeContent?"":`
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:16px 0 4px">
       <div style="background:var(--accent-soft);border:1px solid var(--border-col);border-radius:14px;padding:14px;text-align:center">
@@ -16671,6 +16503,8 @@ async function openUserProfile(uid){
       </div>
     </div>`;
 
+  const joinedLabel=formatJoinedSince(u.join_date);
+
   page.innerHTML=`
     <div class="user-profile-topbar">
       <button class="user-profile-back" onclick="closeUserProfile()">‹ Back</button>
@@ -16682,6 +16516,7 @@ async function openUserProfile(uid){
       </div>
       <div class="user-profile-name">${u.name||"GymBro"}</div>
       <div class="user-profile-lid">@${u.login_id||"—"} ${u.is_private?'· 🔒 Private':''}</div>
+      ${joinedLabel?`<div class="user-profile-joined">${joinedLabel}</div>`:""}
       ${u.bio&&canSeeContent?`<div class="user-profile-bio">${u.bio}</div>`:""}
       ${xpBoxesHtml}
       ${contentHtml}
@@ -16692,48 +16527,6 @@ async function openUserProfile(uid){
 function closeUserProfile(){
   const el=document.getElementById("userProfilePage");
   if(el){el.style.opacity="0";el.style.transform="translateY(20px)";el.style.transition="opacity 0.22s ease,transform 0.22s ease";setTimeout(()=>el.remove(),230)}
-}
-
-async function upToggleFollow(tid,isPrivate){
-  const myId=localStorage.getItem("user_id");if(!myId)return;
-  const btn=document.getElementById("upFollowBtn");
-  if(!btn)return;
-  btn.disabled=true;
-
-  if(isPrivate==="cancel"){
-    // Cancel pending request
-    await db.from("followers").delete().eq("follower_id",myId).eq("following_id",tid).eq("status","pending");
-    btn.textContent=`Follow 🔒`;btn.className="user-profile-follow-btn";
-    btn.onclick=()=>upToggleFollow(tid,true);
-  }else if(btn.classList.contains("following")){
-    // Unfollow
-    await db.from("followers").delete().eq("follower_id",myId).eq("following_id",tid);
-    btn.textContent="Follow";btn.className="user-profile-follow-btn";
-    btn.onclick=async()=>{const{data}=await db.from("users").select("is_private").eq("id",tid).single();upToggleFollow(tid,data&&data.is_private)};
-  }else{
-    if(isPrivate){
-      // Check-then-insert to avoid 409
-      const{data:ex2}=await db.from("followers").select("id").eq("follower_id",myId).eq("following_id",tid);
-      if(ex2&&ex2.length>0){
-        await db.from("followers").update({status:"pending"}).eq("follower_id",myId).eq("following_id",tid);
-      }else{
-        await db.from("followers").insert([{follower_id:myId,following_id:tid,status:"pending"}]);
-      }
-      btn.textContent="Requested";btn.className="user-profile-follow-btn requested";
-      btn.onclick=()=>upToggleFollow(tid,"cancel");
-    }else{
-      // Check-then-insert to avoid 409
-      const{data:ex3}=await db.from("followers").select("id").eq("follower_id",myId).eq("following_id",tid);
-      if(ex3&&ex3.length>0){
-        await db.from("followers").update({status:"accepted"}).eq("follower_id",myId).eq("following_id",tid);
-      }else{
-        await db.from("followers").insert([{follower_id:myId,following_id:tid,status:"accepted"}]);
-      }
-      btn.textContent="Following ✓";btn.className="user-profile-follow-btn following";
-      btn.onclick=()=>upToggleFollow(tid,false);
-    }
-  }
-  btn.disabled=false;
 }
 
 function upViewAvatarLightbox(url){
