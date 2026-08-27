@@ -1294,7 +1294,7 @@ body:not(.theme-dark) .dur-graph-detail-divider strong{color:#1e3a8a}
 .crop-viewport{flex:1;position:relative;overflow:hidden;background:#000;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none}
 .crop-viewport.dragging{cursor:grabbing}
 #cropCanvas{position:absolute;top:0;left:0;will-change:transform}
-.crop-circle-mask{position:absolute;inset:0;pointer-events:none}
+.crop-circle-mask{position:absolute;top:50%;left:50%;width:0;height:0;transform:translate(-50%,-50%);border-radius:50%;border:2px solid rgba(255,255,255,0.9);box-shadow:0 0 0 9999px rgba(0,0,0,0.6);pointer-events:none;box-sizing:border-box}
 .crop-bottombar{flex-shrink:0;background:#111;padding:14px 20px 22px;display:flex;flex-direction:column;gap:12px}
 .crop-zoom-label{font-family:var(--font-alt);font-size:10px;font-weight:700;color:rgba(255,255,255,0.45);letter-spacing:0.8px;text-transform:uppercase;text-align:center}
 .crop-zoom-track{display:flex;align-items:center;gap:12px}
@@ -1895,7 +1895,7 @@ body.tracker-fs-lock{overflow:hidden}
   #frontBody,#backBody{max-width:46%;max-height:200px}
   .cards{grid-template-columns:repeat(2,1fr)}
   .rankup-card{padding:30px 20px}
-  .profile-avatar-row{flex-direction:column;align-items:center}
+  .profile-avatar-row{flex-direction:column;align-items:center;margin-top:34px}
   .profile-info{text-align:center;width:100%}
   .profile-joined-chip{top:12px;right:12px;padding:4px 10px;font-size:10px}
   .bio-edit-trigger{margin:7px auto 0}
@@ -15893,7 +15893,7 @@ function openCropModal(){
     </div>
     <div class="crop-viewport" id="cropViewport">
       <canvas id="cropCanvas"></canvas>
-      <svg class="crop-circle-mask" id="cropMaskSvg"></svg>
+      <div class="crop-circle-mask" id="cropMaskSvg"></div>
     </div>
     <div class="crop-bottombar">
       <div class="crop-zoom-label">Zoom</div>
@@ -15923,22 +15923,17 @@ function openCropModal(){
     // Store crop rect in _c for confirmCrop
     _c.cropRect={l,t,r,b,side};
 
-    /* Draw a circular DP crop mask (Instagram profile-picture style) — this editor is only ever
-       used for the avatar, so the crop window itself should be a circle, not a square, so it's
-       obvious exactly what will show up as a round DP. The export below still grabs the square
-       bounding box of this circle (so the saved image is a normal square JPEG); the circle is
-       what gets cropped to and is also what every avatar display already renders as (border-radius:50%). */
-    const radius=side/2;
-    document.getElementById("cropMaskSvg").innerHTML=`
-      <defs>
-        <mask id="cm">
-          <rect width="${vw}" height="${vh}" fill="white"/>
-          <circle cx="${cx}" cy="${cy}" r="${radius}" fill="black"/>
-        </mask>
-      </defs>
-      <rect width="${vw}" height="${vh}" fill="rgba(0,0,0,0.6)" mask="url(#cm)"/>
-      <!-- Circle crop border -->
-      <circle cx="${cx}" cy="${cy}" r="${radius}" fill="none" stroke="rgba(255,255,255,0.9)" stroke-width="2"/>`;
+    /* Circular DP crop window (Instagram profile-picture style) — this editor is only ever used
+       for the avatar, so the crop window is a true circle, not a square. Implemented as a plain
+       centered CSS circle whose oversized box-shadow dims everything outside it — this sidesteps
+       the coordinate-system pitfalls of an SVG mask (which can render distorted/mispositioned in
+       some webviews when the <svg> lacks an explicit viewBox) and is pixel-exact everywhere.
+       The export below still grabs the square bounding box of this circle (so the saved image is
+       a normal square JPEG); every avatar display already renders that square as a circle via
+       CSS border-radius:50%, so what you see cropping here matches exactly what shows as the DP. */
+    const maskEl=document.getElementById("cropMaskSvg");
+    maskEl.style.width=side+"px";
+    maskEl.style.height=side+"px";
 
     /* Initial zoom: image covers the crop square (like Instagram) */
     const coverScale=Math.max(side/_c.img.width,side/_c.img.height);
