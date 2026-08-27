@@ -1308,11 +1308,6 @@ body:not(.theme-dark) .dur-graph-detail-divider strong{color:#1e3a8a}
 .avatar-lb-action-btn:hover{opacity:0.85}
 .avatar-lb-change-btn{background:rgba(255,255,255,0.12);color:#fff;border:1px solid rgba(255,255,255,0.18)}
 .avatar-lb-delete-btn{background:rgba(220,38,38,0.2);color:#ef4444;border:1px solid rgba(220,38,38,0.35)}
-.social-counters{display:flex;gap:22px;margin-top:14px}
-.social-counter{text-align:center;cursor:pointer;transition:transform 0.2s}
-.social-counter:hover{transform:scale(1.1)}
-.social-counter .sc-num{font-family:var(--font-display);font-size:22px;color:var(--accent);letter-spacing:1px}
-.social-counter .sc-label{font-size:11px;color:var(--text-muted);font-family:var(--font-alt);text-transform:uppercase;letter-spacing:0.5px}
 .search-gymbros{margin-top:18px;position:relative}
 .search-gymbros input{margin-top:0}
 .search-results-drop{position:fixed;left:50%;transform:translateX(-50%);width:min(520px,94vw);background:var(--bg-card);border:1px solid var(--border-col);border-radius:16px;max-height:420px;overflow-y:auto;z-index:999800;box-shadow:0 16px 40px rgba(0,0,0,0.28);display:none}
@@ -1917,12 +1912,10 @@ body.tracker-fs-lock{overflow:hidden}
   .memberMenu button{font-size:10px;padding:10px 2px}
   #frontBody,#backBody{max-width:46%;max-height:200px}
   .cards{grid-template-columns:repeat(2,1fr)}
-  .social-counters{gap:14px}
   .rankup-card{padding:30px 20px}
   .profile-avatar-row{flex-direction:column;align-items:center}
   .profile-info{text-align:center;width:100%}
   .bio-edit-trigger{margin:7px auto 0}
-  .social-counters{justify-content:center}
   .gymbroTop{flex-direction:column;gap:12px;text-align:center}
   .headerRight{justify-content:center}
   .tracker-date-row{flex-direction:column}
@@ -3078,14 +3071,8 @@ body.tracker-fs-lock{overflow:hidden}
 
           <div class="profile-info">
             <div class="profile-name" id="profileDisplayName">GymBro</div>
-            <div class="gym-title" id="profileGymTitle">🏆 Elite Lifter · GymBro Premium</div>
+            <div class="gym-title" id="profileGymTitle">🏆 BEGINNER · 0 XP</div>
             <div class="profile-bio" id="profileBio">No days off. Every rep counts. 💪</div>
-
-            <div class="social-counters">
-              <div class="social-counter"><div class="sc-num" id="postCount">0</div><div class="sc-label">Posts</div></div>
-              <div class="social-counter"><div class="sc-num" id="followerCount">0</div><div class="sc-label">Followers</div></div>
-              <div class="social-counter"><div class="sc-num" id="followingCount">0</div><div class="sc-label">Following</div></div>
-            </div>
 
             <!-- Edit Profile button -->
             <button class="edit-profile-btn" onclick="openEditProfileSheet()">⚙️ Edit Profile</button>
@@ -4991,6 +4978,10 @@ function updateXPDisplay(xp,prevXP){
   document.getElementById('xpValue').textContent=xp+' XP';
   document.getElementById('rankBadge').textContent=rank.name;
   document.getElementById('rankEmoji').innerHTML=rankIconSVG(rank.icon,24,'#fff');
+  // Profile page header used to show a static "Elite Lifter · GymBro Premium" line — now shows
+  // this user's own live Rank + XP instead, so it always reflects RANK_TIERS/getRankForXP directly.
+  const gymTitleEl=document.getElementById('profileGymTitle');
+  if(gymTitleEl)gymTitleEl.textContent=`🏆 ${rank.name} · ${xp} XP`;
   let pct=rank.max===Infinity?100:Math.min(100,Math.round(((xp-rank.min)/(rank.max-rank.min))*100));
   document.getElementById('xpBarFill').style.width=pct+'%';
   const nr=RANK_TIERS[RANK_TIERS.indexOf(rank)+1];
@@ -6819,6 +6810,7 @@ function logoutUser(){
   document.getElementById("memberWelcome").innerText="Welcome Back, GymBro";
   document.getElementById("profileDisplayName").textContent="GymBro";
   clearAvatarImage();
+  document.getElementById("profileGymTitle").textContent="🏆 BEGINNER · 0 XP";
   document.getElementById("profileBio").textContent="No days off. Every rep counts. 💪";
   closeBioEdit();
   document.getElementById("gymDuration").innerText="";
@@ -6927,7 +6919,6 @@ async function syncCoreDashboardMetrics(){
   // leaderboard, etc.) can read it directly instead of re-fetching and re-summing their whole workout
   // history like this function just did.
   persistUserXP(uid,xp);
-  document.getElementById("postCount").textContent=mw;
   renderTodayWorkoutBanner();
 }
 
@@ -15836,7 +15827,6 @@ function escapeHtml(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").repla
 function loadSocialPage(){
   document.getElementById("profileDisplayName").textContent=localStorage.getItem("user_name")||"GymBro";
   const uid=localStorage.getItem("user_id");
-  loadFollowerCounts(uid);
   loadFollowRequests();
   loadUserProfile();
 }
@@ -16274,24 +16264,6 @@ async function saveBio(){
   closeBioEdit();
   showToast("✅ Bio updated!");
 }
-async function loadFollowerCounts(uid){
-  if(!uid)return;
-  try{
-    const{data:fd}=await db.from("followers").select("id",{count:"exact"}).eq("following_id",uid).eq("status","accepted");
-    const{data:ing}=await db.from("followers").select("id",{count:"exact"}).eq("follower_id",uid).eq("status","accepted");
-    document.getElementById("followerCount").textContent=fd?fd.length:0;
-    document.getElementById("followingCount").textContent=ing?ing.length:0;
-  }catch(e){
-    // fallback — table may not have status column yet
-    try{
-      const{data:fd}=await db.from("followers").select("id").eq("following_id",uid);
-      const{data:ing}=await db.from("followers").select("id").eq("follower_id",uid);
-      document.getElementById("followerCount").textContent=fd?fd.length:0;
-      document.getElementById("followingCount").textContent=ing?ing.length:0;
-    }catch(e2){}
-  }
-}
-
 /* ===================== SEARCH ===================== */
 async function searchGymBros(){
   const q=document.getElementById("gymBroSearchInput").value.trim();
@@ -16379,7 +16351,6 @@ async function sendFollowUser(tid,btn,isPrivate){
     else{btn.textContent="Following ✓";btn.className="follow-btn following";btn.onclick=()=>unfollowUser(tid,btn);}
   }else{showToast("❌ Follow failed: "+error.message);}
   btn.disabled=false;
-  loadFollowerCounts(myId);
 }
 
 async function unfollowUser(tid,btn){
@@ -16393,7 +16364,6 @@ async function unfollowUser(tid,btn){
     sendFollowUser(tid,btn,data&&data.is_private);
   };
   btn.disabled=false;
-  loadFollowerCounts(myId);
 }
 
 async function cancelFollowRequest(tid,btn){
@@ -16456,7 +16426,6 @@ async function acceptFollowRequest(followerId,myId){
   document.getElementById(`freq-${followerId}`)?.remove();
   const list=document.getElementById("followRequestsList");
   if(!list.children.length)document.getElementById("followRequestsSection").style.display="none";
-  loadFollowerCounts(myId);
   showToast("✅ Follow request accepted!");
 }
 
@@ -16645,12 +16614,9 @@ async function openUserProfile(uid){
   const{data:u,error}=await db.from("users").select("id,name,login_id,avatar_url,bio,is_private,xp").eq("id",uid).single();
   if(error||!u){showToast("❌ Could not load profile.");return}
 
-  // Fetch follower counts + my relationship (use maybeSingle to avoid 406 when no row)
-  const[{data:followers},{data:following},{data:myRelArr}]=await Promise.all([
-    db.from("followers").select("id").eq("following_id",uid).eq("status","accepted"),
-    db.from("followers").select("id").eq("follower_id",uid).eq("status","accepted"),
-    db.from("followers").select("status").eq("follower_id",myId).eq("following_id",uid)
-  ]);
+  // Fetch my relationship to this user (used to decide follow button state + whether a private
+  // account's content, including their Rank/Level/XP, is visible to me — see canSeeContent below)
+  const{data:myRelArr}=await db.from("followers").select("status").eq("follower_id",myId).eq("following_id",uid);
 
   const myRel=(myRelArr&&myRelArr.length>0)?myRelArr[0]:null;
   const followStatus=myRel?myRel.status:null; // null | 'pending' | 'accepted'
@@ -16683,9 +16649,11 @@ async function openUserProfile(uid){
     contentHtml=`<div class="user-profile-private-notice"><span class="lock-icon">🔒</span>This account is private.<br>Follow to see their profile.</div>`;
   }
 
-  // XP & Level boxes (always visible)
-  const xpBoxesHtml=`
-    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:16px 0 4px">
+  // XP & Level boxes — only shown when this profile's content is visible to us. For a private
+  // account we haven't been accepted to follow (and isn't our own), Level/Rank/XP must stay hidden
+  // just like the rest of their content (bio, etc.) — see canSeeContent above.
+  const xpBoxesHtml=!canSeeContent?"":`
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:16px 0 4px">
       <div style="background:var(--accent-soft);border:1px solid var(--border-col);border-radius:14px;padding:14px;text-align:center">
         <div style="font-size:10px;font-weight:700;color:var(--text-muted);font-family:var(--font-alt);letter-spacing:0.8px;text-transform:uppercase;margin-bottom:4px">Level</div>
         <div style="font-family:var(--font-display);font-size:28px;color:var(--accent);letter-spacing:1px">${userLevel}</div>
@@ -16700,11 +16668,6 @@ async function openUserProfile(uid){
         <div style="font-size:10px;font-weight:700;color:var(--text-muted);font-family:var(--font-alt);letter-spacing:0.8px;text-transform:uppercase;margin-bottom:4px">Rank</div>
         <div style="font-family:var(--font-display);font-size:20px;color:var(--accent);letter-spacing:1px;line-height:1.2">${userRank}</div>
         <div style="font-size:10px;color:var(--text-muted);font-family:var(--font-alt);margin-top:4px">Current Rank</div>
-      </div>
-      <div style="background:var(--accent-soft);border:1px solid var(--border-col);border-radius:14px;padding:14px;text-align:center">
-        <div style="font-size:10px;font-weight:700;color:var(--text-muted);font-family:var(--font-alt);letter-spacing:0.8px;text-transform:uppercase;margin-bottom:4px">Followers</div>
-        <div style="font-family:var(--font-display);font-size:28px;color:var(--accent);letter-spacing:1px">${followers?followers.length:0}</div>
-        <div style="font-size:10px;color:var(--text-muted);font-family:var(--font-alt);margin-top:2px">GymBros</div>
       </div>
     </div>`;
 
@@ -16736,7 +16699,6 @@ async function upToggleFollow(tid,isPrivate){
   const btn=document.getElementById("upFollowBtn");
   if(!btn)return;
   btn.disabled=true;
-  const fcEl=document.getElementById("up-fc");
 
   if(isPrivate==="cancel"){
     // Cancel pending request
@@ -16748,8 +16710,6 @@ async function upToggleFollow(tid,isPrivate){
     await db.from("followers").delete().eq("follower_id",myId).eq("following_id",tid);
     btn.textContent="Follow";btn.className="user-profile-follow-btn";
     btn.onclick=async()=>{const{data}=await db.from("users").select("is_private").eq("id",tid).single();upToggleFollow(tid,data&&data.is_private)};
-    // Decrement shown count
-    if(fcEl){const n=parseInt(fcEl.textContent)||0;fcEl.textContent=Math.max(0,n-1);}
   }else{
     if(isPrivate){
       // Check-then-insert to avoid 409
@@ -16771,12 +16731,9 @@ async function upToggleFollow(tid,isPrivate){
       }
       btn.textContent="Following ✓";btn.className="user-profile-follow-btn following";
       btn.onclick=()=>upToggleFollow(tid,false);
-      // Increment shown count
-      if(fcEl){const n=parseInt(fcEl.textContent)||0;fcEl.textContent=n+1;}
     }
   }
   btn.disabled=false;
-  loadFollowerCounts(myId);
 }
 
 function upViewAvatarLightbox(url){
@@ -19074,4 +19031,4 @@ function closeLearnVideo(){
 
 </script>
 </body>
-</html> 
+</html>
