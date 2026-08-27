@@ -1252,7 +1252,8 @@ body:not(.theme-dark) .dur-graph-detail-divider strong{color:#1e3a8a}
 .heroBanner p{opacity:.8;font-size:13px;font-family:var(--font-alt)}
 
 /* ===================== SOCIAL ===================== */
-.profile-header{background:var(--bg-card);border:1px solid var(--border-col);border-radius:20px;padding:24px;box-shadow:var(--card-shadow);overflow:visible}
+.profile-header{background:var(--bg-card);border:1px solid var(--border-col);border-radius:20px;padding:24px;box-shadow:var(--card-shadow);overflow:visible;position:relative}
+.profile-joined-chip{position:absolute;top:18px;right:18px;display:inline-flex;align-items:center;gap:5px;padding:5px 14px;background:var(--accent-soft);border:1px solid var(--border-col);border-radius:99px;font-size:11px;color:var(--text-secondary);font-family:var(--font-alt);letter-spacing:0.3px;white-space:nowrap;z-index:1}
 .profile-avatar-row{display:flex;align-items:flex-start;gap:20px}
 .avatar-ring{width:110px;height:110px;border-radius:50%;background:var(--btn-bg);padding:3px;box-shadow:0 0 0 2px var(--accent),0 6px 20px var(--accent-glow);flex-shrink:0;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:transform 0.2s,box-shadow 0.2s;position:relative}
 .avatar-ring:hover{transform:scale(1.04);box-shadow:0 0 0 3px var(--accent),0 8px 28px var(--accent-glow)}
@@ -1896,6 +1897,7 @@ body.tracker-fs-lock{overflow:hidden}
   .rankup-card{padding:30px 20px}
   .profile-avatar-row{flex-direction:column;align-items:center}
   .profile-info{text-align:center;width:100%}
+  .profile-joined-chip{top:12px;right:12px;padding:4px 10px;font-size:10px}
   .bio-edit-trigger{margin:7px auto 0}
   .user-profile-stats-grid{gap:8px}
   .ups-card{padding:14px 6px 12px}
@@ -3042,6 +3044,7 @@ body.tracker-fs-lock{overflow:hidden}
     <!-- SOCIAL TAB -->
     <div id="socialPage" class="memberTab" style="display:none">
       <div class="profile-header glass">
+        <div class="profile-joined-chip" id="profileJoinedChip" style="display:none"></div>
         <div class="profile-avatar-row">
           <!-- Avatar -->
           <div style="position:relative;flex-shrink:0">
@@ -15815,7 +15818,7 @@ async function loadUserProfile(){
   const uid=localStorage.getItem("user_id");
   if(!uid)return;
   try{
-    const{data,error}=await db.from("users").select("avatar_url,bio,is_private,xp").eq("id",uid).single();
+    const{data,error}=await db.from("users").select("avatar_url,bio,is_private,xp,join_date").eq("id",uid).single();
     if(error||!data)return;
     if(data.avatar_url){
       renderAvatarImage(data.avatar_url);
@@ -15825,6 +15828,14 @@ async function loadUserProfile(){
     document.getElementById("profileBio").textContent=bio||"No days off. Every rep counts. 💪";
     localStorage.setItem("gymbro_bio",bio);
     localStorage.setItem("gymbro_is_private",String(!!data.is_private));
+    // Joined-since chip, top-right of the profile card — same format/style as the
+    // 📅 chip shown on other users' view-profile page (see formatJoinedSince/user-profile-joined-chip).
+    const joinedChipEl=document.getElementById("profileJoinedChip");
+    if(joinedChipEl){
+      const joinedLabel=formatJoinedSince(data.join_date);
+      if(joinedLabel){joinedChipEl.textContent="📅 "+joinedLabel;joinedChipEl.style.display="inline-flex"}
+      else{joinedChipEl.style.display="none"}
+    }
     // Rank/XP line on the profile page is read straight from the users.xp column (the same
     // column syncCoreDashboardMetrics keeps fresh via persistUserXP) every time this page loads,
     // rather than relying on whatever the dashboard happened to compute earlier in this session —
@@ -16264,22 +16275,28 @@ async function searchGymBros(){
   if(inp2){const r2=inp2.getBoundingClientRect();rd.style.top=(r2.bottom+6)+"px";}
   const myId=localStorage.getItem("user_id");
 
-  // Search by name OR login_id — for login_id do exact match to avoid showing multiple
-  const[byName,byLoginExact,byLoginPartial]=await Promise.all([
-    db.from("users").select("id,name,login_id,avatar_url,is_private").ilike("name",`%${q}%`).limit(6),
-    db.from("users").select("id,name,login_id,avatar_url,is_private").eq("login_id",q).limit(3),
-    db.from("users").select("id,name,login_id,avatar_url,is_private").ilike("login_id",`%${q}%`).limit(6)
-  ]);
-  // Merge: exact login_id match takes priority, then name matches, then partial login_id matches
+  // A purely numeric query (e.g. "1008") is treated as a Login ID lookup: exact match only,
+  // so it resolves to that ONE account instead of every login_id that merely contains the
+  // digits somewhere in it. Anything else (letters present) is treated as a name lookup,
+  // matched only against the name field — so it never pulls in unrelated login_id hits.
+  const isIdQuery=/^\d+$/.test(q);
+  let rows=[];
+  if(isIdQuery){
+    const{data}=await db.from("users").select("id,name,login_id,avatar_url,is_private").eq("login_id",q).limit(1);
+    rows=data||[];
+  }else{
+    const{data}=await db.from("users").select("id,name,login_id,avatar_url,is_private").ilike("name",`%${q}%`).limit(10);
+    rows=data||[];
+  }
+  // Defensive de-dupe by id — guarantees a user can never appear as more than one result box,
+  // even if the query somehow returned the same row twice.
   const seen=new Set();
-  const combined=[];
-  // Exact login_id match first
-  (byLoginExact.data||[]).forEach(u=>{if(!seen.has(u.id)){seen.add(u.id);combined.push(u)}});
-  // Name matches
-  (byName.data||[]).forEach(u=>{if(!seen.has(u.id)){seen.add(u.id);combined.push(u)}});
-  // Partial login_id matches
-  (byLoginPartial.data||[]).forEach(u=>{if(!seen.has(u.id)){seen.add(u.id);combined.push(u)}});
-  const results=combined.filter(u=>u.id!==myId);
+  const results=rows.filter(u=>{
+    if(u.id===myId)return false;
+    if(seen.has(u.id))return false;
+    seen.add(u.id);
+    return true;
+  });
 
   if(!results.length){
     rd.innerHTML=`<div style="padding:12px;color:var(--text-muted);font-size:13px;font-family:var(--font-alt)">No GymBros found.</div>`;
