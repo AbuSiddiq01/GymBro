@@ -5726,6 +5726,7 @@ function ctmEnhanceSelectAsAppDropdown(selectEl){
 
   const wrapper=document.createElement('div');
   wrapper.className='ctm-dd-wrapper';
+  if(selectEl.getAttribute('style'))wrapper.setAttribute('style',selectEl.getAttribute('style')); // e.g. margin-top on Sets Structure
   selectEl.parentNode.insertBefore(wrapper,selectEl);
   wrapper.appendChild(selectEl);
   selectEl.classList.add('ctm-dd-native-hidden');
@@ -5786,6 +5787,12 @@ function ctmEnhanceSelectAsAppDropdown(selectEl){
     document.querySelectorAll('.ctm-dd-menu.open').forEach(m=>{if(m!==menu)m.classList.remove('open')});
     document.querySelectorAll('.ctm-dd-trigger.open').forEach(t=>{if(t!==trigger)t.classList.remove('open')});
     buildMenu();
+    // Full-screen overlays (Edit Entry, room modals, the custom-theme modal, etc.) sit at z-index 9999
+    // — the same as the bottom nav bar the menu is normally kept just BELOW. When the field lives
+    // inside one of those overlays, the menu needs to sit ABOVE it instead, or it renders hidden
+    // behind the overlay's own backdrop.
+    const inOverlay=trigger.closest('.workout-edit-overlay,.room-modal-overlay,.custom-theme-modal,.wf-modal-overlay');
+    menu.style.zIndex=inOverlay?'10000':'9000';
     positionMenu();
     menu.classList.add('open');trigger.classList.add('open');
     const sel=menu.querySelector('.ctm-dd-option.selected');
@@ -6191,6 +6198,23 @@ async function mountMemberDashboard(data,initialTab){
 }
 
 /* ===================== AUTO-RESTORE SESSION ON PAGE LOAD ===================== */
+/* Sets Structure ("1 Set".."6 Sets") dropdowns — same OS-picker problem as Muscle/Equipment, and the
+   same fix: wrap them in our own app-themed dropdown. Both are static in the HTML from page load
+   (unlike Muscle/Equipment, which get their <option> list built dynamically), so they're enhanced
+   once, immediately, rather than from ctmInitMuscleEquipmentDropdowns(). Covers Normal, Cardio and
+   Warmup (all share these same two selects) in both non-live (setsCountSelect) and live — including
+   Live Edit, which reuses the same #liveSetsCountSelect (liveSetsCountSelect) — forms. */
+function ctmInitSetsCountDropdowns(){
+  ['setsCountSelect','liveSetsCountSelect'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el)ctmEnhanceSelectAsAppDropdown(el);
+  });
+}
+if(document.readyState==='loading'){
+  document.addEventListener('DOMContentLoaded',ctmInitSetsCountDropdowns);
+}else{
+  ctmInitSetsCountDropdowns();
+}
 window.addEventListener('load', async function(){
   const active=localStorage.getItem("gymbro_session_active");
   const uid=localStorage.getItem("user_id");
