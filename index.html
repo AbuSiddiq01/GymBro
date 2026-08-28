@@ -6182,12 +6182,17 @@ async function mountMemberDashboard(data,initialTab){
     localStorage.setItem("gymbro_bio",data.bio);
   }
   await switchMemberTab(initialTab||'dashPage');
+  // Resume an in-progress workout room (as host or joined member) if one is saved for this device —
+  // covers page refresh AND logout→login, until the room's own timer/host ends it. This MUST run
+  // before restoreInProgressWorkoutFormIfAny below: as host, it re-selects whichever member's tile
+  // was open (setRoomTargetState), which is what getEffectiveUid() reads to know whose draft/live
+  // session/timers to restore. Restoring the room session after the form draft would silently
+  // restore the HOST's own draft instead of the room member's, which is why room workout forms
+  // previously did not survive a refresh.
+  await restoreRoomSessionIfAny(data);
   await restoreInProgressWorkoutFormIfAny(!!initialTab);
   await resumeActiveSession(data.id);
   await renderTodayWorkoutBanner();
-  // Resume an in-progress workout room (as host or joined member) if one is saved for this device —
-  // covers page refresh AND logout→login, until the room's own timer/host ends it.
-  await restoreRoomSessionIfAny(data);
   // Populate the Muscle/Equipment filter dropdowns (Add Workout + Tracker) and preload this
   // user's exercise-frequency map (used to sort those dropdowns' results by "most done first").
   ctmInitMuscleEquipmentDropdowns();
@@ -12853,7 +12858,17 @@ function showAddWorkoutForm(){
 }
 /* CLOSE button: fully abandons the form AND discards any queued (not-yet-saved) workout entries —
    a deliberate "leave the whole multi-entry session" action, distinct from switching between chips. */
-function cancelWorkoutLogging(){
+/* UI-only reset: blanks out the on-screen Add/Edit form (name box, set rows, running stopwatches,
+   queue strip) and returns to the initial "+ ADD WORKOUT ENTRY" box, WITHOUT touching anything in
+   localStorage. Used whenever the form needs to visually go blank but the underlying draft must be
+   left completely alone — most importantly when the room host switches which member's tile is
+   selected (switchRoomTarget): the OUTGOING member's just-typed draft was already autosaved under
+   their own getEffectiveUid()-scoped key on every keystroke, and the INCOMING member may have their
+   own saved-but-unfinished draft that must survive the switch (and any later refresh) instead of
+   being wiped the moment their tile is selected. cancelWorkoutLogging() (the explicit "Cancel"
+   button) wraps this same UI reset but additionally clears storage, since that action really does
+   mean "throw this away". */
+function resetWorkoutFormUIOnly(){
   currentEditingIndex=null;document.getElementById("workoutNameInput").value="";
   bwKgRevealed.nonlive=false;
   updateTrackWorkoutBtnVisibility('nonlive');
@@ -12862,14 +12877,24 @@ function cancelWorkoutLogging(){
   document.getElementById("dynamicSetsContainer").innerHTML=""; // wipe old set rows so the next "Add Workout" starts blank, not pre-filled
   updateNonLiveSetsStructureVisibility();
   updateNameClearIconVisibility('workoutNameInput','workoutNameClearIcon');
-  clearNonLiveDraft();
-  clearNonLiveEditDraft();
   resetPrevPerfCopyState('nonlive');
-  nlWorkoutQueue=[];clearNonLiveQueue();
+  nlWorkoutQueue=[]; // in-memory only — storage is reloaded fresh by restoreInProgressWorkoutFormIfAny for whichever uid is now effective
   const qs=document.getElementById("nlQueueStrip");
   if(qs)qs.style.display="none";
   document.getElementById("workoutFormStructure").style.display="none";document.getElementById("liveWorkoutForm").style.display="none";document.getElementById("initialWorkoutBox").style.display="block";stopAllLiveTimers();
+  liveWorkoutQueue=[]; // in-memory only, same reasoning as nlWorkoutQueue above
+  const lqs=document.getElementById("liveQueueStrip");
+  if(lqs)lqs.style.display="none";
   closeWorkoutEditOverlay();
+}
+function cancelWorkoutLogging(){
+  resetWorkoutFormUIOnly();
+  clearNonLiveDraft();
+  clearNonLiveEditDraft();
+  clearNonLiveQueue();
+  clearLiveDraft();
+  clearLiveEditDraft();
+  clearLiveQueue();
 }
 function cancelLiveWorkout(){
   if(window._liveEditMode){cancelLiveEditWorkout();return;}
@@ -15674,7 +15699,7 @@ async function confirmCreateRoom(){
   document.getElementById('createRoomStepShare').style.display='block';
   document.getElementById('createRoomCodeDisplay').textContent=roomId;
   await startOwnerRoomSession(roomId,ownerId,endTime,approvalRequired);
-  saveRoomSession({role:'host',roomId});
+  saveRoomSession({role:'host',roomId,targetLoginId:null});
 }
 
 async function startOwnerRoomSession(roomId,ownerId,endTime,approvalRequired){
@@ -15927,32 +15952,53 @@ function updateRoomTargetBadge(){
   badge.classList.add('visible');
 }
 
-/* Switching does NOT touch localStorage/user_id at all — it only changes what getEffectiveUid() returns,
-   forces the date filter to today, and hides history-revealing actions, matching "today only, add/edit only". */
-function switchRoomTarget(loginId){
-  if(!window.__room)return;
+/* Pure state+UI update for "which member is selected" — sets window.__room.target, the today-only
+   date-filter lock, and the banner/badge/strip visuals. Deliberately does NOT touch the workout
+   form or localStorage, so it's safe to call both from a live click (switchRoomTarget) and from the
+   silent restore-after-refresh path (restoreRoomSessionIfAny), which must reproduce the exact same
+   selection without re-triggering a UI wipe. Returns false if loginId names a member we don't (yet)
+   know about, so callers can bail out instead of half-applying a switch. */
+function setRoomTargetState(loginId){
+  if(!window.__room)return false;
   const dateInput=document.getElementById('workoutCalendarFilter');
   const banner=document.getElementById('roomModeBanner');
   if(loginId===null){
     window.__room.target=null;
     if(dateInput){dateInput.disabled=false;if(window.__room.savedDateValue)dateInput.value=window.__room.savedDateValue}
-    banner.style.display='none';
+    if(banner)banner.style.display='none';
   }else{
     const m=window.__room.membersMeta[loginId];
-    if(!m){showToast('This member hasn\'t joined yet.');return}
+    if(!m)return false;
     window.__room.target=m;
     if(dateInput){
       if(window.__room.savedDateValue===null)window.__room.savedDateValue=dateInput.value;
       dateInput.value=getLocalDateString();
       dateInput.disabled=true;
     }
-    document.getElementById('roomModeBannerName').textContent=m.name||('@'+m.loginId);
-    banner.style.display='block';
+    const nameEl=document.getElementById('roomModeBannerName');
+    if(nameEl)nameEl.textContent=m.name||('@'+m.loginId);
+    if(banner)banner.style.display='block';
   }
-  if(typeof cancelWorkoutLogging==='function')cancelWorkoutLogging();
   renderRoomMembersStrip();
   updateRoomTargetBadge();
+  return true;
+}
+/* Switching does NOT touch localStorage/user_id at all — it only changes what getEffectiveUid() returns,
+   forces the date filter to today, and hides history-revealing actions, matching "today only, add/edit only".
+   The on-screen form is blanked (UI only — see resetWorkoutFormUIOnly) and then immediately re-populated
+   from whatever that member's OWN saved draft/live-session/timers already are (same restore path used on
+   refresh), so switching to someone mid-entry — including switching away and back — always lands back on
+   exactly what they had, instead of presenting an empty form or silently discarding it. The selection
+   itself is also persisted into the room session (see saveRoomSession) so a refresh mid-room re-selects
+   the same member automatically (see restoreRoomSessionIfAny). */
+function switchRoomTarget(loginId){
+  if(!window.__room)return;
+  if(loginId!==null&&!window.__room.membersMeta[loginId]){showToast('This member hasn\'t joined yet.');return}
+  setRoomTargetState(loginId);
+  saveRoomSession({role:'host',roomId:window.__room.roomId,targetLoginId:loginId});
+  resetWorkoutFormUIOnly();
   if(typeof loadWorkoutsForDate==='function')loadWorkoutsForDate();
+  if(typeof restoreInProgressWorkoutFormIfAny==='function')restoreInProgressWorkoutFormIfAny();
 }
 
 function subscribeRoomRealtime(roomId){
@@ -16092,7 +16138,17 @@ async function restoreRoomSessionIfAny(userData){
   if(sess.role==='host'){
     if(String(row.owner_id)!==String(userData.id)){clearRoomSession();return}
     await startOwnerRoomSession(row.room_id,row.owner_id,row.end_time,row.approval_required);
-    await onRoomRowUpdate(row,false);
+    await onRoomRowUpdate(row,false); // populates membersMeta — must resolve before the target below can be looked up
+    // Re-select whichever member the host had open before the refresh (see switchRoomTarget), so
+    // getEffectiveUid() resolves to that same member again BEFORE the caller (mountMemberDashboard)
+    // runs restoreInProgressWorkoutFormIfAny() — that's what lets that member's in-progress
+    // add/edit form, queue, and running timers (set/rest/cardio) come back exactly where they were
+    // left. Deliberately uses setRoomTargetState (state+UI only), never switchRoomTarget/
+    // resetWorkoutFormUIOnly here — the form hasn't been touched yet this load, so there's nothing
+    // to blank, and the draft must be left untouched for the restore call to find.
+    if(sess.targetLoginId){
+      if(!setRoomTargetState(sess.targetLoginId))saveRoomSession({role:'host',roomId:row.room_id,targetLoginId:null});
+    }
   }else if(sess.role==='member'){
     const membersObj=row.members_id||{};
     const myStatus=membersObj[sess.loginId];
@@ -19258,4 +19314,4 @@ function closeLearnVideo(){
 })();
 </script>
 </body>
-</html>
+</html> 
