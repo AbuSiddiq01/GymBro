@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/browser-image-compression@2.0.2/dist/browser-image-compression.js"></script>
@@ -141,18 +144,8 @@ body.theme-custom.has-bg-image .custom-theme-modal{
 }
 
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
-/* overscroll-behavior-y:none on both html and body disables the browser's native "pull-to-refresh"
-   gesture (the blue rotating spinner on Chrome/Android and installed PWAs) at the page level.
-   NOTE: "contain" alone only stops scroll from chaining into an ancestor — it does NOT switch off
-   the browser's own native action (the refresh) at the boundary, which is why it wasn't enough on
-   its own; "none" is the value that actually turns that native action off too. Without this, any
-   sudden height change right at the top of the page — e.g. the exercise-name suggestions box
-   opening/collapsing the instant you tap its dropdown icon or an item inside it — can register as
-   an overscroll-at-top gesture and trigger that spinner. Internal scroll areas (.suggestions-list,
-   .wf-modal-scroll, etc.) already set their own overscroll-behavior:contain, which confines their
-   own bounce to themselves and is untouched by this page-level rule. */
-html{scroll-behavior:smooth;overscroll-behavior-y:none}
-body{background:var(--bg-base);min-height:100vh;color:var(--text-primary);font-family:var(--font-body);overflow-x:hidden;transition:background 0.5s ease,color 0.5s ease;overscroll-behavior-y:none}
+html{scroll-behavior:smooth}
+body{background:var(--bg-base);min-height:100vh;color:var(--text-primary);font-family:var(--font-body);overflow-x:hidden;transition:background 0.5s ease,color 0.5s ease}
 .container{width:95%;max-width:1400px;margin:0 auto;padding:15px}
 
 /* ===================== WORKOUT ROOM ===================== */
@@ -1021,6 +1014,32 @@ body.wlc-dragging-active .workout-log-card:not(.wlc-drag-source){cursor:grabbing
 .ctm-muscle-eq-row.entry-filter-row{flex-wrap:nowrap}
 .ctm-muscle-eq-row.entry-filter-row>div{min-width:0}
 .ctm-muscle-eq-row.entry-filter-row select{width:100%;text-overflow:ellipsis}
+/* ===================== THEMED DROPDOWN (typeahead combo, replaces native OS select popup) =====
+   The real <select> stays in the DOM (hidden) purely so existing code that reads/sets its .value
+   and listens for "change" keeps working untouched — this is the custom-styled, TYPEABLE stand-in
+   the user actually taps/types into, so Muscle/Equipment filters look identical on iOS and Android
+   instead of popping the phone's own native picker, and the options panel is reparented to <body>
+   and positioned with position:fixed so it is never height-clipped by whatever card contains it. */
+.themed-combo-wrap{position:relative;width:100%;margin-top:8px}
+.ctm-muscle-eq-row select+.themed-combo-wrap{margin-top:0}
+.themed-combo-input-row{position:relative}
+.themed-combo-input{width:100%;padding:10px 58px 10px 12px;font-size:13px;border:1px solid var(--input-border);border-radius:12px;background:var(--input-bg);color:var(--text-primary);font-family:var(--font-body);box-sizing:border-box;margin:0;transition:border-color 0.2s ease}
+.themed-combo-input:focus{border-color:var(--accent)}
+.themed-combo-input::placeholder{color:var(--text-muted);opacity:1}
+.themed-combo-icons{position:absolute;right:6px;top:0;bottom:0;display:flex;align-items:center;gap:0}
+.themed-combo-clear{display:none;align-items:center;justify-content:center;width:24px;height:24px;flex-shrink:0;color:var(--text-muted);cursor:pointer;user-select:none;touch-action:manipulation;-webkit-tap-highlight-color:transparent;border-radius:50%;transition:color 0.15s ease,background 0.15s ease}
+.themed-combo-clear.show{display:flex}
+.themed-combo-clear:active{background:var(--accent-soft);color:var(--accent)}
+.themed-combo-clear svg{width:13px;height:13px;flex-shrink:0;stroke:currentColor;stroke-width:2.4;fill:none;stroke-linecap:round}
+.themed-combo-chev{width:24px;height:24px;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:var(--text-muted);font-size:11px;cursor:pointer;user-select:none;touch-action:manipulation;-webkit-tap-highlight-color:transparent;transition:transform 0.2s ease,color 0.2s ease}
+.themed-combo-chev.open{transform:rotate(180deg);color:var(--accent)}
+.themed-combo-panel{position:fixed;background:var(--bg-card);border:1px solid var(--border-col);border-radius:14px;box-shadow:0 12px 34px rgba(0,0,0,0.28);z-index:99999;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;display:none;padding:6px;box-sizing:border-box}
+.themed-combo-panel.open{display:block}
+.themed-combo-option{padding:11px 12px;font-size:13px;font-family:var(--font-body);color:var(--text-primary);border-radius:9px;cursor:pointer}
+.themed-combo-option.sel{background:var(--accent-soft);color:var(--accent);font-weight:700}
+.themed-combo-option:active{background:var(--accent-soft)}
+.themed-combo-empty{padding:14px;text-align:center;color:var(--text-muted);font-size:12.5px;font-family:var(--font-alt)}
+@media(hover:hover){.themed-combo-option:hover{background:var(--accent-soft)}}
 .tracker-sort-wrap{flex:0 0 auto!important;min-width:auto!important;position:relative}
 .tracker-sort-btn{width:38px;height:38px;border-radius:10px;border:1px solid var(--border-col);background:var(--bg-card);color:var(--text-secondary);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.2s ease;padding:0;flex-shrink:0}
 .tracker-sort-btn:hover,.tracker-sort-btn.active{background:var(--accent-soft);color:var(--accent);border-color:var(--accent)}
@@ -5640,12 +5659,210 @@ function ctmBuildEquipmentOptionsHTML(){
   EQUIPMENT_LIST.forEach(eq=>html+=`<option value="${eq}">${eq}</option>`);
   return html;
 }
+/* ===================== THEMED DROPDOWN ENGINE (typeahead combo) =====================
+   Builds an editable, app-themed stand-in for a <select>: a text box the person can either type
+   into (filters the list live, substring match) or tap to open the full list and pick directly —
+   both work everywhere this is used. The real <select> stays in the DOM (hidden) purely so every
+   existing piece of code that reads .value / listens for "change" on these six filter selects
+   keeps working exactly as before. The options panel is reparented to <body> and positioned with
+   position:fixed from the input's live on-screen position, so it is NEVER height-clipped by
+   whatever card/overlay contains it (Add Workout, Live Mode, Edit overlays, Track Workouts) and
+   sizes itself to the actual available screen space, flipping to open upward if there isn't
+   enough room below. */
+function themifySelect(selectId){
+  const sel=document.getElementById(selectId);
+  if(!sel||sel.dataset.themed)return;
+  sel.dataset.themed='1';
+  sel.style.display='none';
+
+  const wrap=document.createElement('div');
+  wrap.className='themed-combo-wrap';
+  wrap.id='themedWrap_'+selectId;
+  const row=document.createElement('div');
+  row.className='themed-combo-input-row';
+  const input=document.createElement('input');
+  input.type='text';
+  input.className='themed-combo-input';
+  input.id='themedInput_'+selectId;
+  input.autocomplete='off';
+  input.spellcheck=false;
+  const icons=document.createElement('div');
+  icons.className='themed-combo-icons';
+  const clearBtn=document.createElement('span');
+  clearBtn.className='themed-combo-clear';
+  clearBtn.id='themedClear_'+selectId;
+  clearBtn.setAttribute('aria-label','Clear');
+  // Small fixed-size SVG (not a text glyph) so this renders crisp and consistent across mobile devices
+  clearBtn.innerHTML='<svg viewBox="0 0 24 24"><line x1="5" y1="5" x2="19" y2="19"/><line x1="19" y1="5" x2="5" y2="19"/></svg>';
+  const chev=document.createElement('span');
+  chev.className='themed-combo-chev';
+  chev.id='themedChev_'+selectId;
+  chev.textContent='▾';
+  icons.appendChild(clearBtn);icons.appendChild(chev);
+  row.appendChild(input);row.appendChild(icons);
+  wrap.appendChild(row);
+  sel.insertAdjacentElement('afterend',wrap);
+
+  const panel=document.createElement('div');
+  panel.className='themed-combo-panel';
+  panel.id='themedPanel_'+selectId;
+  document.body.appendChild(panel); // reparented to <body> — see note above on why
+
+  function positionPanel(){
+    const r=input.getBoundingClientRect();
+    const desired=Math.min(window.innerHeight*0.6,480);
+    const spaceBelow=window.innerHeight-r.bottom-12;
+    const spaceAbove=r.top-12;
+    panel.style.left=Math.max(8,r.left)+'px';
+    panel.style.width=r.width+'px';
+    if(spaceBelow>=180||spaceBelow>=spaceAbove){
+      panel.style.top=(r.bottom+6)+'px';
+      panel.style.bottom='';
+      panel.style.maxHeight=Math.max(140,Math.min(desired,spaceBelow))+'px';
+    }else{
+      panel.style.bottom=(window.innerHeight-r.top+6)+'px';
+      panel.style.top='';
+      panel.style.maxHeight=Math.max(140,Math.min(desired,spaceAbove))+'px';
+    }
+  }
+  function renderOptions(query){
+    const q=(query||'').trim().toLowerCase();
+    panel.innerHTML='';
+    const opts=[...sel.options];
+    const matches=q?opts.filter(o=>o.textContent.toLowerCase().includes(q)):opts;
+    if(!matches.length){
+      const empty=document.createElement('div');
+      empty.className='themed-combo-empty';
+      empty.textContent='No matches';
+      panel.appendChild(empty);
+      return;
+    }
+    matches.forEach(opt=>{
+      const optRow=document.createElement('div');
+      optRow.className='themed-combo-option'+(opt.value===sel.value?' sel':'');
+      optRow.textContent=opt.textContent;
+      // mousedown/touchstart (not click) so this commits BEFORE the input's blur handler fires
+      optRow.addEventListener('mousedown',(e)=>{e.preventDefault();selectOption(opt)});
+      optRow.addEventListener('touchstart',()=>{selectOption(opt)},{passive:true});
+      panel.appendChild(optRow);
+    });
+  }
+  panel._render=renderOptions; // exposed so themedSelectSync can refresh this panel from outside
+  function updateClearVisibility(){
+    clearBtn.classList.toggle('show',input.value.trim()!=='');
+  }
+  // Opening the dropdown (tap/focus/chevron) ALWAYS shows the complete list, regardless of
+  // whatever is already selected/typed — it only narrows down once the person actively types
+  // a new character (see the 'input' listener below).
+  function openPanel(){
+    document.querySelectorAll('.themed-combo-panel.open').forEach(p=>{if(p!==panel)p.classList.remove('open')});
+    document.querySelectorAll('.themed-combo-chev.open').forEach(c=>{if(c!==chev)c.classList.remove('open')});
+    renderOptions('');
+    positionPanel();
+    panel.classList.add('open');chev.classList.add('open');
+  }
+  function closePanel(){panel.classList.remove('open');chev.classList.remove('open')}
+  function selectOption(opt){
+    sel.value=opt.value;
+    input.value=opt.value===''?'':opt.textContent;
+    sel.dispatchEvent(new Event('change',{bubbles:true}));
+    updateClearVisibility();
+    closePanel();
+  }
+  function clearToAll(){
+    sel.value='';
+    input.value='';
+    sel.dispatchEvent(new Event('change',{bubbles:true}));
+    updateClearVisibility();
+    input.focus();
+    openPanel();
+  }
+
+  input.addEventListener('focus',openPanel);
+  input.addEventListener('click',openPanel);
+  input.addEventListener('input',()=>{renderOptions(input.value);positionPanel();updateClearVisibility();panel.classList.add('open');chev.classList.add('open')});
+  input.addEventListener('blur',()=>{
+    // Small delay so a tap on an option or the clear button (handled via mousedown/touchstart
+    // above) has already committed before we validate/revert whatever text is left in the box.
+    setTimeout(()=>{
+      const typed=input.value.trim();
+      if(typed===''){
+        // Empty box = "All" — matches the very first option (value ""), shown via placeholder
+        // rather than literal text, so nothing needs clearing next time.
+        if(sel.value!==''){sel.value='';sel.dispatchEvent(new Event('change',{bubbles:true}))}
+        input.value='';
+      }else{
+        const exact=[...sel.options].find(o=>o.textContent.toLowerCase()===typed.toLowerCase());
+        if(exact){
+          if(sel.value!==exact.value){sel.value=exact.value;sel.dispatchEvent(new Event('change',{bubbles:true}))}
+          input.value=exact.value===''?'':exact.textContent;
+        }else{
+          // Typed text didn't match a real option — revert to whatever is actually selected, so
+          // the underlying filter value (and everything that depends on it) never goes out of
+          // sync with free text that doesn't correspond to a real Muscle/Equipment category.
+          const cur=sel.options[sel.selectedIndex];
+          input.value=(cur&&cur.value!=='')?cur.textContent:'';
+        }
+      }
+      updateClearVisibility();
+      closePanel();
+    },150);
+  });
+  chev.addEventListener('mousedown',(e)=>{
+    e.preventDefault();
+    if(panel.classList.contains('open')){closePanel();input.blur();}
+    else{input.focus();openPanel();}
+  });
+  clearBtn.addEventListener('mousedown',(e)=>{e.preventDefault();clearToAll()});
+  clearBtn.addEventListener('touchstart',()=>{clearToAll()},{passive:true});
+  window.addEventListener('scroll',()=>{if(panel.classList.contains('open'))positionPanel();},true);
+  window.addEventListener('resize',()=>{if(panel.classList.contains('open'))positionPanel();});
+
+  themedSelectSync(selectId);
+}
+/* Call after programmatically changing a themed select's value (draft restore, persisted-filter
+   restore, etc.) so the visible input text and highlighted option stay accurate even when the
+   change didn't come from the person typing/tapping the panel themselves. Safe to call before the
+   select has been themified yet — it themifies it first. */
+function themedSelectSync(selectId){
+  const sel=document.getElementById(selectId);
+  if(!sel)return;
+  if(!sel.dataset.themed){themifySelect(selectId);return}
+  const input=document.getElementById('themedInput_'+selectId);
+  const clearBtn=document.getElementById('themedClear_'+selectId);
+  const panel=document.getElementById('themedPanel_'+selectId);
+  if(!input)return;
+  const opt=sel.options[sel.selectedIndex];
+  // The first option (value "") is the "All Muscles"/"All Equipment" default — shown as a real
+  // placeholder (greyed out, nothing to delete) instead of literal committed text, exactly like a
+  // native select's default state, so the person can start typing immediately without clearing
+  // anything first.
+  if(opt&&opt.value===''){input.placeholder=opt.textContent;}
+  if(document.activeElement!==input)input.value=(opt&&opt.value!=='')?opt.textContent:'';
+  if(clearBtn)clearBtn.classList.toggle('show',input.value.trim()!=='');
+  if(panel&&panel.classList.contains('open')&&panel._render)panel._render(document.activeElement===input?input.value:'');
+}
 function ctmInitMuscleEquipmentDropdowns(){
+  // Maps each select id to the localStorage key its chosen value is persisted under (see
+  // handleWorkoutSearchAuto/handleLiveSearchAuto/handleTrackerSearch) — restored here once, the
+  // first time each dropdown's options are ever built (i.e. on page load), so a previously chosen
+  // Muscle/Equipment filter survives a refresh instead of coming back to "All".
+  const _persistKeys={
+    addWorkoutMuscleFilter:'gymbro_filter_addworkout_muscle',
+    addWorkoutEquipmentFilter:'gymbro_filter_addworkout_equipment',
+    trackerMuscleFilter:'gymbro_filter_tracker_muscle',
+    trackerEquipmentFilter:'gymbro_filter_tracker_equipment',
+    liveWorkoutMuscleFilter:'gymbro_filter_live_muscle',
+    liveWorkoutEquipmentFilter:'gymbro_filter_live_equipment'
+  };
   ['addWorkoutMuscleFilter','addWorkoutEquipmentFilter','trackerMuscleFilter','trackerEquipmentFilter','liveWorkoutMuscleFilter','liveWorkoutEquipmentFilter'].forEach(id=>{
     const el=document.getElementById(id);
     if(el&&!el.dataset.built){
       el.innerHTML=id.toLowerCase().includes('muscle')?ctmBuildMuscleOptionsHTML():ctmBuildEquipmentOptionsHTML();
       el.dataset.built='1';
+      const saved=localStorage.getItem(_persistKeys[id]);
+      if(saved && [...el.options].some(o=>o.value===saved))el.value=saved;
+      themedSelectSync(id);
     }
   });
 }
@@ -6982,11 +7199,20 @@ async function processCheckIn(){
 }
 function startStopwatch(){
   if(activeWorkoutTimer)clearInterval(activeWorkoutTimer);
-  activeWorkoutTimer=setInterval(()=>{
-    chronometerSeconds++;
+  // Recomputed from the real check-in wall-clock time on every single tick (never just
+  // incremented) — this is what makes it immune to mobile browsers throttling/suspending
+  // setInterval while the screen is locked. Whenever a tick DOES run (even a very late one,
+  // right after unlocking), it always lands on the exact correct elapsed time in one step.
+  const _tick=()=>{
+    if(activeSessionCheckInTimestamp){
+      const checkInMs=new Date(activeSessionCheckInTimestamp).getTime();
+      if(!isNaN(checkInMs))chronometerSeconds=Math.max(0,Math.floor((Date.now()-checkInMs)/1000));
+    }
     let h=String(Math.floor(chronometerSeconds/3600)).padStart(2,'0'),m=String(Math.floor((chronometerSeconds%3600)/60)).padStart(2,'0'),s=String(chronometerSeconds%60).padStart(2,'0');
-    document.getElementById("stopwatch").innerText=`${h}:${m}:${s}`;
-  },1000);
+    const el=document.getElementById("stopwatch");if(el)el.innerText=`${h}:${m}:${s}`;
+  };
+  _tick();
+  activeWorkoutTimer=setInterval(_tick,1000);
 }
 /* Shared UI reset for both Cancel and Check-Out — clears the timer, re-enables Punch In, hides Cancel. */
 function _resetPunchInUI(){
@@ -10617,6 +10843,10 @@ async function handleWorkoutSearchAuto(forceShow){
   updateNameClearIconVisibility('workoutNameInput','workoutNameClearIcon');
   const muscleVal=document.getElementById("addWorkoutMuscleFilter")?document.getElementById("addWorkoutMuscleFilter").value:"";
   const equipVal=document.getElementById("addWorkoutEquipmentFilter")?document.getElementById("addWorkoutEquipmentFilter").value:"";
+  // Persist so this filter survives a refresh, a saved workout, switching tabs, or closing/reopening
+  // the app — it only ever changes again when the user picks something different themselves.
+  localStorage.setItem('gymbro_filter_addworkout_muscle',muscleVal);
+  localStorage.setItem('gymbro_filter_addworkout_equipment',equipVal);
   let box=document.getElementById("autoSuggestions");box.innerHTML="";box.style.display="none";
   const icon=document.getElementById("workoutNameDropdownIcon");if(icon)icon.classList.remove("open");
   document.getElementById("prevPerfBadgeNonLive").classList.remove("visible");
@@ -12573,12 +12803,10 @@ function showAddWorkoutForm(){
     const lqs=document.getElementById("liveQueueStrip");if(lqs)lqs.style.display="none";
     document.getElementById("initialWorkoutBox").style.display="";document.getElementById("liveWorkoutForm").style.display="block";document.getElementById("workoutFormStructure").style.display="none";
     document.getElementById("liveWorkoutNameInput").value="";document.getElementById("liveSetsCountSelect").value="1";document.getElementById("liveSetsContainer").innerHTML="";
-    // BUG FIX: these selects were never reset — a Muscle/Equipment filter chosen while browsing for
-    // one exercise used to silently stay applied (and keep narrowing/emptying the dropdown) for
-    // every entry after it, for the rest of the session. Always reset to "All" here; the draft
-    // restore further down intentionally re-applies a saved value on top of this if one exists.
-    const _lmf=document.getElementById("liveWorkoutMuscleFilter");if(_lmf)_lmf.value="";
-    const _lef=document.getElementById("liveWorkoutEquipmentFilter");if(_lef)_lef.value="";
+    // Muscle/Equipment filters are intentionally left as-is here — they now persist across
+    // sessions (see handleLiveSearchAuto/ctmInitMuscleEquipmentDropdowns) and only change when
+    // the person picks something different themselves; the draft restore further down applies a
+    // saved in-progress value on top if one exists, same as before.
     document.getElementById("liveSetupPanel").style.display="block";liveSetupPanelExitActiveSession();document.getElementById("liveSessionTitle").style.display="none";
     updateLiveSetsStructureVisibility();
     updateNameClearIconVisibility('liveWorkoutNameInput','liveWorkoutNameClearIcon');
@@ -12597,9 +12825,7 @@ function showAddWorkoutForm(){
     // another workout entry instead of the person having to close this one first.
     document.getElementById("initialWorkoutBox").style.display="";document.getElementById("workoutFormStructure").style.display="block";document.getElementById("liveWorkoutForm").style.display="none";
     applySetsCountMinConstraint();
-    // BUG FIX: same stale-filter issue as the live branch above — reset before anything else runs.
-    const _amf=document.getElementById("addWorkoutMuscleFilter");if(_amf)_amf.value="";
-    const _aef=document.getElementById("addWorkoutEquipmentFilter");if(_aef)_aef.value="";
+    // Muscle/Equipment filters intentionally left as-is — see matching note in the live branch above.
     window._selectedWorkoutClass=null;window._selectedWorkoutEquipment=null;
     // Restore a refresh-proof draft if the person had anything typed before an accidental reload
     const draft=loadNonLiveDraft();
@@ -12699,6 +12925,10 @@ async function handleLiveSearchAuto(forceShow){
   // Session with one typed) is blocked — see the div.onclick below, _pickExClass, and startLiveSession.
   let muscleVal=document.getElementById("liveWorkoutMuscleFilter")?document.getElementById("liveWorkoutMuscleFilter").value:"";
   const equipVal=document.getElementById("liveWorkoutEquipmentFilter")?document.getElementById("liveWorkoutEquipmentFilter").value:"";
+  // Persist so this filter survives a refresh, a saved workout, switching tabs, or closing/reopening
+  // the app — it only ever changes again when the user picks something different themselves.
+  localStorage.setItem('gymbro_filter_live_muscle',muscleVal);
+  localStorage.setItem('gymbro_filter_live_equipment',equipVal);
   let box=document.getElementById("liveAutoSuggestions");box.innerHTML="";box.style.display="none";
   const icon=document.getElementById("liveWorkoutNameDropdownIcon");if(icon)icon.classList.remove("open");
   document.getElementById("prevPerfBadgeLive").classList.remove("visible");
@@ -12886,8 +13116,8 @@ function restoreLiveSetupUI(draft,fromQueue){
   document.getElementById("liveSetupPanel").style.display="block";liveSetupPanelExitActiveSession();
   document.getElementById("liveSessionTitle").style.display="none";
   document.getElementById("liveSetsContainer").innerHTML="";
-  const muscleEl=document.getElementById("liveWorkoutMuscleFilter");if(muscleEl&&draft.muscle)muscleEl.value=draft.muscle;
-  const equipEl=document.getElementById("liveWorkoutEquipmentFilter");if(equipEl&&draft.equipment)equipEl.value=draft.equipment;
+  const muscleEl=document.getElementById("liveWorkoutMuscleFilter");if(muscleEl&&draft.muscle){muscleEl.value=draft.muscle;themedSelectSync("liveWorkoutMuscleFilter")}
+  const equipEl=document.getElementById("liveWorkoutEquipmentFilter");if(equipEl&&draft.equipment){equipEl.value=draft.equipment;themedSelectSync("liveWorkoutEquipmentFilter")}
   const nameEl=document.getElementById("liveWorkoutNameInput");if(nameEl){nameEl.readOnly=false;nameEl.style.opacity="1";nameEl.value=draft.name||"";}
   const setsCountEl=document.getElementById("liveSetsCountSelect");if(setsCountEl)setsCountEl.value=draft.setsCount||"1";
   liveCurrentSet=1;liveTotalSets=0;
@@ -13010,7 +13240,7 @@ function restoreLiveSessionUI(draft,fromQueue){
       const dispEl=document.getElementById(`liveTimerDisplay_${i}`);if(dispEl)dispEl.textContent=String(m).padStart(2,'0')+':'+String(sec).padStart(2,'0');
       const btn=document.getElementById(`liveTimerBtn_${i}`);if(btn){btn.textContent="⏹";btn.className="live-timer-btn stop"}
       const saveBtn=document.getElementById(`liveSetSaveBtn_${i}`);if(saveBtn)saveBtn.style.display="none";
-      liveSetTimers[i]=setInterval(()=>{liveSetSeconds[i]++;let mm=Math.floor(liveSetSeconds[i]/60),ss=liveSetSeconds[i]%60;document.getElementById(`liveTimerDisplay_${i}`).textContent=String(mm).padStart(2,'0')+':'+String(ss).padStart(2,'0');saveLiveDraft()},1000);
+      liveSetTimers[i]=setInterval(()=>{liveSetSeconds[i]=(liveSetTimerAccumAtStart[i]||0)+Math.floor((Date.now()-(liveSetTimerStartEpoch[i]||Date.now()))/1000);let mm=Math.floor(liveSetSeconds[i]/60),ss=liveSetSeconds[i]%60;document.getElementById(`liveTimerDisplay_${i}`).textContent=String(mm).padStart(2,'0')+':'+String(ss).padStart(2,'0');saveLiveDraft()},1000);
     } else if(s.timerAccumulated){
       liveSetSeconds[i]=s.timerAccumulated;
       const m=Math.floor(s.timerAccumulated/60),sec=s.timerAccumulated%60;
@@ -13257,7 +13487,7 @@ function toggleLiveSetTimer(idx){
     liveSetTimerAccumAtStart[idx]=liveSetSeconds[idx];liveSetTimerStartEpoch[idx]=Date.now();
     btn.textContent="⏹";btn.className="live-timer-btn stop";document.getElementById(`liveSetSaveBtn_${idx}`).style.display="none";
     if(isCardio){const editBtn=document.getElementById(`liveDurEditBtn_${idx}`);if(editBtn)editBtn.disabled=true;}
-    liveSetTimers[idx]=setInterval(()=>{liveSetSeconds[idx]++;let m=Math.floor(liveSetSeconds[idx]/60),s=liveSetSeconds[idx]%60;document.getElementById(`liveTimerDisplay_${idx}`).textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0')},1000);
+    liveSetTimers[idx]=setInterval(()=>{liveSetSeconds[idx]=(liveSetTimerAccumAtStart[idx]||0)+Math.floor((Date.now()-(liveSetTimerStartEpoch[idx]||Date.now()))/1000);let m=Math.floor(liveSetSeconds[idx]/60),s=liveSetSeconds[idx]%60;document.getElementById(`liveTimerDisplay_${idx}`).textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0')},1000);
   }
   saveLiveDraft();
 }
@@ -13408,7 +13638,7 @@ function runLiveBreakInterval(idx){
   if(liveBreakTimers[idx]){clearInterval(liveBreakTimers[idx]);delete liveBreakTimers[idx]}
   liveBreakAccumAtStart[idx]=liveBreakSeconds[idx]||0;liveBreakStartEpoch[idx]=Date.now();
   liveBreakTimers[idx]=setInterval(()=>{
-    liveBreakSeconds[idx]++;let rem=liveBreakTotalSecs[idx]-liveBreakSeconds[idx];
+    liveBreakSeconds[idx]=(liveBreakAccumAtStart[idx]||0)+Math.floor((Date.now()-(liveBreakStartEpoch[idx]||Date.now()))/1000);let rem=liveBreakTotalSecs[idx]-liveBreakSeconds[idx];
     if(rem<=0){clearInterval(liveBreakTimers[idx]);delete liveBreakTimers[idx];delete liveBreakTotalSecs[idx];delete liveBreakStartEpoch[idx];delete liveBreakAccumAtStart[idx];timerEl.textContent="00:00";msgEl.textContent="🔔 Break over! Time to crush the next set!";msgEl.style.display="block";timerEl.style.display="none";if(editBtn)editBtn.style.display="none";if(editPanel)editPanel.style.display="none";releaseBreakWakeLock();playConfiguredBreakSound();saveLiveDraft();setTimeout(()=>{document.getElementById(`liveBreakRow_${idx}`).style.display="none";activateNextLiveSet(idx+1)},1500);return}
     let m=Math.floor(rem/60),s=rem%60;timerEl.textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
   },1000);
@@ -14414,9 +14644,7 @@ function initiateWorkoutEdit(e,ci,rv){
   if(!isWorkoutEditableDate(_td)){alert("You can only edit workouts for today, yesterday, or the day before yesterday.");return}
   currentEditingIndex=ci;
   bwKgRevealed.nonlive=false;
-  // BUG FIX: Edit never reset these either — see the matching fix in showAddWorkoutForm.
-  const _eamf=document.getElementById("addWorkoutMuscleFilter");if(_eamf)_eamf.value="";
-  const _eaef=document.getElementById("addWorkoutEquipmentFilter");if(_eaef)_eaef.value="";
+  // Muscle/Equipment filters intentionally left as-is — see matching note in showAddWorkoutForm.
   if(typeof updateRoomTargetBadge==='function')updateRoomTargetBadge();
   editOriginalDurations={};
 
@@ -14590,9 +14818,7 @@ function getLiveEditCommittedSegments(){
 function startLiveEditSession(ci,exerciseName,setsStr,segs){
   if(typeof updateRoomTargetBadge==='function')updateRoomTargetBadge();
   bwKgRevealed.liveEditExisting=false;bwKgRevealed.liveEditNew=false;
-  // BUG FIX: Live Edit never reset these either — see the matching fix in showAddWorkoutForm.
-  const _elmf=document.getElementById("liveWorkoutMuscleFilter");if(_elmf)_elmf.value="";
-  const _elef=document.getElementById("liveWorkoutEquipmentFilter");if(_elef)_elef.value="";
+  // Muscle/Equipment filters intentionally left as-is — see matching note in showAddWorkoutForm.
   // Parse existing saved sets so we can re-build the combined entry on every save
   liveEditSlot=(window._workoutCiMap&&window._workoutCiMap[ci])||null;
   liveEditExistingResults=segs.map(s=>s.trim()).filter(Boolean);
@@ -16245,6 +16471,57 @@ async function saveBio(){
   closeBioEdit();
   showToast("✅ Bio updated!");
 }
+/* ===================== TIMER WALL-CLOCK RESYNC ON UNLOCK/FOREGROUND =====================
+   Every running timer/stopwatch above (Punch In stopwatch, non-live cardio set stopwatch, Live
+   Mode set stopwatch + break/rest countdown, Live Edit Mode set stopwatch + break/rest countdown)
+   already computes its displayed value from a stored Date.now() epoch rather than a naive
+   per-tick counter, so the underlying number is always exactly correct the moment any tick
+   actually runs. Mobile browsers, though, aggressively throttle or fully suspend setInterval
+   while the screen is locked/the tab is backgrounded, so the ON-SCREEN text can otherwise sit
+   stale for a moment after unlocking until the browser gets around to firing the next tick. This
+   forces every active timer to immediately recompute + redraw the instant the app becomes visible
+   again, so the exact correct time/remaining-time is already on screen the moment you unlock —
+   no refresh, ever, needed — even over a slow/unstable connection, since all of this is pure
+   local wall-clock math with no network call involved. */
+function resyncAllRunningTimersNow(){
+  if(activeWorkoutTimer && activeSessionCheckInTimestamp){
+    const checkInMs=new Date(activeSessionCheckInTimestamp).getTime();
+    if(!isNaN(checkInMs)){
+      chronometerSeconds=Math.max(0,Math.floor((Date.now()-checkInMs)/1000));
+      let h=String(Math.floor(chronometerSeconds/3600)).padStart(2,'0'),m=String(Math.floor((chronometerSeconds%3600)/60)).padStart(2,'0'),s=String(chronometerSeconds%60).padStart(2,'0');
+      const el=document.getElementById("stopwatch");if(el)el.innerText=`${h}:${m}:${s}`;
+    }
+  }
+  Object.keys(window._nlSetTimers||{}).forEach(i=>{
+    window._nlSetSeconds[i]=(window._nlSetTimerAccumAtStart[i]||0)+Math.floor((Date.now()-(window._nlSetTimerStartEpoch[i]||Date.now()))/1000);
+    const m=Math.floor(window._nlSetSeconds[i]/60),s=window._nlSetSeconds[i]%60;
+    const disp=document.getElementById(`nlTimerDisplay_${i}`);if(disp)disp.textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+  });
+  Object.keys(liveSetTimers||{}).forEach(i=>{
+    liveSetSeconds[i]=(liveSetTimerAccumAtStart[i]||0)+Math.floor((Date.now()-(liveSetTimerStartEpoch[i]||Date.now()))/1000);
+    const m=Math.floor(liveSetSeconds[i]/60),s=liveSetSeconds[i]%60;
+    const disp=document.getElementById(`liveTimerDisplay_${i}`);if(disp)disp.textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+  });
+  Object.keys(liveBreakTimers||{}).forEach(i=>{
+    liveBreakSeconds[i]=(liveBreakAccumAtStart[i]||0)+Math.floor((Date.now()-(liveBreakStartEpoch[i]||Date.now()))/1000);
+    const rem=Math.max(0,(liveBreakTotalSecs[i]||0)-liveBreakSeconds[i]);
+    const el=document.getElementById(`liveBreakTimer_${i}`);if(el){const m=Math.floor(rem/60),s=rem%60;el.textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0')}
+  });
+  Object.keys(liveEditSetTimers||{}).forEach(i=>{
+    liveEditSetSeconds[i]=(liveEditSetTimerAccumAtStart[i]||0)+Math.floor((Date.now()-(liveEditSetTimerStartEpoch[i]||Date.now()))/1000);
+    const m=Math.floor(liveEditSetSeconds[i]/60),s=liveEditSetSeconds[i]%60;
+    const disp=document.getElementById(`liveEditTimerDisplay_${i}`);if(disp)disp.textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+  });
+  Object.keys(liveEditBreakTimers||{}).forEach(i=>{
+    liveEditBreakSeconds[i]=(liveEditBreakAccumAtStart[i]||0)+Math.floor((Date.now()-(liveEditBreakStartEpoch[i]||Date.now()))/1000);
+    const rem=Math.max(0,(liveEditBreakTotalSecs[i]||0)-liveEditBreakSeconds[i]);
+    const el=document.getElementById(`liveEditBreakTimer_${i}`);if(el){const m=Math.floor(rem/60),s=rem%60;el.textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0')}
+  });
+}
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')resyncAllRunningTimersNow();});
+window.addEventListener('pageshow',resyncAllRunningTimersNow);
+window.addEventListener('focus',resyncAllRunningTimersNow);
+
 /* ===================== SEARCH ===================== */
 // Bumped once per keystroke. The response for a given call is only ever allowed to render if
 // its token still matches the latest one when the DB call returns — this is what stops a slower,
@@ -16950,6 +17227,11 @@ function handleTrackerSearch(){
   const val=document.getElementById('trackerSearchInput').value.trim();
   const sugBox=document.getElementById('trackerSearchSuggestions');
   updateNameClearIconVisibility('trackerSearchInput','trackerSearchClearIcon');
+  // Persist so this filter survives a refresh, switching tabs, or closing/reopening the app —
+  // it only ever changes again when the user picks something different themselves.
+  const _tmf=document.getElementById('trackerMuscleFilter'),_tef=document.getElementById('trackerEquipmentFilter');
+  if(_tmf)localStorage.setItem('gymbro_filter_tracker_muscle',_tmf.value);
+  if(_tef)localStorage.setItem('gymbro_filter_tracker_equipment',_tef.value);
   // Manually editing the search box means the person wants to browse freely again —
   // drop any "focused on one exercise" state from a prior Track Workout redirect.
   trackerFocusedExerciseName=null;
@@ -16982,10 +17264,8 @@ function closeTrackerResults(){
   document.getElementById('trackerSearchInput').value='';
   document.getElementById('trackerSearchSuggestions').style.display='none';
   updateNameClearIconVisibility('trackerSearchInput','trackerSearchClearIcon');
-  // Reset the Muscle/Equipment filter dropdowns (tracker only) so the next Track Workouts run starts fresh
-  const muscleSel=document.getElementById('trackerMuscleFilter'),equipSel=document.getElementById('trackerEquipmentFilter');
-  if(muscleSel)muscleSel.value='';
-  if(equipSel)equipSel.value='';
+  // Muscle/Equipment filters intentionally left as-is — they now persist until the user changes
+  // them themselves (see handleTrackerSearch/ctmInitMuscleEquipmentDropdowns).
   // Reset the date range back to the tracker's normal default: 1st of this month → today
   const now=new Date(),y=now.getFullYear(),m=String(now.getMonth()+1).padStart(2,'0');
   const fromEl=document.getElementById('trackerFromDate'),toEl=document.getElementById('trackerToDate');
