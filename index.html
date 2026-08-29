@@ -204,10 +204,15 @@ body.ptr-dragging,body.ptr-dragging *{transition:none!important}
 .room-extend-custom{padding:4px 10px;min-width:26px;text-align:center}
 .room-remove-btn{width:auto;height:auto;aspect-ratio:auto;flex-shrink:0;background:#dc2626;color:#fff;border:none;border-radius:8px;padding:3px 10px;font-size:10.5px;font-weight:800;font-family:var(--font-alt);cursor:pointer}
 .room-remove-btn:hover{background:#b91c1c}
-.room-pending-tile{display:flex;flex-direction:column;align-items:center;gap:6px;width:64px;flex:0 0 64px}
+/* Sits next to Remove in roomModeBanner — same shape/sizing, but the app's violet room accent
+   (matches the "Create Room" button and the approval toggle) instead of destructive red, since
+   handing off hosting is a positive/neutral action, not a removal. */
+.room-makehost-btn{width:auto;height:auto;aspect-ratio:auto;flex-shrink:0;background:linear-gradient(135deg,#7c3aed,#6d28d9);color:#fff;border:none;border-radius:8px;padding:3px 10px;font-size:10.5px;font-weight:800;font-family:var(--font-alt);cursor:pointer}
+.room-makehost-btn:hover{background:linear-gradient(135deg,#6d28d9,#5b21b6)}
+.room-pending-tile{display:flex;flex-direction:column;align-items:center;gap:6px;width:68px;flex:0 0 68px}
 .room-pending-tile .room-member-avatar{border-color:#f59e0b;box-shadow:0 0 0 3px rgba(245,158,11,0.3)}
-.room-pending-tile .rm-name{font-size:9.5px;font-family:var(--font-alt);font-weight:800;color:var(--text-muted);white-space:nowrap;max-width:64px;overflow:hidden;text-overflow:ellipsis}
-.room-pending-actions{display:flex;flex-direction:row;gap:6px;justify-content:center;flex-shrink:0}
+.room-pending-tile .rm-name{font-size:9.5px;font-family:var(--font-alt);font-weight:800;color:var(--text-muted);white-space:nowrap;max-width:68px;overflow:hidden;text-overflow:ellipsis}
+.room-pending-actions{display:flex;flex-direction:row;gap:12px;justify-content:center;flex-shrink:0}
 .room-pending-actions button{width:24px;height:24px;flex-shrink:0;border-radius:50%;border:none;cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center}
 .room-pending-actions button svg{width:12px;height:12px;stroke:#fff;flex-shrink:0}
 .room-pending-accept{background:#16a34a}
@@ -1542,11 +1547,14 @@ body.workout-edit-lock{overflow:hidden}
 .live-toggle.on .live-toggle-knob{left:23px}
 /* Deliberately a different shape/color from .live-toggle (used only by the LIVE MODE switch) —
    rounded-square track, so the "Members need approval to join" toggle is never mistaken for Live
-   Mode at a glance, even though both sit in the same room strip. Amber (not the accent blue) for
-   the same reason. Restyled for a softer, more polished look: an inset track shadow at rest, a
-   gentler amber gradient + glow when on, and a slightly larger, more rounded knob. */
+   Mode at a glance, even though both sit in the same room strip. Uses the app's own violet room
+   accent (the same gradient as the "Create Room" button/rank badges) rather than the plain accent
+   blue, so it still reads as an on/off control distinct from Live Mode, but now actually matches
+   the app's palette instead of an unrelated amber. Restyled for a softer, more polished look: an
+   inset track shadow at rest, a gentler gradient + glow when on, and a slightly larger, more
+   rounded knob. */
 .approval-toggle{width:40px;height:22px;background:var(--border-col);border:1px solid var(--border-col);border-radius:8px;position:relative;transition:background 0.3s ease,border-color 0.3s ease,box-shadow 0.3s ease;cursor:pointer;flex-shrink:0;box-shadow:inset 0 1px 3px rgba(0,0,0,0.12)}
-.approval-toggle.on{background:linear-gradient(135deg,#fbbf24,#d97706);border-color:#d97706;box-shadow:inset 0 1px 2px rgba(0,0,0,0.08),0 0 0 3px rgba(245,158,11,0.18)}
+.approval-toggle.on{background:linear-gradient(135deg,#7c3aed,#6d28d9);border-color:#6d28d9;box-shadow:inset 0 1px 2px rgba(0,0,0,0.08),0 0 0 3px rgba(124,58,237,0.18)}
 .approval-toggle-knob{position:absolute;top:2px;left:2px;width:16px;height:16px;background:#fff;border-radius:6px;transition:left 0.3s cubic-bezier(.4,0,.2,1),box-shadow 0.3s ease;box-shadow:0 1px 3px rgba(0,0,0,0.3)}
 .approval-toggle.on .approval-toggle-knob{left:22px;box-shadow:0 1px 4px rgba(0,0,0,0.35)}
 .live-dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:#ef4444;animation:livePulse 1.2s ease-in-out infinite}
@@ -2817,9 +2825,12 @@ body.tracker-fs-lock{overflow:hidden}
           </div>
           <div id="roomPendingStrip" style="display:none;gap:12px;margin-top:10px;flex-wrap:wrap;align-items:flex-start"></div>
           <div id="roomMembersStrip" style="display:flex;gap:10px;margin-top:10px;flex-wrap:wrap;align-items:center"></div>
-          <div id="roomModeBanner" style="display:none;margin-top:10px;padding:8px 10px;background:var(--accent-soft);border-radius:10px;font-family:var(--font-alt);font-size:11.5px;color:var(--accent);font-weight:700;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">
+          <div id="roomModeBanner" style="display:none;margin-top:10px;padding:8px 10px;background:var(--accent-soft);border-radius:10px;font-family:var(--font-alt);font-size:11.5px;color:var(--accent);font-weight:700;flex-direction:column;align-items:flex-start;gap:8px">
             <span>🏋 <span id="roomModeBannerName"></span>'s workout in progress — today only.</span>
-            <button type="button" class="room-remove-btn" onclick="removeCurrentRoomTarget()">Remove</button>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <button type="button" class="room-remove-btn" onclick="removeCurrentRoomTarget()">Remove</button>
+              <button type="button" class="room-makehost-btn" id="roomMakeHostBtn" onclick="makeCurrentRoomTargetHost()">👑 Make Host</button>
+            </div>
           </div>
         </div>
 
@@ -16044,6 +16055,12 @@ function subscribeMemberRoomRealtime(roomId,loginId){
       if(!row)return;
       window.__memberRoom.endTime=row.end_time;
       if(row.room_status&&row.room_status!=='ongoing'){cleanupMemberRoomState('The room was closed by the host.');return}
+      // Hosting was just handed to US (via the old host's "Make Host" button) — promote this device
+      // straight from a read-only member view into the full host session. Checked before the
+      // "was I removed" logic below, since a fresh owner is no longer listed in members_id at all
+      // (owners aren't tracked there) and would otherwise look kicked.
+      const myUid=localStorage.getItem('user_uuid')||localStorage.getItem('user_id');
+      if(myUid&&row.owner_id&&String(row.owner_id)===String(myUid)){promoteMemberToHost(row);return}
       // If our own login_id was removed by the host, or we're no longer marked joined, drop out too
       const membersObj=row.members_id||{};
       if(membersObj[window.__memberRoom.loginId]!=='joined'){cleanupMemberRoomState('You were removed from the room.');return}
@@ -16051,6 +16068,22 @@ function subscribeMemberRoomRealtime(roomId,loginId){
     })
     .subscribe();
   window.__memberRoom.channel=channel;
+}
+
+/* Member-side half of the "Make Host" swap (see makeCurrentRoomTargetHost/demoteHostToMember) —
+   fires when this device's own realtime subscription sees owner_id now points at us. Tears down
+   the read-only member session/subscription/timer, then starts a full host session in its place,
+   reusing the exact same path a room creator gets. */
+async function promoteMemberToHost(row){
+  if(window.__memberRoom){
+    if(window.__memberRoom.channel)db.removeChannel(window.__memberRoom.channel);
+    if(window.__memberRoom.countdownInterval)clearInterval(window.__memberRoom.countdownInterval);
+    window.__memberRoom=null;
+  }
+  showToast('👑 You are now the host of this room!');
+  await startOwnerRoomSession(row.room_id,row.owner_id,row.end_time,row.approval_required);
+  await onRoomRowUpdate(row,false);
+  saveRoomSession({role:'host',roomId:row.room_id,targetLoginId:null});
 }
 
 /* Non-host, view-only mirror of onRoomRowUpdate/renderRoomMembersStrip: keeps window.__memberRoom.
@@ -16224,6 +16257,31 @@ function removeCurrentRoomTarget(){
   if(!window.__room||!window.__room.target)return;
   removeRoomMember(window.__room.target.loginId,window.__room.target.name);
 }
+/* Used by the "Make Host" button in roomModeBanner — hands hosting over to whichever member is
+   currently selected/being edited (window.__room.target), and this device drops to a regular
+   member. Just a plain update on workout_rooms (same pattern as toggleLiveRoomApproval/
+   createRoom — no server-side function needed): owner_id becomes the new host's user id, and
+   members_id is rebuilt from what we already track locally (membersMeta/pendingMeta) with the new
+   host's login dropped out (owners aren't tracked in members_id) and the old host's own login added
+   back in as 'joined'. Each device's own realtime subscription then notices its role changed and
+   switches itself over — see the owner_id checks in onRoomRowUpdate (host side, demotes via
+   demoteHostToMember) and subscribeMemberRoomRealtime (member side, promotes via
+   promoteMemberToHost) — so both ends of the swap stay in sync without a page reload. */
+async function makeCurrentRoomTargetHost(){
+  if(!window.__room||!window.__room.target)return;
+  const target=window.__room.target;
+  const label=target.name||('@'+target.loginId);
+  if(!confirm(`Make ${label} the host? You'll become a regular member of this room.`))return;
+  const myLoginId=localStorage.getItem('user_login_id');
+  const newMembersId={};
+  Object.keys(window.__room.membersMeta).forEach(id=>{if(id!==target.loginId)newMembersId[id]='joined'});
+  Object.keys(window.__room.pendingMeta).forEach(id=>{newMembersId[id]='pending'});
+  if(myLoginId)newMembersId[myLoginId]='joined';
+  try{
+    await db.from('workout_rooms').update({owner_id:target.userId,members_id:newMembersId}).eq('room_id',window.__room.roomId);
+  }catch(e){showToast(`Could not make ${label} the host.`);return}
+  showToast(`👑 ${label} is now the host — you're a member now.`);
+}
 
 /* Updates the badge that sits right above the Add/Edit workout entry area, showing the currently
    selected member's DP + name so the host can never accidentally add/edit for the wrong person. */
@@ -16380,6 +16438,10 @@ async function onRoomRowUpdate(row,announce){
   if(!window.__room||!row)return;
   window.__room.endTime=row.end_time;
   if(row.room_status&&row.room_status!=='ongoing'){handleRoomEndedRemotely();return}
+  // Hosting was just handed off (via "Make Host") — this device drops from host down to a regular
+  // joined member instead of just losing the room. Checked before anything below assumes we're
+  // still the owner. See promoteMemberToHost for the other side of this same swap.
+  if(row.owner_id&&String(row.owner_id)!==String(window.__room.ownerId)){demoteHostToMember(row);return}
   if(typeof row.approval_required==='boolean'){
     window.__room.approvalRequired=row.approval_required;
     const lt=document.getElementById('liveRoomApprovalToggle');
@@ -16494,6 +16556,23 @@ async function endWorkoutRoom(auto){
 }
 
 function handleRoomEndedRemotely(){cleanupRoomState('The workout room was closed.')}
+
+/* Host-side half of the "Make Host" swap (see makeCurrentRoomTargetHost/promoteMemberToHost) —
+   fires when this device's own realtime subscription sees owner_id no longer points at us. Tears
+   down the host session/subscription/timers, then starts a normal joined-member session in its
+   place, reusing the exact same path a fresh join uses. */
+async function demoteHostToMember(row){
+  const myLoginId=localStorage.getItem('user_login_id');
+  if(window.__room){
+    if(window.__room.channel)db.removeChannel(window.__room.channel);
+    if(window.__room.countdownInterval)clearInterval(window.__room.countdownInterval);
+  }
+  stopRoomBreakWatcher();
+  window.__room=null;
+  showToast("👑 Hosting was handed off — you're a member now.");
+  await startMemberRoomSession(row,myLoginId);
+  saveRoomSession({role:'member',roomId:row.room_id,loginId:myLoginId});
+}
 
 function cleanupRoomState(msg){
   if(window.__room){
