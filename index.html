@@ -196,10 +196,14 @@ body.ptr-dragging,body.ptr-dragging *{transition:none!important}
 @keyframes roomTimerBlink{50%{opacity:0.25}}
 .room-extend-btn{background:var(--accent-soft);color:var(--accent);border:none;border-radius:8px;padding:4px 10px;font-size:11px;font-weight:800;font-family:var(--font-alt);cursor:pointer}
 .room-extend-custom{padding:4px 10px;min-width:26px;text-align:center}
-.room-pending-tile{display:flex;flex-direction:column;align-items:center;gap:6px;width:64px}
+.room-remove-btn{width:auto;height:auto;aspect-ratio:auto;flex-shrink:0;background:#dc2626;color:#fff;border:none;border-radius:8px;padding:3px 10px;font-size:10.5px;font-weight:800;font-family:var(--font-alt);cursor:pointer}
+.room-remove-btn:hover{background:#b91c1c}
+.room-pending-tile{display:flex;flex-direction:column;align-items:center;gap:6px;width:64px;flex:0 0 64px}
 .room-pending-tile .room-member-avatar{border-color:#f59e0b;box-shadow:0 0 0 3px rgba(245,158,11,0.3)}
-.room-pending-actions{display:flex;gap:4px}
-.room-pending-actions button{width:auto;height:auto;padding:3px 9px;border-radius:8px;border:none;cursor:pointer;font-size:10px;font-weight:800;color:#fff;font-family:var(--font-alt)}
+.room-pending-tile .rm-name{font-size:9.5px;font-family:var(--font-alt);font-weight:800;color:var(--text-muted);white-space:nowrap;max-width:64px;overflow:hidden;text-overflow:ellipsis}
+.room-pending-actions{display:flex;flex-direction:row;gap:6px;justify-content:center;flex-shrink:0}
+.room-pending-actions button{width:24px;height:24px;flex-shrink:0;border-radius:50%;border:none;cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center}
+.room-pending-actions button svg{width:12px;height:12px;stroke:#fff;flex-shrink:0}
 .room-pending-accept{background:#16a34a}
 .room-pending-reject{background:#dc2626}
 /* Room target badge — shown near the Add/Edit workout entry area while host is acting on behalf of a member */
@@ -2793,7 +2797,7 @@ body.tracker-fs-lock{overflow:hidden}
           <div id="roomMembersStrip" style="display:flex;gap:10px;margin-top:10px;flex-wrap:wrap;align-items:center"></div>
           <div id="roomModeBanner" style="display:none;margin-top:10px;padding:8px 10px;background:var(--accent-soft);border-radius:10px;font-family:var(--font-alt);font-size:11.5px;color:var(--accent);font-weight:700;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">
             <span>🏋 <span id="roomModeBannerName"></span>'s workout in progress — today only.</span>
-            <button type="button" class="action-icon-btn delete" style="width:auto;padding:3px 9px;font-size:10.5px;flex-shrink:0" onclick="removeCurrentRoomTarget()">Remove</button>
+            <button type="button" class="room-remove-btn" onclick="removeCurrentRoomTarget()">Remove</button>
           </div>
         </div>
 
@@ -12951,19 +12955,51 @@ function cancelWorkoutLogging(){
   resetWorkoutFormUIOnly();
   clearNonLiveDraft();
   clearNonLiveEditDraft();
-  clearNonLiveQueue();
   clearLiveDraft();
   clearLiveEditDraft();
-  clearLiveQueue();
+  // Deliberately NOT clearing the queue (clearNonLiveQueue/clearLiveQueue) here — the queue holds
+  // OTHER entries already stashed via "+ ADD WORKOUT ENTRY" (e.g. workouts 1–3 while the form
+  // currently open is workout 4). Closing/cancelling just the one on screen must only discard that
+  // one, never the others. resetWorkoutFormUIOnly() above already blanks nlWorkoutQueue/
+  // liveWorkoutQueue in memory and hides their strips (needed elsewhere, e.g. a room-target
+  // switch), so reload them from storage here — untouched.
+  nlWorkoutQueue=loadNonLiveQueue();
+  liveWorkoutQueue=loadLiveQueue();
+  if(nlWorkoutQueue.length){
+    // Other non-live workouts are still queued — pull the next one straight back into the form
+    // right now, exactly like a refresh already does via restoreInProgressWorkoutFormIfAny, instead
+    // of leaving the user looking at a blank "+ ADD WORKOUT ENTRY" box (with only small chips below)
+    // until they reload the page to see it again.
+    document.getElementById("formActionTitle").innerText="LOG NEW ENTRY";
+    document.getElementById("initialWorkoutBox").style.display="";
+    document.getElementById("workoutFormStructure").style.display="block";
+    document.getElementById("liveWorkoutForm").style.display="none";
+    applySetsCountMinConstraint();
+    const first=nlWorkoutQueue.shift();
+    loadNonLiveFormEntry(first);
+    saveNonLiveQueue();
+  }
+  renderNlQueueStrip();
+  renderLiveQueueStrip();
 }
 function cancelLiveWorkout(){
   if(window._liveEditMode){cancelLiveEditWorkout();return;}
   bwKgRevealed.live=false;
   stopAllLiveTimers();document.getElementById("liveWorkoutForm").style.display="none";document.getElementById("initialWorkoutBox").style.display="block";liveSetResults=[];liveSessionSlot=null;window._liveEntryPunchNotified=false;
-  liveWorkoutQueue=[];clearLiveQueue(); // fully closing Live Mode discards any queued (not-yet-started) entries too
-  const lqs=document.getElementById("liveQueueStrip");if(lqs)lqs.style.display="none";
   resetPrevPerfCopyState('live');
   clearLiveDraft();
+  // Closing just the currently-open Live entry must not discard any OTHER entries already queued
+  // via "+ ADD WORKOUT ENTRY" (e.g. workouts 1–3 while this is workout 4) — reload the queue from
+  // storage (untouched), and — same as cancelWorkoutLogging() above — pull the next one straight
+  // back into the form right now (matching what a refresh already does), instead of leaving the
+  // user on the blank initial box until they reload to see it again.
+  liveWorkoutQueue=loadLiveQueue();
+  if(liveWorkoutQueue.length){
+    const first=liveWorkoutQueue.shift();
+    loadLiveFormEntry(first);
+    saveLiveQueue();
+  }
+  renderLiveQueueStrip();
 }
 function stopAllLiveTimers(){Object.values(liveSetTimers).forEach(t=>clearInterval(t));Object.values(liveBreakTimers).forEach(t=>clearInterval(t));liveSetTimers={};liveSetSeconds={};liveSetTimerStartEpoch={};liveSetTimerAccumAtStart={};liveBreakTimers={};liveBreakSeconds={};liveBreakTotalSecs={};liveBreakStartEpoch={};liveBreakAccumAtStart={};releaseBreakWakeLock()}
 let _prevPerfLiveTimer=null;
@@ -15982,8 +16018,8 @@ function renderRoomPendingStrip(){
       <div class="room-member-avatar">${inner}</div>
       <span class="rm-name">${escapeHtml(m.name||('@'+m.loginId))}</span>
       <div class="room-pending-actions">
-        <button class="room-pending-accept" onclick="approveRoomMember('${m.loginId}','${escapeHtml(m.name||'')}')">Accept</button>
-        <button class="room-pending-reject" onclick="rejectRoomMember('${m.loginId}','${escapeHtml(m.name||'')}')">Reject</button>
+        <button class="room-pending-accept" onclick="approveRoomMember('${m.loginId}','${escapeHtml(m.name||'')}')" title="Accept"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></button>
+        <button class="room-pending-reject" onclick="rejectRoomMember('${m.loginId}','${escapeHtml(m.name||'')}')" title="Reject"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg></button>
       </div>
     </div>`;
   });
@@ -19512,4 +19548,4 @@ function closeLearnVideo(){
 })();
 </script>
 </body>
-</html>
+</html> 
