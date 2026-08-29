@@ -11786,13 +11786,13 @@ async function restoreInProgressWorkoutFormIfAny(wasRefresh,opts){
     const liveDraft=loadLiveDraft();
     if(liveDraft&&liveDraft.mode==='live'&&liveDraft.name&&liveDraft.totalSets){
       await goToWorkPage();
-      restoreLiveSessionUI(liveDraft);
+      restoreLiveSessionUI(liveDraft,false,silent);
       renderLiveQueueStrip();
       return true;
     }
     if(liveDraft&&liveDraft.mode==='setup'){
       await goToWorkPage();
-      restoreLiveSetupUI(liveDraft);
+      restoreLiveSetupUI(liveDraft,false,silent);
       renderLiveQueueStrip();
       return true;
     }
@@ -11966,7 +11966,7 @@ async function saveWorkoutLogEntry(){
   } else {
     cancelWorkoutLogging();
   }
-  await loadWorkoutsForDate();await syncCoreDashboardMetrics();
+  loadWorkoutsForDate();syncCoreDashboardMetrics(); // fired in the background, not awaited: these just refresh the visible list/dashboard stats, they're not part of what makes the save itself correct or complete, and awaiting them was adding two extra sequential network round-trips to the visible "saving..." state of every single set/entry save (and, in a room, extending how long member-switching stayed blocked for)
   } finally {
     window._savingNonLiveEntry=false;
     const _saveBtnGuardEnd=document.getElementById("nlSaveEntryBtn");if(_saveBtnGuardEnd)_saveBtnGuardEnd.disabled=false;
@@ -12526,6 +12526,7 @@ function liveCopyFromPrevSet(idx){
     }
     window._liveSetCopiedFlags[idx]=false;
     document.getElementById(`liveCopyPrevBtn_${idx}`)?.classList.remove('copied');
+    saveLiveDraft(); // setting .value directly doesn't fire the input's own oninput handler, so this must be called explicitly or the undo never survives a refresh/room-member switch
     showToast(`↩️ Set ${idx} copy undone.`);
     return;
   }
@@ -12537,6 +12538,7 @@ function liveCopyFromPrevSet(idx){
     setCardioPickerValue(`liveSet_${idx}`,Math.floor(secPrev/60),secPrev%60);
     window._liveSetCopiedFlags[idx]=true;
     document.getElementById(`liveCopyPrevBtn_${idx}`)?.classList.add('copied');
+    saveLiveDraft();
     showToast(`⚡ Set ${idx-1} values copied to Set ${idx}!`);
     return;
   }
@@ -12550,6 +12552,7 @@ function liveCopyFromPrevSet(idx){
   if(repsEl)repsEl.value=repsPrev;
   window._liveSetCopiedFlags[idx]=true;
   document.getElementById(`liveCopyPrevBtn_${idx}`)?.classList.add('copied');
+  saveLiveDraft();
   showToast(`⚡ Set ${idx-1} values copied to Set ${idx}!`);
 }
 
@@ -12566,6 +12569,7 @@ function liveEditCopyFromPrevSet(idx){
     if(repsEl)repsEl.value='';
     window._liveEditSetCopiedFlags[idx]=false;
     document.getElementById(`liveEditCopyPrevBtn_${idx}`)?.classList.remove('copied');
+    if(typeof saveLiveEditDraft==='function')saveLiveEditDraft(); // same reasoning as liveCopyFromPrevSet — direct .value writes skip oninput, so persist explicitly
     showToast(`↩️ Set ${committedCount+idx} copy undone.`);
     return;
   }
@@ -12589,6 +12593,7 @@ function liveEditCopyFromPrevSet(idx){
   if(repsEl)repsEl.value=repsPrev;
   window._liveEditSetCopiedFlags[idx]=true;
   document.getElementById(`liveEditCopyPrevBtn_${idx}`)?.classList.add('copied');
+  if(typeof saveLiveEditDraft==='function')saveLiveEditDraft();
   showToast(`⚡ ${prevLabel} values copied to Set ${committedCount+idx}!`);
 }
 
@@ -12913,6 +12918,16 @@ function resetWorkoutFormUIOnly(){
   liveWorkoutQueue=[]; // in-memory only, same reasoning as nlWorkoutQueue above
   const lqs=document.getElementById("liveQueueStrip");
   if(lqs)lqs.style.display="none";
+  // The "Copy from previous set" toggle-state (window._liveSetCopiedFlags / _liveEditSetCopiedFlags)
+  // is purely in-memory and keyed by set index only, not by member/uid, so without resetting it here
+  // it silently carries over onto whichever member is switched to next — a set index that was
+  // "copied" for the outgoing member would make the SAME button on the incoming member look/behave
+  // as if it were already copied (tapping Copy would immediately undo instead of copy). The actual
+  // copied VALUES themselves are unaffected by this reset — they're part of the persisted live
+  // draft (see saveLiveDraft() calls added to liveCopyFromPrevSet/liveEditCopyFromPrevSet) and come
+  // back correctly through the normal restore path regardless.
+  window._liveSetCopiedFlags={};
+  window._liveEditSetCopiedFlags={};
   closeWorkoutEditOverlay();
 }
 function cancelWorkoutLogging(){
@@ -13150,7 +13165,7 @@ function clearLiveDraft(){
 /* Brings back what was picked on the Live Mode setup panel (exercise name, muscle/equipment
    filters, sets structure) if the person refreshed BEFORE pressing "Start Live Session" — there's
    no running session to resume, but the selection they'd already made shouldn't be thrown away. */
-function restoreLiveSetupUI(draft,fromQueue){
+function restoreLiveSetupUI(draft,fromQueue,silent){
   _liveDraftSaveEnabled=false;
   liveMode=true;
   const tog=document.getElementById("liveModeToggle"),lbl=document.getElementById("liveModeLabel");
@@ -13178,10 +13193,10 @@ function restoreLiveSetupUI(draft,fromQueue){
   {const _setupTd=isRoomMemberModeActive()?getLocalDateString():document.getElementById("workoutCalendarFilter")?.value;
   if(draft.name)fetchPrevPerformance(draft.name,'live',_setupTd);}
   _liveDraftSaveEnabled=true;
-  if(!fromQueue)showToast('🔄 Restored your exercise selection after the refresh.');
+  if(!fromQueue&&!silent)showToast('🔄 Restored your exercise selection after the refresh.');
 }
 
-function restoreLiveSessionUI(draft,fromQueue){
+function restoreLiveSessionUI(draft,fromQueue,silent){
   _liveDraftSaveEnabled=false; // don't re-save while we're programmatically reconstructing it
   liveMode=true;
   document.getElementById("initialWorkoutBox").style.display="";
@@ -13340,7 +13355,12 @@ function restoreLiveSessionUI(draft,fromQueue){
       }
       runLiveBreakInterval(bIdx);
       acquireBreakWakeLock();
-      showResumeAlertsBanner(); // only relevant when a break is actually ticking right now
+      // Only relevant right after a genuine page refresh/relogin, where the browser's audio/
+      // vibration permission for this page is freshly locked and needs one real tap to unlock.
+      // A room-member switch happens on the SAME already-open page/tap-session, so that unlock is
+      // already in effect — showing this on every switch was both pointless and, with multiple
+      // members having active breaks, made it look like the break-end alert itself was "repeating".
+      if(!silent)showResumeAlertsBanner();
     }
   } else {
     const activeBlock=document.getElementById(`liveSetBlock_${nextActiveIdx}`);
@@ -13348,7 +13368,7 @@ function restoreLiveSessionUI(draft,fromQueue){
   }
 
   _liveDraftSaveEnabled=true;
-  if(!fromQueue)showToast('🔄 Restored your in-progress live workout after the refresh — timers included.');
+  if(!fromQueue&&!silent)showToast('🔄 Restored your in-progress live workout after the refresh — timers included.');
 }
 
 /* Browsers will never let JS fake a tap to unlock audio/vibration — a script-dispatched click or
@@ -13627,7 +13647,7 @@ async function saveLiveSet(idx){
       finishLiveSession(name);
     }
   }
-  await loadWorkoutsForDate();await syncCoreDashboardMetrics();
+  loadWorkoutsForDate();syncCoreDashboardMetrics(); // fired in the background, not awaited: these just refresh the visible list/dashboard stats, they're not part of what makes the save itself correct or complete, and awaiting them was adding two extra sequential network round-trips to the visible "saving..." state of every single set/entry save (and, in a room, extending how long member-switching stayed blocked for)
   } finally {
     window._savingLiveSet=false;
     const _saveBtnGuardEnd=document.getElementById(`liveSetSaveBtn_${idx}`);if(_saveBtnGuardEnd)_saveBtnGuardEnd.disabled=false;
@@ -15137,7 +15157,7 @@ async function updateLiveEditExistingSets(){
   {const _exNU=document.getElementById("liveWorkoutNameInput").value.trim();
    const _mx=computeSessionMaxes(rebuilt);
    checkAndShowLevelUp(_exNU,_mx.maxKg,_mx.maxKg>0?_mx.maxKgReps:_mx.totalReps,_mx.totalVolume);}
-  await loadWorkoutsForDate();await syncCoreDashboardMetrics();
+  loadWorkoutsForDate();syncCoreDashboardMetrics(); // fired in the background, not awaited: these just refresh the visible list/dashboard stats, they're not part of what makes the save itself correct or complete, and awaiting them was adding two extra sequential network round-trips to the visible "saving..." state of every single set/entry save (and, in a room, extending how long member-switching stayed blocked for)
   // Save & close, same as Save Entry — but only when there's no pending new-set slot still waiting to
   // be logged below (i.e. the sets-count dropdown wasn't raised above what's already saved). If new
   // sets are still pending, leave the form open so that live timer/break flow can be completed.
@@ -15318,7 +15338,7 @@ async function saveLiveEditSet(idx){
      checkAndShowLevelUp(_exN2,_mx.maxKg,_mx.maxKg>0?_mx.maxKgReps:_mx.totalReps,_mx.totalVolume);}
     renderLiveEditSetsUI();
   }
-  await loadWorkoutsForDate();await syncCoreDashboardMetrics();
+  loadWorkoutsForDate();syncCoreDashboardMetrics(); // fired in the background, not awaited: these just refresh the visible list/dashboard stats, they're not part of what makes the save itself correct or complete, and awaiting them was adding two extra sequential network round-trips to the visible "saving..." state of every single set/entry save (and, in a room, extending how long member-switching stayed blocked for)
   saveLiveEditDraft();
   } finally {
     window._savingLiveEditSet=false;
@@ -15603,7 +15623,7 @@ async function triggerWorkoutDelete(e,ci){
   const slotRef=window._workoutCiMap&&window._workoutCiMap[ci];
   await sessionDeleteWorkoutEntry(uid,td,slotRef);
   showToast(deletedName?`🗑 ${deletedName} deleted`:'🗑 Workout entry deleted');
-  await loadWorkoutsForDate();await syncCoreDashboardMetrics();
+  loadWorkoutsForDate();syncCoreDashboardMetrics(); // fired in the background, not awaited: these just refresh the visible list/dashboard stats, they're not part of what makes the save itself correct or complete, and awaiting them was adding two extra sequential network round-trips to the visible "saving..." state of every single set/entry save (and, in a room, extending how long member-switching stayed blocked for)
 }
 /* ===================== WORKOUT ROOM (multi-user, shared-phone) ===================== */
 /* window.__room only exists on the HOST device.
@@ -16023,6 +16043,18 @@ function setRoomTargetState(loginId){
 async function switchRoomTarget(loginId){
   if(!window.__room)return;
   if(loginId!==null&&!window.__room.membersMeta[loginId]){showToast('This member hasn\'t joined yet.');return}
+  // A live/non-live set save is still in flight for whoever is currently selected (saveLiveSet,
+  // saveLiveEditSet/Update, or the non-live entry save all set one of these while their DB write is
+  // pending). Those functions capture the target uid and a page-global slot reference (e.g.
+  // liveSessionSlot) up front, then write the result back onto that SAME global once the network
+  // call resolves — if the target switches in between, that write-back would land on whichever
+  // member is selected by the time it resolves, not who it was actually for, corrupting their
+  // session slot and producing duplicate/misattributed rows. Blocking the switch until the save
+  // finishes (normally under a second) closes that race instead of allowing it.
+  if(window._savingLiveSet||window._savingNonLiveEntry||window._savingLiveEditUpdate||window._savingLiveEditSet){
+    showToast('⏳ Finishing the current save first…');
+    return;
+  }
   setRoomTargetState(loginId);
   saveRoomSession({role:'host',roomId:window.__room.roomId,targetLoginId:loginId});
   resetWorkoutFormUIOnly();
