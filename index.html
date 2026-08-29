@@ -16030,10 +16030,10 @@ function cleanupWaitingRoomState(msg){
 
 /* ===================== MEMBER-SIDE ROOM VIEW (host info, timer, leave) ===================== */
 async function startMemberRoomSession(row,loginId){
-  let hostName='the host',hostAvatar=null;
-  const{data:hostUser}=await db.from('users').select('name,avatar_url').eq('id',row.owner_id).maybeSingle();
-  if(hostUser){hostName=hostUser.name||hostName;hostAvatar=hostUser.avatar_url||null}
-  window.__memberRoom={roomId:row.room_id,loginId,hostName,hostAvatar,endTime:row.end_time,channel:null,countdownInterval:null,membersMeta:{}};
+  let hostName='the host',hostAvatar=null,hostLoginId=null;
+  const{data:hostUser}=await db.from('users').select('login_id,name,avatar_url').eq('id',row.owner_id).maybeSingle();
+  if(hostUser){hostName=hostUser.name||hostName;hostAvatar=hostUser.avatar_url||null;hostLoginId=hostUser.login_id?String(hostUser.login_id):null}
+  window.__memberRoom={roomId:row.room_id,loginId,hostName,hostAvatar,hostUserId:row.owner_id,hostLoginId,endTime:row.end_time,channel:null,countdownInterval:null,membersMeta:{}};
   document.getElementById('roomIdleControls').style.display='none';
   { const _rotb=document.getElementById('roomOptionsToggleBtn'); if(_rotb)_rotb.style.display='none'; }
   document.getElementById('roomActiveStrip').style.display='none';
@@ -16092,8 +16092,24 @@ async function promoteMemberToHost(row){
    member can only ever look at this list, never act on it. */
 async function onMemberRoomRowUpdate(row){
   if(!window.__memberRoom||!row)return;
+  // Keep "hosted by X" in sync for bystanders too — previously this was only ever set once at
+  // session start, so a "Make Host" swap elsewhere in the room never showed up here without a
+  // manual refresh. Only re-fetches when the owner actually changed, so normal updates (someone
+  // else joining, timer edits, etc.) stay cheap.
+  if(row.owner_id&&String(row.owner_id)!==String(window.__memberRoom.hostUserId)){
+    window.__memberRoom.hostUserId=row.owner_id;
+    const{data:hostUser}=await db.from('users').select('login_id,name,avatar_url').eq('id',row.owner_id).maybeSingle();
+    window.__memberRoom.hostName=(hostUser&&hostUser.name)||'the host';
+    window.__memberRoom.hostAvatar=(hostUser&&hostUser.avatar_url)||null;
+    window.__memberRoom.hostLoginId=hostUser&&hostUser.login_id?String(hostUser.login_id):null;
+    const hostNameEl=document.getElementById('memberRoomHostName');
+    if(hostNameEl)hostNameEl.textContent=window.__memberRoom.hostName;
+  }
   const membersObj=row.members_id||{};
-  const joinedLoginIds=Object.keys(membersObj).filter(k=>membersObj[k]==='joined');
+  // The host tile is already rendered separately above (from hostName/hostAvatar) — excluding the
+  // host's own login here too is a safety net so the same person can never show up twice in the
+  // strip even if members_id is momentarily out of sync with owner_id.
+  const joinedLoginIds=Object.keys(membersObj).filter(k=>membersObj[k]==='joined'&&k!==window.__memberRoom.hostLoginId);
   const newJoinedIds=joinedLoginIds.filter(id=>!window.__memberRoom.membersMeta[id]);
   if(newJoinedIds.length){
     const{data}=await db.from('users').select('id,name,login_id,avatar_url').in('login_id',newJoinedIds);
@@ -16261,9 +16277,10 @@ function removeCurrentRoomTarget(){
    currently selected/being edited (window.__room.target), and this device drops to a regular
    member. Just a plain update on workout_rooms (same pattern as toggleLiveRoomApproval/
    createRoom — no server-side function needed): owner_id becomes the new host's user id, and
-   members_id is rebuilt from what we already track locally (membersMeta/pendingMeta) with the new
-   host's login dropped out (owners aren't tracked in members_id) and the old host's own login added
-   back in as 'joined'. Each device's own realtime subscription then notices its role changed and
+   members_id is rebuilt off a FRESH read of the row (not the local membersMeta/pendingMeta cache,
+   which can be a beat behind the server right after a recent join/approve) with the new host's
+   login dropped out (owners aren't tracked in members_id) and the old host's own login added back
+   in as 'joined'. Each device's own realtime subscription then notices its role changed and
    switches itself over — see the owner_id checks in onRoomRowUpdate (host side, demotes via
    demoteHostToMember) and subscribeMemberRoomRealtime (member side, promotes via
    promoteMemberToHost) — so both ends of the swap stay in sync without a page reload. */
@@ -16273,10 +16290,14 @@ async function makeCurrentRoomTargetHost(){
   const label=target.name||('@'+target.loginId);
   if(!confirm(`Make ${label} the host? You'll become a regular member of this room.`))return;
   const myLoginId=localStorage.getItem('user_login_id');
-  const newMembersId={};
-  Object.keys(window.__room.membersMeta).forEach(id=>{if(id!==target.loginId)newMembersId[id]='joined'});
-  Object.keys(window.__room.pendingMeta).forEach(id=>{newMembersId[id]='pending'});
-  if(myLoginId)newMembersId[myLoginId]='joined';
+  if(!myLoginId){showToast('Could not verify your account.');return}
+  let newMembersId;
+  try{
+    const{data:freshRow}=await db.from('workout_rooms').select('members_id').eq('room_id',window.__room.roomId).maybeSingle();
+    newMembersId={...(freshRow&&freshRow.members_id||{})};
+  }catch(e){showToast(`Could not make ${label} the host.`);return}
+  delete newMembersId[target.loginId]; // the new host isn't tracked in members_id, same as any other owner
+  newMembersId[myLoginId]='joined'; // the old host rejoins as a regular member
   try{
     await db.from('workout_rooms').update({owner_id:target.userId,members_id:newMembersId}).eq('room_id',window.__room.roomId);
   }catch(e){showToast(`Could not make ${label} the host.`);return}
@@ -19800,4 +19821,4 @@ function closeLearnVideo(){
 })();
 </script>
 </body>
-</html> 
+</html>
