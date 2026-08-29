@@ -6652,12 +6652,14 @@ function updateNotifPermStatus(){
    auto-restored refresh). This is the one channel that bypasses the browser's "needs a tap first"
    rule for audio/vibration, because the OS — not the page — is the one producing the sound/buzz.
    Safe no-op if permission hasn't been granted or the API isn't supported. */
-function fireBreakEndSystemNotification(vibrationPattern){
+/* memberName is optional — only passed by the room-wide watcher above (notifyOtherMemberBreakOver),
+   for the host's own break this is always omitted, so the title/tag/body stay exactly as before. */
+function fireBreakEndSystemNotification(vibrationPattern,memberName){
   if(!('Notification' in window)||Notification.permission!=='granted')return;
   try{
-    new Notification('⏱ Break Over!',{
-      body:'Time to crush the next set! 💪',
-      tag:'gymbro-break-end',
+    new Notification(memberName?`⏱ ${memberName}'s break is over!`:'⏱ Break Over!',{
+      body:memberName?`${memberName}'s next set is up! 💪`:'Time to crush the next set! 💪',
+      tag:memberName?('gymbro-break-end-'+memberName):'gymbro-break-end',
       renotify:true,           // makes sure repeat break-end alerts re-buzz/re-sound instead of silently updating a stale one
       silent:false,            // ask the OS to play its own notification sound — independent of the page's AudioContext
       vibrate:vibrationPattern||[220,100,220]  // Android honors this at the OS level even with no page interaction; ignored elsewhere
@@ -11745,35 +11747,59 @@ function removeLiveQueueEntry(e,idx){
    kept as a parameter for backward compatibility but no longer gates this restore. Checked in order
    of specificity/time-sensitivity: an in-progress EDIT of an already-saved live entry first (it can
    have running set/break timers), then a fresh live session, then the live queue, then an in-progress
-   edit of an already-saved non-live entry, then a fresh non-live entry/queue. */
-async function restoreInProgressWorkoutFormIfAny(wasRefresh){
+   edit of an already-saved non-live entry, then a fresh non-live entry/queue.
+
+   opts:
+     silent       — skip the "🔄 Restored..." toasts. Used when switching between room members
+                    (switchRoomTarget): that's a deliberate, instant switch — not a recovery from
+                    something unexpected — so no toast is shown, matching a normal refresh's toast
+                    being reserved for an actual refresh/relogin.
+     skipTabSwitch — skip the `await switchMemberTab('workPage')` calls below. Also used by
+                    switchRoomTarget: the room UI only ever lives on the Workouts tab, so we're
+                    already there, and switchMemberTab('workPage') always re-triggers a full DB
+                    fetch of that date's entries (see switchMemberTab's workPage hook) — that fetch
+                    is what made switching members feel like it took "some seconds". Everything this
+                    function restores below (name, sets, kg/reps, running timers) comes straight out
+                    of localStorage and needs no network round-trip at all, so skipping the redundant
+                    tab-switch call is what makes a member-switch feel instant. The one exception is
+                    restoreNonLiveEditDraftIfAny(), which still does its own single, necessary
+                    loadWorkoutsForDate() call to resolve which saved entry it is — that one can't be
+                    skipped since it's the only way to know.
+
+   Returns true if something was actually restored onto the form, false if there was nothing to
+   restore — switchRoomTarget uses this to know whether it still needs to refresh the workouts list
+   itself (see there). */
+async function restoreInProgressWorkoutFormIfAny(wasRefresh,opts){
+  opts=opts||{};
+  const silent=!!opts.silent,skipTab=!!opts.skipTabSwitch;
+  const goToWorkPage=async()=>{if(!skipTab)await switchMemberTab('workPage')};
   if(loadLiveEditDraft()){
-    await switchMemberTab('workPage');
+    await goToWorkPage();
     if(await restoreLiveEditDraftIfAny()){
       renderLiveQueueStrip();
-      showToast('🔄 Restored your in-progress edit.');
-      return;
+      if(!silent)showToast('🔄 Restored your in-progress edit.');
+      return true;
     }
   }
   {
     liveWorkoutQueue=loadLiveQueue();
     const liveDraft=loadLiveDraft();
     if(liveDraft&&liveDraft.mode==='live'&&liveDraft.name&&liveDraft.totalSets){
-      await switchMemberTab('workPage');
+      await goToWorkPage();
       restoreLiveSessionUI(liveDraft);
       renderLiveQueueStrip();
-      return;
+      return true;
     }
     if(liveDraft&&liveDraft.mode==='setup'){
-      await switchMemberTab('workPage');
+      await goToWorkPage();
       restoreLiveSetupUI(liveDraft);
       renderLiveQueueStrip();
-      return;
+      return true;
     }
     if(liveWorkoutQueue.length){
       // No current live draft, but queued Live entries survived — pull the first one back into the
       // form (mirrors the non-live queue-only restore branch further below).
-      await switchMemberTab('workPage');
+      await goToWorkPage();
       liveMode=true;
       const tog=document.getElementById("liveModeToggle"),lbl=document.getElementById("liveModeLabel");
       if(tog)tog.classList.add("on");if(lbl){lbl.textContent="ON";lbl.style.color="var(--accent)"}
@@ -11785,16 +11811,16 @@ async function restoreInProgressWorkoutFormIfAny(wasRefresh){
       loadLiveFormEntry(first);
       saveLiveQueue();
       renderLiveQueueStrip();
-      showToast('🔄 Restored your in-progress live workouts.');
-      return;
+      if(!silent)showToast('🔄 Restored your in-progress live workouts.');
+      return true;
     }
   }
   // Non-live EDIT draft next — an in-progress edit of an already-saved non-live entry.
   if(loadNonLiveEditDraft()){
-    await switchMemberTab('workPage');
+    await goToWorkPage();
     if(await restoreNonLiveEditDraftIfAny()){
-      showToast('🔄 Restored your in-progress edit.');
-      return;
+      if(!silent)showToast('🔄 Restored your in-progress edit.');
+      return true;
     }
   }
   // Non-live draft + queue also live in localStorage, so — same as the live-mode check above — these
@@ -11802,7 +11828,7 @@ async function restoreInProgressWorkoutFormIfAny(wasRefresh){
   const nlDraft=loadNonLiveDraft();
   const nlQueue=loadNonLiveQueue();
   if(nonLiveDraftHasContent(nlDraft)||nlQueue.length){
-    await switchMemberTab('workPage');
+    await goToWorkPage();
     document.getElementById("formActionTitle").innerText="LOG NEW ENTRY";
     document.getElementById("initialWorkoutBox").style.display="";
     document.getElementById("workoutFormStructure").style.display="block";
@@ -11839,8 +11865,10 @@ async function restoreInProgressWorkoutFormIfAny(wasRefresh){
     resetNlCopyAllState();
     updateTrackWorkoutBtnVisibility('nonlive');
     renderNlQueueStrip();
-    showToast('🔄 Restored your in-progress workout entry.');
+    if(!silent)showToast('🔄 Restored your in-progress workout entry.');
+    return true;
   }
+  return false; // nothing found anywhere — form stays exactly as it already was (blank)
 }
 
 /* Guards the non-live sets-count dropdown: while editing a saved entry, it may only be increased
@@ -15715,6 +15743,7 @@ async function startOwnerRoomSession(roomId,ownerId,endTime,approvalRequired){
   renderRoomMembersStrip();
   startRoomCountdown();
   subscribeRoomRealtime(roomId);
+  startRoomBreakWatcher();
 }
 
 async function toggleLiveRoomApproval(){
@@ -15991,14 +16020,79 @@ function setRoomTargetState(loginId){
    exactly what they had, instead of presenting an empty form or silently discarding it. The selection
    itself is also persisted into the room session (see saveRoomSession) so a refresh mid-room re-selects
    the same member automatically (see restoreRoomSessionIfAny). */
-function switchRoomTarget(loginId){
+async function switchRoomTarget(loginId){
   if(!window.__room)return;
   if(loginId!==null&&!window.__room.membersMeta[loginId]){showToast('This member hasn\'t joined yet.');return}
   setRoomTargetState(loginId);
   saveRoomSession({role:'host',roomId:window.__room.roomId,targetLoginId:loginId});
   resetWorkoutFormUIOnly();
+  // silent + skipTabSwitch: this is a live switch between members already sitting on the Workouts
+  // tab, not a refresh — so no "Restored..." toast (that's reserved for an actual page reload/
+  // relogin) and no redundant tab-switch-triggered DB fetch. Everything restored here (form fields,
+  // running set/rest/cardio timers) comes straight out of localStorage, so it lands back instantly.
+  await restoreInProgressWorkoutFormIfAny(false,{silent:true,skipTabSwitch:true});
+  // The saved-entries list below the form still needs today's data for whichever member is now
+  // selected. Fired in the background, never awaited, so it can never delay the form above — which
+  // is already fully painted by this point straight from localStorage. (Harmless if
+  // restoreNonLiveEditDraftIfAny already fetched the same thing a moment ago as part of resolving
+  // an edit-draft — it's just a fresh, cheap re-fetch.)
   if(typeof loadWorkoutsForDate==='function')loadWorkoutsForDate();
-  if(typeof restoreInProgressWorkoutFormIfAny==='function')restoreInProgressWorkoutFormIfAny();
+}
+
+/* ===================== ROOM-WIDE BREAK-TIMER WATCHER (host device only) =====================
+   liveBreakTimers (like liveSetTimers) is a single, page-global set of intervals — it only ever
+   represents whichever member is CURRENTLY selected, because switching targets tears the on-screen
+   session down and rebuilds it fresh from that member's own draft (see switchRoomTarget). That means
+   a break running for a member the host has switched AWAY from has no interval left ticking for it,
+   so the sound/vibration/system notification used to only ever fire for whoever happened to be
+   on-screen at the exact moment their break hit zero — any other member's break silently expired
+   with no alert at all.
+   This watcher runs independently of who's currently selected: once a second, while a room is
+   active, it re-reads EVERY joined member's own persisted live draft straight from localStorage —
+   the same {liveBreak:{idx,total,running,accumulated,startEpoch}} shape buildLiveDraftSnapshot
+   already writes on every tick — and does its own epoch math to check whether that member's break
+   has reached zero. The member currently on-screen is skipped, since their own live interval
+   (activateBreakTimer's setInterval) already fires the exact same alert for them in real time; this
+   only fills the gap for everyone else, however many members have a break running at once, and
+   names whose break it was so it's never ambiguous which member's set is next. */
+let _roomBreakWatcherInterval=null;
+const _roomBreakNotifiedFor={}; // loginId -> break idx already alerted, so one finished break doesn't re-fire every tick
+function startRoomBreakWatcher(){
+  if(_roomBreakWatcherInterval)return;
+  for(const k in _roomBreakNotifiedFor)delete _roomBreakNotifiedFor[k];
+  _roomBreakWatcherInterval=setInterval(checkOtherMembersBreakTimers,1000);
+}
+function stopRoomBreakWatcher(){
+  if(_roomBreakWatcherInterval){clearInterval(_roomBreakWatcherInterval);_roomBreakWatcherInterval=null}
+  for(const k in _roomBreakNotifiedFor)delete _roomBreakNotifiedFor[k];
+}
+function checkOtherMembersBreakTimers(){
+  if(!window.__room||!window.__room.membersMeta)return;
+  const activeLoginId=window.__room.target?window.__room.target.loginId:null;
+  Object.keys(window.__room.membersMeta).forEach(loginId=>{
+    if(loginId===activeLoginId)return; // this member's own on-screen timer already covers them
+    const meta=window.__room.membersMeta[loginId];
+    if(!meta||!meta.userId)return;
+    let draft=null;
+    try{draft=JSON.parse(localStorage.getItem(`gymbro_live_draft_${meta.userId}`)||'null')}catch(e){}
+    const brk=draft&&draft.mode==='live'?draft.liveBreak:null;
+    if(!brk||!brk.running){delete _roomBreakNotifiedFor[loginId];return}
+    const remain=brk.total-((brk.accumulated||0)+Math.floor((Date.now()-(brk.startEpoch||Date.now()))/1000));
+    if(remain>0){delete _roomBreakNotifiedFor[loginId];return}
+    if(_roomBreakNotifiedFor[loginId]===brk.idx)return; // already alerted for this exact break
+    _roomBreakNotifiedFor[loginId]=brk.idx;
+    notifyOtherMemberBreakOver(meta);
+  });
+}
+/* Same alert channels the on-screen break timer itself uses (playConfiguredBreakSound +
+   vibration + lock-screen system notification) — just with the member's name attached, since more
+   than one of these can legitimately be firing for different members at once. */
+function notifyOtherMemberBreakOver(meta){
+  const name=meta.name||('@'+meta.loginId);
+  showToast(`🔔 ${name}'s break is over — time for their next set!`);
+  playConfiguredBreakSound();
+  try{if(navigator.vibrate){navigator.vibrate(0);navigator.vibrate([220,100,220])}}catch(e){}
+  fireBreakEndSystemNotification([220,100,220],name);
 }
 
 function subscribeRoomRealtime(roomId){
@@ -16096,6 +16190,7 @@ function cleanupRoomState(msg){
     if(window.__room.channel)db.removeChannel(window.__room.channel);
     if(window.__room.countdownInterval)clearInterval(window.__room.countdownInterval);
   }
+  stopRoomBreakWatcher();
   window.__room=null;
   clearRoomSession();
   document.getElementById('roomActiveStrip').style.display='none';
@@ -16111,6 +16206,7 @@ function teardownRoomUiOnLogout(){
     if(window.__room.countdownInterval)clearInterval(window.__room.countdownInterval);
     window.__room=null;
   }
+  stopRoomBreakWatcher();
   if(window.__memberRoom){
     if(window.__memberRoom.channel)db.removeChannel(window.__memberRoom.channel);
     if(window.__memberRoom.countdownInterval)clearInterval(window.__memberRoom.countdownInterval);
