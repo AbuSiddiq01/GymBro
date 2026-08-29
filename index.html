@@ -1541,12 +1541,14 @@ body.workout-edit-lock{overflow:hidden}
 .live-toggle-knob{position:absolute;top:3px;left:3px;width:18px;height:18px;background:#fff;border-radius:50%;transition:left 0.3s ease;box-shadow:0 2px 6px rgba(0,0,0,0.2)}
 .live-toggle.on .live-toggle-knob{left:23px}
 /* Deliberately a different shape/color from .live-toggle (used only by the LIVE MODE switch) —
-   rounded-square track + amber accent, so the "Members need approval to join" toggle is never
-   mistaken for Live Mode at a glance, even though both sit in the same room strip. */
-.approval-toggle{width:38px;height:22px;background:var(--border-col);border-radius:6px;position:relative;transition:background 0.3s ease;cursor:pointer;flex-shrink:0}
-.approval-toggle.on{background:#f59e0b}
-.approval-toggle-knob{position:absolute;top:2px;left:2px;width:16px;height:16px;background:#fff;border-radius:4px;transition:left 0.3s ease;box-shadow:0 1px 4px rgba(0,0,0,0.25)}
-.approval-toggle.on .approval-toggle-knob{left:18px}
+   rounded-square track, so the "Members need approval to join" toggle is never mistaken for Live
+   Mode at a glance, even though both sit in the same room strip. Amber (not the accent blue) for
+   the same reason. Restyled for a softer, more polished look: an inset track shadow at rest, a
+   gentler amber gradient + glow when on, and a slightly larger, more rounded knob. */
+.approval-toggle{width:40px;height:22px;background:var(--border-col);border:1px solid var(--border-col);border-radius:8px;position:relative;transition:background 0.3s ease,border-color 0.3s ease,box-shadow 0.3s ease;cursor:pointer;flex-shrink:0;box-shadow:inset 0 1px 3px rgba(0,0,0,0.12)}
+.approval-toggle.on{background:linear-gradient(135deg,#fbbf24,#d97706);border-color:#d97706;box-shadow:inset 0 1px 2px rgba(0,0,0,0.08),0 0 0 3px rgba(245,158,11,0.18)}
+.approval-toggle-knob{position:absolute;top:2px;left:2px;width:16px;height:16px;background:#fff;border-radius:6px;transition:left 0.3s cubic-bezier(.4,0,.2,1),box-shadow 0.3s ease;box-shadow:0 1px 3px rgba(0,0,0,0.3)}
+.approval-toggle.on .approval-toggle-knob{left:22px;box-shadow:0 1px 4px rgba(0,0,0,0.35)}
 .live-dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:#ef4444;animation:livePulse 1.2s ease-in-out infinite}
 @keyframes livePulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.5;transform:scale(0.75)}}
 .live-set-block{background:var(--set-row-bg);border:1px solid var(--border-col);border-radius:14px;padding:14px;margin-top:12px;animation:fadeIn 0.3s ease;position:relative}
@@ -2810,10 +2812,8 @@ body.tracker-fs-lock{overflow:hidden}
             <button type="button" class="room-extend-btn room-extend-custom" onclick="openRoomTimeModal('extend')" title="Add custom minutes">+</button>
           </div>
           <div class="room-approval-row compact" style="margin:10px 0 0">
+            <div class="room-approval-label" style="font-size:11px">🔒 Members need approval to join</div>
             <div class="approval-toggle" id="liveRoomApprovalToggle" onclick="toggleLiveRoomApproval()"><div class="approval-toggle-knob"></div></div>
-            <div>
-              <div class="room-approval-label" style="font-size:11px">🔒 Members need approval to join</div>
-            </div>
           </div>
           <div id="roomPendingStrip" style="display:none;gap:12px;margin-top:10px;flex-wrap:wrap;align-items:flex-start"></div>
           <div id="roomMembersStrip" style="display:flex;gap:10px;margin-top:10px;flex-wrap:wrap;align-items:center"></div>
@@ -3454,7 +3454,7 @@ body.tracker-fs-lock{overflow:hidden}
           <input type="number" id="roomMinInput" min="0" max="59" value="30" onchange="onTimeTyped('min')">
           <span>m</span>
         </div>
-        <div class="room-approval-row" id="createRoomApprovalWrap">
+        <div class="room-approval-row compact" id="createRoomApprovalWrap">
           <div>
             <div class="room-approval-label">🔒 Members need approval to join</div>
             <div class="room-approval-sub">If ON, you'll accept/reject each member who tries to join.</div>
@@ -15779,6 +15779,15 @@ function initTimePicker(){
 
 /* ===================== CREATE / JOIN ROOM MODALS ===================== */
 window.__createRoomApprovalOn=false;
+/* A room can hold at most this many people total, host included. Enforced client-side before any
+   action that would add a new occupant (a direct join with approval off, or the host approving a
+   pending request) — see roomOccupantCount / the capacity checks in confirmJoinRoom and
+   approveRoomMember below. Pending join requests don't consume a seat by themselves; only 'joined'
+   members (plus the host) count toward the cap. */
+const ROOM_MAX_MEMBERS=6;
+function roomOccupantCount(membersObj){
+  return 1+Object.values(membersObj||{}).filter(v=>v==='joined').length; // +1 for the host
+}
 function toggleCreateRoomApproval(){
   window.__createRoomApprovalOn=!window.__createRoomApprovalOn;
   const t=document.getElementById('createRoomApprovalToggle');
@@ -15924,6 +15933,20 @@ async function confirmJoinRoom(){
   if(!myLoginId){errEl.textContent='Please log in first, then try again.';errEl.style.display='block';return}
   const{data:userRow,error:userErr}=await db.from('users').select('id,login_id,name,avatar_url').eq('login_id',myLoginId).maybeSingle();
   if(userErr||!userRow){errEl.textContent='Could not verify your account. Please re-login and try again.';errEl.style.display='block';return}
+  // Capacity pre-check — done with a plain SELECT *before* calling the join RPC, since the RPC would
+  // otherwise add this person to members_id first and only let us discover the room was already full
+  // after the fact. Someone re-joining (already 'joined', e.g. after a refresh) is always let through —
+  // they're not a new occupant.
+  const{data:preRow,error:preErr}=await db.from('workout_rooms').select('room_id,owner_id,room_status,end_time,members_id').eq('room_id',roomId).maybeSingle();
+  if(preErr||!preRow||!preRow.room_id||!preRow.owner_id){errEl.textContent='❌ Invalid Room ID. Please check and try again.';errEl.style.display='block';return}
+  if(preRow.room_status&&preRow.room_status!=='ongoing'){errEl.textContent='This room has already ended.';errEl.style.display='block';return}
+  if(!preRow.end_time||new Date(preRow.end_time).getTime()<=Date.now()){errEl.textContent='❌ Invalid Room ID. Please check and try again.';errEl.style.display='block';return}
+  const myStatusPre=(preRow.members_id||{})[String(userRow.login_id)];
+  if(myStatusPre!=='joined'&&roomOccupantCount(preRow.members_id)>=ROOM_MAX_MEMBERS){
+    errEl.textContent=`🚫 This room has reached its maximum limit of ${ROOM_MAX_MEMBERS} members.`;
+    errEl.style.display='block';
+    return;
+  }
   const{data:roomRow,error:joinErr}=await db.rpc('join_workout_room',{p_room_id:roomId,p_login_id:String(userRow.login_id)});
   // A non-existent/mistyped room ID should never be allowed to look like a real join — validate the
   // returned row properly instead of trusting any truthy value. Previously an invalid ID could slip
@@ -16171,6 +16194,13 @@ function renderRoomPendingStrip(){
 
 async function approveRoomMember(loginId,name){
   if(!window.__room)return;
+  // Same ROOM_MAX_MEMBERS cap as confirmJoinRoom, checked here too since approving a pending request
+  // is the other way a room gains a new occupant. window.__room.membersMeta already only tracks
+  // currently-'joined' members, so host (+1) plus its size is the live occupant count.
+  if(1+Object.keys(window.__room.membersMeta||{}).length>=ROOM_MAX_MEMBERS){
+    showToast(`🚫 Room is full — maximum ${ROOM_MAX_MEMBERS} members reached. Reject or remove someone first.`);
+    return;
+  }
   try{await db.rpc('approve_room_member',{p_room_id:window.__room.roomId,p_login_id:loginId,p_owner_id:window.__room.ownerId})}catch(e){showToast('Could not approve this member.');return}
   showToast(`✅ Approved ${name||('@'+loginId)}.`);
 }
