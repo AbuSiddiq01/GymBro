@@ -191,8 +191,14 @@ body.ptr-dragging,body.ptr-dragging *{transition:none!important}
 .room-member-tile.active-target .room-member-avatar{border-width:4px;border-color:var(--accent);transform:scale(1.12);box-shadow:0 0 0 4px var(--accent-glow),0 0 18px 4px var(--accent-glow),0 0 32px 8px var(--accent-glow);animation:roomGlowPulse 1.6s ease-in-out infinite}
 @keyframes roomGlowPulse{0%,100%{box-shadow:0 0 0 4px var(--accent-glow),0 0 18px 4px var(--accent-glow),0 0 32px 8px var(--accent-glow)}50%{box-shadow:0 0 0 4px var(--accent-glow),0 0 26px 8px var(--accent-glow),0 0 44px 14px var(--accent-glow)}}
 .room-member-tile.pending{opacity:0.7;cursor:default}
+.room-member-tile.readonly{cursor:default}
 .room-member-tile-wrap{position:relative}
 .room-timer-critical{color:#dc2626!important;animation:roomTimerBlink 1s step-start infinite}
+/* Small fixed edit icon shown next to the host's room timer once a room is running — opens the
+   same timer-selection modal used at room creation, so the host can change the timer mid-room. */
+.room-timer-edit-btn{width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center;background:var(--accent-soft);border:none;border-radius:6px;color:var(--accent);cursor:pointer;padding:0;flex-shrink:0;transition:background .2s ease}
+.room-timer-edit-btn:hover{background:var(--accent-glow)}
+.room-timer-edit-btn svg{width:12px;height:12px;flex-shrink:0}
 @keyframes roomTimerBlink{50%{opacity:0.25}}
 .room-extend-btn{background:var(--accent-soft);color:var(--accent);border:none;border-radius:8px;padding:4px 10px;font-size:11px;font-weight:800;font-family:var(--font-alt);cursor:pointer}
 .room-extend-custom{padding:4px 10px;min-width:26px;text-align:center}
@@ -217,6 +223,13 @@ body.ptr-dragging,body.ptr-dragging *{transition:none!important}
 .room-approval-row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:12px 0}
 .room-approval-row .room-approval-label{font-size:12px;font-weight:700;color:var(--text-secondary);font-family:var(--font-alt)}
 .room-approval-row .room-approval-sub{font-size:10.5px;color:var(--text-muted);font-family:var(--font-alt);margin-top:2px}
+/* Compact variant — used in the live/ongoing room box, where there's no sub-label, just a toggle
+   next to its label. The default row above uses justify-content:space-between, which is correct
+   for the create-room modal (label block on the left, toggle pinned to the far right of a wide
+   row) but stretches a lone toggle+label pair to opposite edges, leaving an oversized gap between
+   them. This variant packs them together with a small, responsive gap instead — tight enough to
+   read as one control, but never cramped on narrow mobile widths. */
+.room-approval-row.compact{justify-content:flex-start;gap:clamp(8px,3vw,14px)}
 
 /* Room toggle icon (shown under LIVE MODE row) — clicking reveals/hides the Create Room / Enter Room ID
    options strip. Room options stay hidden until the user explicitly opens them. */
@@ -1527,6 +1540,13 @@ body.workout-edit-lock{overflow:hidden}
 .live-toggle.on{background:var(--accent)}
 .live-toggle-knob{position:absolute;top:3px;left:3px;width:18px;height:18px;background:#fff;border-radius:50%;transition:left 0.3s ease;box-shadow:0 2px 6px rgba(0,0,0,0.2)}
 .live-toggle.on .live-toggle-knob{left:23px}
+/* Deliberately a different shape/color from .live-toggle (used only by the LIVE MODE switch) —
+   rounded-square track + amber accent, so the "Members need approval to join" toggle is never
+   mistaken for Live Mode at a glance, even though both sit in the same room strip. */
+.approval-toggle{width:38px;height:22px;background:var(--border-col);border-radius:6px;position:relative;transition:background 0.3s ease;cursor:pointer;flex-shrink:0}
+.approval-toggle.on{background:#f59e0b}
+.approval-toggle-knob{position:absolute;top:2px;left:2px;width:16px;height:16px;background:#fff;border-radius:4px;transition:left 0.3s ease;box-shadow:0 1px 4px rgba(0,0,0,0.25)}
+.approval-toggle.on .approval-toggle-knob{left:18px}
 .live-dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:#ef4444;animation:livePulse 1.2s ease-in-out infinite}
 @keyframes livePulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.5;transform:scale(0.75)}}
 .live-set-block{background:var(--set-row-bg);border:1px solid var(--border-col);border-radius:14px;padding:14px;margin-top:12px;animation:fadeIn 0.3s ease;position:relative}
@@ -2770,6 +2790,7 @@ body.tracker-fs-lock{overflow:hidden}
             </div>
           </div>
           <div style="margin-top:8px;font-family:var(--font-alt);font-size:11.5px;color:var(--text-muted)">Ask your host to switch their Workout Log Manager to your name to log entries.</div>
+          <div id="memberRoomMembersStrip" style="display:flex;gap:10px;margin-top:10px;flex-wrap:wrap;align-items:center"></div>
         </div>
         <div id="roomActiveStrip" style="display:none;background:var(--bg-card);border:1px solid var(--accent);border-radius:14px;padding:12px 14px;margin-bottom:14px">
           <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
@@ -2778,6 +2799,7 @@ body.tracker-fs-lock{overflow:hidden}
             </div>
             <div style="display:flex;align-items:center;gap:10px">
               <span id="roomTimerText" style="font-family:var(--font-alt);font-size:12px;font-weight:800;color:var(--text-muted)"></span>
+              <button type="button" class="room-timer-edit-btn" id="roomTimerEditBtn" onclick="openRoomTimeModal('edit')" title="Edit room timer" aria-label="Edit room timer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>
               <button class="action-icon-btn delete" style="width:auto;padding:4px 10px;font-size:11px" onclick="endWorkoutRoom()" id="roomEndBtn">End Room</button>
             </div>
           </div>
@@ -2785,13 +2807,13 @@ body.tracker-fs-lock{overflow:hidden}
             <span style="font-family:var(--font-alt);font-size:10.5px;font-weight:800;color:#dc2626">⏱ Ending soon —</span>
             <button type="button" class="room-extend-btn" onclick="extendRoomTime(5)">+5 min</button>
             <button type="button" class="room-extend-btn" onclick="extendRoomTime(10)">+10 min</button>
-            <button type="button" class="room-extend-btn room-extend-custom" onclick="extendRoomTime()" title="Add custom minutes">+</button>
+            <button type="button" class="room-extend-btn room-extend-custom" onclick="openRoomTimeModal('extend')" title="Add custom minutes">+</button>
           </div>
-          <div class="room-approval-row" style="margin:10px 0 0">
+          <div class="room-approval-row compact" style="margin:10px 0 0">
+            <div class="approval-toggle" id="liveRoomApprovalToggle" onclick="toggleLiveRoomApproval()"><div class="approval-toggle-knob"></div></div>
             <div>
               <div class="room-approval-label" style="font-size:11px">🔒 Members need approval to join</div>
             </div>
-            <div class="live-toggle" id="liveRoomApprovalToggle" onclick="toggleLiveRoomApproval()"><div class="live-toggle-knob"></div></div>
           </div>
           <div id="roomPendingStrip" style="display:none;gap:12px;margin-top:10px;flex-wrap:wrap;align-items:flex-start"></div>
           <div id="roomMembersStrip" style="display:flex;gap:10px;margin-top:10px;flex-wrap:wrap;align-items:center"></div>
@@ -3415,9 +3437,9 @@ body.tracker-fs-lock{overflow:hidden}
   <!-- ===================== WORKOUT ROOM: CREATE MODAL ===================== -->
   <div id="createRoomModalOverlay" class="room-modal-overlay">
     <div class="room-modal">
-      <div class="room-modal-header"><h3>👥 Create Workout Room</h3><button class="ctm-close" onclick="closeCreateRoomModal()">✕</button></div>
+      <div class="room-modal-header"><h3 id="createRoomModalTitle">👥 Create Workout Room</h3><button class="ctm-close" onclick="closeCreateRoomModal()">✕</button></div>
       <div id="createRoomStepPick">
-        <label class="room-modal-label">SESSION LENGTH (HOUR : MIN)</label>
+        <label class="room-modal-label" id="roomModalTimeLabel">SESSION LENGTH (HOUR : MIN)</label>
         <div class="time-picker-wrap">
           <div class="time-picker-col" id="roomHourScroll" onscroll="onTimeScroll('hour')"></div>
           <div class="time-picker-sep">:</div>
@@ -3432,14 +3454,14 @@ body.tracker-fs-lock{overflow:hidden}
           <input type="number" id="roomMinInput" min="0" max="59" value="30" onchange="onTimeTyped('min')">
           <span>m</span>
         </div>
-        <div class="room-approval-row">
+        <div class="room-approval-row" id="createRoomApprovalWrap">
           <div>
             <div class="room-approval-label">🔒 Members need approval to join</div>
             <div class="room-approval-sub">If ON, you'll accept/reject each member who tries to join.</div>
           </div>
-          <div class="live-toggle" id="createRoomApprovalToggle" onclick="toggleCreateRoomApproval()"><div class="live-toggle-knob"></div></div>
+          <div class="approval-toggle" id="createRoomApprovalToggle" onclick="toggleCreateRoomApproval()"><div class="approval-toggle-knob"></div></div>
         </div>
-        <button class="btn" style="margin-top:6px" onclick="confirmCreateRoom()">Create Room</button>
+        <button class="btn" style="margin-top:6px" id="createRoomConfirmBtn" onclick="handleRoomTimeModalConfirm()">Create Room</button>
       </div>
       <div id="createRoomStepShare" style="display:none;text-align:center">
         <div class="room-modal-label">SHARE THIS ROOM ID</div>
@@ -15762,17 +15784,80 @@ function toggleCreateRoomApproval(){
   const t=document.getElementById('createRoomApprovalToggle');
   if(t)t.classList.toggle('on',window.__createRoomApprovalOn);
 }
-function openCreateRoomModal(){
+/* ===================== SHARED ROOM TIMER MODAL ===================== */
+/* This one modal (the same DOM + the same buildTimeColumn/onTimeScroll/onTimeTyped/initTimePicker
+   picker logic already used to pick the session length at room creation) is reused for every place
+   in the app a room timer gets set: creating a room, the host's edit-icon next to the live timer,
+   and the "+ custom min time" button that appears in the room's last minute. Only the header text,
+   the approval-toggle visibility, and what confirming does differ per mode. */
+window.__roomTimeModalMode='create';
+function openRoomTimeModal(mode){
+  window.__roomTimeModalMode=mode;
+  const titleEl=document.getElementById('createRoomModalTitle');
+  const labelEl=document.getElementById('roomModalTimeLabel');
+  const approvalWrap=document.getElementById('createRoomApprovalWrap');
+  const confirmBtn=document.getElementById('createRoomConfirmBtn');
+  if(mode==='edit'){
+    if(titleEl)titleEl.textContent='✏️ Edit Room Timer';
+    if(labelEl)labelEl.textContent='NEW TIME REMAINING (HOUR : MIN)';
+    if(approvalWrap)approvalWrap.style.display='none';
+    if(confirmBtn)confirmBtn.textContent='Update Timer';
+    const remain=window.__room?Math.max(0,new Date(window.__room.endTime).getTime()-Date.now()):0;
+    __timePicker={hour:Math.min(12,Math.floor(remain/3600000)),min:Math.floor((remain%3600000)/60000)};
+  }else if(mode==='extend'){
+    if(titleEl)titleEl.textContent='⏱ Add Time';
+    if(labelEl)labelEl.textContent='TIME TO ADD (HOUR : MIN)';
+    if(approvalWrap)approvalWrap.style.display='none';
+    if(confirmBtn)confirmBtn.textContent='Add Time';
+    __timePicker={hour:0,min:5};
+  }else{
+    mode='create';
+    window.__roomTimeModalMode='create';
+    if(titleEl)titleEl.textContent='👥 Create Workout Room';
+    if(labelEl)labelEl.textContent='SESSION LENGTH (HOUR : MIN)';
+    if(approvalWrap)approvalWrap.style.display='';
+    if(confirmBtn)confirmBtn.textContent='Create Room';
+    window.__createRoomApprovalOn=false;
+    const t=document.getElementById('createRoomApprovalToggle');
+    if(t)t.classList.remove('on');
+    __timePicker={hour:0,min:30};
+  }
   document.getElementById('createRoomStepPick').style.display='block';
   document.getElementById('createRoomStepShare').style.display='none';
   document.getElementById('createRoomModalOverlay').style.display='flex';
-  window.__createRoomApprovalOn=false;
-  const t=document.getElementById('createRoomApprovalToggle');
-  if(t)t.classList.remove('on');
-  __timePicker={hour:0,min:30};
   setTimeout(initTimePicker,20);
 }
+function openCreateRoomModal(){openRoomTimeModal('create')}
 function closeCreateRoomModal(){document.getElementById('createRoomModalOverlay').style.display='none'}
+/* Routes the modal's single confirm button to the right action for whichever mode opened it. */
+function handleRoomTimeModalConfirm(){
+  const mode=window.__roomTimeModalMode;
+  if(mode==='create'){confirmCreateRoom();return}
+  const h=parseInt(document.getElementById('roomHourInput').value,10)||0;
+  const m=parseInt(document.getElementById('roomMinInput').value,10)||0;
+  const mins=(h*60)+m;
+  if(mins<=0){alert('Please pick a duration greater than 0 minutes.');return}
+  if(mode==='edit')applyRoomTimerEdit(mins);
+  else if(mode==='extend')applyRoomTimerExtend(mins);
+}
+/* Host-only — replaces the room's remaining time outright with whatever the shared timer modal
+   was set to (as opposed to extendRoomTime, which adds on top of the existing end_time). */
+async function applyRoomTimerEdit(mins){
+  if(!window.__room)return;
+  const newEndTime=new Date(Date.now()+mins*60000).toISOString();
+  window.__room.endTime=newEndTime; // optimistic, same as extendRoomTime — realtime echo will confirm
+  window.__room._lowTimeWarned=false;
+  closeCreateRoomModal();
+  try{await db.from('workout_rooms').update({end_time:newEndTime}).eq('room_id',window.__room.roomId)}catch(e){showToast('Could not update the room time.');return}
+  showToast(`⏱ Room timer updated — ${mins} min remaining.`);
+}
+/* Host-only — the shared-modal replacement for the old prompt()-based custom extend; delegates to
+   extendRoomTime with an explicit minute count so it skips straight past its own prompt() fallback. */
+async function applyRoomTimerExtend(mins){
+  if(!window.__room)return;
+  closeCreateRoomModal();
+  await extendRoomTime(mins);
+}
 function openJoinRoomModal(){
   document.getElementById('joinRoomIdInput').value='';
   document.getElementById('joinRoomError').style.display='none';
@@ -15840,7 +15925,17 @@ async function confirmJoinRoom(){
   const{data:userRow,error:userErr}=await db.from('users').select('id,login_id,name,avatar_url').eq('login_id',myLoginId).maybeSingle();
   if(userErr||!userRow){errEl.textContent='Could not verify your account. Please re-login and try again.';errEl.style.display='block';return}
   const{data:roomRow,error:joinErr}=await db.rpc('join_workout_room',{p_room_id:roomId,p_login_id:String(userRow.login_id)});
-  if(joinErr||!roomRow){errEl.textContent='Room not found, or it has already ended.';errEl.style.display='block';return}
+  // A non-existent/mistyped room ID should never be allowed to look like a real join — validate the
+  // returned row properly instead of trusting any truthy value. Previously an invalid ID could slip
+  // through here with a missing/already-past end_time, which then let the member-side countdown
+  // immediately fire "⏱ Room time is up" the instant it mounted — confusing, since the room never
+  // existed in the first place. Checked in order: no row / missing core fields → wrong ID outright;
+  // a real row that's explicitly not ongoing → genuinely ended; a real row whose end_time has
+  // already passed despite claiming to be ongoing → treated the same as a wrong ID, since a
+  // legitimately-active room can never have already reached its end time.
+  if(joinErr||!roomRow||!roomRow.room_id||!roomRow.owner_id){errEl.textContent='❌ Invalid Room ID. Please check and try again.';errEl.style.display='block';return}
+  if(roomRow.room_status&&roomRow.room_status!=='ongoing'){errEl.textContent='This room has already ended.';errEl.style.display='block';return}
+  if(!roomRow.end_time||new Date(roomRow.end_time).getTime()<=Date.now()){errEl.textContent='❌ Invalid Room ID. Please check and try again.';errEl.style.display='block';return}
   closeJoinRoomModal();
   const myStatus=(roomRow.members_id||{})[String(userRow.login_id)];
   if(myStatus==='pending'){
@@ -15904,7 +15999,7 @@ async function startMemberRoomSession(row,loginId){
   let hostName='the host',hostAvatar=null;
   const{data:hostUser}=await db.from('users').select('name,avatar_url').eq('id',row.owner_id).maybeSingle();
   if(hostUser){hostName=hostUser.name||hostName;hostAvatar=hostUser.avatar_url||null}
-  window.__memberRoom={roomId:row.room_id,loginId,hostName,hostAvatar,endTime:row.end_time,channel:null,countdownInterval:null};
+  window.__memberRoom={roomId:row.room_id,loginId,hostName,hostAvatar,endTime:row.end_time,channel:null,countdownInterval:null,membersMeta:{}};
   document.getElementById('roomIdleControls').style.display='none';
   { const _rotb=document.getElementById('roomOptionsToggleBtn'); if(_rotb)_rotb.style.display='none'; }
   document.getElementById('roomActiveStrip').style.display='none';
@@ -15914,6 +16009,7 @@ async function startMemberRoomSession(row,loginId){
   document.getElementById('memberRoomHostName').textContent=hostName;
   startMemberRoomCountdown();
   subscribeMemberRoomRealtime(row.room_id,loginId);
+  onMemberRoomRowUpdate(row); // populate the initial member list (host + whoever's already joined)
 }
 
 function subscribeMemberRoomRealtime(roomId,loginId){
@@ -15928,9 +16024,55 @@ function subscribeMemberRoomRealtime(roomId,loginId){
       // If our own login_id was removed by the host, or we're no longer marked joined, drop out too
       const membersObj=row.members_id||{};
       if(membersObj[window.__memberRoom.loginId]!=='joined'){cleanupMemberRoomState('You were removed from the room.');return}
+      onMemberRoomRowUpdate(row);
     })
     .subscribe();
   window.__memberRoom.channel=channel;
+}
+
+/* Non-host, view-only mirror of onRoomRowUpdate/renderRoomMembersStrip: keeps window.__memberRoom.
+   membersMeta in sync with who's actually "joined" in the DB row, fetching name/avatar for anyone
+   new, then re-renders the read-only member strip. No add/remove affordances live here — a joined
+   member can only ever look at this list, never act on it. */
+async function onMemberRoomRowUpdate(row){
+  if(!window.__memberRoom||!row)return;
+  const membersObj=row.members_id||{};
+  const joinedLoginIds=Object.keys(membersObj).filter(k=>membersObj[k]==='joined');
+  const newJoinedIds=joinedLoginIds.filter(id=>!window.__memberRoom.membersMeta[id]);
+  if(newJoinedIds.length){
+    const{data}=await db.from('users').select('id,name,login_id,avatar_url').in('login_id',newJoinedIds);
+    (data||[]).forEach(u=>{
+      window.__memberRoom.membersMeta[String(u.login_id)]={userId:u.id,name:u.name,avatarUrl:u.avatar_url,loginId:String(u.login_id)};
+    });
+  }
+  Object.keys(window.__memberRoom.membersMeta).forEach(loginId=>{
+    if(!joinedLoginIds.includes(loginId))delete window.__memberRoom.membersMeta[loginId];
+  });
+  renderMemberRoomMembersStrip();
+}
+
+/* Read-only member strip for a joined (non-host) participant: shows the host tile first, then every
+   other joined member (including themself, tagged "(You)") with the same DPs the host sees in
+   roomMembersStrip — but with no onclick/switch/remove wiring at all, since this view can't act on
+   anyone. */
+function renderMemberRoomMembersStrip(){
+  if(!window.__memberRoom)return;
+  const strip=document.getElementById('memberRoomMembersStrip');
+  if(!strip)return;
+  const hostInner=window.__memberRoom.hostAvatar?`<img src="${window.__memberRoom.hostAvatar}" onerror="this.parentElement.textContent='🙂'">`:'🙂';
+  let html=`<div class="room-member-tile-wrap"><div class="room-member-tile readonly">
+    <span class="rm-name">${escapeHtml(window.__memberRoom.hostName||'Host')} (Host)</span>
+    <div class="room-member-avatar">${hostInner}</div>
+  </div></div>`;
+  Object.values(window.__memberRoom.membersMeta).forEach(m=>{
+    const isMe=m.loginId===window.__memberRoom.loginId;
+    const inner=m.avatarUrl?`<img src="${m.avatarUrl}" onerror="this.parentElement.textContent='🏋'">`:'🏋';
+    html+=`<div class="room-member-tile-wrap"><div class="room-member-tile readonly">
+      <span class="rm-name">${escapeHtml(m.name||('@'+m.loginId))}${isMe?' (You)':''}</span>
+      <div class="room-member-avatar">${inner}</div>
+    </div></div>`;
+  });
+  strip.innerHTML=html;
 }
 
 function startMemberRoomCountdown(){
@@ -15973,6 +16115,7 @@ function cleanupMemberRoomState(msg){
   window.__memberRoom=null;
   clearRoomSession();
   document.getElementById('memberRoomStrip').style.display='none';
+  { const mms=document.getElementById('memberRoomMembersStrip'); if(mms)mms.innerHTML=''; }
   document.getElementById('roomIdleControls').style.display='none';const _rotb=document.getElementById('roomOptionsToggleBtn');if(_rotb){_rotb.classList.remove('active');if(!isAnyRoomStateActive())_rotb.style.display='';}
   if(msg)showToast(msg);
 }
