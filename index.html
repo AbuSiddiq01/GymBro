@@ -192,12 +192,14 @@ body.ptr-dragging,body.ptr-dragging *{transition:none!important}
 @keyframes roomGlowPulse{0%,100%{box-shadow:0 0 0 4px var(--accent-glow),0 0 18px 4px var(--accent-glow),0 0 32px 8px var(--accent-glow)}50%{box-shadow:0 0 0 4px var(--accent-glow),0 0 26px 8px var(--accent-glow),0 0 44px 14px var(--accent-glow)}}
 .room-member-tile.pending{opacity:0.7;cursor:default}
 .room-member-tile-wrap{position:relative}
-.room-member-remove-x{position:absolute;top:-4px;right:-2px;width:18px;height:18px;border-radius:50%;background:#e11d48;color:#fff;font-size:11px;line-height:18px;text-align:center;font-weight:800;cursor:pointer;border:2px solid var(--bg-card);z-index:2;display:none}
-.room-member-tile-wrap:hover .room-member-remove-x{display:block}
+.room-timer-critical{color:#dc2626!important;animation:roomTimerBlink 1s step-start infinite}
+@keyframes roomTimerBlink{50%{opacity:0.25}}
+.room-extend-btn{background:var(--accent-soft);color:var(--accent);border:none;border-radius:8px;padding:4px 10px;font-size:11px;font-weight:800;font-family:var(--font-alt);cursor:pointer}
+.room-extend-custom{padding:4px 10px;min-width:26px;text-align:center}
 .room-pending-tile{display:flex;flex-direction:column;align-items:center;gap:6px;width:64px}
 .room-pending-tile .room-member-avatar{border-color:#f59e0b;box-shadow:0 0 0 3px rgba(245,158,11,0.3)}
 .room-pending-actions{display:flex;gap:4px}
-.room-pending-actions button{width:22px;height:22px;border-radius:50%;border:none;cursor:pointer;font-size:11px;font-weight:800;color:#fff}
+.room-pending-actions button{width:auto;height:auto;padding:3px 9px;border-radius:8px;border:none;cursor:pointer;font-size:10px;font-weight:800;color:#fff;font-family:var(--font-alt)}
 .room-pending-accept{background:#16a34a}
 .room-pending-reject{background:#dc2626}
 /* Room target badge — shown near the Add/Edit workout entry area while host is acting on behalf of a member */
@@ -2775,6 +2777,12 @@ body.tracker-fs-lock{overflow:hidden}
               <button class="action-icon-btn delete" style="width:auto;padding:4px 10px;font-size:11px" onclick="endWorkoutRoom()" id="roomEndBtn">End Room</button>
             </div>
           </div>
+          <div id="roomExtendRow" style="display:none;gap:6px;margin-top:8px;align-items:center;flex-wrap:wrap">
+            <span style="font-family:var(--font-alt);font-size:10.5px;font-weight:800;color:#dc2626">⏱ Ending soon —</span>
+            <button type="button" class="room-extend-btn" onclick="extendRoomTime(5)">+5 min</button>
+            <button type="button" class="room-extend-btn" onclick="extendRoomTime(10)">+10 min</button>
+            <button type="button" class="room-extend-btn room-extend-custom" onclick="extendRoomTime()" title="Add custom minutes">+</button>
+          </div>
           <div class="room-approval-row" style="margin:10px 0 0">
             <div>
               <div class="room-approval-label" style="font-size:11px">🔒 Members need approval to join</div>
@@ -2783,8 +2791,9 @@ body.tracker-fs-lock{overflow:hidden}
           </div>
           <div id="roomPendingStrip" style="display:none;gap:12px;margin-top:10px;flex-wrap:wrap;align-items:flex-start"></div>
           <div id="roomMembersStrip" style="display:flex;gap:10px;margin-top:10px;flex-wrap:wrap;align-items:center"></div>
-          <div id="roomModeBanner" style="display:none;margin-top:10px;padding:8px 10px;background:var(--accent-soft);border-radius:10px;font-family:var(--font-alt);font-size:11.5px;color:var(--accent);font-weight:700">
-            ✏️ Editing <span id="roomModeBannerName"></span>'s workout — today only. <a href="#" style="color:inherit;text-decoration:underline" onclick="switchRoomTarget(null);return false">Switch back to me</a>
+          <div id="roomModeBanner" style="display:none;margin-top:10px;padding:8px 10px;background:var(--accent-soft);border-radius:10px;font-family:var(--font-alt);font-size:11.5px;color:var(--accent);font-weight:700;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">
+            <span>🏋 <span id="roomModeBannerName"></span>'s workout in progress — today only.</span>
+            <button type="button" class="action-icon-btn delete" style="width:auto;padding:3px 9px;font-size:10.5px;flex-shrink:0" onclick="removeCurrentRoomTarget()">Remove</button>
           </div>
         </div>
 
@@ -2794,7 +2803,7 @@ body.tracker-fs-lock{overflow:hidden}
         </div>
         <div id="roomTargetBadge" class="room-target-badge">
           <div class="room-target-badge-avatar" id="roomTargetBadgeAvatarBox">🏋</div>
-          <div class="room-target-badge-text">You are adding/editing for<br><b id="roomTargetBadgeName"></b></div>
+          <div class="room-target-badge-text">You're working on <b id="roomTargetBadgeName"></b>'s workouts</div>
         </div>
         <div id="initialWorkoutBox">
           <button class="btn" onclick="showAddWorkoutForm()">+ ADD WORKOUT ENTRY</button>
@@ -12800,7 +12809,15 @@ function toggleLiveMode(){
 }
 /* Room options (Create Room / Enter Room ID) stay hidden behind the fixed group-people icon below
    LIVE MODE until the user explicitly taps it open. */
+/* Room creation/joining must be blocked entirely while ANY room state is already active — hosting,
+   joined as a member, or waiting on host approval — since nobody in an active room (host included)
+   should be able to spin up or join a second one at the same time. window.__room/__memberRoom/
+   __memberWaiting are the three possible "already in a room" states (see their own comments). */
+function isAnyRoomStateActive(){
+  return !!(window.__room||window.__memberRoom||window.__memberWaiting);
+}
 function toggleRoomOptionsVisibility(){
+  if(isAnyRoomStateActive())return; // button is hidden in this state anyway (see start*/cleanup* room functions) — this is just a defensive no-op
   const box=document.getElementById("roomIdleControls"),btn=document.getElementById("roomOptionsToggleBtn");
   if(!box||!btn)return;
   const opening=box.style.display==="none"||!box.style.display;
@@ -15755,6 +15772,7 @@ async function startOwnerRoomSession(roomId,ownerId,endTime,approvalRequired){
   document.getElementById('memberRoomStrip').style.display='none';
   document.getElementById('memberRoomWaitingStrip').style.display='none';
   document.getElementById('roomIdleControls').style.display='none';
+  { const _rotb=document.getElementById('roomOptionsToggleBtn'); if(_rotb)_rotb.style.display='none'; }
   document.getElementById('roomActiveStrip').style.display='block';
   document.getElementById('roomIdBadgeText').textContent='#'+roomId;
   document.getElementById('roomOwnerBadge').textContent='(you are hosting)';
@@ -15806,6 +15824,7 @@ async function startMemberWaitingSession(row,loginId){
   if(hostUser)hostName=hostUser.name||hostName;
   window.__memberWaiting={roomId:row.room_id,loginId,channel:null};
   document.getElementById('roomIdleControls').style.display='none';
+  { const _rotb=document.getElementById('roomOptionsToggleBtn'); if(_rotb)_rotb.style.display='none'; }
   document.getElementById('roomActiveStrip').style.display='none';
   document.getElementById('memberRoomStrip').style.display='none';
   document.getElementById('memberRoomWaitingStrip').style.display='block';
@@ -15840,7 +15859,7 @@ function cleanupWaitingRoomState(msg){
   window.__memberWaiting=null;
   clearRoomSession();
   document.getElementById('memberRoomWaitingStrip').style.display='none';
-  document.getElementById('roomIdleControls').style.display='none';const _rotb=document.getElementById('roomOptionsToggleBtn');if(_rotb)_rotb.classList.remove('active');
+  document.getElementById('roomIdleControls').style.display='none';const _rotb=document.getElementById('roomOptionsToggleBtn');if(_rotb){_rotb.classList.remove('active');if(!isAnyRoomStateActive())_rotb.style.display='';}
   if(msg)showToast(msg);
 }
 
@@ -15851,6 +15870,7 @@ async function startMemberRoomSession(row,loginId){
   if(hostUser){hostName=hostUser.name||hostName;hostAvatar=hostUser.avatar_url||null}
   window.__memberRoom={roomId:row.room_id,loginId,hostName,hostAvatar,endTime:row.end_time,channel:null,countdownInterval:null};
   document.getElementById('roomIdleControls').style.display='none';
+  { const _rotb=document.getElementById('roomOptionsToggleBtn'); if(_rotb)_rotb.style.display='none'; }
   document.getElementById('roomActiveStrip').style.display='none';
   document.getElementById('memberRoomWaitingStrip').style.display='none';
   document.getElementById('memberRoomStrip').style.display='block';
@@ -15884,12 +15904,13 @@ function startMemberRoomCountdown(){
     const remain=new Date(window.__memberRoom.endTime).getTime()-Date.now();
     const timerEl=document.getElementById('memberRoomTimerText');
     if(remain<=0){
-      if(timerEl)timerEl.textContent='⏱ 00:00';
+      if(timerEl){timerEl.textContent='⏱ 00:00';timerEl.classList.remove('room-timer-critical')}
       cleanupMemberRoomState('⏱ Room time is up.');
       return;
     }
     const m=Math.floor(remain/60000),s=Math.floor((remain%60000)/1000);
     if(timerEl)timerEl.textContent=`⏱ ${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    applyRoomTimerUrgency(timerEl,remain,window.__memberRoom); // same red-blink + one-time alert as the host sees; extending is host-only, so no extend controls here
   },1000);
 }
 
@@ -15916,7 +15937,7 @@ function cleanupMemberRoomState(msg){
   window.__memberRoom=null;
   clearRoomSession();
   document.getElementById('memberRoomStrip').style.display='none';
-  document.getElementById('roomIdleControls').style.display='none';const _rotb=document.getElementById('roomOptionsToggleBtn');if(_rotb)_rotb.classList.remove('active');
+  document.getElementById('roomIdleControls').style.display='none';const _rotb=document.getElementById('roomOptionsToggleBtn');if(_rotb){_rotb.classList.remove('active');if(!isAnyRoomStateActive())_rotb.style.display='';}
   if(msg)showToast(msg);
 }
 
@@ -15935,7 +15956,6 @@ function renderRoomMembersStrip(){
     const isActive=window.__room.target&&window.__room.target.loginId===m.loginId;
     const inner=m.avatarUrl?`<img src="${m.avatarUrl}" onerror="this.parentElement.textContent='🏋'">`:'🏋';
     html+=`<div class="room-member-tile-wrap">
-      <div class="room-member-remove-x" onclick="event.stopPropagation();removeRoomMember('${m.loginId}','${escapeHtml(m.name||'')}')" title="Remove from room">✕</div>
       <div class="room-member-tile${isActive?' active-target':''}" onclick="switchRoomTarget('${m.loginId}')" title="Switch to ${escapeHtml(m.name||'')}">
         <span class="rm-name">${escapeHtml(m.name||('@'+m.loginId))}</span>
         <div class="room-member-avatar">${inner}</div>
@@ -15962,8 +15982,8 @@ function renderRoomPendingStrip(){
       <div class="room-member-avatar">${inner}</div>
       <span class="rm-name">${escapeHtml(m.name||('@'+m.loginId))}</span>
       <div class="room-pending-actions">
-        <button class="room-pending-accept" onclick="approveRoomMember('${m.loginId}','${escapeHtml(m.name||'')}')" title="Accept">✓</button>
-        <button class="room-pending-reject" onclick="rejectRoomMember('${m.loginId}','${escapeHtml(m.name||'')}')" title="Reject">✕</button>
+        <button class="room-pending-accept" onclick="approveRoomMember('${m.loginId}','${escapeHtml(m.name||'')}')">Accept</button>
+        <button class="room-pending-reject" onclick="rejectRoomMember('${m.loginId}','${escapeHtml(m.name||'')}')">Reject</button>
       </div>
     </div>`;
   });
@@ -15986,6 +16006,14 @@ async function removeRoomMember(loginId,name){
   if(window.__room.target&&window.__room.target.loginId===loginId)switchRoomTarget(null);
   try{await db.rpc('remove_room_member',{p_room_id:window.__room.roomId,p_login_id:loginId,p_owner_id:window.__room.ownerId})}catch(e){showToast('Could not remove this member.');return}
   showToast(`👋 Removed ${name||('@'+loginId)} from the room.`);
+}
+/* Used by the "Remove" button in roomModeBanner (replaces the old per-tile ✕ icon — see
+   renderRoomMembersStrip) — removes whichever member is currently selected/being edited, reading
+   them straight off window.__room.target instead of needing a loginId baked into the button's
+   onclick, since the banner's target changes without the button itself being re-created. */
+function removeCurrentRoomTarget(){
+  if(!window.__room||!window.__room.target)return;
+  removeRoomMember(window.__room.target.loginId,window.__room.target.name);
 }
 
 /* Updates the badge that sits right above the Add/Edit workout entry area, showing the currently
@@ -16026,7 +16054,7 @@ function setRoomTargetState(loginId){
     }
     const nameEl=document.getElementById('roomModeBannerName');
     if(nameEl)nameEl.textContent=m.name||('@'+m.loginId);
-    if(banner)banner.style.display='block';
+    if(banner)banner.style.display='flex';
   }
   renderRoomMembersStrip();
   updateRoomTargetBadge();
@@ -16189,20 +16217,62 @@ async function onRoomRowUpdate(row,announce){
   renderRoomMembersStrip();
 }
 
+/* Shared by both the host's and a joined member's own countdown ticker (startRoomCountdown /
+   startMemberRoomCountdown): once under 1 minute remains, turns the timer text red+blinking (see
+   .room-timer-critical) and fires ONE sound+vibration+toast alert at the moment it first crosses
+   that threshold — not on every tick, via state._lowTimeWarned. Extending the room (extendRoomTime)
+   clears that flag so the alert can re-arm if it ever drops under a minute again. Returns whether
+   the timer is currently in the critical window, so callers can also show/hide extend controls.*/
+function applyRoomTimerUrgency(timerEl,remainMs,state){
+  if(!timerEl)return false;
+  const critical=remainMs>0&&remainMs<=60000;
+  timerEl.classList.toggle('room-timer-critical',critical);
+  if(critical&&!state._lowTimeWarned){
+    state._lowTimeWarned=true;
+    playConfiguredBreakSound();
+    try{if(navigator.vibrate)navigator.vibrate([200,80,200,80,200])}catch(e){}
+    showToast('⏱ Room time is ending in under a minute!');
+  }else if(!critical){
+    state._lowTimeWarned=false;
+  }
+  return critical;
+}
 function startRoomCountdown(){
   if(window.__room.countdownInterval)clearInterval(window.__room.countdownInterval);
   window.__room.countdownInterval=setInterval(()=>{
     if(!window.__room)return;
     const remain=new Date(window.__room.endTime).getTime()-Date.now();
     const timerEl=document.getElementById('roomTimerText');
+    const extendRow=document.getElementById('roomExtendRow');
     if(remain<=0){
-      if(timerEl)timerEl.textContent='⏱ 00:00';
+      if(timerEl){timerEl.textContent='⏱ 00:00';timerEl.classList.remove('room-timer-critical')}
+      if(extendRow)extendRow.style.display='none';
       endWorkoutRoom(true);
       return;
     }
     const m=Math.floor(remain/60000),s=Math.floor((remain%60000)/1000);
     if(timerEl)timerEl.textContent=`⏱ ${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    const critical=applyRoomTimerUrgency(timerEl,remain,window.__room);
+    if(extendRow)extendRow.style.display=critical?'flex':'none';
   },1000);
+}
+/* Host-only — adds minutes onto the room's end_time in the DB. All connected clients (host's own
+   other tabs, and every joined member) already listen for row updates via subscribeRoomRealtime/
+   the member-side channel and refresh window.__room.endTime / window.__memberRoom.endTime from
+   it automatically, so a single write here is all that's needed to extend the timer everywhere. */
+async function extendRoomTime(minutes){
+  if(!window.__room)return;
+  if(minutes==null){
+    const input=prompt('Add how many minutes to the room timer?','5');
+    if(input===null)return;
+    minutes=parseInt(input,10);
+    if(!minutes||minutes<=0){showToast('Enter a valid number of minutes.');return}
+  }
+  const newEndTime=new Date(new Date(window.__room.endTime).getTime()+minutes*60000).toISOString();
+  window.__room.endTime=newEndTime; // optimistic — updates the host's own timer instantly instead of waiting on the realtime echo
+  window.__room._lowTimeWarned=false; // re-arm the under-1-minute alert in case it drops back under a minute again later
+  try{await db.from('workout_rooms').update({end_time:newEndTime}).eq('room_id',window.__room.roomId)}catch(e){showToast('Could not extend the room time.');return}
+  showToast(`⏱ Added ${minutes} min to the room timer.`);
 }
 
 async function endWorkoutRoom(auto){
@@ -16226,7 +16296,7 @@ function cleanupRoomState(msg){
   window.__room=null;
   clearRoomSession();
   document.getElementById('roomActiveStrip').style.display='none';
-  document.getElementById('roomIdleControls').style.display='none';const _rotb=document.getElementById('roomOptionsToggleBtn');if(_rotb)_rotb.classList.remove('active');
+  document.getElementById('roomIdleControls').style.display='none';const _rotb=document.getElementById('roomOptionsToggleBtn');if(_rotb){_rotb.classList.remove('active');if(!isAnyRoomStateActive())_rotb.style.display='';}
   if(msg)showToast(msg);
 }
 
@@ -16251,7 +16321,7 @@ function teardownRoomUiOnLogout(){
   const ras=document.getElementById('roomActiveStrip');if(ras)ras.style.display='none';
   const mrs=document.getElementById('memberRoomStrip');if(mrs)mrs.style.display='none';
   const mws=document.getElementById('memberRoomWaitingStrip');if(mws)mws.style.display='none';
-  const ric=document.getElementById('roomIdleControls');if(ric)ric.style.display='none';const _rotb2=document.getElementById('roomOptionsToggleBtn');if(_rotb2)_rotb2.classList.remove('active');
+  const ric=document.getElementById('roomIdleControls');if(ric)ric.style.display='none';const _rotb2=document.getElementById('roomOptionsToggleBtn');if(_rotb2){_rotb2.classList.remove('active');if(!isAnyRoomStateActive())_rotb2.style.display='';}
 }
 
 /* Called from mountMemberDashboard() on BOTH fresh login and page-refresh auto-restore, so an
@@ -19442,4 +19512,4 @@ function closeLearnVideo(){
 })();
 </script>
 </body>
-</html> 
+</html>
