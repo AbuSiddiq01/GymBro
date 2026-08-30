@@ -1266,8 +1266,24 @@ body:not(.theme-dark) .dur-graph-detail-divider strong{color:#1e3a8a}
 @media (min-width:901px){.cmp-rotate-btn,.cmp-exit-fs-btn{display:none!important}}
 /* Emulated-rotation mode: rotates the whole page 90° so mobile Compare Mode gets a full
    landscape-style view without requiring the person to physically turn their phone. Toggled on
-   document.body by toggleCmpRotate()/_enableCmpRotate(). */
-body.cmp-rotate-forced{transform:rotate(90deg);transform-origin:top left;width:100vh;height:100vw;position:absolute;top:0;left:100%;overflow-x:hidden;overflow-y:auto}
+   document.body by toggleCmpRotate()/_enableCmpRotate().
+   min-height/max-height overrides are required: body's base rule above sets min-height:100vh,
+   which otherwise wins over height:100vw here (min-height always beats a smaller height) and
+   silently breaks the box's post-rotation size — that's what was blocking scrolling. */
+body.cmp-rotate-forced{transform:rotate(90deg);transform-origin:top left;width:100vh;height:100vw;min-height:100vw;max-height:100vw;position:absolute;top:0;left:100%;overflow-x:hidden;overflow-y:auto;-webkit-overflow-scrolling:touch}
+/* Not needed inside the rotated Compare view, and as a truly-fixed element it would otherwise sit
+   oddly in the rotated coordinate space and can intercept touches meant for scrolling. */
+body.cmp-rotate-forced #bottomNavBar{display:none!important}
+/* Once rotated, both Compare panels must sit side-by-side in a single frame — that's the whole
+   point of rotating, so no swipe/dots needed. This overrides the narrow/portrait swipe layout
+   below, which is driven by the device's real (unrotated) metrics via matchMedia and doesn't know
+   about this CSS-only rotation on its own — see isSwipeMode() in the swipe-panel script, which is
+   told about rotate mode directly so it stops fighting these rules. */
+body.cmp-rotate-forced .cmp-swipe-wrapper{overflow:visible!important}
+body.cmp-rotate-forced .cmp-swipe-track{width:100%!important;gap:16px!important;transform:none!important;transition:none!important}
+body.cmp-rotate-forced .cmp-swipe-track .vol-panel{width:auto!important;flex:1 1 0!important;padding:0!important;box-sizing:border-box!important}
+body.cmp-rotate-forced .cmp-swipe-track .cmp-divider{display:block!important}
+body.cmp-rotate-forced .cmp-swipe-dots{display:none!important}
 
 /* Compare-mode landscape layout */
 .vol-compare-landscape{display:none;gap:16px;margin-top:0}
@@ -8248,7 +8264,7 @@ function _showCmpHint(){
   el=document.createElement('div');
   el.id='cmpRotateHint';
   el.className='cmp-rotate-hint';
-  el.innerHTML=`<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;display:block"><path d="M21 12a9 9 0 1 1-3-6.7"></path><polyline points="21 3 21 9 15 9"></polyline></svg><span>Tap "Rotate" or turn your phone sideways to get the full view.</span><button type="button" class="cmp-rotate-hint-close" onclick="_dismissCmpHint()" aria-label="Dismiss">✕</button>`;
+  el.innerHTML=`<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;display:block"><path d="M21 12a9 9 0 1 1-3-6.7"></path><polyline points="21 3 21 9 15 9"></polyline></svg><span>Rotate screen or enable desktop mode to get full view.</span><button type="button" class="cmp-rotate-hint-close" onclick="_dismissCmpHint()" aria-label="Dismiss">✕</button>`;
   el.style.transform='translateX(-50%)';
   document.body.appendChild(el);
   _initCmpHintSwipe(el);
@@ -8345,6 +8361,7 @@ function _enableCmpRotate(){
   if(!_cmpModeOn||!_isMobile())return; // strictly Compare Mode + mobile only
   _cmpRotateOn=true;
   document.body.classList.add('cmp-rotate-forced');
+  if(window.__cmpSwipeResettle)window.__cmpSwipeResettle(); // clear any leftover swipe transform — panels now sit side-by-side
   _updateCmpRotateBtnVisibility();
 }
 
@@ -8352,6 +8369,7 @@ function _disableCmpRotate(){
   if(!_cmpRotateOn){_updateCmpRotateBtnVisibility();return}
   _cmpRotateOn=false;
   document.body.classList.remove('cmp-rotate-forced');
+  if(window.__cmpSwipeResettle)window.__cmpSwipeResettle(); // restore swipe positioning if still on a narrow/portrait device
   _updateCmpRotateBtnVisibility();
 }
 
@@ -8575,7 +8593,9 @@ function updateCmpPeriodLabel(side){
    ever needs to actually move the track when that narrow/portrait layout is active. */
 (function(){
   let cmpIdx=0;
-  function isSwipeMode(){return window.matchMedia('(max-width:900px) and (orientation:portrait)').matches}
+  // Rotate mode forces both panels side-by-side (see CSS) — swiping/dragging must stand down
+  // while it's active, otherwise the two systems fight over the track's transform.
+  function isSwipeMode(){return !_cmpRotateOn&&window.matchMedia('(max-width:900px) and (orientation:portrait)').matches}
   function apply(i,animate){
     cmpIdx=i;
     const track=document.getElementById('cmpSwipeTrack');
@@ -8587,6 +8607,9 @@ function updateCmpPeriodLabel(side){
     document.querySelectorAll('#cmpSwipeDots .cmp-dot').forEach((d,di)=>d.classList.toggle('active',di===i));
   }
   window.cmpSwipeGoTo=function(i){if(i<0||i>1)return;apply(i,true)};
+  // Called by toggleCmpRotate() so the swipe track re-syncs the moment rotate mode flips, instead
+  // of waiting for the next resize/orientationchange event.
+  window.__cmpSwipeResettle=function(){apply(cmpIdx,false)};
   function initSwipe(){
     const outer=document.getElementById('cmpSwipeWrapper');
     if(!outer)return;
