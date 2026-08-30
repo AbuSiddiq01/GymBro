@@ -16585,6 +16585,12 @@ function handleRoomEndedRemotely(){cleanupRoomState('The workout room was closed
 async function demoteHostToMember(row){
   const myLoginId=localStorage.getItem('user_login_id');
   if(window.__room){
+    // Clear any selected member FIRST, while window.__room still exists — switchRoomTarget(null)
+    // hides the "you're working on X's workouts" badge, re-enables the date filter, and reloads our
+    // OWN workout list. That badge lives outside roomActiveStrip, so simply hiding the strip below
+    // does NOT hide it — without this it stays stuck on-screen showing someone else's workouts even
+    // after we've dropped down to a plain member view.
+    if(window.__room.target)await switchRoomTarget(null);
     if(window.__room.channel)db.removeChannel(window.__room.channel);
     if(window.__room.countdownInterval)clearInterval(window.__room.countdownInterval);
   }
