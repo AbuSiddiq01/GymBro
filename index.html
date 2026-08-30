@@ -711,6 +711,41 @@ input::placeholder{color:var(--text-muted)}
   .hist-cal-dayname{font-size:11px}
   .hist-cal-monthlabel{font-size:23px}
 }
+/* Rotated/landscape phones (auto-rotated via "Rotate Screen" or turned sideways by hand) have very
+   little viewport height, so the >=700px rule above — sized for a tall tablet/desktop panel —
+   makes each date box far too tall and forces the whole grid (and the Compare-mode calendar modal
+   that reuses these same .hist-cal-* classes) to overflow past the screen, requiring a pinch-zoom
+   or scroll just to see it. This scopes a compact size to short-height landscape viewports only, so
+   the calendar reads as one medium, fully on-screen box instead. It also shrinks the status badge
+   enough that check-in times ("8:20 AM") and labels ("Absent") stop getting cut off/ellipsised —
+   the old truncation only happened because the badge font didn't fit the (narrow) box width. */
+@media (orientation:landscape) and (max-height:520px){
+  .hist-cal-wrap{max-width:none}
+  .hist-cal-monthlabel{font-size:14px;margin-bottom:5px}
+  .hist-cal-legend{gap:5px 9px;margin-bottom:6px}
+  .hist-cal-legend-item{font-size:8px}
+  .hist-cal-legend-dot{width:7px;height:7px}
+  .hist-cal-daynames{gap:3px;margin-bottom:3px}
+  .hist-cal-dayname{font-size:7px}
+  .hist-cal-grid{column-gap:3px;row-gap:5px}
+  .hist-cal-cell{min-height:42px;padding:2px 1px 3px;border-radius:8px;gap:1px}
+  .hist-cal-date{font-size:10px;margin:1px 0 0}
+  .hist-cal-status{font-size:5.6px;padding:1px 2px;line-height:1.05;white-space:normal;overflow:visible;text-overflow:clip;max-width:100%}
+  .hist-cal-classes{font-size:5.4px;line-height:1.1;-webkit-line-clamp:2}
+  .hist-cal-classes-more{padding:0 2px;border-radius:3px;font-size:0.9em}
+  .hist-cal-icon-btn{width:28px;height:28px;margin:6px auto 8px}
+  .cmp-cal-modal{padding:10px 12px;max-height:94vh}
+  .cmp-cal-modal-title{font-size:10px;margin-bottom:6px}
+  .cmp-cal-nav-row{margin-bottom:6px}
+  .cmp-cal-nav-btn{width:26px;height:26px;font-size:13px;border-radius:8px}
+  .cmp-cal-month-label{font-size:12px}
+  .cmp-cal-hint{font-size:9px;margin-top:6px}
+  .cmp-cal-modal-close{padding:7px;font-size:10.5px;margin-top:6px}
+  .hist-cal-date-popup{padding:6px 8px 5px;margin-bottom:6px}
+  .hist-cal-popup-date{font-size:12px}
+  .hist-cal-popup-value{font-size:9.5px}
+  .hist-cal-popup-classes{font-size:9px;margin-top:5px;padding-top:5px}
+}
 
 /* ===================== WORKOUT CARDS ===================== */
 .set-row{display:flex;gap:10px;align-items:center;margin-top:10px;background:var(--set-row-bg);padding:10px;border-radius:11px;border:1px solid var(--border-col);animation:fadeIn 0.3s ease;flex-wrap:wrap}
@@ -1298,7 +1333,7 @@ body:not(.theme-dark) .dur-graph-detail-divider strong{color:#1e3a8a}
 .cmp-cal-modal-close{width:100%;margin-top:10px;padding:10px;border-radius:10px;border:none;background:var(--accent-soft);color:var(--accent);font-family:var(--font-alt);font-weight:800;font-size:12.5px;cursor:pointer}
 /* Two-panel swipe layout — only kicks in on narrow/portrait mobile (see the media query below).
    Desktop and landscape keep the normal side-by-side flex row untouched. */
-.cmp-swipe-wrapper{width:100%;overflow:visible}
+.cmp-swipe-wrapper{width:100%;overflow:visible;touch-action:pan-y}
 .cmp-swipe-track{display:flex;flex-direction:row;gap:16px;width:100%}
 .cmp-swipe-dots{display:none;justify-content:center;gap:8px;margin-top:10px}
 .cmp-dot{width:8px;height:8px;border-radius:50%;background:var(--border-col);cursor:pointer;transition:background .2s ease,transform .2s ease;padding:0;border:none}
@@ -7195,11 +7230,11 @@ function closeTodayWorkoutBanner(){
   localStorage.setItem('gymbro_schedule_notify_closed_'+settingsUid(),getLocalDateString());
 }
 
-function showToast(msg){
+function showToast(msg,duration){
   let t=document.createElement('div');
   t.textContent=msg;
   Object.assign(t.style,{position:'fixed',bottom:'80px',left:'50%',transform:'translateX(-50%)',background:'var(--toast-bg)',color:'#fff',padding:'12px 22px',borderRadius:'14px',fontFamily:'var(--font-alt)',fontSize:'13px',fontWeight:'700',letterSpacing:'0.5px',zIndex:'9999999',boxShadow:'0 8px 28px rgba(0,0,0,0.3)',animation:'fadeIn 0.3s ease',whiteSpace:'normal',maxWidth:'88vw',width:'max-content',textAlign:'center',boxSizing:'border-box'});
-  document.body.appendChild(t);setTimeout(()=>{t.style.opacity='0';t.style.transition='opacity 0.3s ease';setTimeout(()=>t.remove(),300)},2200);
+  document.body.appendChild(t);setTimeout(()=>{t.style.opacity='0';t.style.transition='opacity 0.3s ease';setTimeout(()=>t.remove(),300)},duration||2200);
 }
 
 function logoutUser(){
@@ -8285,6 +8320,10 @@ async function _cmpRotateScreen(){
       _cmpRotated=true;
       _updateCmpRotateBtn();
       _dismissCmpHint();
+      // One-off, auto-cancelling notice (same as any other toast — it clears itself, it isn't
+      // persistent like the rotate hint) telling the person how to get back out of the locked
+      // full-screen landscape view, since there's no visible browser chrome to do it for them.
+      showToast("Tap Back or Refresh to exit full view",3200);
     } else {
       showToast("Auto-rotate isn't supported on this browser — please rotate your device manually.");
     }
@@ -8355,7 +8394,10 @@ function _cmpRestoreIfNeeded(){
   const wasOn=_cmpLoadSavedAnchors();
   if(!wasOn)return;
   _cmpModeOn=true;
-  _cmpApplyState(true);
+  // false: this is a page refresh restoring a prior state, not the person actively switching
+  // Compare Mode on, so the "rotate for full view" notice must NOT reappear here — only
+  // toggleCompareMode() (an explicit ON tap) should ever trigger it.
+  _cmpApplyState(false);
 }
 
 /* Applies the current _cmpModeOn value to the UI + (re)draws both panels if turning on. Shared by
@@ -8593,45 +8635,58 @@ function updateCmpPeriodLabel(side){
     document.querySelectorAll('#cmpSwipeDots .cmp-dot').forEach((d,di)=>d.classList.toggle('active',di===i));
   }
   window.cmpSwipeGoTo=function(i){if(i<0||i>1)return;apply(i,true)};
+  /* Swipe recognizer: attached with capture:true directly on the wrapper so a gesture starting
+     anywhere inside either panel — over the chart canvas, a button, a badge, empty space, doesn't
+     matter — is seen by us first, before any child element's own touch handling can interfere.
+     A short, fast flick counts as a swipe even if it doesn't cross the distance threshold (velocity
+     check), which is what makes it feel "easy" rather than requiring a big deliberate drag. */
   function initSwipe(){
     const outer=document.getElementById('cmpSwipeWrapper');
     if(!outer)return;
-    let startX=0,startY=0,dx=0,dy=0,dragging=false,moved=false;
+    let startX=0,startY=0,startT=0,dx=0,dy=0,dragging=false,moved=false,axisLocked=false;
     const track=document.getElementById('cmpSwipeTrack');
+    function pt(e){return e.touches&&e.touches.length?e.touches[0]:e}
     function onStart(e){
       if(!isSwipeMode())return;
-      const t=e.touches?e.touches[0]:e;
-      startX=t.clientX;startY=t.clientY;dx=0;dy=0;dragging=true;moved=false;
+      const t=pt(e);
+      startX=t.clientX;startY=t.clientY;startT=Date.now();dx=0;dy=0;dragging=true;moved=false;axisLocked=false;
     }
     function onMove(e){
       if(!dragging||!isSwipeMode())return;
-      const t=e.touches?e.touches[0]:e;
+      const t=pt(e);
       dx=t.clientX-startX;dy=t.clientY-startY;
-      if(!moved&&Math.abs(dy)>Math.abs(dx)+4){dragging=false;return}
-      if(Math.abs(dx)>6){
-        moved=true;
-        if(e.cancelable)e.preventDefault();
-        const base=cmpIdx*50;
-        const pct=(-dx/outer.offsetWidth)*100;
-        const clamped=Math.max(0,Math.min(50,base+pct));
-        track.style.transition='none';
-        track.style.transform=`translateX(-${clamped}%)`;
+      if(!axisLocked){
+        // Decide once, early, whether this gesture is horizontal (ours) or vertical (page scroll).
+        if(Math.abs(dx)<4&&Math.abs(dy)<4)return;
+        axisLocked=true;
+        if(Math.abs(dy)>Math.abs(dx)){dragging=false;return}
       }
+      moved=true;
+      if(e.cancelable)e.preventDefault();
+      const base=cmpIdx*50;
+      const pct=(-dx/outer.offsetWidth)*100;
+      const clamped=Math.max(0,Math.min(50,base+pct));
+      track.style.transition='none';
+      track.style.transform=`translateX(-${clamped}%)`;
     }
     function onEnd(){
       if(!dragging)return;
       dragging=false;
       if(!moved)return;
-      const threshold=outer.offsetWidth*0.2;
+      const elapsed=Math.max(1,Date.now()-startT);
+      const velocity=Math.abs(dx)/elapsed; // px/ms
+      const distThreshold=outer.offsetWidth*0.14; // easier to trigger than before
+      const isFlick=Math.abs(dx)>24&&velocity>0.35; // quick short swipe counts too
       let next=cmpIdx;
-      if(dx<-threshold&&cmpIdx<1)next=cmpIdx+1;
-      else if(dx>threshold&&cmpIdx>0)next=cmpIdx-1;
+      if((dx<-distThreshold||(dx<0&&isFlick))&&cmpIdx<1)next=cmpIdx+1;
+      else if((dx>distThreshold||(dx>0&&isFlick))&&cmpIdx>0)next=cmpIdx-1;
       apply(next,true);
     }
-    outer.addEventListener('touchstart',onStart,{passive:true});
-    outer.addEventListener('touchmove',onMove,{passive:false});
-    outer.addEventListener('touchend',onEnd,{passive:true});
-    outer.addEventListener('mousedown',onStart);
+    outer.addEventListener('touchstart',onStart,{passive:true,capture:true});
+    outer.addEventListener('touchmove',onMove,{passive:false,capture:true});
+    outer.addEventListener('touchend',onEnd,{passive:true,capture:true});
+    outer.addEventListener('touchcancel',onEnd,{passive:true,capture:true});
+    outer.addEventListener('mousedown',onStart,{capture:true});
     window.addEventListener('mousemove',onMove);
     window.addEventListener('mouseup',onEnd);
   }
