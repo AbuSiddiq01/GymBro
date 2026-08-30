@@ -8270,26 +8270,36 @@ function _initCmpHintSwipe(el){
 
 let _cmpRotated=false; // true while we've fullscreen+landscape-locked the screen for Compare mode
 
-/* Manual "Rotate Screen" button — requests fullscreen (required by most browsers before an
-   orientation lock is allowed) then locks to landscape. Tapping again while rotated undoes both.
-   Not every browser supports Screen Orientation locking (notably iOS Safari), so this fails
-   gracefully with a toast telling the person to rotate their device by hand instead. */
+/* Manual "Rotate Screen" button — requests fullscreen (most browsers require this before an
+   orientation lock is allowed) then tries to lock to landscape. Tapping again while active undoes
+   both. These are two independent browser APIs with very patchy support (notably iOS Safari has
+   no orientation-lock API at all, and some browsers allow fullscreen but reject the lock outside
+   an installed PWA) — so each is attempted and caught separately, and the button flips to "Exit
+   Full Screen" as soon as EITHER one actually took effect, rather than only when both succeed.
+   That's what was causing the button to silently stay on "Rotate Screen" even once fullscreen had
+   visibly kicked in: the old code only flipped the button after a successful orientation lock, so
+   a fullscreen-only success (lock rejected) left the UI stuck. */
 async function _cmpRotateScreen(){
   if(_cmpRotated){_cmpExitRotate();return}
+  let didFullscreen=false,didLock=false;
   try{
     if(document.documentElement.requestFullscreen&&!document.fullscreenElement){
       await document.documentElement.requestFullscreen();
+      didFullscreen=true;
     }
+  }catch(e){/* denied/unsupported — orientation lock alone might still work */}
+  try{
     if(screen.orientation&&screen.orientation.lock){
       await screen.orientation.lock('landscape');
-      _cmpRotated=true;
-      _updateCmpRotateBtn();
-      _dismissCmpHint();
-    } else {
-      showToast("Auto-rotate isn't supported on this browser — please rotate your device manually.");
+      didLock=true;
     }
-  }catch(e){
-    showToast("Couldn't rotate automatically — please rotate your device manually.");
+  }catch(e){/* rejected — common outside an installed PWA; fullscreen alone still helps */}
+  if(didFullscreen||didLock){
+    _cmpRotated=true;
+    _updateCmpRotateBtn();
+    _dismissCmpHint();
+  } else {
+    showToast("Auto-rotate isn't supported on this browser — please rotate your device manually.");
   }
 }
 function _cmpExitRotate(){
