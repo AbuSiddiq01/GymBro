@@ -1284,6 +1284,10 @@ body.cmp-rotate-forced .cmp-swipe-track{width:100%!important;gap:16px!important;
 body.cmp-rotate-forced .cmp-swipe-track .vol-panel{width:auto!important;flex:1 1 0!important;padding:0!important;box-sizing:border-box!important}
 body.cmp-rotate-forced .cmp-swipe-track .cmp-divider{display:block!important}
 body.cmp-rotate-forced .cmp-swipe-dots{display:none!important}
+/* Belt-and-braces alongside the ontouchmove fix in updateVolumeChart(): tells the browser up
+   front to prioritize vertical scrolling over the chart's own touch handling while rotated,
+   instead of relying purely on JS to decide in time. */
+body.cmp-rotate-forced .vol-graph-box canvas{touch-action:pan-y!important}
 
 /* Compare-mode landscape layout */
 .vol-compare-landscape{display:none;gap:16px;margin-top:0}
@@ -9904,7 +9908,10 @@ async function updateVolumeChart(side='main'){
     const rect=canvas.getBoundingClientRect();
     const fakeEvt={x:touch.clientX-rect.left,y:touch.clientY-rect.top,native:evt};
     const pts=instance.getElementsAtEventForMode(fakeEvt,'index',{intersect:false},false);
-    if(pts.length){evt.preventDefault();selectWeeklyBar(pts[0].index)}
+    // In rotated Compare Mode, scrolling to reach content below the panels must win — don't
+    // swallow the touch just because it's passing over a bar. (Normal, non-rotated Compare Mode
+    // and the main single-view chart keep the original drag-to-highlight behavior.)
+    if(pts.length){if(!_cmpRotateOn)evt.preventDefault();selectWeeklyBar(pts[0].index)}
   };
 
   const hintEl=document.getElementById('volGraphDetailHint'+sfx);
