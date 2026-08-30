@@ -1354,6 +1354,48 @@ body:not(.theme-dark) .dur-graph-detail-divider strong{color:#1e3a8a}
 .cmp-rotate-hint-close{position:absolute;top:50%;right:6px;transform:translateY(-50%);width:18px;height:18px;border-radius:50%;border:none;background:rgba(255,255,255,0.15);color:#fff;font-size:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;flex-shrink:0}
 .cmp-rotate-hint-close:hover{background:rgba(255,255,255,0.28)}
 .cmp-hint-dismissing{transition:opacity 0.2s ease,transform 0.2s ease!important;opacity:0!important}
+
+/* Per-exercise "⚖️ Compare" button, shown inside a revealed exercise's set list (Compare Mode only) */
+.vol-ex-cmp-btn{display:flex;align-items:center;justify-content:center;gap:6px;width:calc(100% - 24px);margin:2px 12px 10px;padding:8px 10px;border-radius:9px;border:1px solid var(--accent);background:var(--accent-soft);color:var(--accent);font-family:var(--font-alt);font-weight:800;font-size:11px;letter-spacing:0.3px;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:box-shadow 0.2s ease,transform 0.15s ease}
+.vol-ex-cmp-btn:hover{box-shadow:0 6px 16px var(--accent-glow)}
+.vol-ex-cmp-btn:active{transform:scale(0.97)}
+
+/* ══ Exercise-specific Compare overlay (1v1 side-by-side / stacked-on-mobile) ══
+   Themed to match the rest of the app: var(--bg-card)/var(--bg-panel) surfaces, var(--border-col)
+   hairlines, var(--card-shadow) at rest, and an var(--accent-glow) glow — same recipe as .card,
+   .room-box and the other full-screen modals (xp-info-modal, room-modal, etc). */
+.excmp-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;z-index:999999999;padding:16px;box-sizing:border-box;animation:fadeIn 0.2s ease}
+.excmp-modal{background:var(--bg-card);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid var(--border-col);border-radius:20px;box-shadow:0 20px 60px rgba(0,0,0,0.5),0 0 40px var(--accent-glow);width:100%;max-width:560px;max-height:92vh;overflow-y:auto;box-sizing:border-box;animation:fadeIn 0.25s ease}
+.excmp-modal-header{position:sticky;top:0;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:16px 16px 12px;background:var(--bg-card);border-bottom:1px solid var(--border-col);z-index:2}
+.excmp-modal-title{font-family:var(--font-alt);font-weight:800;font-size:14px;color:var(--text-primary);word-break:break-word;line-height:1.3}
+.excmp-close-btn{flex-shrink:0;width:30px;height:30px;border-radius:50%;border:none;background:var(--accent-soft);color:var(--accent);font-size:14px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:box-shadow 0.2s ease}
+.excmp-close-btn:hover{box-shadow:0 4px 14px var(--accent-glow)}
+.excmp-body{display:flex;flex-direction:row;gap:14px;padding:16px}
+.excmp-col{flex:1;min-width:0;display:flex;flex-direction:column;background:var(--bg-panel);border:1px solid var(--border-col);border-left:3px solid var(--accent);border-radius:14px;padding:14px;box-shadow:var(--card-shadow);transition:box-shadow 0.25s ease}
+.excmp-col:hover{box-shadow:var(--card-shadow),0 0 20px var(--accent-glow)}
+.excmp-divider{width:1px;background:var(--border-col);flex-shrink:0;align-self:stretch}
+.excmp-col-badge{display:inline-block;align-self:flex-start;font-family:var(--font-alt);font-size:10px;font-weight:800;letter-spacing:0.5px;color:var(--accent);background:var(--accent-soft);border-radius:7px;padding:3px 9px;margin-bottom:8px}
+.excmp-col-date{font-family:var(--font-alt);font-size:12px;font-weight:700;color:var(--text-primary);margin-bottom:10px;word-break:break-word}
+.excmp-toggle{display:flex;align-items:center;justify-content:space-between;width:100%;padding:8px 10px;border-radius:9px;border:1px solid var(--border-col);background:var(--accent-soft);color:var(--text-secondary);font-family:var(--font-alt);font-weight:700;font-size:11px;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background 0.2s ease,border-color 0.2s ease}
+.excmp-toggle:hover{border-color:var(--accent)}
+.excmp-toggle.open{border-radius:9px 9px 0 0}
+.excmp-toggle-chev{transition:transform 0.2s ease}
+.excmp-toggle.open .excmp-toggle-chev{transform:rotate(180deg)}
+.excmp-sets{display:none;border:1px solid var(--border-col);border-top:none;border-radius:0 0 9px 9px;padding:2px 10px;background:var(--bg-card);animation:fadeIn 0.2s ease}
+.excmp-sets.open{display:block}
+.excmp-set-line{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 0;border-bottom:1px dashed var(--border-col);font-family:var(--font-alt);font-size:11.5px;color:var(--text-secondary)}
+.excmp-set-line:last-of-type{border-bottom:none}
+/* Total volume — deliberately OUTSIDE .excmp-sets so folding the dropdown never hides it */
+.excmp-total{display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding:9px 12px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:9px;box-shadow:0 4px 14px var(--accent-glow)}
+.excmp-total span{font-family:var(--font-alt);font-size:11px;font-weight:800;color:#fff;letter-spacing:0.5px;text-transform:uppercase}
+.excmp-total strong{font-family:var(--font-display);font-size:15px;color:#fff;letter-spacing:0.5px}
+@media(max-width:600px){
+  .excmp-body{flex-direction:column;padding:14px;gap:10px}
+  .excmp-divider{width:100%;height:1px}
+  .excmp-modal{max-width:100%;border-radius:16px}
+  .excmp-modal-header{padding:14px 14px 10px}
+  .excmp-modal-title{font-size:13px}
+}
 /* hide single view when compare is on */
 .vol-single-view{transition:all 0.3s}
 .vol-single-view.hidden{display:none}
@@ -11009,6 +11051,12 @@ function renderVolDrilldownEnhanced(day,titleId,bodyId,panel){
       const totalDetail=isAllCardioSets(sets)?formatCardioTotalDetail(sets):`${vt.primary} ${vt.unit}`;
       html+=`<div class="vol-sets-total"><span>Total</span><strong>${totalDetail}</strong></div>`;
     }
+    // Compare-mode only: lets the user check this exact exercise against whatever day/week is
+    // currently drilled-into on the OPPOSITE panel — see openExerciseCompare().
+    if(panel==='left'||panel==='right'){
+      const exNameEsc=exName.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+      html+=`<button type="button" class="vol-ex-cmp-btn" onclick="event.stopPropagation();openExerciseCompare('${panel}','${exNameEsc}')">⚖️ Compare</button>`;
+    }
     html+=`</div>`;
   });
   html+=`</div>`;
@@ -11036,6 +11084,83 @@ function renderVolDrilldownEnhanced(day,titleId,bodyId,panel){
 
   html+=`<div class="vol-drill-total" style="margin-top:4px"><span>📦 Daily Total</span><strong>${Math.round(day.volume).toLocaleString()} kg·reps</strong></div>`;
   bodyEl.innerHTML=html;
+}
+
+/* ══ EXERCISE-SPECIFIC COMPARE (per-row "⚖️ Compare" button inside Compare Mode) ══════════════
+   Lets the user pick one exercise on Panel A or B (once its set values are revealed) and instantly
+   check whether that exact same exercise was also logged on whatever day is currently drilled-into
+   on the OPPOSITE panel. No match -> toast. Match -> a mobile-friendly overlay with both sides'
+   sets shown 1v1, each clearly dated, with a per-side dropdown to toggle the set list. */
+
+// Normalizes an exercise name for matching across panels (case/whitespace-insensitive only —
+// we deliberately do NOT fuzzy-match different exercises).
+function _exCmpNormName(n){return(n||'').trim().toLowerCase();}
+
+function openExerciseCompare(panel,exName){
+  const oppPanel=panel==='left'?'right':'left';
+  const ownDay=_lastDrillDay[panel];
+  const oppDay=_lastDrillDay[oppPanel];
+  if(!ownDay||!oppDay){showToast('⚠️ No match found');return;}
+
+  const findWorkout=(day,name)=>{
+    if(!day||!day.workouts)return null;
+    const target=_exCmpNormName(name);
+    return day.workouts.find(w=>_exCmpNormName((w.name||'').split(':')[0])===target)||null;
+  };
+
+  const ownWorkout=findWorkout(ownDay,exName);
+  const oppWorkout=findWorkout(oppDay,exName);
+
+  if(!ownWorkout||!oppWorkout){showToast('⚠️ No match found');return;}
+
+  const fmtDate=(day)=>{
+    if(day&&day.dateObj)return day.dateObj.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'});
+    return(day&&day.label)||'—';
+  };
+
+  const sideData=(panelSide,day,workout)=>{
+    const sets=parseWorkoutSets(workout.name);
+    const vt=formatExerciseVolTotal(workout,sets);
+    const totalDetail=isAllCardioSets(sets)?formatCardioTotalDetail(sets):`${vt.primary} ${vt.unit}`;
+    return{panelSide,dateLabel:fmtDate(day),sets,totalDetail};
+  };
+
+  const left=panel==='left'?sideData('A',ownDay,ownWorkout):sideData('A',oppDay,oppWorkout);
+  const right=panel==='left'?sideData('B',oppDay,oppWorkout):sideData('B',ownDay,ownWorkout);
+
+  const renderSide=(side)=>{
+    const setsHtml=side.sets.length===0
+      ?`<div class="excmp-set-line" style="color:var(--text-muted)">No set data found</div>`
+      :side.sets.map((s,si)=>`<div class="excmp-set-line"><span>Set ${si+1} · ${s.desc}</span><span>${(s.isBW||s.isCardio)?'':s.vol.toLocaleString()+' kg'}</span></div>`).join('');
+    // Total volume lives OUTSIDE .excmp-sets so it stays visible even when the dropdown is folded.
+    return`<div class="excmp-col">
+      <div class="excmp-col-badge">Panel ${side.panelSide}</div>
+      <div class="excmp-col-date">📅 ${side.dateLabel}</div>
+      <button type="button" class="excmp-toggle open" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')">
+        <span>Set values</span><span class="excmp-toggle-chev">▼</span>
+      </button>
+      <div class="excmp-sets open">${setsHtml}</div>
+      <div class="excmp-total"><span>Total</span><strong>${side.totalDetail}</strong></div>
+    </div>`;
+  };
+
+  const overlay=document.createElement('div');
+  overlay.className='excmp-overlay';
+  overlay.id='excmpOverlay';
+  overlay.onclick=(e)=>{if(e.target===overlay)closeExerciseCompare();};
+  overlay.innerHTML=`<div class="excmp-modal">
+    <div class="excmp-modal-header">
+      <div class="excmp-modal-title">⚖️ ${exName}</div>
+      <button type="button" class="excmp-close-btn" onclick="closeExerciseCompare()" aria-label="Close">✕</button>
+    </div>
+    <div class="excmp-body">${renderSide(left)}<div class="excmp-divider"></div>${renderSide(right)}</div>
+  </div>`;
+  document.body.appendChild(overlay);
+}
+
+function closeExerciseCompare(){
+  const el=document.getElementById('excmpOverlay');
+  if(el)el.remove();
 }
 
 /* ===================== COMPARE BOX (removed — replaced by compare mode) ===================== */
