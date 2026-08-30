@@ -1299,7 +1299,15 @@ body:not(.theme-dark) .dur-graph-detail-divider strong{color:#1e3a8a}
 .cmp-rotate-hint{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--toast-bg);color:#fff;border-radius:14px;padding:12px 40px 12px 16px;display:flex;align-items:center;gap:10px;font-size:13px;font-family:var(--font-alt);font-weight:600;box-shadow:0 8px 28px rgba(0,0,0,0.35);z-index:999999;max-width:88vw;text-align:left;line-height:1.4;animation:fadeIn 0.3s ease;letter-spacing:0.3px;touch-action:pan-y}
 .cmp-rotate-hint-close{position:absolute;top:6px;right:6px;width:22px;height:22px;border-radius:50%;border:none;background:rgba(255,255,255,0.15);color:#fff;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;flex-shrink:0}
 .cmp-rotate-hint-close:hover{background:rgba(255,255,255,0.28)}
+.cmp-rotate-hint-rotate{flex-shrink:0;border:none;background:rgba(255,255,255,0.2);color:#fff;font-family:var(--font-alt);font-weight:800;font-size:11px;letter-spacing:0.3px;padding:6px 10px;border-radius:9px;cursor:pointer;white-space:nowrap}
+.cmp-rotate-hint-rotate:hover{background:rgba(255,255,255,0.32)}
 .cmp-hint-dismissing{transition:opacity 0.2s ease,transform 0.2s ease!important;opacity:0!important}
+/* Persistent manual Rotate Screen button shown above the Compare panels — desktop/large screens
+   have no use for it, so it's hidden past the same 900px breakpoint the swipe layout uses. */
+.cmp-rotate-row{display:flex;justify-content:center;margin-bottom:12px}
+.cmp-rotate-btn{display:inline-flex;align-items:center;gap:6px;padding:8px 18px;border-radius:12px;border:1px solid var(--border-col);background:var(--accent-soft);color:var(--accent);font-family:var(--font-alt);font-weight:800;font-size:12px;letter-spacing:0.3px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.cmp-rotate-btn:active{transform:scale(0.95)}
+@media(min-width:901px){.cmp-rotate-row{display:none}}
 /* hide single view when compare is on */
 .vol-single-view{transition:all 0.3s}
 .vol-single-view.hidden{display:none}
@@ -2678,6 +2686,9 @@ body.tracker-fs-lock{overflow:hidden}
 
           <!-- COMPARE LANDSCAPE VIEW (shown when compare mode ON) -->
           <div class="vol-compare-landscape" id="volCompareLandscape">
+           <div class="cmp-rotate-row" id="cmpRotateRow">
+             <button type="button" class="cmp-rotate-btn" id="cmpRotateBtn" onclick="_cmpRotateScreen()">🔄 Rotate Screen</button>
+           </div>
            <div class="cmp-swipe-wrapper" id="cmpSwipeWrapper">
             <div class="cmp-swipe-track" id="cmpSwipeTrack">
 
@@ -2697,6 +2708,10 @@ body.tracker-fs-lock{overflow:hidden}
                   <div class="vol-graph-detail-date" id="volGraphDetailDateL" style="display:none"></div>
                   <div class="vol-graph-detail-vol" id="volGraphDetailVolL" style="display:none"></div>
                 </div>
+              </div>
+              <div class="dur-nav-pair" style="margin-top:6px">
+                <button class="dur-nav-arrow" style="width:30px;height:30px;font-size:18px" onclick="volNavigateSide('left',-1)" title="Previous day">&#8249;</button>
+                <button class="dur-nav-arrow" style="width:30px;height:30px;font-size:18px" onclick="volNavigateSide('left',1)" title="Next day">&#8250;</button>
               </div>
               <div id="volChartLegendL" class="vol-chart-legend hidden"></div>
               <div style="display:flex;align-items:center;gap:7px;margin-top:8px">
@@ -2741,6 +2756,10 @@ body.tracker-fs-lock{overflow:hidden}
                   <div class="vol-graph-detail-date" id="volGraphDetailDateR" style="display:none"></div>
                   <div class="vol-graph-detail-vol" id="volGraphDetailVolR" style="display:none"></div>
                 </div>
+              </div>
+              <div class="dur-nav-pair" style="margin-top:6px">
+                <button class="dur-nav-arrow" style="width:30px;height:30px;font-size:18px" onclick="volNavigateSide('right',-1)" title="Previous day">&#8249;</button>
+                <button class="dur-nav-arrow" style="width:30px;height:30px;font-size:18px" onclick="volNavigateSide('right',1)" title="Next day">&#8250;</button>
               </div>
               <div id="volChartLegendR" class="vol-chart-legend hidden"></div>
               <div style="display:flex;align-items:center;gap:7px;margin-top:8px">
@@ -7251,8 +7270,10 @@ async function switchMemberTab(id){
     volWeekAnchor=getMonday(new Date());
     {const n=new Date();_durLastMonthYM={year:n.getFullYear(),month:n.getMonth()};_volLastMonthYM={year:n.getFullYear(),month:n.getMonth()};}
     await updateStatsChart();
-    if(document.getElementById('subnavVolume')&&document.getElementById('subnavVolume').classList.contains('active'))
+    if(document.getElementById('subnavVolume')&&document.getElementById('subnavVolume').classList.contains('active')){
       await updateVolumeChart('main');
+      _cmpRestoreIfNeeded();
+    }
   }
   else if(id==='attPage')await loadAttendanceHistoryRecords();
   else if(id==='workPage')await loadWorkoutsForDate();
@@ -8202,7 +8223,7 @@ function _showCmpHint(){
   el=document.createElement('div');
   el.id='cmpRotateHint';
   el.className='cmp-rotate-hint';
-  el.innerHTML=`<span style="font-size:18px">📱</span><span>Rotate screen or enable desktop mode to get full view.</span><button type="button" class="cmp-rotate-hint-close" onclick="_dismissCmpHint()" aria-label="Dismiss">✕</button>`;
+  el.innerHTML=`<span style="font-size:18px">📱</span><span>Rotate screen or enable desktop mode to get full view.</span><button type="button" class="cmp-rotate-hint-rotate" onclick="_cmpRotateScreen()">🔄 Rotate Now</button><button type="button" class="cmp-rotate-hint-close" onclick="_dismissCmpHint()" aria-label="Dismiss">✕</button>`;
   el.style.transform='translateX(-50%)';
   document.body.appendChild(el);
   _initCmpHintSwipe(el);
@@ -8225,15 +8246,83 @@ function _initCmpHintSwipe(el){
   el.addEventListener('touchend',onEnd,{passive:true});
 }
 
-// Listener kept only to clean up if user somehow triggered fullscreen elsewhere
+let _cmpRotated=false; // true while we've fullscreen+landscape-locked the screen for Compare mode
+
+/* Manual "Rotate Screen" button — requests fullscreen (required by most browsers before an
+   orientation lock is allowed) then locks to landscape. Tapping again while rotated undoes both.
+   Not every browser supports Screen Orientation locking (notably iOS Safari), so this fails
+   gracefully with a toast telling the person to rotate their device by hand instead. */
+async function _cmpRotateScreen(){
+  if(_cmpRotated){_cmpExitRotate();return}
+  try{
+    if(document.documentElement.requestFullscreen&&!document.fullscreenElement){
+      await document.documentElement.requestFullscreen();
+    }
+    if(screen.orientation&&screen.orientation.lock){
+      await screen.orientation.lock('landscape');
+      _cmpRotated=true;
+      _updateCmpRotateBtn();
+      _dismissCmpHint();
+    } else {
+      showToast("Auto-rotate isn't supported on this browser — please rotate your device manually.");
+    }
+  }catch(e){
+    showToast("Couldn't rotate automatically — please rotate your device manually.");
+  }
+}
+function _cmpExitRotate(){
+  try{if(screen.orientation&&screen.orientation.unlock)screen.orientation.unlock()}catch(e){}
+  if(document.fullscreenElement&&document.exitFullscreen)document.exitFullscreen().catch(()=>{});
+  _cmpRotated=false;
+  _updateCmpRotateBtn();
+}
+function _updateCmpRotateBtn(){
+  const btn=document.getElementById('cmpRotateBtn');
+  if(btn)btn.innerHTML=_cmpRotated?'↩️ Exit Rotate':'🔄 Rotate Screen';
+}
+
+// Also cleans up if the person exits fullscreen some other way (back gesture, browser chrome, etc.)
 document.addEventListener('fullscreenchange',()=>{
-  if(!document.fullscreenElement&&_cmpModeOn){
+  if(!document.fullscreenElement){
     try{if(screen.orientation&&screen.orientation.unlock)screen.orientation.unlock()}catch(e){}
+    if(_cmpRotated){_cmpRotated=false;_updateCmpRotateBtn();}
   }
 });
 
-function toggleCompareMode(){
-  _cmpModeOn=!_cmpModeOn;
+/* ══ COMPARE MODE — PERSISTENCE (survives a page refresh) ══════════
+   Saved to sessionStorage (same convention as gymbro_last_tab): a refresh in the same tab restores
+   Compare Mode's ON/OFF state and both panels' selected weeks exactly; a fresh tab/browser open
+   starts clean. */
+function _cmpSaveState(){
+  try{
+    sessionStorage.setItem('gymbro_cmp_on',_cmpModeOn?'1':'0');
+    if(_cmpWeekAnchorL)sessionStorage.setItem('gymbro_cmp_anchor_L',_fmtISODate(_cmpWeekAnchorL));
+    if(_cmpWeekAnchorR)sessionStorage.setItem('gymbro_cmp_anchor_R',_fmtISODate(_cmpWeekAnchorR));
+  }catch(e){}
+}
+function _cmpLoadSavedAnchors(){
+  try{
+    const l=sessionStorage.getItem('gymbro_cmp_anchor_L');
+    const r=sessionStorage.getItem('gymbro_cmp_anchor_R');
+    if(l)_cmpWeekAnchorL=new Date(l+'T00:00:00');
+    if(r)_cmpWeekAnchorR=new Date(r+'T00:00:00');
+    return sessionStorage.getItem('gymbro_cmp_on')==='1';
+  }catch(e){return false}
+}
+/* Called whenever the Volume subnav becomes visible — restores Compare Mode from a previous page
+   load (refresh) exactly once. No-ops instantly if Compare is already on in this JS session (i.e.
+   the person just navigated tabs, nothing was actually reloaded). */
+function _cmpRestoreIfNeeded(){
+  if(_cmpModeOn)return;
+  const wasOn=_cmpLoadSavedAnchors();
+  if(!wasOn)return;
+  _cmpModeOn=true;
+  _cmpApplyState(true);
+}
+
+/* Applies the current _cmpModeOn value to the UI + (re)draws both panels if turning on. Shared by
+   the manual toggle button and by _cmpRestoreIfNeeded so both paths behave identically. */
+function _cmpApplyState(showHintIfMobile){
   const btn=document.getElementById('cmpToggleBtn');
   const badge=document.getElementById('cmpModeBadge');
   const single=document.getElementById('volSingleView');
@@ -8245,18 +8334,24 @@ function toggleCompareMode(){
   landscape.classList.toggle('active',_cmpModeOn);
   if(_cmpModeOn){
     // Default comparison the first time this session: this week (Panel B) vs last week (Panel A).
-    // Once the person picks their own weeks via the calendar icon, those choices stick across toggles.
+    // Once the person picks their own weeks via the calendar icon, those choices stick across toggles
+    // AND across a page refresh (see _cmpSaveState/_cmpRestoreIfNeeded).
     if(!_cmpWeekAnchorL)_cmpWeekAnchorL=addDays(getMonday(new Date()),-7);
     if(!_cmpWeekAnchorR)_cmpWeekAnchorR=getMonday(new Date());
     updateVolumeChart('left');
     updateVolumeChart('right');
     if(window.cmpSwipeGoTo)cmpSwipeGoTo(0); // always land back on Panel A when re-entering
-    // Show hint on mobile only
-    if(_isMobile())_showCmpHint();
+    if(showHintIfMobile&&_isMobile())_showCmpHint();
   } else {
-    // Remove hint if still visible
     _dismissCmpHint();
+    _cmpExitRotate();
   }
+  _cmpSaveState();
+}
+
+function toggleCompareMode(){
+  _cmpModeOn=!_cmpModeOn;
+  _cmpApplyState(true);
 }
 
 /* ══ COMPARE PANEL — CALENDAR ICON WEEK PICKER ═══════════════════
@@ -8420,6 +8515,7 @@ function cmpCalPickDate(key){
     return;
   }
   if(side==='left')_cmpWeekAnchorL=picked;else _cmpWeekAnchorR=picked;
+  _cmpSaveState();
   updateVolumeChart(side);
   closeCmpCalendar();
 }
@@ -8515,7 +8611,7 @@ function switchStatsSubnav(tab){
   document.getElementById('durationView').classList.toggle('hidden',tab!=='duration');
   document.getElementById('volumeView').classList.toggle('active',tab==='volume');
   if(tab==='duration')updateStatsChart();
-  else{updateVolumeChart('main');}
+  else{updateVolumeChart('main');_cmpRestoreIfNeeded();}
 }
 
 /* ─── detect current week number in month ─── */
@@ -9556,6 +9652,47 @@ function getVolSolidColorSoft(alpha){
 }
 
 /* side: 'main' | 'left' | 'right' */
+/* Selects bar `idx` on the given panel's weekly chart — updates the selection highlight, the
+   graph-detail-box overlay, and the enhanced classes/volume breakdown below. Shared by clicking a
+   bar directly (see updateVolumeChart) and by the panel's own </> nav arrows (volNavigateSide). */
+function volSelectBarIndex(side,idx){
+  const cache=side==='left'?volDayDataCacheL:side==='right'?volDayDataCacheR:volDayDataCache;
+  const instance=side==='left'?volChartInstanceL:side==='right'?volChartInstanceR:volChartInstance;
+  if(!cache||!instance)return;
+  const day=cache[idx];if(!day)return;
+  const sfx=side==='left'?'L':side==='right'?'R':'';
+  const drillTitleId='volDrillTitle'+sfx;
+  const drillBodyId='volDrillBody'+sfx;
+  _lastDrillDay[side]=day;
+  if(side==='main')_volCurrentIdx=idx;
+  instance.data.datasets[0]._selectedIdx=idx;
+  instance.data.datasets[0]._selectedClass=volSelectedClass[side]||null;
+  instance.update('none');
+  renderVolDrilldownEnhanced(day,drillTitleId,drillBodyId,side);
+  _updateVolGraphDetailBox(day,side);
+}
+
+/* </> arrow navigation for a Compare panel (left/right) — steps through that panel's own 7 days,
+   wrapping at either end. When a class filter is active in that panel (Detailed View legend),
+   moves only between days containing that class, mirroring the main graph's arrow behavior. */
+function volNavigateSide(side,dir){
+  const cache=side==='left'?volDayDataCacheL:volDayDataCacheR;
+  const instance=side==='left'?volChartInstanceL:volChartInstanceR;
+  if(!cache||!cache.length||!instance)return;
+  const cur=instance.data.datasets[0]._selectedIdx??-1;
+  const selCls=volSelectedClass[side];
+  let nextIdx;
+  if(selCls){
+    const indices=cache.map((d,i)=>i).filter(i=>(cache[i].attendanceWorkouts||[]).includes(selCls));
+    if(!indices.length)return;
+    const pos=indices.indexOf(cur);
+    nextIdx=(pos===-1)?(dir===1?indices[0]:indices[indices.length-1]):indices[(pos+dir+indices.length)%indices.length];
+  } else {
+    nextIdx=((cur<0?0:cur)+dir+cache.length)%cache.length;
+  }
+  volSelectBarIndex(side,nextIdx);
+}
+
 async function updateVolumeChart(side='main'){
   // Main panel respects the Weekly / Monthly / 3-Month range toggle.
   // Monthly & 3-Month render as an interactive line graph via updateVolumeLineChart().
@@ -9712,15 +9849,7 @@ async function updateVolumeChart(side='main'){
   const cache=side==='left'?volDayDataCacheL:side==='right'?volDayDataCacheR:volDayDataCache;
 
   function selectWeeklyBar(idx){
-    const day=cache[idx];if(!day)return;
-    _lastDrillDay[side]=day;
-    if(isMain)_volCurrentIdx=idx;
-    instance.data.datasets[0]._selectedIdx=idx;
-    instance.data.datasets[0]._selectedClass=volSelectedClass[side]||null;
-    instance.update('none');
-    // Every panel now gets the same enhanced (classes + volume) breakdown
-    renderVolDrilldownEnhanced(day,drillTitleId,drillBodyId,side);
-    _updateVolGraphDetailBox(day,side);
+    volSelectBarIndex(side,idx);
   }
 
   canvas.onmousemove=function(evt){
