@@ -183,8 +183,13 @@ body.ptr-dragging,body.ptr-dragging *{transition:none!important}
 .room-modal-label{font-size:11px;font-weight:800;color:var(--text-muted);font-family:var(--font-alt);letter-spacing:0.6px;display:block;margin-bottom:6px}
 .room-modal-select{width:100%;padding:10px;border-radius:10px;border:1px solid var(--border-col);background:var(--bg-input,var(--bg-card));color:var(--text-primary);font-family:var(--font-alt);font-size:14px}
 .room-code-display{font-family:var(--font-display);font-size:34px;letter-spacing:6px;color:var(--accent);margin-top:6px}
-.room-member-tile{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;width:56px}
-.room-member-tile .rm-name{font-size:9.5px;font-family:var(--font-alt);font-weight:800;color:var(--text-muted);white-space:nowrap;max-width:56px;overflow:hidden;text-overflow:ellipsis}
+.room-member-tile{display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;width:56px}
+/* Host/You tag — its own line above the name (not squeezed onto the same line), fixed blue so it
+   always reads as a role tag no matter what the app's accent color is set to. min-height keeps every
+   tile the same height whether or not it has a tag, so avatars stay lined up in a neat row and
+   nothing shifts/overlaps on narrow mobile widths. */
+.room-member-tile .rm-role{display:block;min-height:11px;font-size:8.5px;font-family:var(--font-alt);font-weight:800;color:#3b82f6;letter-spacing:0.3px;line-height:1.2}
+.room-member-tile .rm-name{font-size:9.5px;font-family:var(--font-alt);font-weight:800;color:var(--text-muted);white-space:nowrap;max-width:56px;overflow:hidden;text-overflow:ellipsis;line-height:1.2}
 .room-member-tile.active-target .rm-name{color:var(--accent)}
 .room-member-avatar{width:40px;height:40px;border-radius:50%;border:2.5px solid var(--border-col);display:flex;align-items:center;justify-content:center;font-size:16px;overflow:hidden;position:relative;transition:border-color .2s,transform .2s;background:var(--accent-soft)}
 .room-member-avatar img{width:100%;height:100%;object-fit:cover}
@@ -193,6 +198,12 @@ body.ptr-dragging,body.ptr-dragging *{transition:none!important}
 .room-member-tile.pending{opacity:0.7;cursor:default}
 .room-member-tile.readonly{cursor:default}
 .room-member-tile-wrap{position:relative}
+/* Themed card shell for the room strips (waiting/joined/hosting) — was a flat var(--bg-card) block
+   with nothing but a border, which read as a blank white box. Now uses the same shadow language as
+   the rest of the app (.card/.ups-card etc: var(--card-shadow) at rest, an accent glow + gentle lift
+   on hover) so it visually matches. */
+.room-box{background:var(--bg-card);border:1px solid var(--accent);border-radius:16px;padding:14px 16px;margin-bottom:14px;box-shadow:var(--card-shadow);transition:transform 0.25s ease,box-shadow 0.25s ease}
+.room-box:hover{transform:translateY(-2px);box-shadow:0 12px 30px var(--accent-glow)}
 .room-timer-critical{color:#dc2626!important;animation:roomTimerBlink 1s step-start infinite}
 /* Small fixed edit icon shown next to the host's room timer once a room is running — opens the
    same timer-selection modal used at room creation, so the host can change the timer mid-room. */
@@ -202,6 +213,11 @@ body.ptr-dragging,body.ptr-dragging *{transition:none!important}
 @keyframes roomTimerBlink{50%{opacity:0.25}}
 .room-extend-btn{background:var(--accent-soft);color:var(--accent);border:none;border-radius:8px;padding:4px 10px;font-size:11px;font-weight:800;font-family:var(--font-alt);cursor:pointer}
 .room-extend-custom{padding:4px 10px;min-width:26px;text-align:center}
+/* Small red exit-style button — used for End Room, Leave Room and the waiting-strip Cancel button.
+   These previously reused .action-icon-btn, whose aspect-ratio:1 rule forced them into an oversized
+   square block instead of a compact pill. */
+.room-exit-btn{width:auto;height:auto;aspect-ratio:auto;flex-shrink:0;background:#dc2626;color:#fff;border:none;border-radius:8px;padding:4px 12px;font-size:10.5px;font-weight:800;font-family:var(--font-alt);cursor:pointer;transition:background .2s ease}
+.room-exit-btn:hover{background:#b91c1c}
 .room-remove-btn{width:auto;height:auto;aspect-ratio:auto;flex-shrink:0;background:#dc2626;color:#fff;border:none;border-radius:8px;padding:3px 10px;font-size:10.5px;font-weight:800;font-family:var(--font-alt);cursor:pointer}
 .room-remove-btn:hover{background:#b91c1c}
 /* Sits next to Remove in roomModeBanner — same shape/sizing, but the app's violet room accent
@@ -2780,29 +2796,29 @@ body.tracker-fs-lock{overflow:hidden}
             <span>Enter Room ID</span>
           </button>
         </div>
-        <div id="memberRoomWaitingStrip" style="display:none;background:var(--bg-card);border:1px solid #f59e0b;border-radius:14px;padding:12px 14px;margin-bottom:14px">
+        <div id="memberRoomWaitingStrip" class="room-box" style="display:none;border-color:#f59e0b">
           <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
             <div style="font-family:var(--font-alt);font-size:12px;font-weight:800;color:#f59e0b;letter-spacing:0.5px">
               ⏳ WAITING FOR APPROVAL — Room <span id="memberWaitingRoomIdText"></span> · hosted by <span id="memberWaitingHostName"></span>
             </div>
-            <button class="action-icon-btn delete" style="width:auto;padding:4px 10px;font-size:11px" onclick="leaveWorkoutRoom()">Cancel</button>
+            <button class="room-exit-btn" onclick="leaveWorkoutRoom()">Cancel</button>
           </div>
           <div style="margin-top:8px;font-family:var(--font-alt);font-size:11.5px;color:var(--text-muted)">The host needs to approve you before you can join this room.</div>
         </div>
-        <div id="memberRoomStrip" style="display:none;background:var(--bg-card);border:1px solid var(--accent);border-radius:14px;padding:12px 14px;margin-bottom:14px">
+        <div id="memberRoomStrip" class="room-box" style="display:none">
           <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
             <div style="font-family:var(--font-alt);font-size:12px;font-weight:800;color:var(--accent);letter-spacing:0.5px">
               🙋 IN ROOM <span id="memberRoomIdText"></span> · hosted by <span id="memberRoomHostName"></span>
             </div>
             <div style="display:flex;align-items:center;gap:10px">
               <span id="memberRoomTimerText" style="font-family:var(--font-alt);font-size:12px;font-weight:800;color:var(--text-muted)"></span>
-              <button class="action-icon-btn delete" style="width:auto;padding:4px 10px;font-size:11px" onclick="leaveWorkoutRoom()">Leave Room</button>
+              <button class="room-exit-btn" onclick="leaveWorkoutRoom()">Leave Room</button>
             </div>
           </div>
           <div style="margin-top:8px;font-family:var(--font-alt);font-size:11.5px;color:var(--text-muted)">Ask your host to switch their Workout Log Manager to your name to log entries.</div>
           <div id="memberRoomMembersStrip" style="display:flex;gap:10px;margin-top:10px;flex-wrap:wrap;align-items:center"></div>
         </div>
-        <div id="roomActiveStrip" style="display:none;background:var(--bg-card);border:1px solid var(--accent);border-radius:14px;padding:12px 14px;margin-bottom:14px">
+        <div id="roomActiveStrip" class="room-box" style="display:none">
           <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
             <div style="font-family:var(--font-alt);font-size:12px;font-weight:800;color:var(--accent);letter-spacing:0.5px">
               ROOM <span id="roomIdBadgeText"></span> <span id="roomOwnerBadge" style="color:var(--text-muted);font-weight:700"></span>
@@ -2810,7 +2826,7 @@ body.tracker-fs-lock{overflow:hidden}
             <div style="display:flex;align-items:center;gap:10px">
               <span id="roomTimerText" style="font-family:var(--font-alt);font-size:12px;font-weight:800;color:var(--text-muted)"></span>
               <button type="button" class="room-timer-edit-btn" id="roomTimerEditBtn" onclick="openRoomTimeModal('edit')" title="Edit room timer" aria-label="Edit room timer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>
-              <button class="action-icon-btn delete" style="width:auto;padding:4px 10px;font-size:11px" onclick="endWorkoutRoom()" id="roomEndBtn">End Room</button>
+              <button class="room-exit-btn" onclick="endWorkoutRoom()" id="roomEndBtn">End Room</button>
             </div>
           </div>
           <div id="roomExtendRow" style="display:none;gap:6px;margin-top:8px;align-items:center;flex-wrap:wrap">
@@ -16133,14 +16149,24 @@ function renderMemberRoomMembersStrip(){
   if(!strip)return;
   const hostInner=window.__memberRoom.hostAvatar?`<img src="${window.__memberRoom.hostAvatar}" onerror="this.parentElement.textContent='🙂'">`:'🙂';
   let html=`<div class="room-member-tile-wrap"><div class="room-member-tile readonly">
-    <span class="rm-name">${escapeHtml(window.__memberRoom.hostName||'Host')} (Host)</span>
+    <span class="rm-role">Host</span>
+    <span class="rm-name">${escapeHtml(window.__memberRoom.hostName||'Host')}</span>
     <div class="room-member-avatar">${hostInner}</div>
   </div></div>`;
-  Object.values(window.__memberRoom.membersMeta).forEach(m=>{
+  // Order: host tile above (already added), then me ("You"), then everyone else alphabetically —
+  // so my own tile is always easy to find and the rest is predictable rather than join order.
+  const others=Object.values(window.__memberRoom.membersMeta).sort((a,b)=>{
+    const aMe=a.loginId===window.__memberRoom.loginId,bMe=b.loginId===window.__memberRoom.loginId;
+    if(aMe&&!bMe)return -1;
+    if(bMe&&!aMe)return 1;
+    return(a.name||'').localeCompare(b.name||'');
+  });
+  others.forEach(m=>{
     const isMe=m.loginId===window.__memberRoom.loginId;
     const inner=m.avatarUrl?`<img src="${m.avatarUrl}" onerror="this.parentElement.textContent='🏋'">`:'🏋';
     html+=`<div class="room-member-tile-wrap"><div class="room-member-tile readonly">
-      <span class="rm-name">${escapeHtml(m.name||('@'+m.loginId))}${isMe?' (You)':''}</span>
+      ${isMe?'<span class="rm-role">You</span>':'<span class="rm-role"></span>'}
+      <span class="rm-name">${escapeHtml(m.name||('@'+m.loginId))}</span>
       <div class="room-member-avatar">${inner}</div>
     </div></div>`;
   });
@@ -16200,14 +16226,19 @@ function renderRoomMembersStrip(){
   const ownerAvatarUrl=localStorage.getItem('gymbro_avatar_url')||null;
   const ownerInner=ownerAvatarUrl?`<img src="${ownerAvatarUrl}" onerror="this.parentElement.textContent='🙂'">`:'🙂';
   let html=`<div class="room-member-tile-wrap"><div class="room-member-tile${window.__room.target===null?' active-target':''}" onclick="switchRoomTarget(null)" title="Switch back to me">
-    <span class="rm-name">${escapeHtml(ownerName)} (You)</span>
+    <span class="rm-role">You</span>
+    <span class="rm-name">${escapeHtml(ownerName)}</span>
     <div class="room-member-avatar">${ownerInner}</div>
   </div></div>`;
-  Object.values(window.__room.membersMeta).forEach(m=>{
+  // Everyone else in alphabetical order (host tile is already above, own tile is already above) —
+  // predictable regardless of who joined when.
+  const others=Object.values(window.__room.membersMeta).sort((a,b)=>(a.name||'').localeCompare(b.name||''));
+  others.forEach(m=>{
     const isActive=window.__room.target&&window.__room.target.loginId===m.loginId;
     const inner=m.avatarUrl?`<img src="${m.avatarUrl}" onerror="this.parentElement.textContent='🏋'">`:'🏋';
     html+=`<div class="room-member-tile-wrap">
       <div class="room-member-tile${isActive?' active-target':''}" onclick="switchRoomTarget('${m.loginId}')" title="Switch to ${escapeHtml(m.name||'')}">
+        <span class="rm-role"></span>
         <span class="rm-name">${escapeHtml(m.name||('@'+m.loginId))}</span>
         <div class="room-member-avatar">${inner}</div>
       </div>
