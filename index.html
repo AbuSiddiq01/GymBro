@@ -505,8 +505,8 @@ input::placeholder{color:var(--text-muted)}
 /* Info icon (top-right of the XP panel) + the tap-to-open explainer modal */
 .xp-info-icon-btn{position:absolute;top:12px;right:12px;width:24px;height:24px;border-radius:50%;border:1px solid var(--border-col);background:var(--accent-soft);color:var(--text-muted);display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;transition:background 0.15s,color 0.15s}
 .xp-info-icon-btn:hover,.xp-info-icon-btn:active{background:var(--accent);color:#fff;border-color:var(--accent)}
-.xp-info-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.55);display:flex;align-items:center;justify-content:center;z-index:99999999;padding:20px;box-sizing:border-box;animation:fadeIn 0.2s ease}
-.xp-info-modal{background:var(--bg-card);border:1px solid var(--border-col);border-radius:16px;box-shadow:0 12px 40px rgba(0,0,0,0.35);padding:20px;max-width:360px;width:100%;max-height:80vh;overflow-y:auto;box-sizing:border-box;animation:fadeIn 0.25s ease}
+.xp-info-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.65);display:flex;align-items:center;justify-content:center;z-index:99999999;padding:20px;box-sizing:border-box;animation:fadeIn 0.2s ease}
+.xp-info-modal{background:var(--bg-card);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid var(--border-col);border-radius:16px;box-shadow:0 12px 40px rgba(0,0,0,0.35);padding:20px;max-width:360px;width:100%;max-height:80vh;overflow-y:auto;box-sizing:border-box;animation:fadeIn 0.25s ease}
 .xp-info-modal-title{font-family:var(--font-alt);font-size:16px;font-weight:700;color:var(--section-title-col);letter-spacing:0.3px;margin-bottom:12px}
 .xp-info-rank-list{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}
 .xp-info-rank-row{display:flex;align-items:center;gap:10px;background:var(--accent-soft);border-radius:10px;padding:9px 10px}
@@ -5029,23 +5029,22 @@ function deriveDayClasses(dataRows){
 /* ===================== RANK SYSTEM =====================
    5 ranks, each defined by a cumulative XP threshold (TOTAL elapsed time since joining, not "N more
    months on top of the last rank"):
-     BEGINNER      :       0 XP
-     INTERMEDIATE  :  50,000 XP
-     ADVANCED      : 150,000 XP
-     PRO           : 250,000 XP
-     GYMRAT        : 350,000 XP — final rank, pure XP threshold, no ongoing monthly requirement to
-                      reach OR keep it. (A monthly attendance-based maintenance rule for GYMRAT was
-                      considered and explicitly dropped for now — flag it if you want that revisited
-                      later.)
-   Nothing here special-cases "how experienced someone is" directly — it doesn't need to. XP itself
-   already scales with weight × reps lifted, so a more experienced lifter simply EARNS more XP per
-   session than a beginner would, and crosses these same fixed thresholds faster automatically. */
+     BEGINNER      :        0 XP
+     INTERMEDIATE  :   20,000 XP
+     ADVANCED      :   60,000 XP
+     PRO           :  100,000 XP
+     GYMRAT        :  150,000 XP — final rank, pure XP threshold, no ongoing monthly requirement to
+                      reach OR keep it.
+   XP itself is now earned per WORKOUT SAVED rather than by volume lifted (see calculateWorkoutCountXP)
+   — +10 XP per non-Warmup workout, capped at 15 counted workouts/day (150 XP/day max) — so a more
+   consistent lifter crosses these thresholds faster than someone who trains rarely, without a single
+   day of padding-with-heavy-numbers being able to rank someone up on its own. */
 const RANK_TIERS=[
-  {name:'BEGINNER',icon:'flag',min:0,max:49999},
-  {name:'INTERMEDIATE',icon:'zap',min:50000,max:149999},
-  {name:'ADVANCED',icon:'trending-up',min:150000,max:249999},
-  {name:'PRO',icon:'flame',min:250000,max:349999},
-  {name:'GYMRAT',icon:'crown',min:350000,max:Infinity}
+  {name:'BEGINNER',icon:'flag',min:0,max:19999},
+  {name:'INTERMEDIATE',icon:'zap',min:20000,max:59999},
+  {name:'ADVANCED',icon:'trending-up',min:60000,max:99999},
+  {name:'PRO',icon:'flame',min:100000,max:149999},
+  {name:'GYMRAT',icon:'crown',min:150000,max:Infinity}
 ];
 function getRankForXP(xp){return RANK_TIERS.find(r=>xp>=r.min&&xp<=r.max)||RANK_TIERS[0]}
 
@@ -5130,11 +5129,10 @@ function showXPInfoModal(){
     <div class="xp-info-modal-body">
       <ul>
         <li>+50 XP for every day you check in</li>
-        <li>Every 100 Kg-Reps lifted = +10 XP </li>
-        <li>Ex: 10kg × 10reps × 3 sets = 300 Kg-Reps → +30 XP</li>
+        <li>+10 XP for every workout you save (except warmup)</li>
         <li>+50 bonus XP every 5 consecutive check-in  </li>
       </ul>
-      Train consistently and lift heavier to rank up faster — XP never resets.
+      Train consistently to level up faster — XP never resets.
     </div>
     <div class="xp-info-modal-actions">
       <button type="button" class="xp-info-modal-btn" id="xpInfoModalCloseBtn">Got it</button>
@@ -5152,6 +5150,37 @@ function calculateVolumeXP(s){
     const m=seg.match(/([\d.]+)\s*kg\s*x\s*(\d+)/i);if(m)t+=parseFloat(m[1])*parseInt(m[2]);
   });
   return Math.floor(t/100)*10+Math.floor(cardioSec/60)*10;
+}
+/* Current XP-per-workout rule (replaces the old volume-based calculateVolumeXP above, which let
+   someone hit the top rank in a single day just by entering huge weight×reps numbers a few times).
+   +10 XP for every workout SAVED that day, regardless of weight/reps/duration — flat, so it can't be
+   inflated by padding numbers. Warmup exercises (anything tagged class:"Warmup" in the catalog —
+   Push Up, Pull Up, stretches, etc.) earn nothing, since they're a warm-up, not the actual workout.
+   Custom (uncatalogued) exercises DO earn XP same as any catalog exercise — only the "Warmup" class
+   is excluded. Capped at 15 XP-earning workouts per calendar day (150 XP/day max), matching the
+   app's existing hard cap of 15 total saved entries/day (see sessionUpsertWorkoutEntry) — that cap
+   already limits every day to at most 15 entries total, so this per-day cap here is mostly a
+   belt-and-braces safeguard rather than a new restriction. */
+function calculateWorkoutCountXP(dataRows){
+  const perDayCount={};
+  (dataRows||[]).forEach(row=>{
+    const date=row.date;
+    sessionWorkoutsArray(row).forEach(entry=>{
+      const text=sessionWorkoutEntryToText(entry);
+      if(!text)return;
+      if(extractClassFromWorkoutName(text)==='Warmup')return;
+      perDayCount[date]=(perDayCount[date]||0)+1;
+    });
+  });
+  let xp=0;
+  Object.values(perDayCount).forEach(count=>{xp+=Math.min(count,15)*10});
+  return xp;
+}
+/* True for any exercise whose Class resolves to "Warmup" (catalog or custom-exercise registry) — see
+   calculateWorkoutCountXP and saveWorkoutLogEntry's per-save XP toast. */
+function isWarmupExercise(nameRaw){
+  if(!nameRaw)return false;
+  return getExerciseClass(nameRaw)==='Warmup';
 }
 /* Streak-maintenance XP bonus: +50 XP flat, every time a "bonus streak" counter reaches 5. The bonus
    streak tracks alongside the main homepage Streak counter (same rule: a missed/absent day resets it
@@ -7189,7 +7218,7 @@ async function syncCoreDashboardMetrics(){
   const totalCheckins=attData?attData.length:0;
   let xp=totalCheckins*50;
   xp+=calculateStreakBonusXP(attData); // +50 every 5 consecutive present days, repeating — see calculateStreakBonusXP
-  if(attData)attData.forEach(row=>{sessionWorkoutsArray(row).forEach(entry=>{xp+=calculateVolumeXP(sessionWorkoutEntryToText(entry))})});
+  xp+=calculateWorkoutCountXP(attData); // +10 XP per non-Warmup workout saved, capped at 15/day — see calculateWorkoutCountXP
   const prevXP=parseInt(localStorage.getItem('gymbro_xp')||'0');localStorage.setItem('gymbro_xp',xp);
   updateXPDisplay(xp,prevXP);
   // Cache this freshly-calculated XP total into users.xp (fire-and-forget — see persistUserXP) so any
@@ -12015,7 +12044,7 @@ async function saveWorkoutLogEntry(){
       sd.push(`${w}kg x ${r}`);
     }
   }
-  let ser=`${name}: ${sd.join(", ")}`,xpe=isCardio?Math.floor(totalCardioSec/60)*10:Math.floor(tv/100)*10;
+  let ser=`${name}: ${sd.join(", ")}`,xpe=isWarmupExercise(name)?0:10;
   const entry=sessionMakeWorkoutEntry(name,sd.join(", "));
   const slotRef=currentEditingIndex!==null?(window._workoutCiMap&&window._workoutCiMap[currentEditingIndex]):null;
   if(!slotRef)await maybeNotifyNotPunchedIn(uid,td); // brand-new entry, not an edit — only worth the notice here
