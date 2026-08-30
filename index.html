@@ -1458,6 +1458,17 @@ input:checked+.privacy-toggle-slider:before{transform:translateX(20px)}
 .user-profile-name{font-family:var(--font-display);font-size:24px;color:var(--text-primary);letter-spacing:1px;margin-top:2px}
 .user-profile-lid{font-size:13px;color:var(--text-muted);margin-top:3px;font-family:var(--font-alt)}
 .user-profile-joined-chip{display:inline-flex;align-items:center;gap:5px;margin-top:12px;padding:5px 14px;background:var(--accent-soft);border:1px solid var(--border-col);border-radius:99px;font-size:11px;color:var(--text-secondary);font-family:var(--font-alt);letter-spacing:0.3px}
+/* Today's gym check-in/out status on another user's profile — mirrors the app's existing
+   present(green)/rest(blue)/muted color language rather than introducing new colors. Hidden
+   entirely for private accounts (see openUserProfile). */
+.user-profile-status-chip{display:inline-flex;align-items:center;gap:6px;margin-top:12px;padding:6px 16px;border-radius:99px;font-size:11.5px;font-weight:700;font-family:var(--font-alt);letter-spacing:0.3px;border:1px solid var(--border-col)}
+.user-profile-status-chip .status-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.user-profile-status-chip.status-live{background:rgba(22,163,74,0.12);border-color:rgba(22,163,74,0.35);color:#16a34a}
+.user-profile-status-chip.status-live .status-dot{background:#16a34a;animation:livePulse 1.2s ease-in-out infinite}
+.user-profile-status-chip.status-done{background:var(--accent-soft);border-color:var(--border-col);color:var(--accent)}
+.user-profile-status-chip.status-done .status-dot{background:var(--accent)}
+.user-profile-status-chip.status-none{background:rgba(124,58,237,0.12);border-color:rgba(124,58,237,0.35);color:#7c3aed}
+.user-profile-status-chip.status-none .status-dot{background:#7c3aed}
 .user-profile-bio{font-size:13.5px;color:var(--text-secondary);margin-top:14px;line-height:1.55;padding:0 8px}
 .user-profile-stats-title{margin:2px 4px 12px;font-size:12px;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.8px;font-family:var(--font-alt);display:flex;align-items:center;gap:6px}
 .user-profile-stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
@@ -17446,6 +17457,33 @@ async function openUserProfile(uid){
 
   const joinedLabel=formatJoinedSince(u.join_date);
 
+  // Today's check-in/out status — only computed for non-private accounts (see the chip's own note
+  // above). Priority: an "In Progress" row today beats a finished one, since a user could in theory
+  // have punched in again after an earlier finished session the same day.
+  let statusChipHtml="";
+  if(!u.is_private){
+    try{
+      const today=getLocalDateString();
+      const{data:sessRows}=await db.from(SESSION_TABLE).select('duration,created_at').eq('user_id',uid).eq('date',today);
+      const rows=sessRows||[];
+      const inProgressRow=rows.find(r=>r.duration&&r.duration.startsWith('In Progress'));
+      const finishedRows=rows
+        .filter(r=>r.duration&&r.duration.trim()!==''&&!r.duration.startsWith('In Progress'))
+        .sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
+      if(inProgressRow){
+        const ciISO=sessionRealCheckInISO(inProgressRow)||inProgressRow.created_at;
+        statusChipHtml=`<div class="user-profile-status-chip status-live"><span class="status-dot"></span>Checked in at ${formatCheckInTime(ciISO)} today</div>`;
+      }else if(finishedRows.length){
+        const row=finishedRows[0];
+        const mins=parseDurationToMinutes(row.duration);
+        const checkoutISO=new Date(new Date(row.created_at).getTime()+mins*60000).toISOString();
+        statusChipHtml=`<div class="user-profile-status-chip status-done"><span class="status-dot"></span>Checked out at ${formatCheckInTime(checkoutISO)} today</div>`;
+      }else{
+        statusChipHtml=`<div class="user-profile-status-chip status-none"><span class="status-dot"></span>Not checked in today</div>`;
+      }
+    }catch(e){/* status is a nice-to-have — never block the rest of the profile from loading */}
+  }
+
   page.innerHTML=`
     <div class="user-profile-topbar">
       <button class="user-profile-back" onclick="closeUserProfile()">‹</button>
@@ -17454,13 +17492,14 @@ async function openUserProfile(uid){
     </div>
     <div class="user-profile-content">
       <div class="user-profile-hero glass">
+        ${joinedLabel?`<div class="profile-joined-chip">📅 ${joinedLabel}</div>`:""}
         <div class="user-profile-ava-wrap">
           <div class="user-profile-ava" onclick="upViewAvatarLightbox('${u.avatar_url||""}')">${avaHtml}</div>
         </div>
         <div class="user-profile-name">${u.name||"GymBro"}</div>
         <div class="user-profile-lid">@${u.login_id||"—"} ${u.is_private?'· 🔒 Private':''}</div>
-        ${joinedLabel?`<div class="user-profile-joined-chip">📅 ${joinedLabel}</div>`:""}
         ${u.bio&&canSeeContent?`<div class="user-profile-bio">${u.bio}</div>`:""}
+        ${statusChipHtml}
       </div>
       ${xpBoxesHtml}
       ${contentHtml}
