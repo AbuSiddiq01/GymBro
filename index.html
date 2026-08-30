@@ -1185,17 +1185,17 @@ body:not(.theme-dark) .dur-graph-detail-divider strong{color:#1e3a8a}
 .dur-detail-toggle{padding:7px 13px;border:1.5px solid var(--border-col);border-radius:20px;background:transparent;color:var(--text-muted);font-family:var(--font-alt);font-size:11px;font-weight:700;letter-spacing:0.4px;cursor:pointer;transition:all 0.15s;white-space:nowrap;flex-shrink:0}
 .dur-detail-toggle.on{background:var(--accent);color:#fff;border-color:var(--accent);box-shadow:0 0 8px rgba(37,99,235,0.3)}
 /* Class legend — single horizontally scrollable row (no wrapping) */
-#statsChartLegend,#volChartLegend{
+#statsChartLegend,#volChartLegend,.vol-chart-legend{
   display:flex;flex-wrap:nowrap;gap:6px;margin-top:8px;
   overflow-x:auto;overflow-y:hidden;
   -webkit-overflow-scrolling:touch;scroll-snap-type:x proximity;
   padding-bottom:4px;
   scrollbar-width:none;
 }
-#statsChartLegend::-webkit-scrollbar,#volChartLegend::-webkit-scrollbar{display:none}
+#statsChartLegend::-webkit-scrollbar,#volChartLegend::-webkit-scrollbar,.vol-chart-legend::-webkit-scrollbar{display:none}
 #statsChartLegend.hidden{display:none!important}
-#volChartLegend.hidden{display:none!important}
-#statsChartLegend .dur-legend-item,#volChartLegend .dur-legend-item{
+#volChartLegend.hidden,.vol-chart-legend.hidden{display:none!important}
+#statsChartLegend .dur-legend-item,#volChartLegend .dur-legend-item,.vol-chart-legend .dur-legend-item{
   flex-shrink:0;scroll-snap-align:start;
 }
 @media (max-width:480px){
@@ -1256,8 +1256,50 @@ body:not(.theme-dark) .dur-graph-detail-divider strong{color:#1e3a8a}
 .vol-panel-badge.left{background:rgba(37,99,235,0.13);color:#2563eb;border:1px solid rgba(37,99,235,0.3)}
 .vol-panel-badge.right{background:rgba(139,92,246,0.13);color:#7c3aed;border:1px solid rgba(139,92,246,0.3)}
 .vol-panel .stats-period-row{margin-bottom:10px}
-.vol-panel .volume-chart-wrap{height:240px}
+.vol-panel .volume-chart-wrap{height:270px}
 .vol-panel .vol-drilldown{min-height:60px}
+/* Compare panel's calendar-icon period picker — replaces the old Week/Month dropdown pair.
+   Reuses .hist-cal-icon-btn's exact look (same button used on the History page) at a smaller size
+   so it fits inline next to the period label instead of centered above a page title. */
+.cmp-period-row{display:flex;align-items:center;gap:10px;margin-top:0}
+.cmp-cal-btn{width:34px;height:34px;margin:0;flex-shrink:0}
+.cmp-period-label{font-family:var(--font-alt);font-size:12.5px;font-weight:800;color:var(--text-primary);line-height:1.25}
+.cmp-period-label small{display:block;font-size:10.5px;font-weight:700;color:var(--text-muted);margin-top:1px}
+/* Shared day-grid calendar modal opened by either panel's calendar icon — reuses the exact same
+   .hist-cal-* classes/markup as the Attendance History page's calendar box. */
+.cmp-cal-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;z-index:99999999;padding:20px;box-sizing:border-box;animation:fadeIn 0.2s ease}
+.cmp-cal-modal{background:var(--bg-card);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid var(--border-col);border-radius:16px;box-shadow:0 12px 40px rgba(0,0,0,0.35);padding:18px;max-width:420px;width:100%;max-height:88vh;overflow-y:auto;box-sizing:border-box;animation:fadeIn 0.25s ease}
+.cmp-cal-modal-title{font-family:var(--font-alt);font-size:12px;font-weight:800;color:var(--text-muted);letter-spacing:0.6px;text-transform:uppercase;margin-bottom:12px;text-align:center}
+.cmp-cal-nav-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.cmp-cal-nav-btn{width:36px;height:36px;border-radius:10px;border:1px solid var(--border-col);background:var(--bg-panel);color:var(--text-primary);font-size:18px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s ease}
+.cmp-cal-nav-btn:hover{background:var(--accent-soft);color:var(--accent)}
+.cmp-cal-nav-btn:disabled{opacity:0.35;cursor:not-allowed;background:var(--bg-panel);color:var(--text-primary)}
+.cmp-cal-month-label{font-family:var(--font-alt);font-size:15px;font-weight:800;color:var(--text-primary)}
+/* Highlights every day box in the panel's currently selected Mon–Sun week */
+.hist-cal-cell.cmp-week-selected{outline:2px solid var(--accent);outline-offset:-1px;background:var(--accent-soft);transform:translateY(-2px);z-index:2}
+.cmp-cal-hint{text-align:center;font-size:11px;color:var(--text-muted);font-family:var(--font-alt);font-weight:600;margin-top:12px}
+.cmp-cal-modal-close{width:100%;margin-top:10px;padding:10px;border-radius:10px;border:none;background:var(--accent-soft);color:var(--accent);font-family:var(--font-alt);font-weight:800;font-size:12.5px;cursor:pointer}
+/* Two-panel swipe layout — only kicks in on narrow/portrait mobile (see the media query below).
+   Desktop and landscape keep the normal side-by-side flex row untouched. */
+.cmp-swipe-wrapper{width:100%;overflow:visible}
+.cmp-swipe-track{display:flex;flex-direction:row;gap:16px;width:100%}
+.cmp-swipe-dots{display:none;justify-content:center;gap:8px;margin-top:10px}
+.cmp-dot{width:8px;height:8px;border-radius:50%;background:var(--border-col);cursor:pointer;transition:background .2s ease,transform .2s ease;padding:0;border:none}
+.cmp-dot.active{background:var(--accent);transform:scale(1.3)}
+@media (max-width:900px) and (orientation:portrait){
+  .cmp-swipe-wrapper{overflow:hidden}
+  .cmp-swipe-track{width:200%;gap:0;transition:transform 0.3s ease}
+  .cmp-swipe-track .vol-panel{width:50%;flex:0 0 50%;box-sizing:border-box;padding:0 6px}
+  .cmp-swipe-track .cmp-divider{display:none}
+  .cmp-swipe-dots{display:flex}
+}
+/* Persistent "rotate for full view" notice — replaces the old auto-hiding toast. Stays on screen
+   until the person dismisses it themselves (✕ button or swiping it away), per the requirement that
+   it must NOT disappear on its own. */
+.cmp-rotate-hint{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--toast-bg);color:#fff;border-radius:14px;padding:12px 40px 12px 16px;display:flex;align-items:center;gap:10px;font-size:13px;font-family:var(--font-alt);font-weight:600;box-shadow:0 8px 28px rgba(0,0,0,0.35);z-index:999999;max-width:88vw;text-align:left;line-height:1.4;animation:fadeIn 0.3s ease;letter-spacing:0.3px;touch-action:pan-y}
+.cmp-rotate-hint-close{position:absolute;top:6px;right:6px;width:22px;height:22px;border-radius:50%;border:none;background:rgba(255,255,255,0.15);color:#fff;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;flex-shrink:0}
+.cmp-rotate-hint-close:hover{background:rgba(255,255,255,0.28)}
+.cmp-hint-dismissing{transition:opacity 0.2s ease,transform 0.2s ease!important;opacity:0!important}
 /* hide single view when compare is on */
 .vol-single-view{transition:all 0.3s}
 .vol-single-view.hidden{display:none}
@@ -2636,29 +2678,40 @@ body.tracker-fs-lock{overflow:hidden}
 
           <!-- COMPARE LANDSCAPE VIEW (shown when compare mode ON) -->
           <div class="vol-compare-landscape" id="volCompareLandscape">
+           <div class="cmp-swipe-wrapper" id="cmpSwipeWrapper">
+            <div class="cmp-swipe-track" id="cmpSwipeTrack">
 
             <!-- LEFT PANEL -->
             <div class="vol-panel" id="volPanelLeft">
               <div class="vol-panel-badge left">📊 Panel A</div>
-              <div class="stats-period-row">
-                <select id="volTimeframeL" style="margin-top:0;padding:8px;font-size:12px" onchange="updateVolumeChart('left')">
-                  <option value="w1">Week 1</option>
-                  <option value="w2">Week 2</option>
-                  <option value="w3">Week 3</option>
-                  <option value="w4">Week 4</option>
-                  <option value="w5">Week 5</option>
-                </select>
-                <select id="volMonthL" style="margin-top:0;padding:8px;font-size:12px;flex:1;min-width:100px" onchange="updateVolumeChart('left')"></select>
+              <div class="cmp-period-row">
+                <button type="button" class="hist-cal-icon-btn cmp-cal-btn" onclick="openCmpCalendar('left')" title="Pick week" aria-label="Pick week for Panel A">
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="3"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                </button>
+                <div class="cmp-period-label" id="cmpPeriodLabelL">This Week<small>—</small></div>
               </div>
-              <div class="volume-chart-wrap">
+              <div class="graph-container vol-graph-box volume-chart-wrap" id="volGraphBoxL">
                 <canvas id="volumeChartL"></canvas>
+                <div class="vol-graph-detail-box" id="volGraphDetailBoxL">
+                  <div class="vol-graph-detail-hint" id="volGraphDetailHintL">👆 Tap a bar</div>
+                  <div class="vol-graph-detail-date" id="volGraphDetailDateL" style="display:none"></div>
+                  <div class="vol-graph-detail-vol" id="volGraphDetailVolL" style="display:none"></div>
+                </div>
+              </div>
+              <div id="volChartLegendL" class="vol-chart-legend hidden"></div>
+              <div style="display:flex;align-items:center;gap:7px;margin-top:8px">
+                <span style="font-family:var(--font-alt);font-size:10px;font-weight:700;color:var(--text-muted);letter-spacing:0.4px">DETAILED VIEW</span>
+                <div class="live-toggle" id="volDetailToggleL" onclick="toggleVolDetailView('left')" style="width:30px;height:17px">
+                  <div class="live-toggle-knob"></div>
+                </div>
+                <span id="volDetailToggleLabelL" style="font-size:10px;font-weight:700;color:var(--text-muted);font-family:var(--font-alt)">OFF</span>
               </div>
               <div style="font-size:10px;color:var(--text-muted);font-family:var(--font-alt);margin-top:6px">💡 Click a bar to see breakdown</div>
               <div class="vol-drilldown" id="volDrilldownL" style="margin-top:10px">
                 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;flex-wrap:wrap;gap:6px">
                   <div class="vol-drilldown-title" id="volDrillTitleL" style="margin-bottom:0;font-size:12px">📋 Select a day</div>
                   <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:10px;font-weight:700;color:var(--text-muted);font-family:var(--font-alt);flex-shrink:0">
-                    <span>DETAIL</span>
+                    <span>BREAKDOWN</span>
                     <div class="live-toggle" id="detailToggleL" onclick="toggleDetailedView('left')" style="width:30px;height:17px">
                       <div class="live-toggle-knob"></div>
                     </div>
@@ -2670,30 +2723,39 @@ body.tracker-fs-lock{overflow:hidden}
             </div>
 
             <!-- DIVIDER -->
-            <div style="width:2px;background:var(--border-col);border-radius:2px;flex-shrink:0;align-self:stretch;margin-top:30px"></div>
+            <div class="cmp-divider" style="width:2px;background:var(--border-col);border-radius:2px;flex-shrink:0;align-self:stretch;margin-top:30px"></div>
 
             <!-- RIGHT PANEL -->
             <div class="vol-panel" id="volPanelRight">
               <div class="vol-panel-badge right">📊 Panel B</div>
-              <div class="stats-period-row">
-                <select id="volTimeframeR" style="margin-top:0;padding:8px;font-size:12px" onchange="updateVolumeChart('right')">
-                  <option value="w1">Week 1</option>
-                  <option value="w2">Week 2</option>
-                  <option value="w3">Week 3</option>
-                  <option value="w4">Week 4</option>
-                  <option value="w5">Week 5</option>
-                </select>
-                <select id="volMonthR" style="margin-top:0;padding:8px;font-size:12px;flex:1;min-width:100px" onchange="updateVolumeChart('right')"></select>
+              <div class="cmp-period-row">
+                <button type="button" class="hist-cal-icon-btn cmp-cal-btn" onclick="openCmpCalendar('right')" title="Pick week" aria-label="Pick week for Panel B">
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="3"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                </button>
+                <div class="cmp-period-label" id="cmpPeriodLabelR">This Week<small>—</small></div>
               </div>
-              <div class="volume-chart-wrap">
+              <div class="graph-container vol-graph-box volume-chart-wrap" id="volGraphBoxR">
                 <canvas id="volumeChartR"></canvas>
+                <div class="vol-graph-detail-box" id="volGraphDetailBoxR">
+                  <div class="vol-graph-detail-hint" id="volGraphDetailHintR">👆 Tap a bar</div>
+                  <div class="vol-graph-detail-date" id="volGraphDetailDateR" style="display:none"></div>
+                  <div class="vol-graph-detail-vol" id="volGraphDetailVolR" style="display:none"></div>
+                </div>
+              </div>
+              <div id="volChartLegendR" class="vol-chart-legend hidden"></div>
+              <div style="display:flex;align-items:center;gap:7px;margin-top:8px">
+                <span style="font-family:var(--font-alt);font-size:10px;font-weight:700;color:var(--text-muted);letter-spacing:0.4px">DETAILED VIEW</span>
+                <div class="live-toggle" id="volDetailToggleR" onclick="toggleVolDetailView('right')" style="width:30px;height:17px">
+                  <div class="live-toggle-knob"></div>
+                </div>
+                <span id="volDetailToggleLabelR" style="font-size:10px;font-weight:700;color:var(--text-muted);font-family:var(--font-alt)">OFF</span>
               </div>
               <div style="font-size:10px;color:var(--text-muted);font-family:var(--font-alt);margin-top:6px">💡 Click a bar to see breakdown</div>
               <div class="vol-drilldown" id="volDrilldownR" style="margin-top:10px">
                 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;flex-wrap:wrap;gap:6px">
                   <div class="vol-drilldown-title" id="volDrillTitleR" style="margin-bottom:0;font-size:12px">📋 Select a day</div>
                   <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:10px;font-weight:700;color:var(--text-muted);font-family:var(--font-alt);flex-shrink:0">
-                    <span>DETAIL</span>
+                    <span>BREAKDOWN</span>
                     <div class="live-toggle" id="detailToggleR" onclick="toggleDetailedView('right')" style="width:30px;height:17px">
                       <div class="live-toggle-knob"></div>
                     </div>
@@ -2704,9 +2766,36 @@ body.tracker-fs-lock{overflow:hidden}
               </div>
             </div>
 
+            </div><!-- /cmp-swipe-track -->
+           </div><!-- /cmp-swipe-wrapper -->
+           <div class="cmp-swipe-dots" id="cmpSwipeDots">
+             <button type="button" class="cmp-dot active" onclick="cmpSwipeGoTo(0)" aria-label="Show Panel A"></button>
+             <button type="button" class="cmp-dot" onclick="cmpSwipeGoTo(1)" aria-label="Show Panel B"></button>
+           </div>
           </div><!-- /vol-compare-landscape -->
         </div>
 
+      </div>
+    </div>
+
+    <!-- Shared month/week picker modal for Compare Mode's calendar icons -->
+    <div id="cmpCalModalOverlay" class="cmp-cal-modal-overlay" style="display:none" onclick="if(event.target===this)closeCmpCalendar()">
+      <div class="cmp-cal-modal">
+        <div class="cmp-cal-modal-title" id="cmpCalModalTitle">Pick a week — Panel A</div>
+        <div class="cmp-cal-nav-row">
+          <button type="button" class="cmp-cal-nav-btn" id="cmpCalPrevBtn" onclick="cmpCalNav(-1)" aria-label="Previous month">&#8249;</button>
+          <span class="cmp-cal-month-label" id="cmpCalMonthLabel">July 2026</span>
+          <button type="button" class="cmp-cal-nav-btn" id="cmpCalNextBtn" onclick="cmpCalNav(1)" aria-label="Next month">&#8250;</button>
+        </div>
+        <div class="hist-cal-legend">
+          <span class="hist-cal-legend-item"><span class="hist-cal-legend-dot present"></span>Present</span>
+          <span class="hist-cal-legend-item"><span class="hist-cal-legend-dot rest"></span>Rest Day</span>
+          <span class="hist-cal-legend-item"><span class="hist-cal-legend-dot absent"></span>Absent</span>
+          <span class="hist-cal-legend-item"><span class="hist-cal-legend-dot pending"></span>Pending</span>
+        </div>
+        <div id="cmpCalGridBox"></div>
+        <div class="cmp-cal-hint">👆 Tap any day to select its Mon–Sun week</div>
+        <button type="button" class="cmp-cal-modal-close" onclick="closeCmpCalendar()">Close</button>
       </div>
     </div>
 
@@ -8000,7 +8089,7 @@ function histCloseDatePopup(){
 /* ===================== STATS MONTH DROPDOWNS INIT ===================== */
 function initStatsMonthDropdowns(){
   const now=new Date();
-  const selIds=['statsMonth','volMonth','volMonthL','volMonthR'];
+  const selIds=['statsMonth','volMonth'];
   selIds.forEach(id=>{
     const sel=document.getElementById(id);if(!sel)return;sel.innerHTML='';
     for(let i=0;i<12;i++){
@@ -8011,9 +8100,6 @@ function initStatsMonthDropdowns(){
       if(i===0)opt.selected=true;sel.appendChild(opt);
     }
   });
-  // Right panel defaults to previous week / same month
-  const rwk=document.getElementById('volTimeframeR');
-  if(rwk){rwk.value='w1';}
 }
 
 /* ══ VOLUME SWIPE PANEL SYSTEM ══════════════════════════════════ */
@@ -8108,23 +8194,35 @@ let _cmpModeOn=false;
 
 function _isMobile(){return/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent)||window.innerWidth<=900}
 
+/* Persistent "rotate for full view" notice — stays up until the person dismisses it themselves
+   (✕ button or swiping it left/right), per spec: it must NOT auto-hide. */
 function _showCmpHint(){
   let el=document.getElementById('cmpRotateHint');
-  if(el){clearTimeout(el._timer);el.remove();}
+  if(el)el.remove();
   el=document.createElement('div');
   el.id='cmpRotateHint';
-  el.innerHTML=`<span style="font-size:18px">📱</span><span>Rotate your screen or enable <strong>Desktop Site</strong> for the best compare view</span>`;
-  Object.assign(el.style,{
-    position:'fixed',bottom:'24px',left:'50%',transform:'translateX(-50%)',
-    background:'var(--toast-bg)',color:'#fff',borderRadius:'14px',
-    padding:'12px 18px',display:'flex',alignItems:'center',gap:'10px',
-    fontSize:'13px',fontFamily:'var(--font-alt)',fontWeight:'600',
-    boxShadow:'0 8px 28px rgba(0,0,0,0.35)',zIndex:'999999',
-    maxWidth:'88vw',textAlign:'center',lineHeight:'1.4',
-    animation:'fadeIn 0.3s ease',letterSpacing:'0.3px'
-  });
+  el.className='cmp-rotate-hint';
+  el.innerHTML=`<span style="font-size:18px">📱</span><span>Rotate screen or enable desktop mode to get full view.</span><button type="button" class="cmp-rotate-hint-close" onclick="_dismissCmpHint()" aria-label="Dismiss">✕</button>`;
+  el.style.transform='translateX(-50%)';
   document.body.appendChild(el);
-  el._timer=setTimeout(()=>{if(el.parentNode)el.remove();},4500);
+  _initCmpHintSwipe(el);
+}
+function _dismissCmpHint(){
+  const el=document.getElementById('cmpRotateHint');
+  if(!el)return;
+  el.classList.add('cmp-hint-dismissing');
+  setTimeout(()=>{if(el.parentNode)el.remove();},220);
+}
+/* Left/right swipe-to-dismiss for the rotate hint — separate from the panel swipe below, this one
+   just needs "dragged far enough in either direction" to close, no snapping between two states. */
+function _initCmpHintSwipe(el){
+  let startX=0,dx=0,dragging=false;
+  function onStart(e){const t=e.touches?e.touches[0]:e;startX=t.clientX;dx=0;dragging=true;el.style.transition='none';}
+  function onMove(e){if(!dragging)return;const t=e.touches?e.touches[0]:e;dx=t.clientX-startX;el.style.transform=`translateX(calc(-50% + ${dx}px))`;el.style.opacity=String(Math.max(0.15,1-Math.abs(dx)/160));}
+  function onEnd(){if(!dragging)return;dragging=false;el.style.transition='';if(Math.abs(dx)>80){_dismissCmpHint();return}el.style.transform='translateX(-50%)';el.style.opacity='1';}
+  el.addEventListener('touchstart',onStart,{passive:true});
+  el.addEventListener('touchmove',onMove,{passive:true});
+  el.addEventListener('touchend',onEnd,{passive:true});
 }
 
 // Listener kept only to clean up if user somehow triggered fullscreen elsewhere
@@ -8146,24 +8244,269 @@ function toggleCompareMode(){
   single.classList.toggle('hidden',_cmpModeOn);
   landscape.classList.toggle('active',_cmpModeOn);
   if(_cmpModeOn){
-    const mo=document.getElementById('volMonth').value;
-    const tfL=document.getElementById('volTimeframeL');
-    const moL=document.getElementById('volMonthL');
-    if(tfL)tfL.value='w1';
-    if(moL)moL.value=mo;
-    const tfR=document.getElementById('volTimeframeR');
-    if(tfR)tfR.value='w2';
-    const moR=document.getElementById('volMonthR');
-    if(moR)moR.value=mo;
+    // Default comparison the first time this session: this week (Panel B) vs last week (Panel A).
+    // Once the person picks their own weeks via the calendar icon, those choices stick across toggles.
+    if(!_cmpWeekAnchorL)_cmpWeekAnchorL=addDays(getMonday(new Date()),-7);
+    if(!_cmpWeekAnchorR)_cmpWeekAnchorR=getMonday(new Date());
     updateVolumeChart('left');
     updateVolumeChart('right');
+    if(window.cmpSwipeGoTo)cmpSwipeGoTo(0); // always land back on Panel A when re-entering
     // Show hint on mobile only
     if(_isMobile())_showCmpHint();
   } else {
     // Remove hint if still visible
-    const h=document.getElementById('cmpRotateHint');if(h)h.remove();
+    _dismissCmpHint();
   }
 }
+
+/* ══ COMPARE PANEL — CALENDAR ICON WEEK PICKER ═══════════════════
+   Each panel picks its week by tapping any day inside the exact same day-grid calendar box used
+   on the Attendance History page (see renderHistoryCalendar) — no more separate Week/Month
+   dropdowns. Tapping a day selects the Mon–Sun week that day falls in; _cmpWeekAnchorL/R (any
+   date inside that week) is what updateVolumeChart() actually reads to fetch/render the chart. */
+let _cmpCalSide=null;      // 'left' | 'right' — which panel the open modal is editing
+let _cmpCalYear=null,_cmpCalMonth=null; // 0-based month currently shown in the modal
+let _myJoinYM=null;        // {year,month(0-based)} — cached once per session, see _ensureMyJoinDate
+let _cmpWeekAnchorL=null,_cmpWeekAnchorR=null; // any Date inside each panel's currently selected week
+
+async function _ensureMyJoinDate(){
+  if(_myJoinYM)return _myJoinYM;
+  const uid=localStorage.getItem('user_id');
+  if(!uid)return null;
+  try{
+    const{data}=await db.from('users').select('join_date').eq('id',uid).single();
+    if(data&&data.join_date){
+      const d=new Date(data.join_date); // stored as YYYY-MM-DD — read back with UTC getters, see formatJoinedSince
+      if(!isNaN(d.getTime()))_myJoinYM={year:d.getUTCFullYear(),month:d.getUTCMonth()};
+    }
+  }catch(e){/* if this fails, navigation just won't be clamped this session — not worth blocking on */}
+  return _myJoinYM;
+}
+
+/* window.cachedAttendance is normally populated by visiting the Attendance History page — but the
+   Compare-mode calendar can be opened straight from the Volume page without ever visiting History
+   first, in which case it would still be null/empty and every day would wrongly render as Absent.
+   This fetches it directly the first time it's needed here, same query loadAttendanceHistoryRecords
+   uses, and caches the result the same way so History (and every other reader) stays in sync. */
+async function _ensureAttendanceCache(){
+  if(window.cachedAttendance)return window.cachedAttendance;
+  const uid=localStorage.getItem('user_id');
+  if(!uid)return[];
+  try{
+    const{data,error}=await sessionFetchAllForUser(uid,false);
+    if(!error&&data)window.cachedAttendance=data;
+  }catch(e){/* leave cachedAttendance as-is if this fails — grid just falls back to no data */}
+  return window.cachedAttendance||[];
+}
+
+async function openCmpCalendar(side){
+  _cmpCalSide=side;
+  const anchor=(side==='left'?_cmpWeekAnchorL:_cmpWeekAnchorR)||new Date();
+  _cmpCalYear=anchor.getFullYear();_cmpCalMonth=anchor.getMonth();
+  await _ensureMyJoinDate();
+  await _ensureAttendanceCache();
+  document.getElementById('cmpCalModalTitle').textContent=`Pick a week — Panel ${side==='left'?'A':'B'}`;
+  cmpCalRenderGrid();
+  document.getElementById('cmpCalModalOverlay').style.display='flex';
+}
+function closeCmpCalendar(){
+  document.getElementById('cmpCalModalOverlay').style.display='none';
+  _cmpCalSide=null;
+}
+function cmpCalNav(dir){
+  let y=_cmpCalYear,m=_cmpCalMonth+dir;
+  if(m<0){m=11;y--;}else if(m>11){m=0;y++;}
+  const now=new Date();
+  if(y>now.getFullYear()||(y===now.getFullYear()&&m>now.getMonth())){
+    return; // can't browse into the future — next button is disabled anyway, this just guards direct calls
+  }
+  if(_myJoinYM&&(y<_myJoinYM.year||(y===_myJoinYM.year&&m<_myJoinYM.month))){
+    const monNames=['January','February','March','April','May','June','July','August','September','October','November','December'];
+    showToast(`You joined GymBro in ${monNames[_myJoinYM.month]} ${_myJoinYM.year} — you can't view weeks before that.`);
+    return;
+  }
+  _cmpCalYear=y;_cmpCalMonth=m;
+  cmpCalRenderGrid();
+}
+
+/* Renders the exact same day-grid calendar box as the Attendance History page (same classes,
+   same per-day status coloring) inside the Compare-mode picker modal. Tapping any non-future day
+   selects the Mon–Sun week it belongs to for whichever panel opened the modal. */
+function cmpCalRenderGrid(){
+  const monNames=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  document.getElementById('cmpCalMonthLabel').textContent=`${monNames[_cmpCalMonth]} ${_cmpCalYear}`;
+  const now=new Date();
+  const atCurrentMonth=_cmpCalYear===now.getFullYear()&&_cmpCalMonth===now.getMonth();
+  const atJoinMonth=_myJoinYM&&_cmpCalYear===_myJoinYM.year&&_cmpCalMonth===_myJoinYM.month;
+  document.getElementById('cmpCalNextBtn').disabled=atCurrentMonth;
+  document.getElementById('cmpCalPrevBtn').disabled=!!atJoinMonth;
+
+  const box=document.getElementById('cmpCalGridBox');
+  if(!box)return;
+
+  const uid=settingsUid();
+  const overrides=_getRestOverrides(uid);
+  const restSettings=_getRestSettings(uid);
+  const data=window.cachedAttendance||[];
+  const presentSet=new Set(data.map(r=>r.date));
+  const checkInByDate={};
+  const classesByDate={};
+  data.forEach(r=>{
+    const iso=sessionDisplayCheckInISO(r);
+    if(iso&&(!checkInByDate[r.date]||new Date(iso)<new Date(checkInByDate[r.date])))checkInByDate[r.date]=iso;
+    const list=sessionParseClassField(r.class);
+    if(list.length){
+      (classesByDate[r.date]=classesByDate[r.date]||new Set());
+      list.forEach(c=>classesByDate[r.date].add(c));
+    }
+  });
+
+  const todayMid=new Date();todayMid.setHours(0,0,0,0);
+  const cells=_histCalBuildMonthGrid(_cmpCalYear,_cmpCalMonth);
+  const dayNames=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+
+  // Highlight every day currently in the anchor's Mon–Sun week for this panel (if it falls in the
+  // month being browsed), so it's obvious which week is presently selected.
+  const anchor=_cmpCalSide==='left'?_cmpWeekAnchorL:_cmpWeekAnchorR;
+  const selWeekStart=anchor?getMonday(anchor):null;
+  const selWeekKeys=new Set();
+  if(selWeekStart)for(let i=0;i<7;i++)selWeekKeys.add(_fmtISODate(addDays(selWeekStart,i)));
+
+  let html=`<div class="hist-cal-daynames">${dayNames.map(d=>`<div class="hist-cal-dayname">${d}</div>`).join('')}</div>`;
+  html+='<div class="hist-cal-grid">';
+  cells.forEach(dt=>{
+    if(!dt){html+='<div class="hist-cal-cell empty"></div>';return;}
+    const key=_fmtISODate(dt);
+    const isFuture=dt.getTime()>todayMid.getTime();
+    const isToday=dt.getTime()===todayMid.getTime();
+    let statusCls='future',statusLbl='';
+    if(!isFuture){
+      const resolved=_resolveDayStatus(dt,presentSet,overrides,restSettings);
+      const isPending=isToday&&resolved==='absent';
+      if(isPending){statusCls='pending';statusLbl='Pending';}
+      else if(resolved==='present'){statusCls='present';statusLbl=checkInByDate[key]?formatCheckInTime(checkInByDate[key]):'Present';}
+      else{statusCls=resolved;statusLbl=resolved==='rest'?'Rest':'Absent';}
+    }
+    const classesSet=classesByDate[key];
+    let classesTxt='';
+    if(classesSet&&classesSet.size){
+      const classesArr=Array.from(classesSet);
+      classesTxt=classesArr.length>2
+        ? `${classesArr.slice(0,2).join(', ')} <span class="hist-cal-classes-more">+${classesArr.length-2}</span>`
+        : classesArr.join(', ');
+    }
+    const clickable=!isFuture;
+    const isSelectedWeek=selWeekKeys.has(key);
+    const cellCls=`hist-cal-cell ${statusCls}${isToday?' hist-cal-today':''}${clickable?' hist-cal-clickable':''}${isSelectedWeek?' cmp-week-selected':''}`;
+    html+=`<div class="${cellCls}" data-date="${key}"${clickable?` onclick="cmpCalPickDate('${key}')"`:''}>`;
+    if(statusLbl)html+=`<span class="hist-cal-status ${statusCls}">${statusLbl}</span>`;
+    html+=`<span class="hist-cal-date">${dt.getDate()}</span>`;
+    if(classesTxt)html+=`<span class="hist-cal-classes">${classesTxt}</span>`;
+    html+='</div>';
+  });
+  html+='</div>';
+  box.innerHTML=html;
+}
+
+/* Tapping any day box selects the Mon–Sun week that day falls in for whichever panel opened the
+   modal. Blocks picking a week before the person's joined month/year (shown as a toast). */
+function cmpCalPickDate(key){
+  if(!_cmpCalSide)return;
+  const side=_cmpCalSide;
+  const picked=new Date(key+'T00:00:00');
+  if(_myJoinYM&&(picked.getFullYear()<_myJoinYM.year||(picked.getFullYear()===_myJoinYM.year&&picked.getMonth()<_myJoinYM.month))){
+    const monNames=['January','February','March','April','May','June','July','August','September','October','November','December'];
+    showToast(`You joined GymBro in ${monNames[_myJoinYM.month]} ${_myJoinYM.year} — you can't view weeks before that.`);
+    return;
+  }
+  if(side==='left')_cmpWeekAnchorL=picked;else _cmpWeekAnchorR=picked;
+  updateVolumeChart(side);
+  closeCmpCalendar();
+}
+
+/* Syncs a panel's visible "Mon D – Sun D" label from its currently selected week anchor —
+   called after every chart refresh (see updateVolumeChart), and once when Compare Mode turns on. */
+function updateCmpPeriodLabel(side){
+  const labelEl=document.getElementById(side==='left'?'cmpPeriodLabelL':'cmpPeriodLabelR');
+  if(!labelEl)return;
+  const anchor=(side==='left'?_cmpWeekAnchorL:_cmpWeekAnchorR)||new Date();
+  const weekStart=getMonday(anchor);
+  const weekEnd=addDays(weekStart,6);
+  const lastWeekStart=addDays(getMonday(new Date()),-7);
+  const tag=_isCurrentWeek(weekStart)?'This Week':(weekStart.getTime()===lastWeekStart.getTime()?'Last Week':_fmtWeekRangeLabel(weekStart));
+  const yr=weekStart.getFullYear()===weekEnd.getFullYear()?String(weekStart.getFullYear()):`${weekStart.getFullYear()}/${weekEnd.getFullYear()}`;
+  labelEl.innerHTML=`${tag}<small>${_fmtWeekRangeLabel(weekStart)} ${yr}</small>`;
+}
+
+/* ══ COMPARE PANEL SWIPE (mobile/portrait only) ═══════════════════
+   Desktop and landscape keep the normal side-by-side flex row (see the CSS media query) — this only
+   ever needs to actually move the track when that narrow/portrait layout is active. */
+(function(){
+  let cmpIdx=0;
+  function isSwipeMode(){return window.matchMedia('(max-width:900px) and (orientation:portrait)').matches}
+  function apply(i,animate){
+    cmpIdx=i;
+    const track=document.getElementById('cmpSwipeTrack');
+    if(!track)return;
+    if(!isSwipeMode()){track.style.transform='';return}
+    if(!animate)track.style.transition='none';
+    track.style.transform=`translateX(-${i*50}%)`;
+    if(!animate)requestAnimationFrame(()=>{track.style.transition='';});
+    document.querySelectorAll('#cmpSwipeDots .cmp-dot').forEach((d,di)=>d.classList.toggle('active',di===i));
+  }
+  window.cmpSwipeGoTo=function(i){if(i<0||i>1)return;apply(i,true)};
+  function initSwipe(){
+    const outer=document.getElementById('cmpSwipeWrapper');
+    if(!outer)return;
+    let startX=0,startY=0,dx=0,dy=0,dragging=false,moved=false;
+    const track=document.getElementById('cmpSwipeTrack');
+    function onStart(e){
+      if(!isSwipeMode())return;
+      const t=e.touches?e.touches[0]:e;
+      startX=t.clientX;startY=t.clientY;dx=0;dy=0;dragging=true;moved=false;
+    }
+    function onMove(e){
+      if(!dragging||!isSwipeMode())return;
+      const t=e.touches?e.touches[0]:e;
+      dx=t.clientX-startX;dy=t.clientY-startY;
+      if(!moved&&Math.abs(dy)>Math.abs(dx)+4){dragging=false;return}
+      if(Math.abs(dx)>6){
+        moved=true;
+        if(e.cancelable)e.preventDefault();
+        const base=cmpIdx*50;
+        const pct=(-dx/outer.offsetWidth)*100;
+        const clamped=Math.max(0,Math.min(50,base+pct));
+        track.style.transition='none';
+        track.style.transform=`translateX(-${clamped}%)`;
+      }
+    }
+    function onEnd(){
+      if(!dragging)return;
+      dragging=false;
+      if(!moved)return;
+      const threshold=outer.offsetWidth*0.2;
+      let next=cmpIdx;
+      if(dx<-threshold&&cmpIdx<1)next=cmpIdx+1;
+      else if(dx>threshold&&cmpIdx>0)next=cmpIdx-1;
+      apply(next,true);
+    }
+    outer.addEventListener('touchstart',onStart,{passive:true});
+    outer.addEventListener('touchmove',onMove,{passive:false});
+    outer.addEventListener('touchend',onEnd,{passive:true});
+    outer.addEventListener('mousedown',onStart);
+    window.addEventListener('mousemove',onMove);
+    window.addEventListener('mouseup',onEnd);
+  }
+  // Re-settle the track (or clear any leftover transform) whenever the viewport crosses the
+  // portrait/landscape or mobile/desktop boundary — e.g. rotating the phone while Compare is open.
+  window.addEventListener('resize',()=>apply(cmpIdx,false));
+  window.addEventListener('orientationchange',()=>setTimeout(()=>apply(cmpIdx,false),200));
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded',initSwipe);
+  } else {
+    initSwipe();
+  }
+})();
 
 /* ===================== STATS SUB-NAV SWITCHER ===================== */
 function switchStatsSubnav(tab){
@@ -9091,8 +9434,7 @@ function toggleDetailedView(panel){
   const titleId=panel==='left'?'volDrillTitleL':panel==='right'?'volDrillTitleR':'volDrillTitle';
   const bodyId=panel==='left'?'volDrillBodyL':panel==='right'?'volDrillBodyR':'volDrillBody';
   if(_lastDrillDay[panel]){
-    if(panel==='main')renderVolDrilldownEnhanced(_lastDrillDay[panel],titleId,bodyId,panel);
-    else renderVolDrilldown(_lastDrillDay[panel],titleId,bodyId,panel);
+    renderVolDrilldownEnhanced(_lastDrillDay[panel],titleId,bodyId,panel);
   }
 }
 
@@ -9225,76 +9567,45 @@ async function updateVolumeChart(side='main'){
   }
   const uid=localStorage.getItem('user_id');if(!uid)return;
   const sfx=side==='left'?'L':side==='right'?'R':'';
-  const tfId='volTimeframe'+sfx;
-  const moId='volMonth'+sfx;
   const canvasId='volumeChart'+sfx;
   const drillTitleId='volDrillTitle'+(sfx||'');
   const drillBodyId='volDrillBody'+(sfx||'');
 
   const dayNames=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
   const monNamesShort=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  let filterYear,filterMonth,days;
+  let days;
 
-  if(side==='main'){
-    // Mon–Sun week window, anchored by volWeekAnchor (navigated via the < / > buttons).
-    // Can span two different months — fetched by explicit date range, not month bounds.
-    const weekStart=getMonday(volWeekAnchor);
-    const weekDates=[];for(let i=0;i<7;i++)weekDates.push(addDays(weekStart,i));
-    const startStr=_fmtISODate(weekStart),endStr=_fmtISODate(weekDates[6]);
+  // Mon–Sun week window — main uses volWeekAnchor (navigated via the < / > buttons), Compare
+  // panels use their own independent anchor (_cmpWeekAnchorL/R, set via the calendar picker).
+  // Can span two different months — fetched by explicit date range, not month bounds.
+  const anchor=side==='left'?_cmpWeekAnchorL:side==='right'?_cmpWeekAnchorR:volWeekAnchor;
+  const weekStart=getMonday(anchor||new Date());
+  const weekDates=[];for(let i=0;i<7;i++)weekDates.push(addDays(weekStart,i));
+  const startStr=_fmtISODate(weekStart),endStr=_fmtISODate(weekDates[6]);
 
-    const{data,error}=await db.from(SESSION_TABLE).select('date,workouts').eq('user_id',uid).gte('date',startStr).lte('date',endStr);
-    if(error){console.error(error);return}
+  const{data,error}=await db.from(SESSION_TABLE).select('date,workouts').eq('user_id',uid).gte('date',startStr).lte('date',endStr);
+  if(error){console.error(error);return}
 
-    const attWorkouts=await fetchAttendanceWorkoutsRange(uid,startStr,endStr);
+  const attWorkouts=await fetchAttendanceWorkoutsRange(uid,startStr,endStr);
 
-    let dm={};
-    weekDates.forEach((dt,idx)=>{
-      const key=_fmtISODate(dt);
-      const attNames=attWorkouts[key]||[];
-      dm[idx]={day:dt.getDate(),year:dt.getFullYear(),month:dt.getMonth(),dateObj:dt,label:`${dt.getDate()} ${dayNames[dt.getDay()]}`,volume:0,workouts:[],attendanceWorkouts:attNames};
+  let dm={};
+  weekDates.forEach((dt,idx)=>{
+    const key=_fmtISODate(dt);
+    const attNames=attWorkouts[key]||[];
+    dm[idx]={day:dt.getDate(),year:dt.getFullYear(),month:dt.getMonth(),dateObj:dt,label:`${dt.getDate()} ${dayNames[dt.getDay()]}`,volume:0,workouts:[],attendanceWorkouts:attNames};
+  });
+  if(data){
+    data.forEach(row=>{
+      const d=new Date(row.date);const key=_fmtISODate(d);
+      const idx=weekDates.findIndex(wd=>_fmtISODate(wd)===key);
+      if(idx<0)return;
+      _accumulateSessionRowVolume(dm[idx],row);
     });
-    if(data){
-      data.forEach(row=>{
-        const d=new Date(row.date);const key=_fmtISODate(d);
-        const idx=weekDates.findIndex(wd=>_fmtISODate(wd)===key);
-        if(idx<0)return;
-        _accumulateSessionRowVolume(dm[idx],row);
-      });
-    }
-    days=Object.values(dm);
-    volDayDataCache=days;
-  } else {
-    const tf=document.getElementById(tfId)?document.getElementById(tfId).value:'w1';
-    const monthSel=document.getElementById(moId);
-    let selMonth=monthSel?monthSel.value:null;
-    if(selMonth){[filterYear,filterMonth]=[parseInt(selMonth.split('-')[0]),parseInt(selMonth.split('-')[1])-1]}
-    else{const n=new Date();filterYear=n.getFullYear();filterMonth=n.getMonth()}
-    const ranges={w1:[1,7],w2:[8,14],w3:[15,21],w4:[22,28],w5:[29,31]};
-    const [sd,ed]=ranges[tf]||[1,7];
-    const monthStr=`${filterYear}-${String(filterMonth+1).padStart(2,'0')}`;
-    const lastDay=new Date(filterYear,filterMonth+1,0).getDate();
-
-    const{data,error}=await db.from(SESSION_TABLE).select('date,workouts').eq('user_id',uid).gte('date',`${monthStr}-01`).lte('date',`${monthStr}-${String(lastDay).padStart(2,'0')}`);
-    if(error){console.error(error);return}
-
-    const attWorkouts=await fetchAttendanceWorkouts(uid,monthStr);
-
-    let dm={};
-    for(let i=sd;i<=ed;i++){
-      const dt=new Date(filterYear,filterMonth,i);
-      const attNames=attWorkouts[i]||[];
-      dm[i]={day:i,label:`${i} ${dayNames[dt.getDay()]}`,volume:0,workouts:[],attendanceWorkouts:attNames};
-    }
-    if(data){
-      data.forEach(row=>{
-        const d=new Date(row.date);const day=d.getDate();if(!dm[day])return;
-        _accumulateSessionRowVolume(dm[day],row);
-      });
-    }
-    days=Object.values(dm);
-    if(side==='left')volDayDataCacheL=days;
-    else volDayDataCacheR=days;
   }
+  days=Object.values(dm);
+  if(side==='left')volDayDataCacheL=days;
+  else if(side==='right')volDayDataCacheR=days;
+  else volDayDataCache=days;
 
   // High Volume / Low Volume (main panel only)
   // Weekly: find the single highest/lowest class volume on any single day (per-day max/min).
@@ -9317,45 +9628,51 @@ async function updateVolumeChart(side='main'){
   const solidColor=isMain?getVolSolidColor():null;
   const{grad,hoverGrad}=isMain?{grad:solidColor,hoverGrad:solidColor}:makeVolGradients(ctx,side);
 
-  // Build per-bar class volume data for the stacked plugin (main panel only)
-  const classVolsPerBar=isMain?days.map(d=>buildDayClassVolume(d.workouts)):null;
-  // Per-bar attendance workout names (from attendance table) — used for bar color/label
-  const attWorkoutsPerBar=isMain?days.map(d=>d.attendanceWorkouts||[]):null;
+  // Build per-bar class volume data + attendance workout names for the stacked plugin — every
+  // panel (main + both Compare panels) gets the same Detailed-View breakdown treatment.
+  const classVolsPerBar=days.map(d=>buildDayClassVolume(d.workouts));
+  const attWorkoutsPerBar=days.map(d=>d.attendanceWorkouts||[]);
 
   // Build class frequency map (how many days each class appears, for legend)
   // Use attendance workouts for frequency map so legend matches bar colors
-  if(isMain){
-    const freqMap={};const volMap={};
-    days.forEach(d=>{
-      const dayClassVol=buildDayClassVolume(d.workouts);
-      (d.attendanceWorkouts||[]).forEach(c=>{
-        freqMap[c]=(freqMap[c]||0)+1;
-        volMap[c]=(volMap[c]||0)+(dayClassVol[c]||0);
-      });
+  const freqMap={};const volMap={};
+  days.forEach(d=>{
+    const dayClassVol=buildDayClassVolume(d.workouts);
+    (d.attendanceWorkouts||[]).forEach(c=>{
+      freqMap[c]=(freqMap[c]||0)+1;
+      volMap[c]=(volMap[c]||0)+(dayClassVol[c]||0);
     });
-    volClassFreqMap=freqMap;volClassVolumeMap=volMap;
+  });
+  volClassFreqMap[side]=freqMap;volClassVolumeMap[side]=volMap;
+  if(isMain){
     // High/Low Volume: use this exact same per-class volume map that feeds the legend pills above,
     // so "High Volume"/"Low Volume" always exactly matches what's shown in the class pills — no
     // separate evenly-split approximation that could disagree with the displayed per-class totals.
     _renderVolumeExtremes(volMap);
-    // Reset class filter and nav arrows on every weekly chart load
-    volSelectedClass=null;
+  }
+  // Reset class filter on every weekly chart load (every panel)
+  volSelectedClass[side]=null;
+  if(isMain){
+    // Reset nav arrows too — only the main panel has index-based arrow navigation
     _volCurrentIdx=0;
     const navL=document.getElementById('volNavLeft');
     const navR=document.getElementById('volNavRight');
     if(navL)navL.classList.remove('class-filtered');
     if(navR)navR.classList.remove('class-filtered');
-    buildVolLegend();
   }
+  buildVolLegend(side);
 
   const volMaxVal=Math.max(0,...volumes);
   const volSuggestedMax=isMain?(volMaxVal>0?Math.ceil((volMaxVal*1.45)/10)*10:100):undefined;
 
-  // Bar colors: when detailed view OFF use solid accent color (matches Duration graph); when ON use transparent so plugin draws multicolor
+  // Bar colors: when detailed view OFF use solid accent color (matches Duration graph, main only)
+  // or the panel's own two-tone gradient (Compare panels); when ON, transparent so the stacked
+  // plugin draws the multicolor per-class breakdown instead.
   const{grad:mainGrad,hoverGrad:mainHoverGrad}=makeVolGradients(ctx,'main');
   const mainSolidColor=getVolSolidColor();
-  const barBg=isMain?(volDetailViewOn?'rgba(0,0,0,0)':volumes.map(()=>mainSolidColor)):volumes.map(()=>grad);
-  const barHover=isMain?(volDetailViewOn?'rgba(0,0,0,0)':volumes.map(()=>mainHoverGrad)):volumes.map(()=>hoverGrad);
+  const detailOn=volDetailViewOn[side];
+  const barBg=detailOn?'rgba(0,0,0,0)':(isMain?volumes.map(()=>mainSolidColor):volumes.map(()=>grad));
+  const barHover=detailOn?'rgba(0,0,0,0)':(isMain?volumes.map(()=>mainHoverGrad):volumes.map(()=>hoverGrad));
 
   const instance=new Chart(ctx,{
     type:'bar',
@@ -9366,9 +9683,10 @@ async function updateVolumeChart(side='main'){
         data:volumes,
         backgroundColor:barBg,
         hoverBackgroundColor:barHover,
-        borderColor:isMain?(volDetailViewOn?'transparent':solidColor):getVolBorderColor(side),
-        borderWidth:isMain?(volDetailViewOn?0:1.5):1.5,borderRadius:10,barPercentage:0.65,categoryPercentage:0.8,
-        _selectedClass:volSelectedClass,
+        borderColor:detailOn?'transparent':(isMain?solidColor:getVolBorderColor(side)),
+        borderWidth:detailOn?0:1.5,borderRadius:10,barPercentage:0.65,categoryPercentage:0.8,
+        _side:side,
+        _selectedClass:volSelectedClass[side],
         _selectedIdx:-1,
         _classVols:classVolsPerBar||[],
         _attWorkouts:attWorkoutsPerBar||[]
@@ -9376,7 +9694,7 @@ async function updateVolumeChart(side='main'){
     },
     options:{
       responsive:true,maintainAspectRatio:false,
-      layout:{padding:{top:isMain?78:0,right:6,left:2,bottom:2}},
+      layout:{padding:{top:78,right:6,left:2,bottom:2}},
       plugins:{legend:{display:false},tooltip:{enabled:false}},
       scales:{
         y:{beginAtZero:true,suggestedMax:volSuggestedMax,grid:{color:'rgba(128,128,128,0.08)'},ticks:{color:'#6b7280',font:{family:'Rajdhani',size:11},callback(v){return v>=1000?(v/1000).toFixed(1)+'k':v}}},
@@ -9384,7 +9702,7 @@ async function updateVolumeChart(side='main'){
       },
       onHover(evt,els){canvas.style.cursor=els.length?'pointer':'default'}
     },
-    plugins:isMain?[volGlossyPlugin,volSelectionPlugin,volStackedPlugin]:[volGlossyPlugin]
+    plugins:[volGlossyPlugin,volSelectionPlugin,volStackedPlugin]
   });
 
   if(side==='left')volChartInstanceL=instance;
@@ -9396,16 +9714,13 @@ async function updateVolumeChart(side='main'){
   function selectWeeklyBar(idx){
     const day=cache[idx];if(!day)return;
     _lastDrillDay[side]=day;
-    if(isMain){
-      _volCurrentIdx=idx;
-      instance.data.datasets[0]._selectedIdx=idx;
-      instance.data.datasets[0]._selectedClass=volSelectedClass||null;
-      instance.update('none');
-    }
-    // Use enhanced drilldown for main, legacy for compare panels
-    if(isMain)renderVolDrilldownEnhanced(day,drillTitleId,drillBodyId,side);
-    else renderVolDrilldown(day,drillTitleId,drillBodyId,side);
-    if(isMain)_updateVolGraphDetailBox(day);
+    if(isMain)_volCurrentIdx=idx;
+    instance.data.datasets[0]._selectedIdx=idx;
+    instance.data.datasets[0]._selectedClass=volSelectedClass[side]||null;
+    instance.update('none');
+    // Every panel now gets the same enhanced (classes + volume) breakdown
+    renderVolDrilldownEnhanced(day,drillTitleId,drillBodyId,side);
+    _updateVolGraphDetailBox(day,side);
   }
 
   canvas.onmousemove=function(evt){
@@ -9418,43 +9733,38 @@ async function updateVolumeChart(side='main'){
     selectWeeklyBar(pts[0].index);
   };
 
-  if(isMain){
-    canvas.ontouchstart=function(evt){
-      const touch=evt.touches[0];if(!touch)return;
-      const rect=canvas.getBoundingClientRect();
-      const fakeEvt={x:touch.clientX-rect.left,y:touch.clientY-rect.top,native:evt};
-      const pts=instance.getElementsAtEventForMode(fakeEvt,'index',{intersect:false},false);
-      if(pts.length)selectWeeklyBar(pts[0].index);
-    };
-    canvas.ontouchmove=function(evt){
-      const touch=evt.touches[0];if(!touch)return;
-      const rect=canvas.getBoundingClientRect();
-      const fakeEvt={x:touch.clientX-rect.left,y:touch.clientY-rect.top,native:evt};
-      const pts=instance.getElementsAtEventForMode(fakeEvt,'index',{intersect:false},false);
-      if(pts.length){evt.preventDefault();selectWeeklyBar(pts[0].index)}
-    };
-  } else {
-    canvas.ontouchstart=null;canvas.ontouchmove=null;
-  }
+  canvas.ontouchstart=function(evt){
+    const touch=evt.touches[0];if(!touch)return;
+    const rect=canvas.getBoundingClientRect();
+    const fakeEvt={x:touch.clientX-rect.left,y:touch.clientY-rect.top,native:evt};
+    const pts=instance.getElementsAtEventForMode(fakeEvt,'index',{intersect:false},false);
+    if(pts.length)selectWeeklyBar(pts[0].index);
+  };
+  canvas.ontouchmove=function(evt){
+    const touch=evt.touches[0];if(!touch)return;
+    const rect=canvas.getBoundingClientRect();
+    const fakeEvt={x:touch.clientX-rect.left,y:touch.clientY-rect.top,native:evt};
+    const pts=instance.getElementsAtEventForMode(fakeEvt,'index',{intersect:false},false);
+    if(pts.length){evt.preventDefault();selectWeeklyBar(pts[0].index)}
+  };
 
-  if(isMain){
-    const hintEl=document.getElementById('volGraphDetailHint');
-    const dateEl=document.getElementById('volGraphDetailDate');
-    const volEl=document.getElementById('volGraphDetailVol');
-    if(hintEl){hintEl.style.display='block';hintEl.textContent='👆 Tap a point';}
-    if(dateEl)dateEl.style.display='none';
-    if(volEl)volEl.style.display='none';
-  }
+  const hintEl=document.getElementById('volGraphDetailHint'+sfx);
+  const dateEl=document.getElementById('volGraphDetailDate'+sfx);
+  const volEl=document.getElementById('volGraphDetailVol'+sfx);
+  if(hintEl){hintEl.style.display='block';hintEl.textContent='👆 Tap a bar';}
+  if(dateEl)dateEl.style.display='none';
+  if(volEl)volEl.style.display='none';
 
   const today=new Date();
+  const td=days.find(d=>d.dateObj&&d.dateObj.getFullYear()===today.getFullYear()&&d.dateObj.getMonth()===today.getMonth()&&d.dateObj.getDate()===today.getDate());
+  if(td){
+    _lastDrillDay[side]=td;
+    renderVolDrilldownEnhanced(td,drillTitleId,drillBodyId,side);
+    _updateVolGraphDetailBox(td,side);
+  }
   if(isMain){
-    const td=days.find(d=>d.dateObj&&d.dateObj.getFullYear()===today.getFullYear()&&d.dateObj.getMonth()===today.getMonth()&&d.dateObj.getDate()===today.getDate());
-    if(td){
-      _lastDrillDay[side]=td;
-      renderVolDrilldownEnhanced(td,drillTitleId,drillBodyId,side);
-      _updateVolGraphDetailBox(td);
-    }
-    // Refresh the week range label + show/hide the "<" / ">" nav buttons
+    // Refresh the week range label + show/hide the "<" / ">" nav buttons (main panel only —
+    // Compare panels use the calendar-icon picker instead of these arrows/label)
     const{year:_vy,month:_vm}=_selectedMonthYM(document.getElementById('volMonth'));
     const{min:_vMin,max:_vMax}=_monthWeekBounds(_vy,_vm);
     const _volWeekStart=getMonday(volWeekAnchor);
@@ -9464,12 +9774,8 @@ async function updateVolumeChart(side='main'){
     const volPrevBtn=document.getElementById('volWeekPrev');
     if(volNextBtn)volNextBtn.style.visibility=(_volWeekStart.getTime()>=_vMax.getTime())?'hidden':'visible';
     if(volPrevBtn)volPrevBtn.style.visibility=(_volWeekStart.getTime()<=_vMin.getTime())?'hidden':'visible';
-  } else if(filterYear===today.getFullYear()&&filterMonth===today.getMonth()){
-    const td=days.find(d=>d.day===today.getDate())||days[0];
-    if(td){
-      _lastDrillDay[side]=td;
-      renderVolDrilldown(td,drillTitleId,drillBodyId,side);
-    }
+  } else {
+    updateCmpPeriodLabel(side);
   }
 }
 
@@ -9590,10 +9896,10 @@ async function updateVolumeLineChart(){
       volMapLine[c]=(volMapLine[c]||0)+(dayClassVol[c]||0);
     });
   });
-  volClassFreqMap=freqMapLine;volClassVolumeMap=volMapLine;
+  volClassFreqMap.main=freqMapLine;volClassVolumeMap.main=volMapLine;
   // Reset class filter on new chart load
-  volSelectedClass=null;
-  buildVolLegend();
+  volSelectedClass.main=null;
+  buildVolLegend('main');
 
   // High Volume / Low Volume — sum each class's exact attributed volume across the ENTIRE selected
   // window (the whole month for Monthly, all 3 months for 3-Month) using the same volMapLine that
@@ -9690,12 +9996,12 @@ async function updateVolumeLineChart(){
   function selectPoint(idx){
     const day=allDays[idx];if(!day)return;
     _volCurrentIdx=idx;
-    if(volSelectedClass){
+    if(volSelectedClass.main){
       _volHighlightLinePoint(idx);
     } else {
       _highlightVolPoint(instance,idx,selectedColor,pointColor);
     }
-    _updateVolGraphDetailBox(day);
+    _updateVolGraphDetailBox(day,'main');
     _lastDrillDay.main=day;
     renderVolDrilldownEnhanced(day,'volDrillTitle','volDrillBody','main');
   }
@@ -9778,10 +10084,12 @@ function _volFormatDetailDate(day){
   return day.dateLabel||day.label||'';
 }
 
-function _updateVolGraphDetailBox(day){
-  const hintEl=document.getElementById('volGraphDetailHint');
-  const dateEl=document.getElementById('volGraphDetailDate');
-  const volEl=document.getElementById('volGraphDetailVol');
+function _updateVolGraphDetailBox(day,side){
+  side=side||'main';
+  const sfx=side==='left'?'L':side==='right'?'R':'';
+  const hintEl=document.getElementById('volGraphDetailHint'+sfx);
+  const dateEl=document.getElementById('volGraphDetailDate'+sfx);
+  const volEl=document.getElementById('volGraphDetailVol'+sfx);
   if(!hintEl||!dateEl||!volEl)return;
   hintEl.style.display='none';
   dateEl.style.display='block';
@@ -9813,7 +10121,7 @@ function _updateVolGraphDetailBox(day){
   const divider=`<div style="border-top:1px solid rgba(128,128,128,0.2);margin:3px 0 2px"></div>`;
 
   // Case 1: Detailed View OFF
-  if(!volDetailViewOn){
+  if(!volDetailViewOn[side]){
     // Line 2: class name(s) with color dot, one per line
     let classLines='';
     if(attNames.length>0){
@@ -9830,14 +10138,15 @@ function _updateVolGraphDetailBox(day){
   }
 
   // Case 3: Detailed View ON + class selected
-  if(volSelectedClass){
-    const dayClassVol=Math.round(cv[volSelectedClass]||0);
-    const weekTotalVol=Math.round(volClassVolumeMap[volSelectedClass]||0);
-    const periodLabel=volRangeMode==='weekly'?'Weekly':volRangeMode==='monthly'?'Monthly':'3-Month';
-    const col=CLASS_COLORS[volSelectedClass]||'var(--accent)';
+  const selCls=volSelectedClass[side];
+  if(selCls){
+    const dayClassVol=Math.round(cv[selCls]||0);
+    const weekTotalVol=Math.round((volClassVolumeMap[side]||{})[selCls]||0);
+    const periodLabel=side==='main'?(volRangeMode==='weekly'?'Weekly':volRangeMode==='monthly'?'Monthly':'3-Month'):'Weekly';
+    const col=CLASS_COLORS[selCls]||'var(--accent)';
     const line2=dayClassVol>0
-      ?`<div style="display:flex;align-items:center;font-size:10px;font-weight:700;color:${col};margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${dot(col)}<span style="overflow:hidden;text-overflow:ellipsis">${volSelectedClass}: ${dayClassVol.toLocaleString()} Kg-Reps</span></div>`
-      :`<div style="font-size:10px;color:var(--text-muted);margin-top:2px">${volSelectedClass}: No data</div>`;
+      ?`<div style="display:flex;align-items:center;font-size:10px;font-weight:700;color:${col};margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${dot(col)}<span style="overflow:hidden;text-overflow:ellipsis">${selCls}: ${dayClassVol.toLocaleString()} Kg-Reps</span></div>`
+      :`<div style="font-size:10px;color:var(--text-muted);margin-top:2px">${selCls}: No data</div>`;
     const line3=`${divider}<div style="font-size:10px;white-space:nowrap">${periodLabel} Total:<br><strong style="font-size:12px">${weekTotalVol.toLocaleString()} Kg-Reps</strong></div>`;
     volEl.innerHTML=line2+line3;
     return;
@@ -9927,72 +10236,6 @@ function formatExerciseVolTotal(w,sets){
   return{primary:Math.round(w.vol).toLocaleString(),unit:'kg·reps'};
 }
 
-function renderVolDrilldown(day,titleId,bodyId,panel){
-  if(!day)return;
-  panel=panel||'main';
-  const titleEl=document.getElementById(titleId||'volDrillTitle');
-  const bodyEl=document.getElementById(bodyId||'volDrillBody');
-  if(!titleEl||!bodyEl)return;
-
-  // Attendance workout name badges (from attendance table — shown in report box)
-  const attNames=(day.attendanceWorkouts||[]);
-  const attBadge=attNames.length
-    ? `<div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:4px">${attNames.map(n=>`<span style="display:inline-block;background:var(--btn-bg);color:var(--follow-btn-text);padding:2px 9px;border-radius:7px;font-size:10px;font-family:var(--font-alt);font-weight:700">${n}</span>`).join('')}</div>`
-    : '';
-
-  titleEl.innerHTML=`📋 <span style="color:var(--accent)">${day.label}</span> — Breakdown${attBadge}<small style="display:block;margin-top:4px;font-size:10px;color:var(--text-muted);font-family:var(--font-alt);font-weight:600">Click a row to expand · Toggle DETAIL VIEW for all</small>`;
-
-  if(!day.workouts||day.workouts.length===0){
-    bodyEl.innerHTML=`<div style="color:var(--text-muted);font-family:var(--font-alt);font-size:13px;padding:8px 0">No workouts logged for this day.</div>`;
-    return;
-  }
-
-  const detailOn=_detailView[panel]||false;
-  const uid=panel==='left'?'L':panel==='right'?'R':panel;
-  const dayKey=_volDayKey(day);
-
-  let html='';
-  day.workouts.forEach((w,idx)=>{
-    const parts=w.name.split(':');
-    const exName=(parts[0]||w.name).trim();
-    const sets=parseWorkoutSets(w.name);
-    const vt=formatExerciseVolTotal(w,sets);
-    const setsId=`volSets_${uid}_${idx}`;
-    const rowId=`volRow_${uid}_${idx}`;
-    const rowKey=`${panel}::${dayKey}::${idx}`;
-    const isOpen=detailOn||_expandedVolRowKeys.has(rowKey);
-    const chevron=isOpen?'▼':'▶';
-    const openClass=isOpen?'open':'';
-    const topRadius=isOpen?'10px 10px 0 0':'10px';
-    const borderBottom=isOpen?'none':'';
-
-    html+=`<div class="vol-drill-row${isOpen?' expanded':''}" id="${rowId}" onclick="toggleVolSets('${rowKey}','${rowId}','${setsId}')"
-      style="border-radius:${topRadius};margin-bottom:0;border:1px solid var(--border-col);${borderBottom?'border-bottom:none;':''}padding:10px 14px;display:flex;align-items:center;gap:10px;background:var(--bg-card);cursor:pointer">
-      <span class="vol-drill-name" style="flex:1">${exName}</span>
-      <span class="vol-drill-val">${vt.primary} <small style="font-size:10px;opacity:0.65">${vt.unit}</small></span>
-      <span class="vol-drill-chevron" id="chev_${rowId}">${chevron}</span>
-    </div>`;
-
-    html+=`<div class="vol-drill-sets ${openClass}" id="${setsId}" style="border-radius:0 0 10px 10px">`;
-    if(sets.length===0){
-      html+=`<div class="vol-set-line"><span class="vol-set-desc" style="color:var(--text-muted)">No set data found</span></div>`;
-    } else {
-      sets.forEach((s,si)=>{
-        html+=`<div class="vol-set-line">
-          <span class="vol-set-desc">Set ${si+1} &nbsp;·&nbsp; ${s.desc}</span>
-          <span class="vol-set-vol">${(s.isBW||s.isCardio)?'':s.vol.toLocaleString()+' kg'}</span>
-        </div>`;
-
-      });
-      const totalDetail=isAllCardioSets(sets)?formatCardioTotalDetail(sets):`${vt.primary} ${vt.unit}`;
-      html+=`<div class="vol-sets-total"><span>Total Volume</span><strong>${totalDetail}</strong></div>`;
-    }
-    html+=`</div><div style="height:6px"></div>`;
-  });
-  html+=`<div class="vol-drill-total" style="margin-top:4px"><span>📦 Daily Total</span><strong>${Math.round(day.volume).toLocaleString()} kg·reps</strong></div>`;
-  bodyEl.innerHTML=html;
-}
-
 function toggleVolSets(rowKey,rowId,setsId){
   // Back-compat: older callers may still pass just (rowId,setsId) with no rowKey
   if(setsId===undefined){setsId=rowId;rowId=rowKey;rowKey=null;}
@@ -10020,10 +10263,13 @@ function toggleVolSets(rowKey,rowId,setsId){
 /* ===================== VOLUME STACKED CLASS ENGINE ===================== */
 /* Mirrors the Duration stacked-bar system but for Volume data */
 
-let volDetailViewOn=false;       // Detailed View toggle state (main panel)
-let volSelectedClass=null;       // Currently filtered class
-let volClassFreqMap={};          // {className: count} of workouts in current range
-let volClassVolumeMap={};        // {className: totalVol} of workouts in current range
+/* Detailed-View state, keyed per graph: 'main' (single view) | 'left' | 'right' (Compare mode
+   panels). All three graphs behave identically — same stacked bar colors, same class legend, same
+   tap-to-drill breakdown — this object just keeps each panel's toggle/filter independent. */
+let volDetailViewOn={main:false,left:false,right:false};   // Detailed View toggle state, per panel
+let volSelectedClass={main:null,left:null,right:null};     // Currently filtered class, per panel
+let volClassFreqMap={main:{},left:{},right:{}};            // {className: count} of workouts in current range, per panel
+let volClassVolumeMap={main:{},left:{},right:{}};          // {className: totalVol} of workouts in current range, per panel
 let _volSelectedIdx=-1;          // Currently highlighted bar index
 let _volCurrentIdx=0;            // For arrow nav
 let _volTotalBars=0;
@@ -10055,23 +10301,26 @@ function buildDayClassVolume(workouts){
 }
 
 /* Toggle Detailed View */
-function toggleVolDetailView(){
-  volDetailViewOn=!volDetailViewOn;
-  const tog=document.getElementById('volDetailToggle');
-  const lbl=document.getElementById('volDetailToggleLabel');
-  const legend=document.getElementById('volChartLegend');
-  if(tog)tog.classList.toggle('on',volDetailViewOn);
-  if(lbl){lbl.textContent=volDetailViewOn?'ON':'OFF';lbl.style.color=volDetailViewOn?'var(--accent)':'var(--text-muted)';}
-  if(legend)legend.classList.toggle('hidden',!volDetailViewOn);
+function toggleVolDetailView(side){
+  side=side||'main';
+  const sfx=side==='left'?'L':side==='right'?'R':'';
+  volDetailViewOn[side]=!volDetailViewOn[side];
+  const tog=document.getElementById('volDetailToggle'+sfx);
+  const lbl=document.getElementById('volDetailToggleLabel'+sfx);
+  const legend=document.getElementById('volChartLegend'+sfx);
+  if(tog)tog.classList.toggle('on',volDetailViewOn[side]);
+  if(lbl){lbl.textContent=volDetailViewOn[side]?'ON':'OFF';lbl.style.color=volDetailViewOn[side]?'var(--accent)':'var(--text-muted)';}
+  if(legend)legend.classList.toggle('hidden',!volDetailViewOn[side]);
   // Clear class filter when turning off
-  if(!volDetailViewOn){
-    volSelectedClass=null;
-    if(_volWeeklyChartInstance){
-      _volWeeklyChartInstance.data.datasets[0]._selectedClass=null;
+  if(!volDetailViewOn[side]){
+    volSelectedClass[side]=null;
+    const inst=side==='left'?volChartInstanceL:side==='right'?volChartInstanceR:_volWeeklyChartInstance;
+    if(inst&&inst.data&&inst.data.datasets[0]){
+      inst.data.datasets[0]._selectedClass=null;
     }
   }
   // Re-render chart to show/hide stacked colors
-  updateVolumeChart('main');
+  updateVolumeChart(side);
 }
 
 /* Highlights line chart points for the active volSelectedClass — mirrors _durHighlightLinePoint */
@@ -10083,10 +10332,11 @@ function _volHighlightLinePoint(selectedIdx){
   const radii=new Array(n).fill(volLineDataCache.length>20?2.5:4);
   const colors=new Array(n).fill(base);
   const borders=new Array(n).fill('#fff');
-  if(volSelectedClass){
+  const selCls=volSelectedClass.main;
+  if(selCls){
     for(let i=0;i<n;i++){
-      if((volLineDataCache[i].attendanceWorkouts||[]).includes(volSelectedClass)){
-        colors[i]=CLASS_COLORS[volSelectedClass]||base;
+      if((volLineDataCache[i].attendanceWorkouts||[]).includes(selCls)){
+        colors[i]=CLASS_COLORS[selCls]||base;
         radii[i]=5;
         borders[i]='rgba(255,255,255,0.9)';
       } else {
@@ -10097,7 +10347,7 @@ function _volHighlightLinePoint(selectedIdx){
     }
   }
   if(selectedIdx>=0&&selectedIdx<n){
-    colors[selectedIdx]=volSelectedClass?(CLASS_COLORS[volSelectedClass]||base):base;
+    colors[selectedIdx]=selCls?(CLASS_COLORS[selCls]||base):base;
     radii[selectedIdx]=9;
     borders[selectedIdx]='#fff';
   }
@@ -10107,82 +10357,115 @@ function _volHighlightLinePoint(selectedIdx){
   ds.pointHoverRadius=radii.map((r,i)=>i===selectedIdx?11:r+2);
   // Hide the connecting line itself between any two points that aren't both the selected class —
   // matches Duration's line chart via the same shared helper (buildClassFilterSegmentColor).
-  ds.segment={borderColor:buildClassFilterSegmentColor(volSelectedClass,volLineDataCache,d=>d.attendanceWorkouts,base)};
+  ds.segment={borderColor:buildClassFilterSegmentColor(selCls,volLineDataCache,d=>d.attendanceWorkouts,base)};
   chart.update('none');
 }
 
-/* Select class filter — mirrors durSelectClass logic exactly */
-function volSelectClass(cls){
-  if(!volDetailViewOn)return;
-  const navLeft=document.getElementById('volNavLeft');
-  const navRight=document.getElementById('volNavRight');
-  if(volSelectedClass===cls){
-    // Deselect — back to free navigation
-    volSelectedClass=null;
-    buildVolLegend();
-    if(navLeft)navLeft.classList.remove('class-filtered');
-    if(navRight)navRight.classList.remove('class-filtered');
-    if(volRangeMode==='weekly'){
-      if(_volWeeklyChartInstance){
-        _volWeeklyChartInstance.data.datasets[0]._selectedClass=null;
-        _volWeeklyChartInstance.update('none');
-      }
-    } else {
-      _volHighlightLinePoint(_volCurrentIdx);
-    }
-    const h=document.getElementById('volGraphDetailHint');
-    if(h){h.style.display='block';h.textContent='👆 Tap a point';}
-    // Refresh detail box if a day is already selected
-    if(_lastDrillDay['main'])_updateVolGraphDetailBox(_lastDrillDay['main']);
-  } else {
-    volSelectedClass=cls;
-    buildVolLegend();
-    if(navLeft)navLeft.classList.add('class-filtered');
-    if(navRight)navRight.classList.add('class-filtered');
-    // Jump to first occurrence of this class
-    const indices=_volIndicesForClass(cls);
-    if(indices.length){
-      _volCurrentIdx=indices[0];
-      _volSelectIndex(_volCurrentIdx);
-    } else {
-      // Class in legend but no occurrences — still update bar/point highlighting
+/* Select class filter — mirrors durSelectClass logic exactly. `side` is 'main' (default, keeps
+   the original nav-arrow/index-jump behavior) or 'left'/'right' for a Compare-mode panel, which
+   has no nav arrows or index concept — it just re-colors that panel's own bars + detail box. */
+function volSelectClass(side,cls){
+  if(cls===undefined){cls=side;side='main';} // back-compat: volSelectClass('ClassName') === main panel
+  if(!volDetailViewOn[side])return;
+  const sfx=side==='left'?'L':side==='right'?'R':'';
+
+  if(side==='main'){
+    const navLeft=document.getElementById('volNavLeft');
+    const navRight=document.getElementById('volNavRight');
+    if(volSelectedClass.main===cls){
+      // Deselect — back to free navigation
+      volSelectedClass.main=null;
+      buildVolLegend('main');
+      if(navLeft)navLeft.classList.remove('class-filtered');
+      if(navRight)navRight.classList.remove('class-filtered');
       if(volRangeMode==='weekly'){
         if(_volWeeklyChartInstance){
-          _volWeeklyChartInstance.data.datasets[0]._selectedClass=cls;
+          _volWeeklyChartInstance.data.datasets[0]._selectedClass=null;
           _volWeeklyChartInstance.update('none');
         }
       } else {
-        _volHighlightLinePoint(-1);
+        _volHighlightLinePoint(_volCurrentIdx);
       }
+      const h=document.getElementById('volGraphDetailHint');
+      if(h){h.style.display='block';h.textContent='👆 Tap a point';}
+      if(_lastDrillDay['main'])_updateVolGraphDetailBox(_lastDrillDay['main'],'main');
+    } else {
+      volSelectedClass.main=cls;
+      buildVolLegend('main');
+      if(navLeft)navLeft.classList.add('class-filtered');
+      if(navRight)navRight.classList.add('class-filtered');
+      // Jump to first occurrence of this class
+      const indices=_volIndicesForClass(cls);
+      if(indices.length){
+        _volCurrentIdx=indices[0];
+        _volSelectIndex(_volCurrentIdx);
+      } else {
+        // Class in legend but no occurrences — still update bar/point highlighting
+        if(volRangeMode==='weekly'){
+          if(_volWeeklyChartInstance){
+            _volWeeklyChartInstance.data.datasets[0]._selectedClass=cls;
+            _volWeeklyChartInstance.update('none');
+          }
+        } else {
+          _volHighlightLinePoint(-1);
+        }
+      }
+      // Show class freq in detail box
+      const freq=volClassFreqMap.main[cls]||0;
+      const freqEl=document.getElementById('volGraphDetailHint');
+      if(freqEl){
+        const clr=CLASS_COLORS[cls]||'var(--accent)';
+        freqEl.style.display='block';
+        freqEl.innerHTML=`<span style="color:${clr};font-weight:800">${cls}</span>: ${freq} session${freq!==1?'s':''}`;
+      }
+      if(_lastDrillDay['main'])_updateVolGraphDetailBox(_lastDrillDay['main'],'main');
     }
-    // Show class freq in detail box
-    const freq=volClassFreqMap[cls]||0;
-    const freqEl=document.getElementById('volGraphDetailHint');
+    return;
+  }
+
+  // Compare-mode panel (left/right): no nav arrows, no index-jump — just toggle the filter,
+  // re-color that panel's own bars, and refresh that panel's own detail box.
+  const inst=side==='left'?volChartInstanceL:volChartInstanceR;
+  const freqEl=document.getElementById('volGraphDetailHint'+sfx);
+  if(volSelectedClass[side]===cls){
+    volSelectedClass[side]=null;
+    if(freqEl){freqEl.style.display='block';freqEl.textContent='👆 Tap a bar';}
+  } else {
+    volSelectedClass[side]=cls;
+    const freq=volClassFreqMap[side][cls]||0;
     if(freqEl){
       const clr=CLASS_COLORS[cls]||'var(--accent)';
       freqEl.style.display='block';
       freqEl.innerHTML=`<span style="color:${clr};font-weight:800">${cls}</span>: ${freq} session${freq!==1?'s':''}`;
     }
-    // Refresh detail box if a day is already selected
-    if(_lastDrillDay['main'])_updateVolGraphDetailBox(_lastDrillDay['main']);
   }
+  buildVolLegend(side);
+  if(inst&&inst.data&&inst.data.datasets[0]){
+    inst.data.datasets[0]._selectedClass=volSelectedClass[side];
+    inst.update('none');
+  }
+  if(_lastDrillDay[side])_updateVolGraphDetailBox(_lastDrillDay[side],side);
 }
 
 /* Build class legend sorted by volume high→low */
-function buildVolLegend(){
-  const el=document.getElementById('volChartLegend');if(!el)return;
-  el.classList.toggle('hidden',!volDetailViewOn);
-  const classes=Object.keys(volClassFreqMap).filter(c=>c!=='Rest'&&c!=='Unknown'&&volClassFreqMap[c]>0);
+function buildVolLegend(side){
+  side=side||'main';
+  const sfx=side==='left'?'L':side==='right'?'R':'';
+  const el=document.getElementById('volChartLegend'+sfx);if(!el)return;
+  el.classList.toggle('hidden',!volDetailViewOn[side]);
+  const freqMap=volClassFreqMap[side]||{};
+  const volMap=volClassVolumeMap[side]||{};
+  const classes=Object.keys(freqMap).filter(c=>c!=='Rest'&&c!=='Unknown'&&freqMap[c]>0);
   // Sort by total volume high→low
-  classes.sort((a,b)=>(volClassVolumeMap[b]||0)-(volClassVolumeMap[a]||0));
+  classes.sort((a,b)=>(volMap[b]||0)-(volMap[a]||0));
   let html='';
   classes.forEach(c=>{
     const color=CLASS_COLORS[c]||CLASS_COLORS['Unknown'];
-    const freq=volClassFreqMap[c]||0;
-    const totalVol=Math.round(volClassVolumeMap[c]||0);
+    const freq=freqMap[c]||0;
+    const totalVol=Math.round(volMap[c]||0);
     const volStr=totalVol.toLocaleString()+' Kg';
-    const isActive=volSelectedClass===c;
-    html+=`<div onclick="volSelectClass('${c}')" style="display:inline-flex;flex-direction:column;align-items:center;gap:1px;font-family:var(--font-alt);font-weight:700;color:#fff;cursor:pointer;padding:4px 8px;border-radius:14px;border:2px solid ${isActive?'#fff':color};background:${color};box-shadow:${isActive?'0 0 6px rgba(0,0,0,0.35)':'none'};transition:all 0.15s;-webkit-tap-highlight-color:transparent;white-space:nowrap">
+    const isActive=volSelectedClass[side]===c;
+    html+=`<div onclick="volSelectClass('${side}','${c}')" style="display:inline-flex;flex-direction:column;align-items:center;gap:1px;font-family:var(--font-alt);font-weight:700;color:#fff;cursor:pointer;padding:4px 8px;border-radius:14px;border:2px solid ${isActive?'#fff':color};background:${color};box-shadow:${isActive?'0 0 6px rgba(0,0,0,0.35)':'none'};transition:all 0.15s;-webkit-tap-highlight-color:transparent;white-space:nowrap">
       <div style="display:flex;align-items:center;gap:4px;font-size:10.5px">${c}<span style="background:rgba(255,255,255,0.28);color:#fff;border-radius:9px;padding:1px 5px;font-size:9px;font-weight:800;min-width:14px;text-align:center">${freq}</span></div>
       <div style="font-size:9px;font-weight:700;color:rgba(255,255,255,0.9);letter-spacing:0.2px">${volStr}</div>
     </div>`;
@@ -10196,7 +10479,8 @@ function buildVolLegend(){
 const volSelectionPlugin={
   id:'volSelectionPlugin',
   afterDatasetsDraw(chart){
-    if(volDetailViewOn)return; // when ON, volStackedPlugin handles selection highlight
+    const side=chart.data.datasets[0]._side||'main';
+    if(volDetailViewOn[side])return; // when ON, volStackedPlugin handles selection highlight
     const{ctx,data}=chart;
     const selectedIdx=data.datasets[0]._selectedIdx??-1;
     if(selectedIdx<0)return;
@@ -10223,7 +10507,8 @@ const volSelectionPlugin={
 const volStackedPlugin={
   id:'volStackedPlugin',
   afterDatasetsDraw(chart){
-    if(!volDetailViewOn)return; // OFF → let Chart.js draw default theme-colored bars
+    const side=chart.data.datasets[0]._side||'main';
+    if(!volDetailViewOn[side])return; // OFF → let Chart.js draw default theme-colored bars
     const{ctx,data}=chart;ctx.save();
     const meta=chart.getDatasetMeta(0);
     const selectedClass=data.datasets[0]._selectedClass||null;
@@ -10295,17 +10580,17 @@ function _volSelectIndex(idx){
   if(volRangeMode==='weekly'){
     if(_volWeeklyChartInstance){
       _volWeeklyChartInstance.data.datasets[0]._selectedIdx=idx;
-      _volWeeklyChartInstance.data.datasets[0]._selectedClass=volSelectedClass||null;
+      _volWeeklyChartInstance.data.datasets[0]._selectedClass=volSelectedClass.main||null;
       _volWeeklyChartInstance.update('none');
     }
     _lastDrillDay['main']=day;
     renderVolDrilldownEnhanced(day,'volDrillTitle','volDrillBody','main');
-    _updateVolGraphDetailBox(day);
+    _updateVolGraphDetailBox(day,'main');
   } else {
     _volHighlightLinePoint(idx);
     _lastDrillDay['main']=day;
     renderVolDrilldownEnhanced(day,'volDrillTitle','volDrillBody','main');
-    _updateVolGraphDetailBox(day);
+    _updateVolGraphDetailBox(day,'main');
   }
 }
 
@@ -10314,8 +10599,8 @@ function _volSelectIndex(idx){
 function volNavigate(dir){
   const cache=volRangeMode==='weekly'?volDayDataCache:volLineDataCache;
   if(!cache.length)return;
-  if(volSelectedClass){
-    const indices=_volIndicesForClass(volSelectedClass);
+  if(volSelectedClass.main){
+    const indices=_volIndicesForClass(volSelectedClass.main);
     if(!indices.length)return;
     const pos=indices.indexOf(_volCurrentIdx);
     const nextPos=(pos===-1)?(dir===1?0:indices.length-1):((pos+dir+indices.length)%indices.length);
