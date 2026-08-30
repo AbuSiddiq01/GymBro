@@ -1255,16 +1255,6 @@ body:not(.theme-dark) .dur-graph-detail-divider strong{color:#1e3a8a}
 .cmp-rotate-btn-inline:active{transform:scale(0.95)}
 .cmp-rotate-btn-inline.exit-fs{background:#e11d48;border-color:#e11d48;color:#fff}
 @media(min-width:901px){.cmp-rotate-btn-inline{display:none!important}}
-/* While rotate mode is actually active, the button's label grows ("Exit Full Screen" is longer
-   than "Rotate Screen") — shrink the rest of the row further so it never gets squeezed off /
-   wraps awkwardly on a narrow phone screen. Toggled via JS (.rotated on #cmpToggleRow). */
-.vol-compare-toggle-row.rotated{gap:6px;padding:8px 10px}
-.vol-compare-toggle-row.rotated .vol-compare-toggle-label{font-size:10.5px}
-.vol-compare-toggle-row.rotated .cmp-toggle{width:34px;height:20px}
-.vol-compare-toggle-row.rotated .cmp-toggle-knob{width:13px;height:13px;top:3.5px;left:3.5px}
-.vol-compare-toggle-row.rotated .cmp-toggle.on .cmp-toggle-knob{left:17.5px}
-.vol-compare-toggle-row.rotated .cmp-mode-badge{display:none}
-.vol-compare-toggle-row.rotated .cmp-rotate-btn-inline{font-size:10px;padding:6px 8px}
 /* Slightly tighter toggle row on small screens so the rotate button fits without wrapping */
 @media(max-width:480px){
   .vol-compare-toggle-row{padding:10px 12px;gap:8px}
@@ -1295,13 +1285,8 @@ body:not(.theme-dark) .dur-graph-detail-divider strong{color:#1e3a8a}
 /* Shared day-grid calendar modal opened by either panel's calendar icon — reuses the exact same
    .hist-cal-* classes/markup as the Attendance History page's calendar box. */
 .cmp-cal-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;z-index:99999999;padding:20px;box-sizing:border-box;animation:fadeIn 0.2s ease}
-.cmp-cal-modal{position:relative;background:var(--bg-card);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid var(--border-col);border-radius:16px;box-shadow:0 12px 40px rgba(0,0,0,0.35);padding:18px;max-width:420px;width:100%;max-height:88vh;overflow-y:auto;box-sizing:border-box;animation:fadeIn 0.25s ease}
-.cmp-cal-modal-title{font-family:var(--font-alt);font-size:12px;font-weight:800;color:var(--text-muted);letter-spacing:0.6px;text-transform:uppercase;margin-bottom:12px;text-align:center;padding-right:22px}
-/* Always-reachable ✕ at the top of the modal (in addition to the full-width Close button at the
-   bottom) so the person never has to scroll down just to dismiss it — matters most in the short
-   landscape/rotated layout where the grid can fill the whole modal height. */
-.cmp-cal-modal-close-x{position:absolute;top:10px;right:10px;width:24px;height:24px;border-radius:50%;border:none;background:var(--accent-soft);color:var(--text-muted);font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:2;-webkit-tap-highlight-color:transparent}
-.cmp-cal-modal-close-x:hover{background:var(--accent);color:#fff}
+.cmp-cal-modal{background:var(--bg-card);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid var(--border-col);border-radius:16px;box-shadow:0 12px 40px rgba(0,0,0,0.35);padding:18px;max-width:420px;width:100%;max-height:88vh;overflow-y:auto;box-sizing:border-box;animation:fadeIn 0.25s ease}
+.cmp-cal-modal-title{font-family:var(--font-alt);font-size:12px;font-weight:800;color:var(--text-muted);letter-spacing:0.6px;text-transform:uppercase;margin-bottom:12px;text-align:center}
 .cmp-cal-nav-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
 .cmp-cal-nav-btn{width:36px;height:36px;border-radius:10px;border:1px solid var(--border-col);background:var(--bg-panel);color:var(--text-primary);font-size:18px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s ease}
 .cmp-cal-nav-btn:hover{background:var(--accent-soft);color:var(--accent)}
@@ -1311,34 +1296,6 @@ body:not(.theme-dark) .dur-graph-detail-divider strong{color:#1e3a8a}
 .hist-cal-cell.cmp-week-selected{outline:2px solid var(--accent);outline-offset:-1px;background:var(--accent-soft);transform:translateY(-2px);z-index:2}
 .cmp-cal-hint{text-align:center;font-size:11px;color:var(--text-muted);font-family:var(--font-alt);font-weight:600;margin-top:12px}
 .cmp-cal-modal-close{width:100%;margin-top:10px;padding:10px;border-radius:10px;border:none;background:var(--accent-soft);color:var(--accent);font-family:var(--font-alt);font-weight:800;font-size:12.5px;cursor:pointer}
-/* Compact-but-legible layout for short landscape viewports (i.e. a phone in Compare mode's
-   rotated/fullscreen view) — the default sizing (esp. the >=700px "bigger cell" rule further down)
-   assumes a tall viewport and doesn't leave enough vertical room for all ~5-6 week rows, cropping
-   the top/bottom rows. This trims header/legend/cell padding and font sizes moderately (NOT down
-   to unreadable — text stays legible without pinch-zoom) so most/all rows fit; the modal itself
-   still scrolls (overflow-y:auto, inherited from .cmp-cal-modal) as a safety net on very short
-   screens, and the top ✕ button means scrolling to close is never necessary. Scoped under
-   .cmp-cal-modal so it only affects this popup, never the Attendance History page's own calendar. */
-@media (orientation:landscape) and (max-height:520px){
-  .cmp-cal-modal-overlay{padding:8px}
-  .cmp-cal-modal{padding:12px 14px;max-height:94vh}
-  .cmp-cal-modal-title{font-size:10.5px;margin-bottom:6px;padding-right:22px}
-  .cmp-cal-modal-close-x{width:22px;height:22px;font-size:10px;top:8px;right:8px}
-  .cmp-cal-nav-row{margin-bottom:6px}
-  .cmp-cal-nav-btn{width:28px;height:28px;font-size:14px;border-radius:8px}
-  .cmp-cal-month-label{font-size:12.5px}
-  .cmp-cal-modal .hist-cal-legend{gap:4px 10px;margin-bottom:6px}
-  .cmp-cal-modal .hist-cal-legend-item{font-size:9px}
-  .cmp-cal-modal .hist-cal-daynames{gap:4px;margin-bottom:4px}
-  .cmp-cal-modal .hist-cal-dayname{font-size:8px;padding-bottom:0}
-  .cmp-cal-modal .hist-cal-grid{column-gap:4px;row-gap:6px}
-  .cmp-cal-modal .hist-cal-cell{min-height:44px;padding:3px 2px 4px;border-radius:9px;gap:1px}
-  .cmp-cal-modal .hist-cal-date{font-size:12.5px;margin:1px 0}
-  .cmp-cal-modal .hist-cal-status{font-size:7px;padding:1.5px 3px;border-radius:4px;line-height:1.2}
-  .cmp-cal-modal .hist-cal-classes{font-size:7px;line-height:1.2}
-  .cmp-cal-hint{margin-top:6px;font-size:9.5px}
-  .cmp-cal-modal-close{margin-top:6px;padding:7px;font-size:11px}
-}
 /* Two-panel swipe layout — only kicks in on narrow/portrait mobile (see the media query below).
    Desktop and landscape keep the normal side-by-side flex row untouched. */
 .cmp-swipe-wrapper{width:100%;overflow:visible}
@@ -2625,7 +2582,7 @@ body.tracker-fs-lock{overflow:hidden}
         <div class="volume-view" id="volumeView">
 
           <!-- Compare Mode Toggle -->
-          <div class="vol-compare-toggle-row" id="cmpToggleRow">
+          <div class="vol-compare-toggle-row">
             <span class="vol-compare-toggle-label">⚖️ Compare Mode</span>
             <button class="cmp-toggle" id="cmpToggleBtn" onclick="toggleCompareMode()" aria-label="Toggle Compare Mode">
               <div class="cmp-toggle-knob"></div>
@@ -2853,7 +2810,6 @@ body.tracker-fs-lock{overflow:hidden}
     <!-- Shared month/week picker modal for Compare Mode's calendar icons -->
     <div id="cmpCalModalOverlay" class="cmp-cal-modal-overlay" style="display:none" onclick="if(event.target===this)closeCmpCalendar()">
       <div class="cmp-cal-modal">
-        <button type="button" class="cmp-cal-modal-close-x" onclick="closeCmpCalendar()" aria-label="Close">✕</button>
         <div class="cmp-cal-modal-title" id="cmpCalModalTitle">Pick a week — Panel A</div>
         <div class="cmp-cal-nav-row">
           <button type="button" class="cmp-cal-nav-btn" id="cmpCalPrevBtn" onclick="cmpCalNav(-1)" aria-label="Previous month">&#8249;</button>
@@ -8314,29 +8270,27 @@ function _initCmpHintSwipe(el){
 
 let _cmpRotated=false; // true while we've fullscreen+landscape-locked the screen for Compare mode
 
-/* Manual "Rotate Screen" button. The button's own state (label/color) is now controlled purely by
-   the tap itself — it ALWAYS flips to the red "Exit Full Screen" state the instant it's pressed,
-   never gated on whether the underlying browser APIs actually succeed. Fullscreen + landscape lock
-   are attempted as a pure best-effort enhancement underneath: both are unsupported outright on iOS
-   Safari (no Fullscreen API for arbitrary elements, no Orientation Lock API at all) and patchy
-   elsewhere (some browsers allow fullscreen but reject the lock outside an installed PWA). Making
-   the button depend on those succeeding is exactly what left it stuck on "Rotate Screen" with no
-   way back — this guarantees a working Exit button on every browser regardless. */
+/* Manual "Rotate Screen" button — requests fullscreen (required by most browsers before an
+   orientation lock is allowed) then locks to landscape. Tapping again while rotated undoes both.
+   Not every browser supports Screen Orientation locking (notably iOS Safari), so this fails
+   gracefully with a toast telling the person to rotate their device by hand instead. */
 async function _cmpRotateScreen(){
   if(_cmpRotated){_cmpExitRotate();return}
-  _cmpRotated=true;
-  _updateCmpRotateBtn();
-  _dismissCmpHint();
   try{
     if(document.documentElement.requestFullscreen&&!document.fullscreenElement){
       await document.documentElement.requestFullscreen();
     }
-  }catch(e){/* not supported/denied — the manual toggle above still works either way */}
-  try{
     if(screen.orientation&&screen.orientation.lock){
       await screen.orientation.lock('landscape');
+      _cmpRotated=true;
+      _updateCmpRotateBtn();
+      _dismissCmpHint();
+    } else {
+      showToast("Auto-rotate isn't supported on this browser — please rotate your device manually.");
     }
-  }catch(e){/* not supported/denied — same */}
+  }catch(e){
+    showToast("Couldn't rotate automatically — please rotate your device manually.");
+  }
 }
 function _cmpExitRotate(){
   try{if(screen.orientation&&screen.orientation.unlock)screen.orientation.unlock()}catch(e){}
@@ -8346,8 +8300,6 @@ function _cmpExitRotate(){
 }
 function _updateCmpRotateBtn(){
   const btn=document.getElementById('cmpRotateBtn');
-  const row=document.getElementById('cmpToggleRow');
-  if(row)row.classList.toggle('rotated',_cmpRotated);
   if(!btn)return;
   btn.innerHTML=_cmpRotated?'✕ Exit Full Screen':'🔄 Rotate Screen';
   btn.classList.toggle('exit-fs',_cmpRotated);
@@ -8419,12 +8371,9 @@ function _cmpApplyState(showHintIfMobile){
   badge.style.color=_cmpModeOn?'var(--accent)':'var(--text-muted)';
   single.classList.toggle('hidden',_cmpModeOn);
   landscape.classList.toggle('active',_cmpModeOn);
-  // The inline Rotate Screen control is strictly Compare-mode + mobile only. Mobile detection is
-  // left entirely to the CSS breakpoint (@media min-width:901px hides it outright) rather than
-  // also gating here on the _isMobile() UA/width sniff — that redundant JS check was the reason it
-  // sometimes failed to appear at all on real phones/tablets whose UA or reported innerWidth didn't
-  // match the sniff, even though the CSS breakpoint alone would have shown it correctly.
-  if(rotateBtn)rotateBtn.classList.toggle('show',_cmpModeOn);
+  // The inline Rotate Screen control is strictly Compare-mode + mobile only (CSS also hard-hides
+  // it on desktop as a backstop regardless of this class).
+  if(rotateBtn)rotateBtn.classList.toggle('show',_cmpModeOn&&_isMobile());
   if(_cmpModeOn){
     // Default comparison the first time this session: this week (Panel B) vs last week (Panel A).
     // Once the person picks their own weeks via the calendar icon, those choices stick across toggles
