@@ -1245,8 +1245,25 @@ body:not(.theme-dark) .dur-graph-detail-divider strong{color:#1e3a8a}
 .cmp-toggle.on{background:var(--accent)}
 .cmp-toggle-knob{position:absolute;top:4px;left:4px;width:20px;height:20px;background:#fff;border-radius:50%;transition:left 0.3s ease;box-shadow:0 2px 6px rgba(0,0,0,0.25);pointer-events:none}
 .cmp-toggle.on .cmp-toggle-knob{left:28px}
-.cmp-mode-badge{font-size:11px;font-weight:700;font-family:var(--font-alt);letter-spacing:0.5px;color:var(--text-muted);transition:color 0.3s}
+.cmp-mode-badge{font-size:11px;font-weight:700;font-family:var(--font-alt);letter-spacing:0.5px;color:var(--text-muted);transition:color 0.3s;flex-shrink:0}
 .cmp-toggle.on~.cmp-mode-badge{color:var(--accent)}
+/* Inline "Rotate Screen" button — lives right next to the Compare Mode toggle instead of floating
+   above the panels. Mobile + Compare-mode-on only (see .show, toggled from JS); always hidden on
+   desktop regardless of state, since a mouse-driven layout has no use for screen rotation. */
+.cmp-rotate-btn-inline{display:none;align-items:center;gap:4px;padding:6px 10px;border-radius:10px;border:1px solid var(--border-col);background:var(--bg-panel);color:var(--accent);font-family:var(--font-alt);font-weight:800;font-size:10.5px;letter-spacing:0.2px;white-space:nowrap;cursor:pointer;-webkit-tap-highlight-color:transparent;flex-shrink:0}
+.cmp-rotate-btn-inline.show{display:inline-flex}
+.cmp-rotate-btn-inline:active{transform:scale(0.95)}
+.cmp-rotate-btn-inline.exit-fs{background:#e11d48;border-color:#e11d48;color:#fff}
+@media(min-width:901px){.cmp-rotate-btn-inline{display:none!important}}
+/* Slightly tighter toggle row on small screens so the rotate button fits without wrapping */
+@media(max-width:480px){
+  .vol-compare-toggle-row{padding:10px 12px;gap:8px}
+  .vol-compare-toggle-label{font-size:11.5px}
+  .cmp-toggle{width:42px;height:24px}
+  .cmp-toggle-knob{width:16px;height:16px;top:4px;left:4px}
+  .cmp-toggle.on .cmp-toggle-knob{left:22px}
+  .cmp-mode-badge{font-size:10px}
+}
 
 /* Compare-mode landscape layout */
 .vol-compare-landscape{display:none;gap:16px;margin-top:0}
@@ -1293,21 +1310,15 @@ body:not(.theme-dark) .dur-graph-detail-divider strong{color:#1e3a8a}
   .cmp-swipe-track .cmp-divider{display:none}
   .cmp-swipe-dots{display:flex}
 }
-/* Persistent "rotate for full view" notice — replaces the old auto-hiding toast. Stays on screen
-   until the person dismisses it themselves (✕ button or swiping it away), per the requirement that
-   it must NOT disappear on its own. */
-.cmp-rotate-hint{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--toast-bg);color:#fff;border-radius:14px;padding:12px 40px 12px 16px;display:flex;align-items:center;gap:10px;font-size:13px;font-family:var(--font-alt);font-weight:600;box-shadow:0 8px 28px rgba(0,0,0,0.35);z-index:999999;max-width:88vw;text-align:left;line-height:1.4;animation:fadeIn 0.3s ease;letter-spacing:0.3px;touch-action:pan-y}
-.cmp-rotate-hint-close{position:absolute;top:6px;right:6px;width:22px;height:22px;border-radius:50%;border:none;background:rgba(255,255,255,0.15);color:#fff;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;flex-shrink:0}
+/* Persistent "rotate for full view" notice — sized to match the app's normal small toast (see
+   showToast) rather than a large banner. Stays on screen until the person dismisses it themselves
+   (✕ button or swiping it away) since Compare mode stays on until they turn it off, but it no
+   longer duplicates the rotate control — that now lives next to the Compare toggle. Mobile-only:
+   only ever created when _isMobile() is true (see _cmpApplyState / _showCmpHint call sites). */
+.cmp-rotate-hint{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--toast-bg);color:#fff;border-radius:14px;padding:10px 30px 10px 14px;display:flex;align-items:center;gap:8px;font-size:12px;font-family:var(--font-alt);font-weight:700;letter-spacing:0.3px;box-shadow:0 8px 28px rgba(0,0,0,0.3);z-index:999999;max-width:88vw;width:max-content;text-align:left;line-height:1.35;animation:fadeIn 0.3s ease;touch-action:pan-y;box-sizing:border-box}
+.cmp-rotate-hint-close{position:absolute;top:50%;right:6px;transform:translateY(-50%);width:18px;height:18px;border-radius:50%;border:none;background:rgba(255,255,255,0.15);color:#fff;font-size:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;flex-shrink:0}
 .cmp-rotate-hint-close:hover{background:rgba(255,255,255,0.28)}
-.cmp-rotate-hint-rotate{flex-shrink:0;border:none;background:rgba(255,255,255,0.2);color:#fff;font-family:var(--font-alt);font-weight:800;font-size:11px;letter-spacing:0.3px;padding:6px 10px;border-radius:9px;cursor:pointer;white-space:nowrap}
-.cmp-rotate-hint-rotate:hover{background:rgba(255,255,255,0.32)}
 .cmp-hint-dismissing{transition:opacity 0.2s ease,transform 0.2s ease!important;opacity:0!important}
-/* Persistent manual Rotate Screen button shown above the Compare panels — desktop/large screens
-   have no use for it, so it's hidden past the same 900px breakpoint the swipe layout uses. */
-.cmp-rotate-row{display:flex;justify-content:center;margin-bottom:12px}
-.cmp-rotate-btn{display:inline-flex;align-items:center;gap:6px;padding:8px 18px;border-radius:12px;border:1px solid var(--border-col);background:var(--accent-soft);color:var(--accent);font-family:var(--font-alt);font-weight:800;font-size:12px;letter-spacing:0.3px;cursor:pointer;-webkit-tap-highlight-color:transparent}
-.cmp-rotate-btn:active{transform:scale(0.95)}
-@media(min-width:901px){.cmp-rotate-row{display:none}}
 /* hide single view when compare is on */
 .vol-single-view{transition:all 0.3s}
 .vol-single-view.hidden{display:none}
@@ -2577,6 +2588,8 @@ body.tracker-fs-lock{overflow:hidden}
               <div class="cmp-toggle-knob"></div>
             </button>
             <span class="cmp-mode-badge" id="cmpModeBadge">OFF</span>
+            <!-- Mobile-only, Compare-mode-only rotate control — shown/hidden via .show, toggled in _cmpApplyState -->
+            <button type="button" class="cmp-rotate-btn-inline" id="cmpRotateBtn" onclick="_cmpRotateScreen()" aria-label="Rotate screen">🔄 Rotate Screen</button>
           </div>
 
           <!-- SINGLE VIEW (default) -->
@@ -2686,9 +2699,6 @@ body.tracker-fs-lock{overflow:hidden}
 
           <!-- COMPARE LANDSCAPE VIEW (shown when compare mode ON) -->
           <div class="vol-compare-landscape" id="volCompareLandscape">
-           <div class="cmp-rotate-row" id="cmpRotateRow">
-             <button type="button" class="cmp-rotate-btn" id="cmpRotateBtn" onclick="_cmpRotateScreen()">🔄 Rotate Screen</button>
-           </div>
            <div class="cmp-swipe-wrapper" id="cmpSwipeWrapper">
             <div class="cmp-swipe-track" id="cmpSwipeTrack">
 
@@ -7253,6 +7263,8 @@ function openHamburgerMenu(){}
 function closeHamburgerMenu(){}
 
 async function switchMemberTab(id){
+  // Leaving the Stats/Compare page entirely — drop any active rotate-mode/notice before switching.
+  if(id!=='statsPage')_cmpHandleTabLeave();
   document.querySelectorAll('.memberTab').forEach(t=>t.style.display='none');
   document.querySelectorAll('.memberMenu button').forEach(b=>b.classList.remove('activeMenu'));
   document.getElementById(id).style.display='block';
@@ -7269,6 +7281,16 @@ async function switchMemberTab(id){
     durWeekAnchor=getMonday(new Date());
     volWeekAnchor=getMonday(new Date());
     {const n=new Date();_durLastMonthYM={year:n.getFullYear(),month:n.getMonth()};_volLastMonthYM={year:n.getFullYear(),month:n.getMonth()};}
+    // Restore which Stats subnav (Duration vs Volume) was showing before a refresh — Compare mode
+    // only restores while the Volume subnav is active (see below), so this has to happen first.
+    let savedSubnav=null;
+    try{savedSubnav=sessionStorage.getItem('gymbro_stats_subnav')}catch(e){}
+    if(savedSubnav==='volume'){
+      document.getElementById('subnavDuration').classList.remove('active');
+      document.getElementById('subnavVolume').classList.add('active');
+      document.getElementById('durationView').classList.add('hidden');
+      document.getElementById('volumeView').classList.add('active');
+    }
     await updateStatsChart();
     if(document.getElementById('subnavVolume')&&document.getElementById('subnavVolume').classList.contains('active')){
       await updateVolumeChart('main');
@@ -8223,7 +8245,7 @@ function _showCmpHint(){
   el=document.createElement('div');
   el.id='cmpRotateHint';
   el.className='cmp-rotate-hint';
-  el.innerHTML=`<span style="font-size:18px">📱</span><span>Rotate screen or enable desktop mode to get full view.</span><button type="button" class="cmp-rotate-hint-rotate" onclick="_cmpRotateScreen()">🔄 Rotate Now</button><button type="button" class="cmp-rotate-hint-close" onclick="_dismissCmpHint()" aria-label="Dismiss">✕</button>`;
+  el.innerHTML=`<span style="font-size:15px">📱</span><span>Rotate Screen or enable Desktop view to get full View</span><button type="button" class="cmp-rotate-hint-close" onclick="_dismissCmpHint()" aria-label="Dismiss">✕</button>`;
   el.style.transform='translateX(-50%)';
   document.body.appendChild(el);
   _initCmpHintSwipe(el);
@@ -8278,7 +8300,9 @@ function _cmpExitRotate(){
 }
 function _updateCmpRotateBtn(){
   const btn=document.getElementById('cmpRotateBtn');
-  if(btn)btn.innerHTML=_cmpRotated?'↩️ Exit Rotate':'🔄 Rotate Screen';
+  if(!btn)return;
+  btn.innerHTML=_cmpRotated?'✕ Exit Full Screen':'🔄 Rotate Screen';
+  btn.classList.toggle('exit-fs',_cmpRotated);
 }
 
 // Also cleans up if the person exits fullscreen some other way (back gesture, browser chrome, etc.)
@@ -8287,6 +8311,20 @@ document.addEventListener('fullscreenchange',()=>{
     try{if(screen.orientation&&screen.orientation.unlock)screen.orientation.unlock()}catch(e){}
     if(_cmpRotated){_cmpRotated=false;_updateCmpRotateBtn();}
   }
+});
+
+/* Scope guard: rotate mode + its notice only ever make sense while actually looking at Compare
+   mode on mobile. If the person navigates to another top-level tab, or switches the Stats subnav
+   away from Volume, drop straight back to normal — exit fullscreen/orientation-lock and dismiss
+   the notice — rather than leaving the device stuck rotated on an unrelated page. */
+function _cmpHandleTabLeave(){
+  if(_cmpRotated)_cmpExitRotate();
+  _dismissCmpHint();
+}
+// Extra safety net for real browser/app tab switches (e.g. the person backgrounds the app while
+// rotated) — most browsers already drop fullscreen on their own, but this catches the rest.
+document.addEventListener('visibilitychange',()=>{
+  if(document.hidden&&_cmpRotated)_cmpExitRotate();
 });
 
 /* ══ COMPARE MODE — PERSISTENCE (survives a page refresh) ══════════
@@ -8327,11 +8365,15 @@ function _cmpApplyState(showHintIfMobile){
   const badge=document.getElementById('cmpModeBadge');
   const single=document.getElementById('volSingleView');
   const landscape=document.getElementById('volCompareLandscape');
+  const rotateBtn=document.getElementById('cmpRotateBtn');
   btn.classList.toggle('on',_cmpModeOn);
   badge.textContent=_cmpModeOn?'ON':'OFF';
   badge.style.color=_cmpModeOn?'var(--accent)':'var(--text-muted)';
   single.classList.toggle('hidden',_cmpModeOn);
   landscape.classList.toggle('active',_cmpModeOn);
+  // The inline Rotate Screen control is strictly Compare-mode + mobile only (CSS also hard-hides
+  // it on desktop as a backstop regardless of this class).
+  if(rotateBtn)rotateBtn.classList.toggle('show',_cmpModeOn&&_isMobile());
   if(_cmpModeOn){
     // Default comparison the first time this session: this week (Panel B) vs last week (Panel A).
     // Once the person picks their own weeks via the calendar icon, those choices stick across toggles
@@ -8606,12 +8648,15 @@ function updateCmpPeriodLabel(side){
 
 /* ===================== STATS SUB-NAV SWITCHER ===================== */
 function switchStatsSubnav(tab){
+  // Leaving Volume (and therefore Compare mode) — same scope guard as switchMemberTab.
+  if(tab!=='volume')_cmpHandleTabLeave();
   document.getElementById('subnavDuration').classList.toggle('active',tab==='duration');
   document.getElementById('subnavVolume').classList.toggle('active',tab==='volume');
   document.getElementById('durationView').classList.toggle('hidden',tab!=='duration');
   document.getElementById('volumeView').classList.toggle('active',tab==='volume');
   if(tab==='duration')updateStatsChart();
   else{updateVolumeChart('main');_cmpRestoreIfNeeded();}
+  try{sessionStorage.setItem('gymbro_stats_subnav',tab)}catch(e){}
 }
 
 /* ─── detect current week number in month ─── */
@@ -9581,21 +9626,22 @@ function makeVolGradients(ctx,side){
   const grad=ctx.createLinearGradient(0,0,0,280);
   const hoverGrad=ctx.createLinearGradient(0,0,0,280);
 
-  // Blue/violet palette — reads clearly against both the light (white) and dark (charcoal) card backgrounds
-  grad.addColorStop(0,isRight?'rgba(88,28,220,1)':'rgba(15,52,180,1)');
-  grad.addColorStop(0.18,isRight?'rgba(120,50,255,1)':'rgba(37,99,235,1)');
-  grad.addColorStop(0.45,isRight?'rgba(90,20,200,1)':'rgba(24,72,200,1)');
-  grad.addColorStop(1,isRight?'rgba(55,10,140,1)':'rgba(10,40,140,1)');
-  hoverGrad.addColorStop(0,isRight?'rgba(168,100,255,1)':'rgba(70,140,255,1)');
-  hoverGrad.addColorStop(0.22,isRight?'rgba(140,70,240,1)':'rgba(50,110,240,1)');
-  hoverGrad.addColorStop(0.55,isRight?'rgba(110,40,210,1)':'rgba(30,80,210,1)');
-  hoverGrad.addColorStop(1,isRight?'rgba(75,15,170,1)':'rgba(15,50,170,1)');
+  // Bold, fully-opaque blue/violet palette (bumped brightness+saturation to match the punchy solid
+  // fill the Duration graph uses) — still two distinct hues so Panel A vs Panel B stay tellable
+  // apart, but no longer reading as washed-out/dim next to Duration's bars.
+  grad.addColorStop(0,isRight?'rgba(192,132,252,1)':'rgba(96,165,250,1)');
+  grad.addColorStop(0.4,isRight?'rgba(168,85,247,1)':'rgba(59,130,246,1)');
+  grad.addColorStop(1,isRight?'rgba(147,51,234,1)':'rgba(37,99,235,1)');
+  hoverGrad.addColorStop(0,isRight?'rgba(216,180,254,1)':'rgba(147,197,253,1)');
+  hoverGrad.addColorStop(0.4,isRight?'rgba(192,132,252,1)':'rgba(96,165,250,1)');
+  hoverGrad.addColorStop(1,isRight?'rgba(168,85,247,1)':'rgba(59,130,246,1)');
   return{grad,hoverGrad};
 }
 
-/* ── Border color by theme ── */
+/* ── Border color by theme — fully opaque now (was semi-transparent, part of why the bars read
+   dim) so the outline reads with the same boldness as the Duration graph's solid-color border. ── */
 function getVolBorderColor(side){
-  return side==='right'?'rgba(160,110,255,0.7)':'rgba(80,140,255,0.7)';
+  return side==='right'?'rgba(147,51,234,1)':'rgba(37,99,235,1)';
 }
 
 /* ── Attendance workout name cache per (uid+month) ── */
@@ -9821,7 +9867,7 @@ async function updateVolumeChart(side='main'){
         backgroundColor:barBg,
         hoverBackgroundColor:barHover,
         borderColor:detailOn?'transparent':(isMain?solidColor:getVolBorderColor(side)),
-        borderWidth:detailOn?0:1.5,borderRadius:10,barPercentage:0.65,categoryPercentage:0.8,
+        borderWidth:detailOn?0:1.5,borderRadius:6,barPercentage:0.65,categoryPercentage:0.8,
         _side:side,
         _selectedClass:volSelectedClass[side],
         _selectedIdx:-1,
