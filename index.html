@@ -19841,6 +19841,7 @@ async function renderLearnCard(name,data,videoUrlOverride){
   await loadWorkoutVideoMap(); // no-op after the first call — map is cached in memory
   const videoUrl=videoUrlOverride||data.youtubeUrl;
   const localVideoPath=getLocalVideoPath(name);
+  if(localVideoPath)getWorkoutVideoBlobUrl(localVideoPath).catch(()=>{/* Play button falls back to direct streaming if this fails */});
   const videoLabel=localVideoPath?`${name} — Watch Tutorial`:(videoUrlOverride?`${name} — Watch Tutorial`:data.youtubeLabel);
   const stepsHtml=data.steps.map((s,i)=>`<li><span class="learn-step-num">${i+1}</span><span>${s}</span></li>`).join("");
   const mistakesHtml=data.mistakes.map(m=>`<li><span>❌</span><span>${m}</span></li>`).join("");
@@ -19862,12 +19863,18 @@ async function renderLearnCard(name,data,videoUrlOverride){
       also mirrored into localStorage so the Learn page still resolves instantly even if
       this fetch hasn't finished yet on a repeat visit.
    2. workoutVideoBlobCache — actual video bytes, fetched once per clip and kept as an
-      in-memory object URL. First play streams straight from the public URL (starts
-      immediately); replaying that same exercise afterwards uses the cached blob, so it's
-      instant with zero network — exactly like the earlier request. */
+      in-memory object URL. Prefetch is kicked off the moment an exercise is SELECTED
+      (see renderLearnCard below), while the user is still reading the steps/mistakes —
+      by the time they tap the Play button a few seconds later, the clip is usually
+      already sitting in memory, so it opens instantly even the very first time it's
+      ever watched (no dependence on the browser's own HTTP cache, which the user could
+      clear at any time). workoutVideoFetchPromises makes sure a clip is only ever
+      downloaded ONCE even if prefetch and a fast click race each other — both just
+      await the same in-flight request instead of pulling the same bytes twice. */
 let workoutVideoMap=null;
 let workoutVideoMapPromise=null;
-const workoutVideoBlobCache=new Map(); // file_path -> object URL
+const workoutVideoBlobCache=new Map();     // file_path -> resolved object URL
+const workoutVideoFetchPromises=new Map(); // file_path -> in-flight fetch promise
 
 function loadWorkoutVideoMap(){
   if(workoutVideoMapPromise)return workoutVideoMapPromise;
@@ -19899,15 +19906,25 @@ function getLocalVideoPath(exerciseName){
   const base=stripExerciseClass(exerciseName);
   return workoutVideoMap[exerciseName.toLowerCase()]||workoutVideoMap[base.toLowerCase()]||null;
 }
-async function getWorkoutVideoBlobUrl(filePath){
-  if(workoutVideoBlobCache.has(filePath))return workoutVideoBlobCache.get(filePath);
-  const{data}=videoDb.storage.from("workout-videos").getPublicUrl(filePath);
-  const resp=await fetch(data.publicUrl);
-  if(!resp.ok)throw new Error("video fetch failed: "+resp.status);
-  const blob=await resp.blob();
-  const objectUrl=URL.createObjectURL(blob);
-  workoutVideoBlobCache.set(filePath,objectUrl);
-  return objectUrl;
+// Returns a promise for the cached blob URL. Safe to call many times for the same
+// filePath — a second caller while a fetch is already in flight just awaits that same
+// fetch instead of starting a duplicate download (this is what used to make the video
+// tag's own stream and the "background cache" fetch race each other for the same bytes).
+function getWorkoutVideoBlobUrl(filePath){
+  if(workoutVideoBlobCache.has(filePath))return Promise.resolve(workoutVideoBlobCache.get(filePath));
+  if(workoutVideoFetchPromises.has(filePath))return workoutVideoFetchPromises.get(filePath);
+  const promise=(async()=>{
+    const{data}=videoDb.storage.from("workout-videos").getPublicUrl(filePath);
+    const resp=await fetch(data.publicUrl);
+    if(!resp.ok)throw new Error("video fetch failed: "+resp.status);
+    const blob=await resp.blob();
+    const objectUrl=URL.createObjectURL(blob);
+    workoutVideoBlobCache.set(filePath,objectUrl);
+    workoutVideoFetchPromises.delete(filePath);
+    return objectUrl;
+  })();
+  workoutVideoFetchPromises.set(filePath,promise);
+  return promise;
 }
 function openLocalWorkoutVideo(filePath,title){
   closeLearnVideo();
@@ -19921,17 +19938,22 @@ function openLocalWorkoutVideo(filePath,title){
   const box=overlay.querySelector(".learn-video-modal-box");
   const videoEl=document.getElementById("learnLocalVideoEl");
   if(workoutVideoBlobCache.has(filePath)){
-    // Already played this clip before this session — instant, no network at all.
+    // Prefetched while the user was reading the exercise card — instant, zero network.
     videoEl.src=workoutVideoBlobCache.get(filePath);
     return;
   }
-  // First time: stream straight from the public URL so playback starts immediately
-  // (~400KB clips start near-instantly even on modest connections), while a copy is
-  // cached in the background for the next play.
-  const{data}=videoDb.storage.from("workout-videos").getPublicUrl(filePath);
-  videoEl.src=data.publicUrl;
-  videoEl.onerror=()=>{ if(document.body.contains(box))learnVideoShowFallback(box,data.publicUrl,"This video couldn't be loaded. Check your connection and try again.") };
-  getWorkoutVideoBlobUrl(filePath).catch(()=>{/* streaming still works even if the background cache fetch fails */});
+  // Rare case: user tapped Play before the prefetch (kicked off on selection) finished —
+  // await that SAME in-flight fetch rather than starting a second competing request,
+  // which is what was causing the 2-3s delay before.
+  getWorkoutVideoBlobUrl(filePath).then(url=>{
+    if(document.getElementById("learnLocalVideoEl"))videoEl.src=url; // still open?
+  }).catch(()=>{
+    // Background/cached fetch failed (e.g. CORS or network hiccup) — fall back to
+    // direct streaming from the public URL so playback still works.
+    const{data}=videoDb.storage.from("workout-videos").getPublicUrl(filePath);
+    videoEl.src=data.publicUrl;
+    videoEl.onerror=()=>{ if(document.body.contains(box))learnVideoShowFallback(box,data.publicUrl,"This video couldn't be loaded. Check your connection and try again.") };
+  });
 }
 
 /* ===================== LEARN — IN-PAGE YOUTUBE PLAYER (no external redirect) ===================== */
