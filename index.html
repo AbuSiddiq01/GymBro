@@ -4758,6 +4758,14 @@ function getServerNow(){return new Date(Date.now()+_supabaseClockOffsetMs);}
 const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{
   global:{fetch:(...args)=>fetch(...args).then(_captureSupabaseServerTime)}
 });
+
+/* ===== SEPARATE SUPABASE PROJECT — WORKOUT VIDEOS ONLY =====
+   A dedicated project (own bucket, own tiny table) that just serves the ~446 local
+   exercise-demo videos. Kept fully separate from the main `db` client above so this
+   never touches user accounts/workouts data. */
+const VIDEO_SUPABASE_URL="https://nrxyakgbjqkyfmkhxnvc.supabase.co";
+const VIDEO_SUPABASE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5yeHlha2dianFreWZta2h4bnZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyODMwNDgsImV4cCI6MjEwMzg1OTA0OH0.G-QMnwm4twG_F05nXYrf4tWkhj4LwqRPZpXszEEXX0c";
+const videoDb=window.supabase.createClient(VIDEO_SUPABASE_URL,VIDEO_SUPABASE_KEY);
 let activeWorkoutTimer=null,chronometerSeconds=0,userStatsInstanceChart=null,currentEditingIndex=null;
 let activeSessionCheckInTimestamp=null;
 let activeSessionCreatedAt=null; // created_at of the in-progress Session row (part of its composite PK)
@@ -19325,7 +19333,7 @@ const LEARN_VIDEO_URLS={
      scoped to that exact exercise (so every one of the 423 is already distinct) — replace any line's
      URL with your own uploaded video link once it's ready; nothing else needs to change. */
   // Chest (49)
-  "Bench Press (Barbell)":"https://www.youtube.com/results?search_query=Bench%20Press%20(Barbell)%20exercise%20tutorial%20form",
+  "Bench Press (Barbell)":"https://zyoxwguvpcvqplucserh.supabase.co/storage/v1/object/public/workout_videos/Bench%20Press%20(Barbell).mp4",
   "Bench Press (Dumbbell)":"https://www.youtube.com/results?search_query=Bench%20Press%20(Dumbbell)%20exercise%20tutorial%20form",
   "Bench Press (Cable)":"https://www.youtube.com/results?search_query=Bench%20Press%20(Cable)%20exercise%20tutorial%20form",
   "Bench Press (Smith Machine)":"https://www.youtube.com/results?search_query=Bench%20Press%20(Smith%20Machine)%20exercise%20tutorial%20form",
@@ -19760,6 +19768,7 @@ const LEARN_VIDEO_URLS={
 };
 
 function initLearnPage(){
+  loadWorkoutVideoMap(); // fire-and-forget: fetches once, cached for the rest of the session
   if(!document.getElementById("learnClassFilter").dataset.built){
     document.getElementById("learnClassFilter").innerHTML='<option value="">— Select Muscle Group —</option>'+MUSCLE_LIST.map(m=>`<option value="${m}">${m}</option>`).join("");
     document.getElementById("learnEquipmentFilter").innerHTML='<option value="">All Equipment</option>'+EQUIPMENT_LIST.map(eq=>`<option value="${eq}">${eq}</option>`).join("");
@@ -19828,17 +19837,101 @@ function selectLearnExercise(name){
   }
   renderLearnCard(name,data,LEARN_VIDEO_URLS[name]);
 }
-function renderLearnCard(name,data,videoUrlOverride){
+async function renderLearnCard(name,data,videoUrlOverride){
+  await loadWorkoutVideoMap(); // no-op after the first call — map is cached in memory
   const videoUrl=videoUrlOverride||data.youtubeUrl;
-  const videoLabel=videoUrlOverride?`${name} — Watch Tutorial`:data.youtubeLabel;
+  const localVideoPath=getLocalVideoPath(name);
+  const videoLabel=localVideoPath?`${name} — Watch Tutorial`:(videoUrlOverride?`${name} — Watch Tutorial`:data.youtubeLabel);
   const stepsHtml=data.steps.map((s,i)=>`<li><span class="learn-step-num">${i+1}</span><span>${s}</span></li>`).join("");
   const mistakesHtml=data.mistakes.map(m=>`<li><span>❌</span><span>${m}</span></li>`).join("");
   const secondaryHtml=data.secondaryMuscles.map(m=>`<span class="learn-muscle-chip secondary">${m}</span>`).join("");
   const html=`<div class="learn-info-card glass"><div class="learn-info-card-header"><div class="learn-exercise-title">${name}</div><span class="learn-muscle-badge">${data.class}</span></div><div class="learn-main-grid"><div class="learn-gif-col"><div class="learn-gif-container"><div class="learn-gif-fallback"><span class="gif-emoji">${data.gifEmoji}</span><div class="gif-label">${name}</div><div style="font-size:11px;color:var(--text-muted);font-family:var(--font-alt);margin-top:6px;letter-spacing:0.3px">3D DEMONSTRATION</div></div></div><button type="button" class="learn-yt-link" id="learnYtBtn"><span class="learn-yt-icon">▶</span><span>${videoLabel}</span></button><div class="learn-section-block" style="margin-top:12px"><div class="learn-block-title">🎯 Target Muscles</div><div style="margin-bottom:10px"><div style="font-size:11px;font-weight:700;color:var(--text-muted);font-family:var(--font-alt);letter-spacing:0.5px;margin-bottom:6px;text-transform:uppercase">PRIMARY</div><span class="learn-muscle-chip primary">${data.primaryMuscle}</span></div><div><div style="font-size:11px;font-weight:700;color:var(--text-muted);font-family:var(--font-alt);letter-spacing:0.5px;margin-bottom:6px;text-transform:uppercase">SECONDARY</div><div class="learn-muscles-row">${secondaryHtml}</div></div></div></div><div class="learn-details-col"><div class="learn-section-block"><div class="learn-block-title">📋 How To Perform</div><ul class="learn-steps-list">${stepsHtml}</ul></div><div class="learn-section-block"><div class="learn-block-title">⚠️ Common Mistakes</div><ul class="learn-mistakes-list">${mistakesHtml}</ul></div></div></div></div>`;
   document.getElementById("learnInfoCard").innerHTML=html;document.getElementById("learnInfoCard").style.display="block";document.getElementById("learnEmptyState").style.display="none";
   const ytBtn=document.getElementById("learnYtBtn");
-  if(ytBtn)ytBtn.onclick=()=>openLearnVideo(videoUrl,videoLabel);
+  if(ytBtn)ytBtn.onclick=()=>{ if(localVideoPath)openLocalWorkoutVideo(localVideoPath,name); else openLearnVideo(videoUrl,videoLabel); };
   document.getElementById("learnInfoCard").scrollIntoView({behavior:"smooth",block:"start"});
+}
+
+/* ===================== LEARN — LOCAL SUPABASE WORKOUT VIDEOS =====================
+   446 short (~400KB) demo clips live in the `workout-videos` bucket of the dedicated
+   video-only Supabase project, with a `workout_videos` table (exercise_name -> file_path)
+   auto-populated by a DB trigger the moment each file is uploaded (see project SQL).
+
+   Two caching layers, matching how the avatar picture is cached elsewhere in this app:
+   1. workoutVideoMap — the whole (tiny) name->path table, fetched once per session and
+      also mirrored into localStorage so the Learn page still resolves instantly even if
+      this fetch hasn't finished yet on a repeat visit.
+   2. workoutVideoBlobCache — actual video bytes, fetched once per clip and kept as an
+      in-memory object URL. First play streams straight from the public URL (starts
+      immediately); replaying that same exercise afterwards uses the cached blob, so it's
+      instant with zero network — exactly like the earlier request. */
+let workoutVideoMap=null;
+let workoutVideoMapPromise=null;
+const workoutVideoBlobCache=new Map(); // file_path -> object URL
+
+function loadWorkoutVideoMap(){
+  if(workoutVideoMapPromise)return workoutVideoMapPromise;
+  // Warm start from the last known list while the fresh fetch is in flight.
+  try{
+    const cached=localStorage.getItem("gymbro_workout_video_map");
+    if(cached)workoutVideoMap=JSON.parse(cached);
+  }catch(e){}
+  workoutVideoMapPromise=(async()=>{
+    try{
+      const{data,error}=await videoDb.from("workout_videos").select("exercise_name,file_path");
+      if(!error&&data){
+        const map={};
+        data.forEach(r=>{map[r.exercise_name.toLowerCase()]=r.file_path});
+        workoutVideoMap=map;
+        try{localStorage.setItem("gymbro_workout_video_map",JSON.stringify(map))}catch(e){}
+      }
+    }catch(e){/* offline or project unreachable — fall back to whatever was cached above */}
+    if(!workoutVideoMap)workoutVideoMap={};
+    return workoutVideoMap;
+  })();
+  return workoutVideoMapPromise;
+}
+// Looks up by the exact name shown on Learn, then by the base movement name (strips a
+// trailing "(Equipment)" suffix) so catalog variants like "Bench Press (Dumbbell)" still
+// match a clip filed simply as "Bench Press.mp4".
+function getLocalVideoPath(exerciseName){
+  if(!workoutVideoMap)return null;
+  const base=stripExerciseClass(exerciseName);
+  return workoutVideoMap[exerciseName.toLowerCase()]||workoutVideoMap[base.toLowerCase()]||null;
+}
+async function getWorkoutVideoBlobUrl(filePath){
+  if(workoutVideoBlobCache.has(filePath))return workoutVideoBlobCache.get(filePath);
+  const{data}=videoDb.storage.from("workout-videos").getPublicUrl(filePath);
+  const resp=await fetch(data.publicUrl);
+  if(!resp.ok)throw new Error("video fetch failed: "+resp.status);
+  const blob=await resp.blob();
+  const objectUrl=URL.createObjectURL(blob);
+  workoutVideoBlobCache.set(filePath,objectUrl);
+  return objectUrl;
+}
+function openLocalWorkoutVideo(filePath,title){
+  closeLearnVideo();
+  const overlay=document.createElement("div");
+  overlay.className="learn-video-modal-overlay";overlay.id="learnVideoModalOverlay";
+  overlay.onclick=function(e){if(e.target===overlay)closeLearnVideo()};
+  const safeTitle=(title||"Exercise Video").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  overlay.innerHTML=`<div class="learn-video-modal-box"><button type="button" class="learn-video-modal-close" onclick="closeLearnVideo()">✕</button><div class="learn-video-modal-title">▶ ${safeTitle}</div><div class="learn-video-modal-frame-wrap"><video id="learnLocalVideoEl" style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#000" controls autoplay playsinline></video></div></div>`;
+  document.body.appendChild(overlay);
+  document.addEventListener("keydown",learnVideoEscHandler);
+  const box=overlay.querySelector(".learn-video-modal-box");
+  const videoEl=document.getElementById("learnLocalVideoEl");
+  if(workoutVideoBlobCache.has(filePath)){
+    // Already played this clip before this session — instant, no network at all.
+    videoEl.src=workoutVideoBlobCache.get(filePath);
+    return;
+  }
+  // First time: stream straight from the public URL so playback starts immediately
+  // (~400KB clips start near-instantly even on modest connections), while a copy is
+  // cached in the background for the next play.
+  const{data}=videoDb.storage.from("workout-videos").getPublicUrl(filePath);
+  videoEl.src=data.publicUrl;
+  videoEl.onerror=()=>{ if(document.body.contains(box))learnVideoShowFallback(box,data.publicUrl,"This video couldn't be loaded. Check your connection and try again.") };
+  getWorkoutVideoBlobUrl(filePath).catch(()=>{/* streaming still works even if the background cache fetch fails */});
 }
 
 /* ===================== LEARN — IN-PAGE YOUTUBE PLAYER (no external redirect) ===================== */
@@ -19904,6 +19997,8 @@ function openLearnVideo(url,title){
 }
 function closeLearnVideo(){
   const overlay=document.getElementById("learnVideoModalOverlay");
+  const localVideoEl=document.getElementById("learnLocalVideoEl");
+  if(localVideoEl){try{localVideoEl.pause()}catch(e){}}
   if(overlay)overlay.remove();
   document.removeEventListener("keydown",learnVideoEscHandler);
   if(learnYTPlayer&&typeof learnYTPlayer.destroy==="function"){try{learnYTPlayer.destroy()}catch(e){}}
@@ -20653,4 +20748,4 @@ function closeLearnVideo(){
 })();
 </script>
 </body>
-</html>
+</html> 
