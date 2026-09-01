@@ -905,8 +905,44 @@ input::placeholder{color:var(--text-muted)}
    selectable rows, so they must never pick up a row's padding/border-bottom (that stray border on a
    height:0/zero-content wrapper was rendering as a floating unwanted rule near the close icon, and it
    was also clobbering .yw-section's own intentional accent border-bottom below). */
-.suggestions-list>div:not(.ex-list-fixed-close-wrap):not(.yw-section){padding:10px 14px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--border-col);color:var(--text-primary)}
+.suggestions-list>div:not(.ex-list-fixed-close-wrap):not(.yw-section):not(.ex-suggest-row){padding:10px 14px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--border-col);color:var(--text-primary)}
 .suggestions-list>div:hover{background:var(--accent-soft);color:var(--accent)}
+/* ===================== EXERCISE PICKER ROW: THUMBNAIL + VIEW/ADD ACTIONS =====================
+   Used by every exercise suggestion row across Add Workout, Live Workout, and the "Your
+   Workouts" quick-pick list (see _buildExSuggestRow). Tapping the row's main line only
+   reveals the actions panel below it (a small on-theme thumbnail circle + name stay visible
+   at all times); nothing is added/selected until the person explicitly taps "Add", and
+   "View" opens the same in-app video player used on the Learn page — no accidental adds from
+   a single tap, and no separate page navigation needed to preview the movement first.
+   Kept as a two-row (main + actions) layout rather than squeezing icon buttons to the right
+   of a single row — full-width, readable buttons with labels instead of tiny cramped icons is
+   what actually stays comfortable at narrow mobile widths (this app's most common surface). */
+.ex-suggest-row{padding:0!important;display:block!important;border-bottom:1px solid var(--border-col)}
+.ex-suggest-row:last-child{border-bottom:none}
+.ex-suggest-row:hover{background:transparent!important;color:inherit!important}
+.ex-row-main{display:flex;align-items:center;gap:10px;padding:9px 14px;transition:background 0.15s ease}
+.ex-row-main:hover,.ex-row-main:active{background:var(--accent-soft)}
+.ex-suggest-row.ex-row-open .ex-row-main{background:var(--accent-soft)}
+.ex-row-thumb{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;line-height:1}
+.ex-row-name-wrap{flex:1;min-width:0;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.ex-row-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;color:var(--text-primary)}
+.ex-row-caret{flex-shrink:0;font-size:9px;color:var(--text-muted);transition:transform 0.2s ease;margin-left:2px}
+.ex-suggest-row.ex-row-open .ex-row-caret{transform:rotate(180deg);color:var(--accent)}
+.ex-row-actions-panel{display:none;gap:8px;padding:0 14px 10px 14px}
+.ex-suggest-row.ex-row-open .ex-row-actions-panel{display:flex}
+.ex-row-action-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:9px 10px;border-radius:9px;border:none;font-family:var(--font-alt);font-size:11.5px;font-weight:700;letter-spacing:0.3px;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform 0.12s ease,opacity 0.15s ease}
+.ex-row-action-btn:active{transform:scale(0.96);opacity:0.85}
+.ex-row-action-btn svg{width:14px;height:14px;flex-shrink:0}
+.ex-row-view-btn{background:var(--accent-soft);color:var(--accent);border:1px solid var(--accent)}
+.ex-row-add-btn{background:linear-gradient(135deg,#16a34a,#15803d);color:#fff}
+.ex-suggest-row.yw-row .ex-row-main{border-left:2px solid var(--accent)}
+@media(max-width:480px){
+  .ex-row-main{padding:8px 12px;gap:8px}
+  .ex-row-thumb{width:30px;height:30px;font-size:14px}
+  .ex-row-name{font-size:12.5px}
+  .ex-row-actions-panel{padding:0 12px 9px 12px;gap:6px}
+  .ex-row-action-btn{padding:8px 8px;font-size:11px}
+}
 /* "Your Workouts" quick-pick section — pinned to the top of the exercise-name suggestions dropdown
    (Add Workout + Live Workout, every format). Foldable: the header toggles a short list of the
    current user's own logged exercises (most-frequent first, ×N badge on the right) without touching
@@ -11520,8 +11556,53 @@ function _resolveYourWorkoutItem(name){
   }
   return null;
 }
-/* Renders the foldable header + (if open) the filtered list into whichever suggestions box is
-   currently being built. onPick receives just the exercise name string. */
+/* ===================== EXERCISE PICKER ROW: THUMBNAIL + VIEW/ADD ACTIONS =====================
+   Small on-theme "demo thumbnail" shown on every row of the exercise picker dropdowns (Add
+   Workout, Live Workout, Your Workouts) — a colored circle (matching the same CLASS_COLORS
+   used on the class tags elsewhere) with the exercise's LEARN_DB emoji, or a generic dumbbell
+   for anything not yet in the curated guide. Kept lightweight on purpose: pulling an actual
+   video-frame thumbnail for up to hundreds of rows in a scrollable dropdown would mean loading
+   part of every clip just to populate a list — this reads instantly and matches the same
+   "3D DEMONSTRATION" tile style already used on the Learn page. */
+function _exThumbHtml(name){
+  let emoji='🏋';
+  let data=LEARN_DB[name];
+  if(!data){const base=stripExerciseClass(name);const key=Object.keys(LEARN_DB).find(k=>k.toLowerCase()===base.toLowerCase());if(key)data=LEARN_DB[key];}
+  if(data&&data.gifEmoji)emoji=data.gifEmoji;
+  const cls=getExerciseClass(name);
+  const clr=(cls&&cls!=='Unknown'&&CLASS_COLORS[cls])?CLASS_COLORS[cls]:null;
+  const style=clr?`background:${clr}22;border:1.5px solid ${clr}66;color:${clr}`:`background:var(--accent-soft);border:1.5px solid var(--accent);color:var(--accent)`;
+  return `<span class="ex-row-thumb" style="${style}">${emoji}</span>`;
+}
+/* Builds one full exercise-picker row: thumbnail + name + whatever badge markup the caller
+   passes (class tag, custom label, frequency count...) on the main line, plus a View/Add
+   actions panel that only appears once the row itself is tapped — see the CSS comment above
+   .ex-suggest-row for why nothing is added/selected on that first tap.
+     lookupName — the exact catalog/history name, used to find the thumbnail + any local video
+     nameHtml   — already-escaped HTML for the name (may include a small "(custom)" suffix etc.)
+     tagHtml    — badge markup shown at the right of the main line
+     onAdd      — called only when the Add button is tapped
+     extraClass — optional extra class(es), e.g. 'yw-row' for the Your Workouts accent stripe */
+function _buildExSuggestRow(lookupName,nameHtml,tagHtml,onAdd,extraClass){
+  const div=document.createElement('div');
+  div.className='ex-suggest-row'+(extraClass?' '+extraClass:'');
+  const localPath=getLocalVideoPath(lookupName);
+  div.innerHTML=`<div class="ex-row-main"><span class="ex-row-thumb-slot"></span><div class="ex-row-name-wrap"><span class="ex-row-name">${nameHtml}</span>${tagHtml||''}</div><span class="ex-row-caret">▼</span></div><div class="ex-row-actions-panel">${localPath?'<button type="button" class="ex-row-action-btn ex-row-view-btn" data-act="view"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>View</button>':''}<button type="button" class="ex-row-action-btn ex-row-add-btn" data-act="add"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Add</button></div>`;
+  div.querySelector('.ex-row-thumb-slot').outerHTML=_exThumbHtml(lookupName);
+  div.querySelector('.ex-row-main').onclick=(e)=>{
+    e.stopPropagation();
+    const wasOpen=div.classList.contains('ex-row-open');
+    // Only one row's actions are ever open at a time across the whole dropdown.
+    div.closest('.suggestions-list').querySelectorAll('.ex-suggest-row.ex-row-open').forEach(r=>{if(r!==div)r.classList.remove('ex-row-open')});
+    div.classList.toggle('ex-row-open',!wasOpen);
+  };
+  if(localPath){
+    div.querySelector('[data-act="view"]').onclick=(e)=>{e.stopPropagation();openLocalWorkoutVideo(localPath,lookupName)};
+  }
+  div.querySelector('[data-act="add"]').onclick=(e)=>{e.stopPropagation();onAdd()};
+  return div;
+}
+
 function _renderYourWorkoutsSection(box,mode,textVal,muscleVal,equipmentVal,onPick){
   const freqMap=window._exerciseFreqMap;
   if(!freqMap||!Object.keys(freqMap).length)return false; // brand-new user, nothing logged yet — section stays hidden entirely
@@ -11543,11 +11624,9 @@ function _renderYourWorkoutsSection(box,mode,textVal,muscleVal,equipmentVal,onPi
     const matches=_getYourWorkoutsMatches(textVal,muscleVal,equipmentVal);
     if(matches.length){
       matches.forEach(m=>{
-        const item=document.createElement('div');
-        item.className='yw-item';
-        item.innerHTML=`<span class="yw-item-name">${escapeHtml(m.name)}</span><span class="yw-item-meta">${_ywClassTagHtml(m.class)}<span class="tracker-freq-badge">×${m.freq}</span></span>`;
-        item.onclick=(e)=>{e.stopPropagation();onPick(m.name);};
-        list.appendChild(item);
+        const tagHtml=`<span class="yw-item-meta">${_ywClassTagHtml(m.class)}<span class="tracker-freq-badge">×${m.freq}</span></span>`;
+        const row=_buildExSuggestRow(m.name,escapeHtml(m.name),tagHtml,()=>onPick(m.name),'yw-row');
+        list.appendChild(row);
       });
     }else{
       list.innerHTML=`<div class="yw-empty">No matches in your workouts.</div>`;
@@ -11708,6 +11787,8 @@ async function handleWorkoutSearchAuto(forceShow){
     try{await window._exerciseFreqMapPromise;}catch(e){}
     if(_wsaReqId!==window._wsaReqId)return; // superseded by a newer call while we were waiting
   }
+  try{await loadWorkoutVideoMap();}catch(e){}
+  if(_wsaReqId!==window._wsaReqId)return;
   const _ywHasHistoryNL=_renderYourWorkoutsSection(box,'nonlive',val,muscleVal,equipVal,_pickYourWorkoutNonLive);
   let matches=ctmGetFilteredCatalog(muscleVal,equipVal,val,true);
   if(matches.length||_ywHasHistoryNL){
@@ -11721,14 +11802,12 @@ async function handleWorkoutSearchAuto(forceShow){
     defHeader.textContent='🏋 All Exercises';
     box.appendChild(defHeader);
     matches.forEach(item=>{
-      let div=document.createElement("div");
       const clr=CLASS_COLORS[item.class]||'var(--text-muted)';
       const classTag=item.class==='multi'?`<span style="background:#6366f1;color:#fff;border-radius:6px;padding:1px 6px;font-size:9px;font-weight:800;margin-left:4px">MULTI</span>`:`<span style="background:${clr};color:#fff;border-radius:6px;padding:1px 6px;font-size:9px;font-weight:800;margin-left:4px">${item.class}</span>`;
       // item.name already carries the "(Equipment)" suffix for custom exercises that have one
       // (see ctmGetFilteredCatalog), same as every built-in catalog exercise — no separate badge needed.
-      div.innerHTML=`<span>${item.name}${item.isCustom?' <span style="opacity:0.55;font-size:9px">(custom)</span>':''}</span><span>${classTag}</span>`;
-      div.style.cssText='display:flex;align-items:center;justify-content:space-between;gap:6px';
-      div.onclick=()=>{
+      const nameHtml=`${escapeHtml(item.name)}${item.isCustom?' <span style="opacity:0.55;font-size:9px">(custom)</span>':''}`;
+      const onAdd=()=>{
         box.style.display="none";
         if(icon)icon.classList.remove("open");
         if(_prevPerfNonLiveTimer)clearTimeout(_prevPerfNonLiveTimer);
@@ -11760,7 +11839,7 @@ async function handleWorkoutSearchAuto(forceShow){
         buildSetsInputFields();
         saveNonLiveDraft();
       };
-      box.appendChild(div);
+      box.appendChild(_buildExSuggestRow(item.name,nameHtml,`<span>${classTag}</span>`,onAdd));
     });
   }
   // No auto class picker on pause — user uses the inline Choose Class button if needed
@@ -13887,6 +13966,8 @@ async function handleLiveSearchAuto(forceShow){
     try{await window._exerciseFreqMapPromise;}catch(e){}
     if(_lsaReqId!==window._lsaReqId)return; // superseded by a newer call while we were waiting
   }
+  try{await loadWorkoutVideoMap();}catch(e){}
+  if(_lsaReqId!==window._lsaReqId)return;
   const _ywHasHistoryLV=_renderYourWorkoutsSection(box,'live',val,muscleVal,equipVal,_pickYourWorkoutLive);
   let matches=ctmGetFilteredCatalog(muscleVal,equipVal,val,true);
   if(matches.length||_ywHasHistoryLV){
@@ -13900,16 +13981,14 @@ async function handleLiveSearchAuto(forceShow){
     defHeaderLv.textContent='🏋 All Exercises';
     box.appendChild(defHeaderLv);
     matches.forEach(item=>{
-      let div=document.createElement("div");
       const clr=CLASS_COLORS[item.class]||'var(--text-muted)';
       const classTag=item.class==='multi'?`<span style="background:#6366f1;color:#fff;border-radius:6px;padding:1px 6px;font-size:9px;font-weight:800;margin-left:4px">MULTI</span>`:`<span style="background:${clr};color:#fff;border-radius:6px;padding:1px 6px;font-size:9px;font-weight:800;margin-left:4px">${item.class}</span>`;
       // item.name already carries the "(Equipment)" suffix for custom exercises that have one
       // (see ctmGetFilteredCatalog), same as every built-in catalog exercise — no separate badge needed.
-      div.innerHTML=`<span>${item.name}${item.isCustom?' <span style="opacity:0.55;font-size:9px">(custom)</span>':''}</span><span>${classTag}</span>`;
-      div.style.cssText='display:flex;align-items:center;justify-content:space-between;gap:6px';
-      div.onclick=()=>{
+      const nameHtml=`${escapeHtml(item.name)}${item.isCustom?' <span style="opacity:0.55;font-size:9px">(custom)</span>':''}`;
+      const onAdd=()=>{
         // Cardio exercises stay visible/searchable in this dropdown, but Live Mode never supports
-        // them — selecting one notifies instead of setting it as the exercise name.
+        // them — tapping Add on one notifies instead of setting it as the exercise name.
         if(item.class==='Cardio'){
           box.style.display="none";
           if(icon)icon.classList.remove("open");
@@ -13949,7 +14028,7 @@ async function handleLiveSearchAuto(forceShow){
         _syncLiveEditTitle();
         saveLiveDraft();
       };
-      box.appendChild(div);
+      box.appendChild(_buildExSuggestRow(item.name,nameHtml,`<span>${classTag}</span>`,onAdd));
     });
   }
   // No auto class/equipment picker on pause — user uses the inline buttons
