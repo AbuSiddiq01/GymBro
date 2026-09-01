@@ -948,10 +948,10 @@ input::placeholder{color:var(--text-muted)}
    carries name + class tag + frequency count, so the name box has as much width as possible to keep
    wrapping in line with how the default list wraps the same name. */
 @media(min-width:481px){
-  .suggestions-list{left:-20px;right:-20px}
+  .suggestions-list{left:-26px;right:-26px}
 }
 @media(max-width:480px){
-  .suggestions-list{left:-13px;right:-13px}
+  .suggestions-list{left:-20px;right:-20px}
 }
 /* Default catalog section heading — rendered directly below the Your Workouts section (or at the
    very top if the person has no log history yet), visually distinct via a neutral (non-accent)
@@ -2082,9 +2082,9 @@ body.tracker-fs-lock{overflow:hidden}
    (and only the video panel — the exercise list underneath stays exactly as it was). */
 .wf-video-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.72);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;animation:fadeIn 0.2s ease}
 .wf-video-modal-box{position:relative;width:100%;max-width:420px;background:var(--bg-card);border:1px solid var(--border-col);border-radius:20px;box-shadow:var(--card-shadow);overflow:hidden}
-.wf-video-frame-wrap{position:relative;width:100%;aspect-ratio:16/9;background:#000;overflow:hidden}
-.wf-video-frame-wrap video{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#000;pointer-events:none}
-.wf-video-title{position:absolute;left:14px;bottom:10px;right:52px;color:#fff;font-family:var(--font-alt);font-size:12.5px;font-weight:800;letter-spacing:0.3px;text-shadow:0 2px 8px rgba(0,0,0,0.75);z-index:2;pointer-events:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wf-video-header{position:relative;padding:14px 52px 14px 16px;background:var(--bg-panel);border-bottom:1px solid var(--border-col);color:var(--text-primary);font-family:var(--font-alt);font-size:13.5px;font-weight:800;letter-spacing:0.3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wf-video-frame-wrap{position:relative;width:100%;aspect-ratio:16/9;background:var(--bg-panel);overflow:hidden}
+.wf-video-frame-wrap video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:var(--bg-panel);pointer-events:none}
 .wf-video-close-btn{position:absolute;top:10px;right:10px;width:34px;height:34px;border-radius:50%;background:#ef4444;color:#fff;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 14px rgba(239,68,68,0.55);z-index:3;transition:transform 0.15s ease}
 .wf-video-close-btn:hover{transform:scale(1.08)}
 .wf-video-close-btn svg{width:15px;height:15px;stroke:currentColor}
@@ -2092,9 +2092,9 @@ body.tracker-fs-lock{overflow:hidden}
 .wf-video-fallback-icon{font-size:30px}
 .wf-video-fallback-text{color:var(--text-secondary);font-family:var(--font-alt);font-size:12.5px;line-height:1.6;max-width:320px}
 @media(max-width:600px){
-  .wf-video-modal-overlay{padding:0;align-items:flex-end}
-  .wf-video-modal-box{max-width:100%;border-radius:20px 20px 0 0}
-  .wf-video-frame-wrap{aspect-ratio:4/3;max-height:70vh}
+  .wf-video-modal-overlay{padding:16px;align-items:center}
+  .wf-video-modal-box{max-width:100%;border-radius:20px}
+  .wf-video-frame-wrap{aspect-ratio:4/3;max-height:56vh}
   .ex-row-action-btn{font-size:11px;padding:8px}
 }
 .learn-section-block{margin-bottom:18px;padding:16px;background:var(--accent-soft);border-radius:14px;border:1px solid var(--border-col)}
@@ -20038,9 +20038,14 @@ async function openWorkoutRowVideo(name){
   closeWorkoutRowVideo();
   const overlay=document.createElement("div");
   overlay.className="wf-video-modal-overlay";overlay.id="wfVideoModalOverlay";
-  overlay.onclick=function(e){if(e.target===overlay)closeWorkoutRowVideo()};
+  // Every click anywhere in this overlay (backdrop, the box, or the ✕ button) must stop here and
+  // never bubble to the document — the page's global "click outside = close the exercise dropdown"
+  // listener would otherwise treat a tap on this overlay as an outside click and close the exercise
+  // list underneath, losing exactly where the person was in it. Stopping propagation up front means
+  // closing the video (by ✕, or by tapping the backdrop) always leaves that list open and untouched.
+  overlay.onclick=function(e){e.stopPropagation();if(e.target===overlay)closeWorkoutRowVideo()};
   const safeTitle=(name||"Exercise Video").replace(/</g,"&lt;").replace(/>/g,"&gt;");
-  overlay.innerHTML=`<div class="wf-video-modal-box"><div class="wf-video-frame-wrap"><video id="wfVideoEl" autoplay loop muted playsinline webkit-playsinline disablepictureinpicture disableremoteplayback oncontextmenu="return false"></video><div class="wf-video-title">${safeTitle}</div></div><button type="button" class="wf-video-close-btn" onclick="closeWorkoutRowVideo()" title="Close" aria-label="Close video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg></button></div>`;
+  overlay.innerHTML=`<div class="wf-video-modal-box"><div class="wf-video-header">${safeTitle}</div><button type="button" class="wf-video-close-btn" onclick="closeWorkoutRowVideo()" title="Close" aria-label="Close video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg></button><div class="wf-video-frame-wrap"><video id="wfVideoEl" autoplay loop muted playsinline webkit-playsinline disablepictureinpicture disableremoteplayback oncontextmenu="return false"></video></div></div>`;
   document.body.appendChild(overlay);
   document.addEventListener("keydown",wfVideoEscHandler);
   const box=overlay.querySelector(".wf-video-modal-box");
@@ -20074,7 +20079,7 @@ async function openWorkoutRowVideo(name){
    click (the full select-this-exercise logic); videoName is the exact exercise name to look up/open. */
 function _wireExRowActions(div,videoName,addFn){
   div.classList.add('ex-row-expandable');
-  div.innerHTML=`<div class="ex-row-main">${div.innerHTML}</div><div class="ex-row-actions"><button type="button" class="ex-row-action-btn ex-row-add-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>Add</button><button type="button" class="ex-row-action-btn ex-row-video-btn"><svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M8 5v14l11-7z"/></svg>Video</button></div>`;
+  div.innerHTML=`<div class="ex-row-main">${div.innerHTML}</div><div class="ex-row-actions"><button type="button" class="ex-row-action-btn ex-row-video-btn"><svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M8 5v14l11-7z"/></svg>Video</button><button type="button" class="ex-row-action-btn ex-row-add-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>Add</button></div>`;
   div.querySelector('.ex-row-main').onclick=(e)=>{
     e.stopPropagation();
     const box=div.parentElement;
