@@ -4549,7 +4549,7 @@ function ctmApplyCrop(){
 const CLASS_COLORS={
   'Chest':'#3b82f6','Biceps':'#f97316','Triceps':'#8b5cf6','Shoulders':'#a855f7',
   'Lats':'#06b6d4','Lat/Back':'#06b6d4','Legs':'#10b981','Abs':'#ec4899','Cardio':'#eab308',
-  'Rest':'#94a3b8','Unknown':'#6b7280','Back':'#0ea5e9','Forearms':'#d97706',
+  'Rest':'#94a3b8','Unknown':'#6b7280','Back':'#0ea5e9','Forearms':'#fde047',
   'Calves':'#84cc16','Glutes':'#f43f5e','Full Body':'#6366f1','Warmup':'#22d3ee'
 };
 
@@ -5525,7 +5525,7 @@ const EXERCISE_CATALOG=[
   {name:"Plank Pushup (Bodyweight)",class:"Chest",equipment:"Bodyweight"},
   {name:"Push Up - Close Grip (Bodyweight)",class:"Chest",equipment:"Bodyweight"},{name:"Ring Push Up (Bodyweight)",class:"Chest",equipment:"Bodyweight"},
   {name:"Weighted Push Up (Bodyweight)",class:"Chest",equipment:"Bodyweight"},
-  // Biceps (36)
+  // Biceps (32) + Forearms moved in-place (4)
   {name:"Preacher Curl (Barbell)",class:"Biceps",equipment:"Barbell"},{name:"Preacher Curl (Dumbbell)",class:"Biceps",equipment:"Dumbbell"},
   {name:"Preacher Curl (Machine)",class:"Biceps",equipment:"Machine"},{name:"21s Bicep Curl (Barbell)",class:"Biceps",equipment:"Barbell"},
   {name:"Bicep Curl (Barbell)",class:"Biceps",equipment:"Barbell"},{name:"Bicep Curl (Dumbbell)",class:"Biceps",equipment:"Dumbbell"},
@@ -5536,14 +5536,14 @@ const EXERCISE_CATALOG=[
   {name:"Reverse Grip Concentration Curl (Dumbbell)",class:"Biceps",equipment:"Dumbbell"},{name:"Spider Curl (Barbell)",class:"Biceps",equipment:"Barbell"},
   {name:"Spider Curl (Dumbbell)",class:"Biceps",equipment:"Dumbbell"},{name:"Reverse Curl (Barbell)",class:"Biceps",equipment:"Barbell"},
   {name:"Reverse Curl (Dumbbell)",class:"Biceps",equipment:"Dumbbell"},{name:"Reverse Curl (Cable)",class:"Biceps",equipment:"Cable"},
-  {name:"Biceps Curl (EZ Bar)",class:"Biceps",equipment:"EZ Bar"},{name:"Behind the Back Bicep Wrist Curl (Barbell)",class:"Biceps",equipment:"Barbell"},
+  {name:"Biceps Curl (EZ Bar)",class:"Biceps",equipment:"EZ Bar"},{name:"Behind the Back Wrist Curl (Barbell)",class:"Forearms",equipment:"Barbell"},
   {name:"Behind the Back Curl (Cable)",class:"Biceps",equipment:"Cable"},{name:"Curl (Kettlebell)",class:"Biceps",equipment:"Kettlebell"},
   {name:"Drag Curl (Barbell)",class:"Biceps",equipment:"Barbell"},{name:"Overhead Curl (Cable)",class:"Biceps",equipment:"Cable"},
   {name:"Pinwheel Curl (Dumbbell)",class:"Biceps",equipment:"Dumbbell"},{name:"Plate Curl (Machine)",class:"Biceps",equipment:"Machine"},
   {name:"Rope Cable Curl (Cable)",class:"Biceps",equipment:"Cable"},{name:"Seated Incline Curl (Dumbbell)",class:"Biceps",equipment:"Dumbbell"},
-  {name:"Seated Palms Up Wrist Curl (Barbell)",class:"Biceps",equipment:"Barbell"},{name:"Seated Wrist Extension (Barbell)",class:"Biceps",equipment:"Barbell"},
+  {name:"Seated Palms Up Wrist Curl (Barbell)",class:"Forearms",equipment:"Barbell"},{name:"Seated Wrist Extension (Barbell)",class:"Forearms",equipment:"Barbell"},
   {name:"Single Arm Curl (Cable)",class:"Biceps",equipment:"Cable"},{name:"Waiter Curl (Dumbbell)",class:"Biceps",equipment:"Dumbbell"},
-  {name:"Wrist Roller (Machine)",class:"Biceps",equipment:"Machine"},{name:"Zottman Curl (Dumbbell)",class:"Biceps",equipment:"Dumbbell"},
+  {name:"Wrist Roller (Machine)",class:"Forearms",equipment:"Machine"},{name:"Zottman Curl (Dumbbell)",class:"Biceps",equipment:"Dumbbell"},
   // Triceps (26)
   {name:"Single Arm Triceps Pushdown (Cable)",class:"Triceps",equipment:"Cable"},{name:"Triceps Pushdown (Cable)",class:"Triceps",equipment:"Cable"},
   {name:"Triceps Rope Pushdown (Cable)",class:"Triceps",equipment:"Cable"},{name:"Triceps Pressdown (Cable)",class:"Triceps",equipment:"Cable"},
@@ -5730,6 +5730,8 @@ const EXERCISE_CATALOG=[
   {name:"Romanian Deadlift",class:"multi",equipment:"Barbell"},{name:"Face Pull",class:"multi",equipment:"Cable"},
   {name:"Close Grip Bench Press",class:"multi",equipment:"Barbell"},{name:"Bent Over Row",class:"multi",equipment:"Barbell"},
   {name:"Seated Row",class:"multi",equipment:"Cable"},{name:"Cable Row",class:"multi",equipment:"Cable"},
+  // Forearms — new (2)
+  {name:"Reverse Wrist Curl (Dumbbell)",class:"Forearms",equipment:"Dumbbell"},{name:"Seated Wrist Curl (Barbell)",class:"Forearms",equipment:"Barbell"},
 ];
 /* Build lookup: exercise base name → class. The trailing "(...)" on a stored/typed name now holds
    the Equipment tag, not the Class, so resolve class by matching the base name (parens stripped from
@@ -6628,7 +6630,7 @@ function syncBottomNav(activeTabId){
 }
 
 /* ===================== SETTINGS PAGE ===================== */
-const WORKOUT_CLASSES=['Chest','Biceps','Triceps','Shoulders','Lat/Back','Legs','Abs','Cardio','Warmup','Full Body'];
+const WORKOUT_CLASSES=['Chest','Biceps','Triceps','Shoulders','Lat/Back','Legs','Abs','Cardio','Warmup','Full Body','Forearms'];
 const SCHEDULE_DAY_KEYS=['Day 1','Day 2','Day 3','Day 4','Day 5','Day 6','Day 7'];
 const REST_VALUE='Rest';
 
@@ -19447,7 +19449,6 @@ const LEARN_VIDEO_URLS={
   "Reverse Curl (Dumbbell)":"https://www.youtube.com/results?search_query=Reverse%20Curl%20(Dumbbell)%20exercise%20tutorial%20form",
   "Reverse Curl (Cable)":"https://www.youtube.com/results?search_query=Reverse%20Curl%20(Cable)%20exercise%20tutorial%20form",
   "Biceps Curl (EZ Bar)":"https://www.youtube.com/results?search_query=Biceps%20Curl%20(EZ%20Bar)%20exercise%20tutorial%20form",
-  "Behind the Back Bicep Wrist Curl (Barbell)":"https://www.youtube.com/results?search_query=Behind%20the%20Back%20Bicep%20Wrist%20Curl%20(Barbell)%20exercise%20tutorial%20form",
   "Behind the Back Curl (Cable)":"https://www.youtube.com/results?search_query=Behind%20the%20Back%20Curl%20(Cable)%20exercise%20tutorial%20form",
   "Curl (Kettlebell)":"https://www.youtube.com/results?search_query=Curl%20(Kettlebell)%20exercise%20tutorial%20form",
   "Drag Curl (Barbell)":"https://www.youtube.com/results?search_query=Drag%20Curl%20(Barbell)%20exercise%20tutorial%20form",
@@ -19456,12 +19457,16 @@ const LEARN_VIDEO_URLS={
   "Plate Curl (Machine)":"https://www.youtube.com/results?search_query=Plate%20Curl%20(Machine)%20exercise%20tutorial%20form",
   "Rope Cable Curl (Cable)":"https://www.youtube.com/results?search_query=Rope%20Cable%20Curl%20(Cable)%20exercise%20tutorial%20form",
   "Seated Incline Curl (Dumbbell)":"https://www.youtube.com/results?search_query=Seated%20Incline%20Curl%20(Dumbbell)%20exercise%20tutorial%20form",
-  "Seated Palms Up Wrist Curl (Barbell)":"https://www.youtube.com/results?search_query=Seated%20Palms%20Up%20Wrist%20Curl%20(Barbell)%20exercise%20tutorial%20form",
-  "Seated Wrist Extension (Barbell)":"https://www.youtube.com/results?search_query=Seated%20Wrist%20Extension%20(Barbell)%20exercise%20tutorial%20form",
   "Single Arm Curl (Cable)":"https://www.youtube.com/results?search_query=Single%20Arm%20Curl%20(Cable)%20exercise%20tutorial%20form",
   "Waiter Curl (Dumbbell)":"https://www.youtube.com/results?search_query=Waiter%20Curl%20(Dumbbell)%20exercise%20tutorial%20form",
-  "Wrist Roller (Machine)":"https://www.youtube.com/results?search_query=Wrist%20Roller%20(Machine)%20exercise%20tutorial%20form",
   "Zottman Curl (Dumbbell)":"https://www.youtube.com/results?search_query=Zottman%20Curl%20(Dumbbell)%20exercise%20tutorial%20form",
+  // Forearms (6)
+  "Behind the Back Wrist Curl (Barbell)":"https://www.youtube.com/results?search_query=Behind%20the%20Back%20Wrist%20Curl%20(Barbell)%20exercise%20tutorial%20form",
+  "Reverse Wrist Curl (Dumbbell)":"https://www.youtube.com/results?search_query=Reverse%20Wrist%20Curl%20(Dumbbell)%20exercise%20tutorial%20form",
+  "Seated Palms Up Wrist Curl (Barbell)":"https://www.youtube.com/results?search_query=Seated%20Palms%20Up%20Wrist%20Curl%20(Barbell)%20exercise%20tutorial%20form",
+  "Seated Wrist Curl (Barbell)":"https://www.youtube.com/results?search_query=Seated%20Wrist%20Curl%20(Barbell)%20exercise%20tutorial%20form",
+  "Seated Wrist Extension (Barbell)":"https://www.youtube.com/results?search_query=Seated%20Wrist%20Extension%20(Barbell)%20exercise%20tutorial%20form",
+  "Wrist Roller (Machine)":"https://www.youtube.com/results?search_query=Wrist%20Roller%20(Machine)%20exercise%20tutorial%20form",
   // Triceps (26)
   "Single Arm Triceps Pushdown (Cable)":"https://www.youtube.com/results?search_query=Single%20Arm%20Triceps%20Pushdown%20(Cable)%20exercise%20tutorial%20form",
   "Triceps Pushdown (Cable)":"https://www.youtube.com/results?search_query=Triceps%20Pushdown%20(Cable)%20exercise%20tutorial%20form",
