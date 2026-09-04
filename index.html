@@ -799,7 +799,14 @@ input::placeholder{color:var(--text-muted)}
    tap is unmistakable. */
 .set-lock-check{position:relative;display:flex;align-items:center;justify-content:center;width:32px;height:32px;flex-shrink:0}
 .set-lock-check input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer;z-index:2}
-.set-lock-box{width:22px;height:22px;border-radius:6px;border:2px solid var(--border-col);background:var(--bg-panel);display:flex;align-items:center;justify-content:center;transition:background 0.15s ease,border-color 0.15s ease;pointer-events:none}
+/* min-width/min-height:0, scoped via the .set-lock-check parent so it outranks the generic
+   ".set-row span{min-width:46px}" rule (aimed at the "Set N" label span, further below) that was
+   also matching this element since it's a <span> too. Without this override, that inherited
+   min-width:46px silently won over this rule's own `width` (and any narrower cardio-row override),
+   so the tick box actually rendered at 46px wide no matter what width was set here — visually
+   overlapping whatever sits to its left (the Copy button, in the cardio row) even though the
+   DOM/CSS "looked" correct on paper. */
+.set-lock-check .set-lock-box{width:22px;height:22px;min-width:0;min-height:0;border-radius:6px;border:2px solid var(--border-col);background:var(--bg-panel);display:flex;align-items:center;justify-content:center;transition:background 0.15s ease,border-color 0.15s ease;pointer-events:none}
 .set-lock-box svg{width:14px;height:14px;color:var(--text-muted);opacity:0.3;stroke-width:2.5;transform:scale(0.85);transition:opacity 0.15s ease,transform 0.15s ease,color 0.15s ease,stroke-width 0.15s ease}
 .set-lock-check input:checked~.set-lock-box{border-color:var(--accent)}
 .set-lock-check input:checked~.set-lock-box svg{opacity:1;transform:scale(1);color:var(--accent);stroke-width:3.5}
@@ -807,25 +814,50 @@ input::placeholder{color:var(--text-muted)}
 .set-row.set-row-locked input[type="number"]{opacity:0.75;cursor:not-allowed}
 .set-row{touch-action:pan-y} /* keep vertical page scroll working while we read horizontal swipes ourselves */
 /* ===================== CARDIO SET INPUTS (Km + compact Duration picker) ===================== */
-.km-input{padding:9px 6px;margin-top:0;flex:0 0 60px;width:60px;text-align:center}
-/* Cardio set rows always use an explicit 2-line layout — Km on line 1, Duration/Copy/Lock/Delete
-   on line 2 — instead of relying on flex-wrap, so it looks identical whether logging a fresh entry
-   (Add) or editing a saved one (where the extra delete icon used to throw the wrap off and leave
-   the lock checkbox stranded alone on its own line). */
-.set-row.cardio-set-row{flex-direction:column;align-items:stretch}
-.cardio-set-row-line1,.cardio-set-row-line2{display:flex;align-items:center;gap:10px}
+.km-input{padding:9px 6px;margin-top:0;flex:0 0 52px;width:52px;text-align:center}
+/* Non-Live (Add/Edit form) cardio set rows are a single, never-wrapping line, but the fields are
+   organized into three small groups — (Set label + Km), Time picker, (Copy + Tick) [+ Delete when
+   editing] — instead of six loose flex children. justify-content:space-between then distributes
+   whatever width is left over EVENLY across the gaps between those groups (Km↔Time and Time↔
+   Copy/Tick), so the row always fills its full width edge-to-edge with proportional breathing room,
+   on both the narrower inline Add form and the wider Edit modal, with no leftover dead space at
+   either end and no single oversized gap. Each group keeps a small fixed internal gap (via
+   .cardio-set-primary / .cardio-set-actions) so its own fields stay visually paired instead of also
+   stretching apart. See renderNonLiveSetsRows(). */
+.set-row.cardio-set-row{flex-wrap:nowrap;align-items:center;justify-content:space-between;gap:10px;overflow:hidden}
+.set-row.cardio-set-row .cardio-set-primary{display:flex;align-items:center;gap:8px;flex-shrink:0}
+/* The base ".set-row span{min-width:46px}" rule (further below) sizes the "Set N" label wide enough
+   for a weight/reps row's longer siblings — on a cardio row that just left dead air between the
+   label text and the Km box for no reason. 34px is the actual width "Set N" needs, so this override
+   reclaims that leftover ~12px and puts it back into the row's shared pool of space (see the tick-box
+   comment below), instead of it sitting unused right after the label. */
+.set-row.cardio-set-row .cardio-set-primary>span{flex:0 0 auto;font-size:12px;min-width:34px}
 .set-row .km-badge{font-size:10px;font-weight:700;color:var(--workout-tag-col);background:var(--workout-tag-bg);padding:4px 8px;border-radius:8px;white-space:nowrap}
-/* Non-live cardio inline stopwatch (line 2): ▶ starts a count-up, then swaps to a live MM:SS
-   readout plus ⏸ Pause / 💾 Save icons — Save writes the elapsed time into the Duration picker
-   sitting up in line 1. Reuses .set-copy-btn's circular sizing/coloring so it matches Copy/Tick. */
-.set-timer-ctrl{display:flex;align-items:center;gap:8px;flex-shrink:0}
-.set-timer-btn{padding:0}
-.set-timer-btn.set-timer-pause{background:linear-gradient(135deg,#dc2626,#b91c1c);border-color:#dc2626;color:#fff}
-.set-timer-btn.set-timer-save{background:linear-gradient(135deg,#16a34a,#15803d);border-color:#15803d;color:#fff}
-.set-timer-display{font-family:var(--font-alt);font-weight:800;font-size:13px;color:var(--accent);letter-spacing:0.5px;min-width:38px;text-align:center;flex-shrink:0}
+/* Tick box, cardio rows only. Sized as a real, easily tappable/visible checkbox (not the sliver this
+   used to be) — this fits because of the space reclaimed from the label above plus the row's own
+   even distribution (.set-row.cardio-set-row's justify-content:space-between), so it stays a fixed,
+   consistent size on every screen instead of needing to be squeezed to the bare minimum. Sizing is
+   identical whether the set is locked/checked or not — only the color/border change on check. */
+.set-row.cardio-set-row .set-lock-check{width:26px;height:32px;flex-shrink:0}
+.set-row.cardio-set-row .set-lock-box{width:20px;height:28px;border-radius:6px}
+.set-row.cardio-set-row .set-lock-box svg{width:12px;height:12px}
+/* Copy + Tick's own fixed-size cluster — see comment above the row rule. */
+.set-row.cardio-set-row .cardio-set-actions{display:flex;align-items:center;gap:10px;flex-shrink:0}
+@media(max-width:480px){
+  .set-row.cardio-set-row{gap:6px}
+  .set-row.cardio-set-row .cardio-set-primary{gap:6px}
+  .km-input{flex:0 0 42px;width:42px;padding:9px 3px;font-size:12.5px}
+  .set-row.cardio-set-row .set-lock-check{width:23px;height:30px}
+  .set-row.cardio-set-row .set-lock-box{width:18px;height:26px}
+  .set-row.cardio-set-row .set-lock-box svg{width:11px;height:11px}
+  .set-row.cardio-set-row .cardio-set-actions{gap:7px}
+}
 /* Cardio duration reuses the compact .minsec-picker markup (same as Settings ▸ Default Break
-   Duration) rather than a bespoke widget, so it's already short/familiar. .msp-typing swaps the
-   single visible row for an inline number input when tapped — see setupMinSecScrollList(). */
+   Duration) rather than a bespoke widget — scroll to change the value, or tap the visible number to
+   type it directly (see setupMinSecScrollList()/openMinSecTypeInput()). .nl-cardio-time-compact
+   (below) shrinks that same widget's columns/labels down further so it fits in the Non-Live Add/Edit
+   form's single-line row; Live Mode's cardio Duration and every Break-timer picker keep the widget's
+   normal, larger sizing since they mount without that wrapper class. */
 .minsec-scroll-list{position:relative}
 .minsec-type-input{position:absolute;top:0;left:0;width:100%;height:34px;text-align:center;border:1px solid var(--accent);border-radius:6px;background:var(--bg-card);color:var(--accent);font-family:var(--font-alt);font-weight:800;font-size:13px;padding:0;z-index:3;-moz-appearance:textfield}
 .minsec-type-input::-webkit-outer-spin-button,.minsec-type-input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
@@ -1639,8 +1671,16 @@ input:checked+.privacy-toggle-slider:before{transform:translateX(20px)}
 .rankup-close{background:var(--btn-bg);color:var(--follow-btn-text);border:none;border-radius:12px;padding:12px 30px;margin-top:24px;font-size:15px;font-weight:700;font-family:var(--font-alt);cursor:pointer;letter-spacing:1px}
 
 /* Misc */
-.workout-form-wrapper{background:var(--accent-soft);padding:16px;border-radius:16px;border:1px solid var(--border-col);margin-top:10px}
+.workout-form-wrapper{background:var(--accent-soft);padding:16px;border-radius:16px;border:1px solid var(--border-col);margin-top:10px;box-sizing:border-box}
 .workout-form-wrapper h4{color:var(--accent);margin-bottom:10px;font-family:var(--font-alt);font-size:16px;font-weight:700}
+/* Workout Log Manager card — trimmed side padding gives the single-line cardio set row (S.No / Km /
+   Time / Copy / Tick) extra horizontal breathing room to lay everything out without wrapping or
+   clipping, especially on narrow mobile screens. */
+#workPage .section.glass{padding-left:14px;padding-right:14px;box-sizing:border-box}
+@media(max-width:480px){
+  #workPage .section.glass{padding-left:10px;padding-right:10px}
+  .workout-form-wrapper{padding-left:10px;padding-right:10px}
+}
 /* ===== Edit Workout Overlay (edit-only; the "add new" flow is never routed through this) =====
    Same relocate-into-overlay pattern as .tracker-fullscreen-overlay: the live/non-live edit form
    is physically moved into #workoutEditOverlayStage while editing, and moved back to its original
@@ -1839,6 +1879,25 @@ body.workout-edit-lock{overflow:hidden}
 .minsec-scroll-item.picked{color:var(--accent);font-weight:800}
 .minsec-sep{font-family:var(--font-display);font-size:18px;color:var(--text-muted)}
 .minsec-unit-label{font-size:9px;color:var(--text-muted);font-family:var(--font-alt);letter-spacing:0.3px;margin-top:1px}
+/* Compact variant — Non-Live (Add/Edit form) cardio Time field only (see .nl-cardio-time-compact
+   wrapper in renderNonLiveSetsRows). Sized up from the old ultra-narrow version (which hid the MIN/
+   SEC captions entirely to save width) now that the row grants this box a fair, evenly-distributed
+   share of its width (see .set-row.cardio-set-row above) instead of forcing it as small as possible.
+   The MIN/SEC labels are shown again, stacked under the numbers, so the box reads clearly at a
+   glance instead of just two bare numbers. The MIN/SEC/scroll item HEIGHT stays exactly 34px
+   everywhere (hardcoded in mountMinSecPicker/setupMinSecScrollList's itemHeight) — only width,
+   padding, and the label's visibility are touched — so scrolling and tap-to-type both keep working
+   unchanged. */
+.nl-cardio-time-compact .minsec-picker{gap:4px}
+.nl-cardio-time-compact .minsec-scroll-group{gap:5px;padding:3px 8px;border-radius:9px}
+.nl-cardio-time-compact .minsec-scroll-list{width:32px;font-size:14px}
+.nl-cardio-time-compact .minsec-unit-label{font-size:8px;margin-top:0}
+.nl-cardio-time-compact .minsec-sep{font-size:16px}
+@media(max-width:480px){
+  .nl-cardio-time-compact .minsec-scroll-list{width:27px;font-size:12.5px}
+  .nl-cardio-time-compact .minsec-scroll-group{padding:3px 6px;gap:4px}
+  .nl-cardio-time-compact .minsec-unit-label{font-size:7.5px}
+}
 
 /* ===================== WORKOUT TRACKER ===================== */
 .tracker-date-row{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;margin-bottom:16px}
@@ -11996,17 +12055,15 @@ function renderNonLiveSetsRows(weights,reps,locks,kms,mins,secs){
     if(isCardio){
       const km=kms[i-1]||'',min=mins[i-1]||'0',sec=secs[i-1]||'0';
       const kmInputHtml=`<input type="number" placeholder="Km" id="km_set_${i}" min="0" max="300" step="0.01" value="${km}" ${locked?'readonly':''} class="km-input" oninput="handleNonLiveSetInputChange()">`;
-      // Stopwatch control: ▶ (idle) swaps to a live MM:SS readout + ⏸ Pause / 💾 Save once started.
-      // Save writes the elapsed time straight into the Duration picker up in line 1 (setCardioPickerValue) —
-      // see toggleNlCardioTimer/saveNlCardioTimer. Manual typing into the picker (tap-to-type) still works
-      // as an alternative to the stopwatch at any time.
-      const timerCtrl=`<div class="set-timer-ctrl" id="nlTimerCtrl_${i}">
-        <button type="button" class="set-copy-btn set-timer-btn" id="nlTimerPlayBtn_${i}" title="Start timer to auto-fill Time" onclick="toggleNlCardioTimer(${i})">${ICON_PLAY}</button>
-        <span class="set-timer-display" id="nlTimerDisplay_${i}" style="display:none">00:00</span>
-        <button type="button" class="set-copy-btn set-timer-btn set-timer-pause" id="nlTimerPauseBtn_${i}" title="Pause timer" onclick="toggleNlCardioTimer(${i})" style="display:none">${ICON_PAUSE}</button>
-        <button type="button" class="set-copy-btn set-timer-btn set-timer-save" id="nlTimerSaveBtn_${i}" title="Save timer's time to Time box" onclick="saveNlCardioTimer(${i})" style="display:none">${ICON_SAVE}</button>
-      </div>`;
-      c.innerHTML+=`<div class="set-row cardio-set-row${locked?' set-row-locked':''}" ontouchstart="nlSetSwipeStart(event)" ontouchend="nlSetSwipeEnd(event,${i})"><div class="cardio-set-row-line1">${labelHtml}${kmInputHtml}<div id="cardioDurMount_set_${i}"></div></div><div class="cardio-set-row-line2">${timerCtrl}${copyBtn}${lockHtml}${delBtn}</div></div>`;
+      // Single-line row: S.No, Km, Time (compact scroll/type minsec picker), Copy, Tick[, Delete].
+      // The old inline stopwatch (Play/Pause/Save "Duration Timer") stays removed for Non-Live —
+      // scrolling or tapping-to-type directly into the Time picker (mountCardioDurationPicker, via
+      // the .nl-cardio-time-compact wrapper above) is the only way to set it here now.
+      // Copy + Tick are wrapped in .cardio-set-actions so they can be grouped with real spacing
+      // between them and pinned to the right of the row (margin-left:auto), instead of sitting
+      // gap-only apart from the Time picker and each other — see .cardio-set-actions CSS above.
+      // Delete stays outside the group so its collapse/expand width-animation is unaffected.
+      c.innerHTML+=`<div class="set-row cardio-set-row${locked?' set-row-locked':''}" ontouchstart="nlSetSwipeStart(event)" ontouchend="nlSetSwipeEnd(event,${i})"><div class="cardio-set-primary">${labelHtml}${kmInputHtml}</div><div id="cardioDurMount_set_${i}" class="nl-cardio-time-compact"></div><div class="cardio-set-actions">${copyBtn}${lockHtml}</div>${delBtn}</div>`;
       mountList.push({i,min,sec,locked});
     } else {
       const w=weights[i-1]||'',r=reps[i-1]||'';
