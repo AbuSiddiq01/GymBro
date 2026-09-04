@@ -2061,22 +2061,61 @@ body.tracker-fs-lock{overflow:hidden}
 @media(max-width:600px){.learn-video-modal-overlay{padding:0}.learn-video-modal-box{border-radius:0;max-width:100%}}
 /* ===================== WORKOUTS PAGE — EXPANDABLE EXERCISE ROW (Add / Video) =====================
    Tapping an exercise row (in the "All Exercises" catalog list OR the "Your Workouts" list, both
-   Non-Live and Live) no longer selects it immediately — it reveals two inline actions: ➕ Add
-   (does exactly what the row used to do on click) and ▶ Video (opens the same in-app video used on
-   the Learn page, prefetched the moment the row expands so it plays instantly). Tapping the row
-   again, or expanding a different row, collapses it. */
-.suggestions-list>div.ex-row-expandable,.yw-item.ex-row-expandable{padding:0;display:block}
-.ex-row-main{display:flex;align-items:center;justify-content:space-between;gap:6px;padding:10px 14px;cursor:pointer}
+   Non-Live and Live) no longer selects it immediately — it reveals a small centered ➕ Add button
+   plus a fixed corner ▶ Video icon (opens the same in-app video used on the Learn page, prefetched
+   the moment the row expands so it plays instantly). Tapping the row again, or expanding a
+   different row, collapses it. Kept deliberately compact (small button, tight padding) so
+   expanding a row doesn't noticeably grow the list.
+   Separately, swiping a row to the RIGHT (only — left-swipe does nothing) adds it instantly: an
+   "Add >>" panel is revealed live, underneath the row, tracking the finger in real time, and
+   releasing past the threshold completes the add with a smooth slide-away/settle animation. */
+.suggestions-list>div.ex-row-expandable,.yw-item.ex-row-expandable{padding:0;display:block;position:relative;overflow:hidden;border-radius:12px;transition:box-shadow 0.35s ease,border-color 0.35s ease,transform 0.2s cubic-bezier(0.22,0.8,0.3,1)}
+/* Revealed underneath the sliding content as the row is dragged right — sits full-bleed behind it. */
+.ex-row-swipe-bg{position:absolute;inset:0;display:flex;align-items:center;gap:6px;padding-left:18px;background:var(--btn-bg);color:#fff;font-family:var(--font-alt);font-weight:800;font-size:12.5px;letter-spacing:0.4px;z-index:0;opacity:0;transition:opacity 0.15s ease}
+.ex-row-swipe-bg .ex-row-swipe-chev{display:inline-flex;line-height:0}
+.ex-row-swipe-bg svg{width:13px;height:13px}
+.ex-row-swipe-bg .ex-row-swipe-chev:nth-child(2){animation:exRowChevHint 1.1s ease-in-out infinite}
+.ex-row-swipe-bg .ex-row-swipe-chev:nth-child(3){animation:exRowChevHint 1.1s ease-in-out infinite 0.15s}
+@keyframes exRowChevHint{0%,100%{opacity:0.45;transform:translateX(0)}50%{opacity:1;transform:translateX(3px)}}
+/* The actual foreground content — this is the piece that translates with the finger on swipe, and
+   needs its own opaque background so it visually slides over/off the revealed panel behind it. */
+.ex-row-content{position:relative;z-index:1;background:var(--bg-card);touch-action:pan-y}
+.ex-row-main{display:flex;align-items:center;justify-content:space-between;gap:6px;padding:10px 14px;cursor:pointer;-webkit-tap-highlight-color:transparent;background:inherit}
 .yw-item.ex-row-expandable .ex-row-main{padding:9px 14px 9px 16px;border-left:2px solid var(--accent)}
-.ex-row-actions{display:none;align-items:stretch;gap:8px;padding:0 12px 12px}
+/* Expanded state: same glowing-border language as the Saved Workouts cards (.wlc-scroll-glow /
+   .room-box hover) — an accent-colored ring plus a soft ambient pulse so it's unmistakable which
+   exercise is active, then the small centered blue Add button and the fixed corner Video icon
+   fade in. */
+.ex-row-expandable.expanded{outline:2px solid var(--accent);outline-offset:-1px;box-shadow:0 0 0 1px var(--accent-glow),0 6px 20px var(--accent-glow);animation:exRowGlowPulse 2s ease-in-out infinite;z-index:1}
+@keyframes exRowGlowPulse{
+  0%,100%{box-shadow:0 0 0 1px var(--accent-glow),0 6px 20px var(--accent-glow)}
+  50%{box-shadow:0 0 0 1px var(--accent-glow),0 8px 28px var(--accent-glow),0 0 22px 4px var(--accent-glow)}
+}
+.ex-row-actions{display:none;flex-direction:column;align-items:center;padding:0 14px 8px;animation:fadeIn 0.15s ease;background:inherit}
 .ex-row-expandable.expanded .ex-row-actions{display:flex}
-.ex-row-action-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:9px 10px;border-radius:11px;border:1.5px solid var(--border-col);background:var(--bg-panel);color:var(--text-primary);font-family:var(--font-alt);font-weight:800;font-size:11.5px;letter-spacing:0.3px;cursor:pointer;transition:transform 0.12s ease,background 0.15s ease;-webkit-tap-highlight-color:transparent}
-.ex-row-action-btn:active{transform:scale(0.96)}
-.ex-row-action-btn svg{width:14px;height:14px;stroke:currentColor;flex-shrink:0}
-.ex-row-add-btn{border-color:var(--accent);color:var(--accent)}
-.ex-row-add-btn:hover{background:var(--accent-soft)}
-.ex-row-video-btn{border-color:#ef4444;color:#ef4444}
-.ex-row-video-btn:hover{background:rgba(239,68,68,0.1)}
+/* Small centered blue "Add" button, sitting directly under the exercise name — matches the app's
+   primary button styling (var(--btn-bg)/var(--btn-shadow)) but kept compact so expanding a row
+   adds minimal extra height. */
+.ex-row-add-center-btn{display:flex;align-items:center;justify-content:center;gap:5px;min-width:92px;padding:5px 16px;border:none;border-radius:99px;background:var(--btn-bg);color:#fff;box-shadow:var(--btn-shadow);font-family:var(--font-alt);font-weight:800;font-size:11.5px;letter-spacing:0.4px;cursor:pointer;transition:transform 0.15s cubic-bezier(0.4,0,0.2,1),box-shadow 0.2s ease;-webkit-tap-highlight-color:transparent}
+.ex-row-add-center-btn:hover{transform:translateY(-1px);box-shadow:0 8px 22px var(--accent-glow)}
+.ex-row-add-center-btn:active{transform:scale(0.95)}
+.ex-row-add-center-btn svg{width:12px;height:12px;stroke:currentColor;flex-shrink:0}
+/* Fixed video icon, pinned to the box's bottom-right corner — round, red (universal "play video"
+   color, matches .wf-video-close-btn/.learn-video-fallback-btn elsewhere in the app), only shown
+   once the row is expanded. Small so it doesn't force extra row height. */
+.ex-row-video-fixed-btn{position:absolute;right:7px;bottom:6px;width:24px;height:24px;border-radius:50%;border:none;display:none;align-items:center;justify-content:center;background:linear-gradient(135deg,#ff0000,#cc0000);color:#fff;box-shadow:0 3px 10px rgba(239,68,68,0.5);cursor:pointer;transition:transform 0.15s ease;z-index:2;-webkit-tap-highlight-color:transparent}
+.ex-row-expandable.expanded .ex-row-video-fixed-btn{display:flex;animation:fadeIn 0.2s ease}
+.ex-row-video-fixed-btn:hover{transform:scale(1.1)}
+.ex-row-video-fixed-btn:active{transform:scale(0.92)}
+.ex-row-video-fixed-btn svg{width:11px;height:11px;margin-left:1px}
+/* Swipe-to-add completion flash: a quick accent pulse right after the swipe-add fires, confirming
+   the add once the content has settled back/away. */
+.ex-row-expandable.ex-row-swipe-flash{animation:exRowSwipeFlash 0.45s ease;z-index:1}
+@keyframes exRowSwipeFlash{
+  0%{outline:2px solid var(--accent);outline-offset:-1px;box-shadow:0 0 0 1px var(--accent-glow)}
+  40%{outline:2px solid var(--accent);outline-offset:-1px;box-shadow:0 0 0 2px var(--accent-glow),0 0 26px 6px var(--accent-glow)}
+  100%{outline:2px solid transparent;outline-offset:-1px;box-shadow:none}
+}
 /* Fixed themed video frame opened by the ▶ Video action — deliberately NOT the browser's native
    video UI: no play/pause/scrub/download controls, autoplay + loop, only the round red ✕ closes it
    (and only the video panel — the exercise list underneath stays exactly as it was). */
@@ -2095,7 +2134,8 @@ body.tracker-fs-lock{overflow:hidden}
   .wf-video-modal-overlay{padding:16px;align-items:center}
   .wf-video-modal-box{max-width:100%;border-radius:20px}
   .wf-video-frame-wrap{aspect-ratio:4/3;max-height:56vh}
-  .ex-row-action-btn{font-size:11px;padding:8px}
+  .ex-row-add-center-btn{font-size:11px;padding:5px 14px}
+  .ex-row-video-fixed-btn{width:22px;height:22px;right:6px;bottom:5px}
 }
 .learn-section-block{margin-bottom:18px;padding:16px;background:var(--accent-soft);border-radius:14px;border:1px solid var(--border-col)}
 .learn-block-title{font-family:var(--font-alt);font-size:15px;font-weight:700;color:var(--section-title-col);letter-spacing:0.5px;margin-bottom:12px;display:flex;align-items:center;gap:7px}
@@ -20073,12 +20113,19 @@ async function openWorkoutRowVideo(name){
   });
 }
 /* Turns a plain exercise-row <div> (already holding its name/class-tag markup as innerHTML) into
-   the tap-to-reveal Add/Video row: wraps the existing markup in .ex-row-main, appends the hidden
-   .ex-row-actions bar, and wires up the three tap targets. addFn is whatever the row used to do on
-   click (the full select-this-exercise logic); videoName is the exact exercise name to look up/open. */
+   the tap-to-reveal Add/Video row, plus swipe-right-to-add. Structure:
+     .ex-row-expandable (outer, clips the slide via overflow:hidden, carries the glow ring)
+       .ex-row-swipe-bg   — "Add >>" panel, revealed live underneath as the row is dragged right
+       .ex-row-content    — opaque foreground that actually translates with the finger
+         .ex-row-main     — original name/class-tag row (tap toggles expanded)
+         .ex-row-actions  — small centered blue Add button (only visible when expanded)
+         .ex-row-video-fixed-btn — fixed corner Video icon (only visible when expanded)
+   addFn is whatever the row used to do on click (the full select-this-exercise logic); videoName
+   is the exact exercise name to look up/open. */
 function _wireExRowActions(div,videoName,addFn){
   div.classList.add('ex-row-expandable');
-  div.innerHTML=`<div class="ex-row-main">${div.innerHTML}</div><div class="ex-row-actions"><button type="button" class="ex-row-action-btn ex-row-video-btn"><svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M8 5v14l11-7z"/></svg>Video</button><button type="button" class="ex-row-action-btn ex-row-add-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>Add</button></div>`;
+  const innerMarkup=div.innerHTML;
+  div.innerHTML=`<div class="ex-row-swipe-bg"><span>Add</span><span class="ex-row-swipe-chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></span><span class="ex-row-swipe-chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></span></div><div class="ex-row-content"><div class="ex-row-main">${innerMarkup}</div><div class="ex-row-actions"><button type="button" class="ex-row-add-center-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>Add</button></div><button type="button" class="ex-row-video-fixed-btn" aria-label="Watch exercise video" title="Watch video"><svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M8 5v14l11-7z"/></svg></button></div>`;
   div.querySelector('.ex-row-main').onclick=(e)=>{
     e.stopPropagation();
     const box=div.parentElement;
@@ -20087,8 +20134,81 @@ function _wireExRowActions(div,videoName,addFn){
     div.classList.toggle('expanded',!wasOpen);
     if(!wasOpen)prefetchWorkoutRowVideo(videoName);
   };
-  div.querySelector('.ex-row-add-btn').onclick=(e)=>{e.stopPropagation();addFn();};
-  div.querySelector('.ex-row-video-btn').onclick=(e)=>{e.stopPropagation();openWorkoutRowVideo(videoName);};
+  div.querySelector('.ex-row-add-center-btn').onclick=(e)=>{e.stopPropagation();addFn();};
+  div.querySelector('.ex-row-video-fixed-btn').onclick=(e)=>{e.stopPropagation();openWorkoutRowVideo(videoName);};
+  const content=div.querySelector('.ex-row-content');
+  const bg=div.querySelector('.ex-row-swipe-bg');
+  div.addEventListener('touchstart',(e)=>exRowSwipeStart(e,div),{passive:true});
+  div.addEventListener('touchmove',(e)=>exRowSwipeMove(e,div,content,bg),{passive:false});
+  div.addEventListener('touchend',(e)=>exRowSwipeEnd(e,div,content,bg,addFn));
+  div.addEventListener('touchcancel',()=>exRowSwipeReset(div,content,bg));
+}
+/* Live swipe-to-add (right-swipe ONLY — a left-swipe is left alone, e.g. for page scroll/other
+   gestures, and simply never reveals or triggers anything). Records the touch start point, mirrors
+   nlSetSwipeStart's pattern used for the set-row swipe gestures elsewhere in the app. */
+const EX_ROW_SWIPE_MAX=96,EX_ROW_SWIPE_THRESHOLD=64;
+function exRowSwipeStart(evt,div){
+  const t=evt.touches[0];if(!t)return;
+  div.dataset.exSwipeStartX=t.clientX;
+  div.dataset.exSwipeStartY=t.clientY;
+  div.dataset.exSwipeDragging='0';
+}
+/* Tracks the finger in real time: once a clearly-horizontal rightward drag is detected, the
+   foreground content translates 1:1 with the finger (clamped to EX_ROW_SWIPE_MAX) and the "Add >>"
+   panel underneath fades in proportionally to how far it's been dragged — a smooth, modern
+   swipe-reveal rather than a snap-on-release toggle. */
+function exRowSwipeMove(evt,div,content,bg){
+  const startX=parseFloat(div.dataset.exSwipeStartX),startY=parseFloat(div.dataset.exSwipeStartY);
+  if(isNaN(startX)||isNaN(startY))return;
+  const t=evt.touches[0];if(!t)return;
+  const dx=t.clientX-startX,dy=t.clientY-startY;
+  if(div.dataset.exSwipeDragging==='0'){
+    if(Math.abs(dy)>Math.abs(dx)||Math.abs(dx)<8)return; // let vertical scroll pass through untouched
+    if(dx<=0)return; // left-swipe: do nothing, no drag/reveal at all
+    div.dataset.exSwipeDragging='1';
+    content.style.transition='none';
+    bg.style.transition='none';
+  }
+  if(div.dataset.exSwipeDragging!=='1')return;
+  evt.preventDefault();
+  const clamped=Math.max(0,Math.min(dx,EX_ROW_SWIPE_MAX));
+  content.style.transform=`translateX(${clamped}px)`;
+  bg.style.opacity=String(Math.min(1,clamped/EX_ROW_SWIPE_THRESHOLD));
+}
+/* On release: past the threshold, the content finishes sliding off to the right with a smooth
+   spring-out motion and the exercise is added; below threshold, it eases back to rest. Either way
+   the transform/opacity are restored with a proper CSS transition (re-enabled here, disabled during
+   the live drag above) so the motion reads as fluid, app-native easing rather than a hard cut. */
+function exRowSwipeEnd(evt,div,content,bg,addFn){
+  const wasDragging=div.dataset.exSwipeDragging==='1';
+  delete div.dataset.exSwipeStartX;delete div.dataset.exSwipeStartY;div.dataset.exSwipeDragging='0';
+  if(!wasDragging)return;
+  content.style.transition='transform 0.28s cubic-bezier(0.22,0.8,0.3,1)';
+  bg.style.transition='opacity 0.25s ease';
+  const currentTransform=content.style.transform;
+  const dxMatch=/translateX\(([-\d.]+)px\)/.exec(currentTransform);
+  const dx=dxMatch?parseFloat(dxMatch[1]):0;
+  if(dx>=EX_ROW_SWIPE_THRESHOLD){
+    evt.preventDefault();
+    content.style.transform=`translateX(120%)`;
+    bg.style.opacity='1';
+    div.classList.remove('expanded');
+    setTimeout(()=>{
+      addFn();
+      exRowSwipeReset(div,content,bg);
+      div.classList.remove('ex-row-swipe-flash');
+      void div.offsetWidth;
+      div.classList.add('ex-row-swipe-flash');
+      setTimeout(()=>div.classList.remove('ex-row-swipe-flash'),450);
+      if(typeof showToast==='function')showToast('✓ Added');
+    },220);
+  }else{
+    exRowSwipeReset(div,content,bg);
+  }
+}
+function exRowSwipeReset(div,content,bg){
+  content.style.transform='translateX(0)';
+  bg.style.opacity='0';
 }
 
 /* ===================== LEARN — IN-PAGE YOUTUBE PLAYER (no external redirect) ===================== */
