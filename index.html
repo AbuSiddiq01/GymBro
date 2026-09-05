@@ -814,62 +814,59 @@ input::placeholder{color:var(--text-muted)}
 .set-row.set-row-locked input[type="number"]{opacity:0.75;cursor:not-allowed}
 .set-row{touch-action:pan-y} /* keep vertical page scroll working while we read horizontal swipes ourselves */
 /* ===================== CARDIO SET INPUTS (Km + compact Duration picker) ===================== */
-.km-input{padding:9px 6px;margin-top:0;flex:0 0 92px;width:92px;text-align:center}
-/* Non-Live (Add/Edit form) cardio set rows are a single, never-wrapping line, with fields organized
-   into a Km+Time "left group" (Set label + Km, then the Time picker, joined by a FIXED gap) and a
-   Copy+Tick "actions" group. The two groups sit inside .cardio-set-body.
-   The Time picker's position only ever depends on the Set-label/Km width and that one fixed gap —
-   NEVER on the actions group's width — because Time lives inside .cardio-set-leftgroup together with
-   Km, not as a 3rd sibling of actions. That's what keeps the Time picker in the exact same column on
-   every set, including Set 1, which has no Copy button and would otherwise (when Time sat as its own
-   flex item alongside a narrower or wider actions group) get a differently-computed gap and drift out
-   of column with Set 2+'s Time picker — the previous bug this replaced.
-   On sets 2+, .cardio-set-body uses justify-content:space-between between the two groups, so leftover
-   row width becomes one gap between Time and Copy/Tick. Set 1 has no Copy button — stretching its
-   lone Tick all the way to the row's right edge the same way just left an odd, empty-looking stretch
-   where Set 2+'s Copy button sits — so Set 1's body gets the .cardio-set-body-compact modifier
-   instead (see renderNonLiveSetsRows()), which left-aligns the two groups so Tick sits right after
-   the Time picker with the row's normal, comfortable gap; any leftover width is simply blank space at
-   the row's right end, exactly like a row with less content naturally would have.
+.km-input{padding:9px 6px;margin-top:0;flex:1 1 55px;width:auto;min-width:55px;max-width:200px;text-align:center;font-size:clamp(12px,3.5cqw,15px)}
+/* Non-Live (Add/Edit form) cardio set rows are a single, never-wrapping line: Set label, Km, Time
+   picker, then Copy+Tick actions pinned to the right. Everything to the left of Copy/Tick lives in
+   .cardio-set-leftgroup, which grows (flex:1 1 auto) to soak up whatever width .cardio-set-body has
+   left over after the fixed-size .cardio-set-actions cluster — so there's never a dead strip of
+   empty space between the Time picker and Copy/Tick, on any screen.
+   Sizing here is driven by container queries (cqw = 1% of THIS ROW's own rendered width), not the
+   page's viewport width — a viewport-relative (vw) unit would size these fields off the browser
+   window even though the row itself might sit inside a narrower, padded card, which is exactly what
+   caused fields to overflow/clip into each other earlier. Container queries measure the row's real
+   available space directly, so the same rule shrinks or grows correctly whether this row is in a
+   cramped phone card or a wide desktop panel. See .set-row.cardio-set-row's container-type below.
+   Only the Km input actually stretches beyond its own natural size (flex-grow, capped with
+   max-width) — the "Set N" label and the Time picker keep to their own (also adaptive) natural
+   size. See the .cardio-set-primary{display:contents} comment below for why the label and Km input
+   need to be promoted to direct flex-children of leftgroup for that growth to work.
+   Every set's .cardio-set-actions is the exact same width, even Set 1 (which gets an invisible
+   placeholder Copy button instead of no button at all — see renderNonLiveSetsRows()) — otherwise
+   Set 1's leftgroup would have more leftover room to grow into than Set 2+'s, and its Km/Time would
+   drift wider and out of column with every other set.
    Delete (shown only while editing) sits OUTSIDE .cardio-set-body, as cardio-set-row's own 2nd child
-   — if it sat inside the body instead, space-between would treat its collapsed 0-width button as a
-   3rd item to plan gaps around, quietly shifting Copy/Tick left on every set that has a Delete button
-   (i.e. every originally-saved set) relative to a newly-added set that doesn't yet have one. Keeping
-   Delete outside means the layout — and thus the Time picker's column — stays identical on every set
-   regardless of Delete's presence. */
-.set-row.cardio-set-row{flex-wrap:nowrap;align-items:center;gap:10px;overflow:hidden}
-.set-row.cardio-set-row .cardio-set-body{display:flex;align-items:center;justify-content:space-between;gap:18px;flex:1;min-width:0}
-.set-row.cardio-set-row .cardio-set-body.cardio-set-body-compact{justify-content:flex-start}
-.set-row.cardio-set-row .cardio-set-leftgroup{display:flex;align-items:center;gap:18px;flex-shrink:0}
-.set-row.cardio-set-row .cardio-set-primary{display:flex;align-items:center;gap:10px;flex-shrink:0}
+   — if it sat inside the body instead, its collapsed 0-width would still count as a flex item and
+   quietly steal a slice of gap/space, shifting things left only on rows that have a Delete button.
+   Keeping it outside means the layout is identical whether or not Delete is present. */
+.set-row.cardio-set-row{flex-wrap:nowrap;align-items:center;gap:clamp(4px,1.5cqw,10px);overflow:hidden;container-type:inline-size}
+.set-row.cardio-set-row .cardio-set-body{display:flex;align-items:center;justify-content:flex-start;gap:clamp(6px,2.5cqw,20px);flex:1;min-width:0}
+.set-row.cardio-set-row .cardio-set-leftgroup{display:flex;align-items:center;gap:clamp(6px,2.5cqw,18px);flex:1 1 auto;min-width:0}
+/* display:contents removes this wrapper div from the box/flex tree entirely, promoting its two
+   children (the "Set N" label and the Km input) to be direct flex items of .cardio-set-leftgroup
+   alongside the Time picker. This is what lets the Km input's flex-grow actually consume real
+   leftover row width: with the wrapper still a flex box in between, growth had nowhere further to
+   go once the wrapper's own content-width was reached, leaving a dead gap in front of the Time
+   picker instead. Promoted to siblings, all three (label / Km / Time) share leftgroup's own gap and
+   only the Km input (the one item with flex-grow) actually expands to fill whatever space is left. */
+.set-row.cardio-set-row .cardio-set-primary{display:contents}
 /* The base ".set-row span{min-width:46px}" rule (further below) sizes the "Set N" label wide enough
    for a weight/reps row's longer siblings — on a cardio row that just left dead air between the
-   label text and the Km box for no reason. 34px is the actual width "Set N" needs, so this override
-   reclaims that leftover ~12px and puts it back into the row's shared pool of space (see the tick-box
-   comment below), instead of it sitting unused right after the label. */
-.set-row.cardio-set-row .cardio-set-primary>span{flex:0 0 auto;font-size:13.5px;min-width:40px;margin-left:3px}
+   label text and the Km box for no reason. This override reclaims that space and, being container-
+   query-driven, keeps the label legible without eating room needed by Km/Time on a narrow row. */
+.set-row.cardio-set-row .cardio-set-primary>span{flex:0 0 auto;font-size:clamp(11px,3.2cqw,14px);min-width:clamp(28px,9cqw,42px);margin-left:2px}
+.set-row.cardio-set-row .nl-cardio-time-compact{flex:0 0 auto}
 .set-row .km-badge{font-size:10px;font-weight:700;color:var(--workout-tag-col);background:var(--workout-tag-bg);padding:4px 8px;border-radius:8px;white-space:nowrap}
-/* Tick box, cardio rows only. Sized as a real, easily tappable/visible checkbox — sizing is fixed and
-   identical on every set/screen (only the color/border change on check), since it lives in the
-   .cardio-set-actions cluster rather than being stretched or squeezed by leftover row space. */
-.set-row.cardio-set-row .set-lock-check{width:36px;height:40px;flex-shrink:0}
-.set-row.cardio-set-row .set-lock-box{width:30px;height:34px;border-radius:8px}
-.set-row.cardio-set-row .set-lock-box svg{width:15px;height:15px}
-/* Copy + Tick's own fixed-size cluster — see comment above the row rule. */
-.set-row.cardio-set-row .cardio-set-actions{display:flex;align-items:center;gap:14px;flex-shrink:0}
-.set-row.cardio-set-row .set-copy-btn{width:38px;height:38px}
-@media(max-width:480px){
-  .set-row.cardio-set-row{gap:6px}
-  .set-row.cardio-set-row .cardio-set-body{gap:10px}
-  .set-row.cardio-set-row .cardio-set-leftgroup{gap:10px}
-  .set-row.cardio-set-row .cardio-set-primary{gap:6px}
-  .km-input{flex:0 0 66px;width:66px;padding:9px 3px;font-size:13px}
-  .set-row.cardio-set-row .set-lock-check{width:28px;height:32px}
-  .set-row.cardio-set-row .set-lock-box{width:22px;height:28px}
-  .set-row.cardio-set-row .set-lock-box svg{width:13px;height:13px}
-  .set-row.cardio-set-row .cardio-set-actions{gap:8px}
-  .set-row.cardio-set-row .set-copy-btn{width:30px;height:30px}
-}
+/* Tick box, cardio rows only — sized with the same container-query scale as everything else in the
+   row (see .set-row.cardio-set-row above) so it shrinks gracefully on a very narrow row instead of
+   forcing an overflow, while staying a comfortably tappable size everywhere else. */
+.set-row.cardio-set-row .set-lock-check{width:clamp(26px,7.5cqw,36px);height:clamp(30px,8.5cqw,40px);flex-shrink:0}
+.set-row.cardio-set-row .set-lock-box{width:clamp(20px,6cqw,30px);height:clamp(24px,7cqw,34px);border-radius:8px}
+.set-row.cardio-set-row .set-lock-box svg{width:clamp(12px,3.5cqw,15px);height:clamp(12px,3.5cqw,15px)}
+/* Copy + Tick's own cluster — same fixed-relative-to-row-width sizing on every set (see the Set 1
+   placeholder-button comment above .set-row.cardio-set-row), so this cluster's width never varies
+   between sets and the Km/Time column never drifts. */
+.set-row.cardio-set-row .cardio-set-actions{display:flex;align-items:center;gap:clamp(6px,2cqw,14px);flex-shrink:0}
+.set-row.cardio-set-row .set-copy-btn{width:clamp(26px,7.5cqw,38px);height:clamp(26px,7.5cqw,38px)}
 /* Cardio duration reuses the compact .minsec-picker markup (same as Settings ▸ Default Break
    Duration) rather than a bespoke widget — scroll to change the value, or tap the visible number to
    type it directly (see setupMinSecScrollList()/openMinSecTypeInput()). .nl-cardio-time-compact
@@ -1906,17 +1903,11 @@ body.workout-edit-lock{overflow:hidden}
    everywhere (hardcoded in mountMinSecPicker/setupMinSecScrollList's itemHeight) — only width,
    padding, and the label's visibility are touched — so scrolling and tap-to-type both keep working
    unchanged. */
-.nl-cardio-time-compact .minsec-picker{gap:10px}
-.nl-cardio-time-compact .minsec-scroll-group{gap:10px;padding:7px 26px;border-radius:11px}
-.nl-cardio-time-compact .minsec-scroll-list{width:56px;font-size:17px}
-.nl-cardio-time-compact .minsec-unit-label{font-size:9px;margin-top:0}
-.nl-cardio-time-compact .minsec-sep{font-size:20px}
-@media(max-width:480px){
-  .nl-cardio-time-compact .minsec-scroll-list{width:36px;font-size:14px}
-  .nl-cardio-time-compact .minsec-scroll-group{padding:4px 12px;gap:6px}
-  .nl-cardio-time-compact .minsec-unit-label{font-size:8px}
-  .nl-cardio-time-compact .minsec-sep{font-size:16px}
-}
+.nl-cardio-time-compact .minsec-picker{gap:clamp(4px,2cqw,10px)}
+.nl-cardio-time-compact .minsec-scroll-group{gap:clamp(4px,2cqw,10px);padding:clamp(4px,1.5cqw,7px) clamp(8px,5cqw,26px);border-radius:11px}
+.nl-cardio-time-compact .minsec-scroll-list{width:clamp(30px,10cqw,56px);font-size:clamp(13px,3.5cqw,17px)}
+.nl-cardio-time-compact .minsec-unit-label{font-size:clamp(7px,2cqw,9px);margin-top:0}
+.nl-cardio-time-compact .minsec-sep{font-size:clamp(14px,4cqw,20px)}
 
 /* ===================== WORKOUT TRACKER ===================== */
 .tracker-date-row{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;margin-bottom:16px}
@@ -12078,14 +12069,18 @@ function renderNonLiveSetsRows(weights,reps,locks,kms,mins,secs){
       // The old inline stopwatch (Play/Pause/Save "Duration Timer") stays removed for Non-Live —
       // scrolling or tapping-to-type directly into the Time picker (mountCardioDurationPicker, via
       // the .nl-cardio-time-compact wrapper above) is the only way to set it here now.
-      // Km + Time live together in .cardio-set-leftgroup (fixed gap) so the Time picker's column
-      // never shifts with Copy/Tick's width — see the CSS comment above .cardio-set-body. Set 1 has
-      // no Copy button (nothing to copy from yet), so its .cardio-set-body gets the -compact modifier
-      // to left-align the two groups, putting Tick right after the Time picker instead of stranding
-      // it out at the row's far right edge with an odd empty gap where Copy would otherwise sit.
+      // Km + Time live together in .cardio-set-leftgroup, which grows to fill whatever width
+      // .cardio-set-actions doesn't need (see the CSS comment above .cardio-set-body) — so the Km box
+      // and Time picker land in the exact same column on every set, on any screen size. That column
+      // match only holds if .cardio-set-actions is the SAME width on every row, though: Set 1 has no
+      // real Copy button (nothing to copy from yet), so it gets an invisible placeholder of the exact
+      // same class/size instead of just omitting the button — otherwise Set 1's actions cluster would
+      // be narrower than Set 2+'s, its leftgroup would grow further to compensate, and its Km/Time
+      // would end up wider and visibly out of column with every other set.
       // Delete stays outside both groups so its collapse/expand width-animation is unaffected.
-      const bodyClass=i>=2?'cardio-set-body':'cardio-set-body cardio-set-body-compact';
-      c.innerHTML+=`<div class="set-row cardio-set-row${locked?' set-row-locked':''}" ontouchstart="nlSetSwipeStart(event)" ontouchend="nlSetSwipeEnd(event,${i})"><div class="${bodyClass}"><div class="cardio-set-leftgroup"><div class="cardio-set-primary">${labelHtml}${kmInputHtml}</div><div id="cardioDurMount_set_${i}" class="nl-cardio-time-compact"></div></div><div class="cardio-set-actions">${copyBtn}${lockHtml}</div></div>${delBtn}</div>`;
+      const cardioCopyBtn=i>=2?`<button type="button" class="set-copy-btn" id="setCopyBtn_${i}" title="Copy previous set's values" onclick="copyFromPrevNonLiveSet(${i})">${ICON_COPY}</button>`:`<button type="button" class="set-copy-btn" style="visibility:hidden;pointer-events:none" tabindex="-1" aria-hidden="true">${ICON_COPY}</button>`;
+      const bodyClass='cardio-set-body';
+      c.innerHTML+=`<div class="set-row cardio-set-row${locked?' set-row-locked':''}" ontouchstart="nlSetSwipeStart(event)" ontouchend="nlSetSwipeEnd(event,${i})"><div class="${bodyClass}"><div class="cardio-set-leftgroup"><div class="cardio-set-primary">${labelHtml}${kmInputHtml}</div><div id="cardioDurMount_set_${i}" class="nl-cardio-time-compact"></div></div><div class="cardio-set-actions">${cardioCopyBtn}${lockHtml}</div></div>${delBtn}</div>`;
       mountList.push({i,min,sec,locked});
     } else {
       const w=weights[i-1]||'',r=reps[i-1]||'';
