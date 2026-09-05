@@ -814,7 +814,7 @@ input::placeholder{color:var(--text-muted)}
 .set-row.set-row-locked input[type="number"]{opacity:0.75;cursor:not-allowed}
 .set-row{touch-action:pan-y} /* keep vertical page scroll working while we read horizontal swipes ourselves */
 /* ===================== CARDIO SET INPUTS (Km + compact Duration picker) ===================== */
-.km-input{padding:9px 6px;margin-top:0;flex:0 0 82px;width:82px;text-align:center}
+.km-input{padding:9px 6px;margin-top:0;flex:0 0 92px;width:92px;text-align:center}
 /* Non-Live (Add/Edit form) cardio set rows are a single, never-wrapping line, with fields organized
    into a Km+Time "left group" (Set label + Km, then the Time picker, joined by a FIXED gap) and a
    Copy+Tick "actions" group. The two groups sit inside .cardio-set-body.
@@ -847,7 +847,7 @@ input::placeholder{color:var(--text-muted)}
    label text and the Km box for no reason. 34px is the actual width "Set N" needs, so this override
    reclaims that leftover ~12px and puts it back into the row's shared pool of space (see the tick-box
    comment below), instead of it sitting unused right after the label. */
-.set-row.cardio-set-row .cardio-set-primary>span{flex:0 0 auto;font-size:12px;min-width:34px}
+.set-row.cardio-set-row .cardio-set-primary>span{flex:0 0 auto;font-size:13.5px;min-width:40px;margin-left:3px}
 .set-row .km-badge{font-size:10px;font-weight:700;color:var(--workout-tag-col);background:var(--workout-tag-bg);padding:4px 8px;border-radius:8px;white-space:nowrap}
 /* Tick box, cardio rows only. Sized as a real, easily tappable/visible checkbox — sizing is fixed and
    identical on every set/screen (only the color/border change on check), since it lives in the
@@ -863,7 +863,7 @@ input::placeholder{color:var(--text-muted)}
   .set-row.cardio-set-row .cardio-set-body{gap:10px}
   .set-row.cardio-set-row .cardio-set-leftgroup{gap:10px}
   .set-row.cardio-set-row .cardio-set-primary{gap:6px}
-  .km-input{flex:0 0 58px;width:58px;padding:9px 3px;font-size:13px}
+  .km-input{flex:0 0 66px;width:66px;padding:9px 3px;font-size:13px}
   .set-row.cardio-set-row .set-lock-check{width:28px;height:32px}
   .set-row.cardio-set-row .set-lock-box{width:22px;height:28px}
   .set-row.cardio-set-row .set-lock-box svg{width:13px;height:13px}
@@ -1906,14 +1906,14 @@ body.workout-edit-lock{overflow:hidden}
    everywhere (hardcoded in mountMinSecPicker/setupMinSecScrollList's itemHeight) — only width,
    padding, and the label's visibility are touched — so scrolling and tap-to-type both keep working
    unchanged. */
-.nl-cardio-time-compact .minsec-picker{gap:9px}
-.nl-cardio-time-compact .minsec-scroll-group{gap:9px;padding:7px 19px;border-radius:11px}
-.nl-cardio-time-compact .minsec-scroll-list{width:50px;font-size:17px}
+.nl-cardio-time-compact .minsec-picker{gap:10px}
+.nl-cardio-time-compact .minsec-scroll-group{gap:10px;padding:7px 26px;border-radius:11px}
+.nl-cardio-time-compact .minsec-scroll-list{width:56px;font-size:17px}
 .nl-cardio-time-compact .minsec-unit-label{font-size:9px;margin-top:0}
 .nl-cardio-time-compact .minsec-sep{font-size:20px}
 @media(max-width:480px){
-  .nl-cardio-time-compact .minsec-scroll-list{width:32px;font-size:14px}
-  .nl-cardio-time-compact .minsec-scroll-group{padding:4px 8px;gap:5px}
+  .nl-cardio-time-compact .minsec-scroll-list{width:36px;font-size:14px}
+  .nl-cardio-time-compact .minsec-scroll-group{padding:4px 12px;gap:6px}
   .nl-cardio-time-compact .minsec-unit-label{font-size:8px}
   .nl-cardio-time-compact .minsec-sep{font-size:16px}
 }
