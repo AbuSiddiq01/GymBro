@@ -1779,7 +1779,7 @@ body.workout-edit-lock{overflow:hidden}
 .approval-toggle.on .approval-toggle-knob{left:22px;box-shadow:0 1px 4px rgba(0,0,0,0.35)}
 .live-dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:#ef4444;animation:livePulse 1.2s ease-in-out infinite}
 @keyframes livePulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.5;transform:scale(0.75)}}
-.live-set-block{background:var(--set-row-bg);border:1px solid var(--border-col);border-radius:14px;padding:14px;margin-top:12px;animation:fadeIn 0.3s ease;position:relative}
+.live-set-block{background:var(--set-row-bg);border:1px solid var(--border-col);border-radius:14px;padding:14px;margin-top:12px;animation:fadeIn 0.3s ease;position:relative;container-type:inline-size}
 .live-set-block.set-active{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-glow)}
 .live-set-block.set-done{opacity:0.75;border-color:#16a34a}
 .live-set-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
@@ -1787,9 +1787,18 @@ body.workout-edit-lock{overflow:hidden}
 .live-set-done-badge{background:#16a34a;color:#fff;font-size:11px;padding:3px 10px;border-radius:8px;font-family:var(--font-alt);font-weight:700}
 .live-set-inputs{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .live-set-inputs input{flex:1;min-width:80px;margin-top:0;padding:9px}
-.live-timer-row{display:flex;align-items:center;gap:10px;margin-top:10px;flex-wrap:wrap}
-.live-timer-display{font-family:var(--font-display);font-size:30px;color:var(--accent);letter-spacing:3px;min-width:90px}
-.live-timer-btn{width:44px;height:44px;border-radius:50%;border:none;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;transition:all 0.2s ease;flex-shrink:0}
+/* Live-mode Cardio's Time box (the min:sec picker mounted next to Km — see buildLiveSetHTML) —
+   never shrinks below its own natural size, same as the Play/Reset icon buttons below it,
+   so it can't get visually squashed if the row gets tight and the Copy button wraps to its own
+   line instead (matching how normal/strength Live Mode sets already wrap their Copy button).
+   This box is FIXED in place on line 1 next to Km at all times — it never hides or moves. While
+   the timer is actively running it just dims/locks (see .msp-locked) and the running count shows
+   separately next to Play via .live-timer-display, same as a normal Live Mode set; the box is
+   filled with the frozen elapsed time (and unlocked again) the moment the timer is paused. */
+.live-cardio-time-box{flex-shrink:0}
+.live-timer-row{display:flex;align-items:center;gap:clamp(6px,2.5cqw,10px);margin-top:10px;flex-wrap:wrap}
+.live-timer-display{font-family:var(--font-display);font-size:clamp(20px,7.5cqw,30px);color:var(--accent);letter-spacing:clamp(1px,0.6cqw,3px);min-width:clamp(62px,22cqw,90px);text-align:center;flex-shrink:0}
+.live-timer-btn{width:clamp(36px,10cqw,44px);height:clamp(36px,10cqw,44px);border-radius:50%;border:none;cursor:pointer;font-size:clamp(15px,4cqw,18px);display:flex;align-items:center;justify-content:center;transition:all 0.2s ease;flex-shrink:0}
 .live-timer-btn.start{background:var(--btn-bg);color:var(--follow-btn-text);box-shadow:var(--btn-shadow)}
 .live-timer-btn.stop{background:linear-gradient(135deg,#dc2626,#b91c1c);color:#fff;box-shadow:0 4px 14px rgba(220,38,38,0.4)}
 .live-set-save-btn{background:linear-gradient(135deg,#16a34a,#15803d);color:#fff;border:none;padding:8px 18px;border-radius:10px;font-size:13px;font-weight:700;font-family:var(--font-alt);cursor:pointer;letter-spacing:0.5px;transition:all 0.2s ease;margin-top:10px;display:none}
@@ -1805,13 +1814,14 @@ body.workout-edit-lock{overflow:hidden}
 .live-break-timer-row{display:flex;align-items:center;gap:10px;margin-top:6px;flex-wrap:wrap}
 .live-break-edit-btn{padding:6px 12px;border:1px solid var(--border-col);border-radius:10px;background:var(--bg-card);color:var(--accent);font-size:11px;font-weight:700;font-family:var(--font-alt);cursor:pointer;letter-spacing:0.3px;transition:all 0.2s ease;display:none;align-items:center;gap:4px}
 .live-break-edit-btn:hover{background:var(--accent-soft)}
-/* Small pencil toggle next to the cardio Duration timer — reveals the same compact scrollable
-   min:sec picker used elsewhere in the app, so Duration can be typed/scrolled directly instead of
-   (or on top of) using the timer. */
-.live-dur-edit-btn{width:32px;height:32px;border-radius:9px;border:1px solid var(--border-col);background:var(--bg-card);color:var(--accent);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.2s ease}
+/* Live-mode Cardio set control that appears to the RIGHT of Play once its timer has been started
+   at least once (see toggleLiveSetTimer/resetLiveSetTimer): a Reset icon that zeroes the Time
+   box, gated behind an OK/Cancel confirm (see confirmResetLiveSetTimer). The Time box itself
+   auto-unlocks for manual scroll/type correction as soon as the timer is paused (see
+   setCardioPickerLocked in toggleLiveSetTimer) — there's no separate Edit/pencil icon needed. */
+.live-dur-edit-btn{width:clamp(26px,7.5cqw,32px);height:clamp(26px,7.5cqw,32px);border-radius:9px;border:1px solid var(--border-col);background:var(--bg-card);color:var(--accent);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.2s ease}
 .live-dur-edit-btn:hover{background:var(--accent-soft)}
 .live-dur-edit-btn:disabled{opacity:0.4;cursor:not-allowed}
-.live-cardio-dur-edit{margin-top:8px}
 .live-break-edit-panel{margin-top:10px;padding:10px;background:var(--bg-panel);border:1px dashed var(--border-col);border-radius:10px;display:none;animation:fadeIn 0.2s ease}
 .live-break-edit-label{font-size:11px;color:var(--text-muted);font-family:var(--font-alt);margin-bottom:8px;letter-spacing:0.3px}
 .live-break-edit-actions{display:flex;gap:8px;margin-top:10px}
@@ -5914,12 +5924,11 @@ function mountCardioDurationPicker(containerId,pickerKey,initMin,initSec,locked,
   mountMinSecPicker(containerId,pickerKey,initMin,initSec,onChange,300);
   setCardioPickerLocked(pickerKey,locked);
 }
-/* Keeps a Live-mode cardio set's timer readout (liveTimerDisplay_) in sync with its Duration
-   picker (liveSet_<idx>) whenever the picker changes for ANY reason — manual pencil-edit, or a
-   restored draft — not just when the timer itself ticks. */
+/* Persists the draft whenever a Live-mode Cardio set's Duration picker (liveSet_<idx>) changes
+   for a reason other than the ticking timer itself — a manual scroll/type edit, a Previous
+   Performance copy, or a restored draft. (The picker IS the on-screen readout now — see
+   buildLiveSetHTML/toggleLiveSetTimer — so there's no separate display left to keep in sync.) */
 function syncLiveCardioDurDisplay(idx){
-  const t=getPickerSeconds(`liveSet_${idx}`);
-  const dispEl=document.getElementById(`liveTimerDisplay_${idx}`);if(dispEl)dispEl.textContent=String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0');
   saveLiveDraft();
 }
 function setCardioPickerValue(pickerKey,min,sec){
@@ -11337,9 +11346,8 @@ function _showClassPickerForInput(inputId,baseName,mode){
 }
 window._pickExClass=function(inputId,baseName,cls,mode){
   document.getElementById('_classPickerModal').remove();
-  // Live Mode never supports Cardio — resolving a multi-class exercise (e.g. Burpees) to Cardio here
-  // is blocked exactly like every other Cardio entry point.
-  if(mode==='live'&&cls==='Cardio'){_blockLiveModeCardio();return;}
+  // Live Mode now fully supports Cardio (Km box + live timer auto-fills Duration), so resolving a
+  // multi-class exercise (e.g. Burpees) to Cardio here works exactly like any other class.
   if(!window._customConfirmedName)window._customConfirmedName={};
   window._customConfirmedName[mode]=(baseName||'').toLowerCase();
   // Class is stored as its own field, never appended into the visible name — the trailing "(...)"
@@ -11645,7 +11653,8 @@ function _ywClassTagHtml(cls){
 }
 /* Resolves a name from the person's own log history back into a full catalog-style item (class,
    equipment, isCustom) so picking it behaves exactly like picking the same exercise from the normal
-   dropdown — same Class tag handling, same Cardio block in Live Mode, same custom-exercise handling.
+   dropdown — same Class tag handling (including Cardio, fully supported in Live Mode), same
+   custom-exercise handling.
    Falls back to a bare name (no class) for the rare case of an exercise logged before that's since
    vanished from both the built-in catalog and the custom-exercise registry. */
 function _resolveYourWorkoutItem(name){
@@ -11738,17 +11747,12 @@ function _pickYourWorkoutNonLive(name){
   updateNameClearIconVisibility('workoutNameInput','workoutNameClearIcon');
   saveNonLiveDraft();
 }
-/* Same idea for Live Mode — including the same Cardio block Live Mode always applies. */
+/* Same idea for Live Mode — Cardio is now fully supported (Km box + live timer auto-fills
+   Duration), so a Cardio pick from "Your Workouts" is treated exactly like any other item. */
 function _pickYourWorkoutLive(name){
   const box=document.getElementById("liveAutoSuggestions");
   const icon=document.getElementById("liveWorkoutNameDropdownIcon");
   const item=_resolveYourWorkoutItem(name);
-  if(item&&item.class==='Cardio'){
-    box.style.display="none";
-    if(icon)icon.classList.remove("open");
-    _blockLiveModeCardio();
-    return;
-  }
   box.style.display="none";
   if(icon)icon.classList.remove("open");
   if(_prevPerfLiveTimer)clearTimeout(_prevPerfLiveTimer);
@@ -13149,9 +13153,12 @@ function _applyPrevPerfToLiveFields(prevSets,totalSets,isCardio,orig,startFrom){
    committedCount+1..committedCount+totalNewSets) so Set 5 always pulls from previous performance's
    own Set 5. Matches Non-Live's edit-form behavior exactly: a field's current value (saved or not)
    never blocks the copy — tap the icon and every set gets overwritten with the previous session's
-   values, no matter what's already in the boxes. Live Mode blocks cardio exercises entirely (see
-   _blockLiveModeCardio), so only the strength case applies here — covers Kg-Reps and Reps-only
-   (bodyweight) alike. `orig` is split into `existing`/`new` sub-maps (both keyed 1-based) since the
+   values, no matter what's already in the boxes. Live-EDIT (adding sets to an already-logged live
+   entry) only ever reopens for a strength entry — a live-logged Cardio set has no "[time]" bracket
+   in its saved string, so initiateWorkoutEdit always routes Cardio entries to the regular non-live
+   edit form instead (which has its own Km/Duration prev-performance copy) — so only the strength
+   case applies here — covers Kg-Reps and Reps-only (bodyweight) alike. `orig` is split into
+   `existing`/`new` sub-maps (both keyed 1-based) since the
    two field sets share overlapping index numbers but live under different element-id prefixes. */
 function _applyPrevPerfToLiveEditFields(prevSets,committedCount,totalNewSets,orig){
   let filled=0;
@@ -13992,13 +13999,6 @@ function toggleLiveNameDropdown(e){
     if(icon)icon.classList.add("open");
   }
 }
-/* Live Mode never supports Cardio (Distance/Duration) exercises — shown via toast, and blocked at
-   every entry point: picking "Cardio" from the Muscle/Class filter dropdown, selecting a Cardio
-   exercise from the autosuggest list, typing a Cardio exercise's exact name into the search box, or
-   resolving a "multi" exercise (e.g. Burpees) to the Cardio class via the class-picker modal. */
-function _blockLiveModeCardio(){
-  showToast('⛔ Live Mode is not available for Cardio workouts');
-}
 /* Keeps the "✏️ <name> — Edit Sets" heading above the sets in sync while Live-EDITing, since the
    exercise name can now be changed mid-edit (see startLiveEditSession). No-op outside edit mode. */
 function _syncLiveEditTitle(){
@@ -14015,10 +14015,9 @@ async function handleLiveSearchAuto(forceShow){
   updateLiveSetsStructureVisibility();
   updateNameClearIconVisibility('liveWorkoutNameInput','liveWorkoutNameClearIcon');
   _syncLiveEditTitle();
-  // "Cardio" may be typed, searched, or scrolled to in the Muscle/Class filter and autosuggest
-  // dropdown like any other class — browsing is fine. Only actually SELECTING a Cardio exercise
-  // (a click in the dropdown, choosing "Cardio" for a multi-class exercise, or pressing Start Live
-  // Session with one typed) is blocked — see the div.onclick below, _pickExClass, and startLiveSession.
+  // "Cardio" can be typed, searched, scrolled to, and selected in the Muscle/Class filter and
+  // autosuggest dropdown exactly like any other class — Live Mode fully supports Cardio exercises
+  // (Km box + live timer auto-fills Duration) — see buildLiveSetHTML, toggleLiveSetTimer, saveLiveSet.
   let muscleVal=document.getElementById("liveWorkoutMuscleFilter")?document.getElementById("liveWorkoutMuscleFilter").value:"";
   const equipVal=document.getElementById("liveWorkoutEquipmentFilter")?document.getElementById("liveWorkoutEquipmentFilter").value:"";
   let box=document.getElementById("liveAutoSuggestions");box.innerHTML="";box.style.display="none";
@@ -14060,15 +14059,8 @@ async function handleLiveSearchAuto(forceShow){
       // (see ctmGetFilteredCatalog), same as every built-in catalog exercise — no separate badge needed.
       div.innerHTML=`<span>${item.name}${item.isCustom?' <span style="opacity:0.55;font-size:9px">(custom)</span>':''}</span><span>${classTag}</span>`;
       _wireExRowActions(div,item.name,()=>{
-        // Cardio exercises stay visible/searchable in this dropdown, but Live Mode never supports
-        // them — selecting one notifies instead of setting it as the exercise name. (Watching its
-        // Video is still fine — this block only guards the Add action.)
-        if(item.class==='Cardio'){
-          box.style.display="none";
-          if(icon)icon.classList.remove("open");
-          _blockLiveModeCardio();
-          return;
-        }
+        // Cardio exercises are fully supported in Live Mode (Km box + live timer auto-fills
+        // Duration) — selecting one here sets it as the exercise name just like any other class.
         box.style.display="none";
         if(icon)icon.classList.remove("open");
         if(_prevPerfLiveTimer)clearTimeout(_prevPerfLiveTimer);
@@ -14145,8 +14137,16 @@ function buildLiveDraftSnapshot(){
   for(let i=1;i<=liveTotalSets;i++){
     if(isCardio){
       const kmEl=document.getElementById(`liveKm_${i}`);if(!kmEl)continue;
-      const totalSec=getPickerSeconds(`liveSet_${i}`);
-      sets[i]={km:kmEl.value||'',min:Math.floor(totalSec/60),sec:totalSec%60};
+      // While the timer is running the Time box is locked/stale (see toggleLiveSetTimer) — the
+      // real elapsed time lives in liveSetSeconds instead, same as a normal Kg/Reps set's stopwatch.
+      const running=!!liveSetTimers[i];
+      const totalSec=running?(liveSetSeconds[i]||0):getPickerSeconds(`liveSet_${i}`);
+      sets[i]={
+        km:kmEl.value||'',min:Math.floor(totalSec/60),sec:totalSec%60,
+        timerRunning:running,
+        timerAccumulated:running?(liveSetTimerAccumAtStart[i]||0):0,
+        timerStartEpoch:running?(liveSetTimerStartEpoch[i]||Date.now()):null
+      };
       continue;
     }
     const kgEl=document.getElementById(`liveKg_${i}`);if(!kgEl)continue;
@@ -14320,7 +14320,32 @@ function restoreLiveSessionUI(draft,fromQueue,silent){
     const s=draft.sets[k];
     if(isCardioLive){
       const kmEl=document.getElementById(`liveKm_${i}`);if(kmEl)kmEl.value=s.km||'';
-      setCardioPickerValue(`liveSet_${i}`,s.min,s.sec);
+      if(s.timerRunning){
+        // Resume the running timer exactly where it left off — same epoch-based approach as a
+        // normal set's stopwatch below — with the Time box locked (staying put on line 1) and the
+        // near-Play digit
+        // readout ticking, matching toggleLiveSetTimer's running state.
+        const elapsed=(s.timerAccumulated||0)+Math.floor((Date.now()-s.timerStartEpoch)/1000);
+        liveSetSeconds[i]=elapsed;liveSetTimerAccumAtStart[i]=elapsed;liveSetTimerStartEpoch[i]=Date.now();
+        const m=Math.floor(elapsed/60),sec=elapsed%60;
+        const dispEl=document.getElementById(`liveTimerDisplay_${i}`);if(dispEl){dispEl.style.display="inline-flex";dispEl.textContent=String(m).padStart(2,'0')+':'+String(sec).padStart(2,'0')}
+        setCardioPickerLocked(`liveSet_${i}`,true);
+        const resetBtn=document.getElementById(`liveTimerResetBtn_${i}`);if(resetBtn)resetBtn.style.display="flex";
+        const btn=document.getElementById(`liveTimerBtn_${i}`);if(btn){btn.textContent="⏹";btn.className="live-timer-btn stop"}
+        const saveBtn=document.getElementById(`liveSetSaveBtn_${i}`);if(saveBtn)saveBtn.style.display="none";
+        liveSetTimers[i]=setInterval(()=>{
+          liveSetSeconds[i]=(liveSetTimerAccumAtStart[i]||0)+Math.floor((Date.now()-liveSetTimerStartEpoch[i])/1000);
+          const mm=Math.floor(liveSetSeconds[i]/60),ss=liveSetSeconds[i]%60;
+          const _d=document.getElementById(`liveTimerDisplay_${i}`);if(_d)_d.textContent=String(mm).padStart(2,'0')+':'+String(ss).padStart(2,'0');
+          saveLiveDraft();
+        },1000);
+      } else {
+        setCardioPickerValue(`liveSet_${i}`,s.min,s.sec);
+        if(s.min||s.sec){
+          const resetBtn=document.getElementById(`liveTimerResetBtn_${i}`);if(resetBtn)resetBtn.style.display="flex";
+          const saveBtn=document.getElementById(`liveSetSaveBtn_${i}`);if(saveBtn)saveBtn.style.display="block";
+        }
+      }
       return;
     }
     const kgEl=document.getElementById(`liveKg_${i}`),repsEl=document.getElementById(`liveReps_${i}`);
@@ -14428,7 +14453,6 @@ function showResumeAlertsBanner(){
 function startLiveSession(){
   if(window._liveEditMode){startLiveEditNewSets();return;}
   let name=document.getElementById("liveWorkoutNameInput").value.trim();if(!name){alert("Please enter exercise name.");return}
-  if(isCardioExercise(name)){_blockLiveModeCardio();return;}
   // A brand-new custom exercise (not in the catalog, never saved before) must have a Class picked —
   // Equipment stays optional — so it always shows its designated muscle group everywhere.
   if(_customExerciseNeedsClass(name,window._selectedLiveWorkoutClass)){
@@ -14478,15 +14502,13 @@ function buildLiveSetHTML(idx,active){
     <div class="live-set-header"><span class="live-set-title">SET ${idx}</span><span class="live-set-done-badge" id="liveSetDoneBadge_${idx}" style="display:none">✓ DONE</span></div>
     <div class="live-set-inputs" id="liveSetInputs_${idx}" ${!active?'style="opacity:0.4;pointer-events:none"':''}>
       <input type="number" id="liveKm_${idx}" placeholder="Km" min="0" max="300" step="0.01" class="km-input" oninput="saveLiveDraft()">
+      <div id="liveCardioDurMount_${idx}" class="live-cardio-time-box"></div>
       ${copyBtn}
     </div>
     <div class="live-timer-row" id="liveTimerRow_${idx}" ${!active?'style="display:none"':''}>
-      <div class="live-timer-display" id="liveTimerDisplay_${idx}">00:00</div>
+      <div class="live-timer-display" id="liveTimerDisplay_${idx}" style="display:none">00:00</div>
       <button class="live-timer-btn start" id="liveTimerBtn_${idx}" onclick="toggleLiveSetTimer(${idx})" title="Start timer to auto-fill Duration">▶</button>
-      <button class="live-dur-edit-btn" id="liveDurEditBtn_${idx}" onclick="toggleLiveCardioDurEdit(${idx})" title="Manually set Duration">${ICON_EDIT}</button>
-    </div>
-    <div class="live-cardio-dur-edit" id="liveCardioDurEditWrap_${idx}" style="display:none">
-      <div id="liveCardioDurMount_${idx}"></div>
+      <button class="live-dur-edit-btn" id="liveTimerResetBtn_${idx}" style="display:none" onclick="confirmResetLiveSetTimer(${idx})" title="Reset timer">${ICON_RESET}</button>
     </div>
     <div class="live-set-result" id="liveSetResult_${idx}"></div>
     <button class="live-set-save-btn" id="liveSetSaveBtn_${idx}" onclick="saveLiveSet(${idx})" ${active?'style="display:block"':''}>💾 SAVE SET ${idx}</button>
@@ -14555,52 +14577,82 @@ function buildLiveSetHTML(idx,active){
     </div>
   </div>`;
 }
-/* Toggles the small scrollable min:sec picker for a Live-mode cardio set — the pencil icon next
-   to the timer. Mounted lazily (only on first open) with whatever's currently on the timer
-   display, so opening it mid-way through a timed set doesn't lose progress. */
-function toggleLiveCardioDurEdit(idx){
-  const wrap=document.getElementById(`liveCardioDurEditWrap_${idx}`);if(!wrap)return;
-  const opening=wrap.style.display==="none"||!wrap.style.display;
-  if(opening){
-    const mount=document.getElementById(`liveCardioDurMount_${idx}`);
-    // Safety net only — every cardio set's picker is already mounted (see startLiveSession /
-    // restoreLiveSessionUI) so this normally never fires, but covers any DOM edge case cleanly.
-    if(mount&&!mount.dataset.pickerKey){
-      const curSec=liveSetSeconds[idx]||0;
-      mountCardioDurationPicker(`liveCardioDurMount_${idx}`,`liveSet_${idx}`,Math.floor(curSec/60),curSec%60,false,()=>syncLiveCardioDurDisplay(idx));
-    }
-    wrap.style.display="block";
-  } else {
-    wrap.style.display="none";
-  }
-}
+/* Live-mode set timer (Start/Pause) — shared by both Cardio and normal (Kg/Reps) sets. While
+   running, elapsed time ticks in the near-Play digit readout (#liveTimerDisplay_<idx>), exactly
+   like a normal stopwatch. For Cardio sets specifically, the Time box (#liveCardioDurMount_<idx>)
+   is hidden and locked the moment Play is pressed — it plays no part while the clock is running —
+   and reappears, filled with the just-frozen elapsed time and unlocked for manual fine-tuning,
+   the moment the timer is paused. Pressing Play again resumes counting up from exactly where it
+   left off (epoch-based, so it can't drift), and the Time box locks/dims again while it runs — it
+   stays fixed in place on line 1 the whole time, it's never hidden. */
 function toggleLiveSetTimer(idx){
   const btn=document.getElementById(`liveTimerBtn_${idx}`);
   const isCardio=isCardioExercise(document.getElementById("liveWorkoutNameInput")?.value.trim());
+  const resetBtn=isCardio?document.getElementById(`liveTimerResetBtn_${idx}`):null;
+  const dispEl=document.getElementById(`liveTimerDisplay_${idx}`);
   if(liveSetTimers[idx]){
+    // Pause: freeze the elapsed time, stop counting, drop back to ▶ so it can be resumed — Save
+    // stays visible/available.
+    liveSetSeconds[idx]=(liveSetTimerAccumAtStart[idx]||0)+Math.floor((Date.now()-liveSetTimerStartEpoch[idx])/1000);
     clearInterval(liveSetTimers[idx]);delete liveSetTimers[idx];delete liveSetTimerStartEpoch[idx];
     btn.textContent="▶";btn.className="live-timer-btn start";document.getElementById(`liveSetSaveBtn_${idx}`).style.display="block";
-    // Cardio: the stopped timer IS the Duration — auto-fill the picker so Save reads the correct
-    // value, whether or not the person ever opens the manual edit picker.
     if(isCardio){
-      const totalSec=liveSetSeconds[idx]||0;
-      setCardioPickerValue(`liveSet_${idx}`,Math.floor(totalSec/60),totalSec%60);
-      const editBtn=document.getElementById(`liveDurEditBtn_${idx}`);if(editBtn)editBtn.disabled=false;
+      // Write the frozen elapsed time into the fixed Time box (line 1, next to Km — it never moves
+      // or disappears), unlock it (no pencil/Edit icon anymore — pausing is what makes it editable),
+      // and hide the near-Play digit readout again since the box is now the one showing the time.
+      const m=Math.floor(liveSetSeconds[idx]/60),s=liveSetSeconds[idx]%60;
+      setCardioPickerValue(`liveSet_${idx}`,m,s);
+      setCardioPickerLocked(`liveSet_${idx}`,false);
+      if(dispEl)dispEl.style.display="none";
     }
   }
   else{
+    // Play (fresh start or resume from pause): begin/continue counting up, tracked via a wall-clock
+    // epoch (not a naive per-second increment) so a refresh, tab switch, or the browser throttling a
+    // background timer never loses or skews the elapsed time.
     if(!liveSetSeconds[idx])liveSetSeconds[idx]=0;
     liveSetTimerAccumAtStart[idx]=liveSetSeconds[idx];liveSetTimerStartEpoch[idx]=Date.now();
     btn.textContent="⏹";btn.className="live-timer-btn stop";document.getElementById(`liveSetSaveBtn_${idx}`).style.display="none";
-    if(isCardio){const editBtn=document.getElementById(`liveDurEditBtn_${idx}`);if(editBtn)editBtn.disabled=true;}
+    if(isCardio){
+      // First press of Play reveals Reset — it stays visible from here on so the person can always
+      // restart this set's Duration. The Time box in line 1 stays exactly where it is and just locks
+      // (dims + stops taps — see .msp-locked) while the near-Play readout takes over showing the count.
+      if(resetBtn)resetBtn.style.display="flex";
+      setCardioPickerLocked(`liveSet_${idx}`,true);
+      if(dispEl)dispEl.style.display="inline-flex";
+    }
     liveSetTimers[idx]=setInterval(()=>{
-      // Epoch-based recompute every tick — see the identical comment in restoreLiveSessionUI's timer
-      // above for why (immune to locked screens / backgrounded tabs / throttled or dropped ticks).
+      // Epoch-based recompute every tick — immune to locked screens / backgrounded tabs / throttled
+      // or dropped ticks (always self-corrects from the wall-clock start time, never drifts).
       liveSetSeconds[idx]=(liveSetTimerAccumAtStart[idx]||0)+Math.floor((Date.now()-liveSetTimerStartEpoch[idx])/1000);
       let m=Math.floor(liveSetSeconds[idx]/60),s=liveSetSeconds[idx]%60;
-      const _d=document.getElementById(`liveTimerDisplay_${idx}`);if(_d)_d.textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+      if(dispEl)dispEl.textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
     },1000);
   }
+  saveLiveDraft();
+}
+/* Confirms before resetting a Live-mode Cardio set's timer — the small Reset icon that appears
+   next to Play once a set's timer has been started at least once. Shows the app's themed OK/Cancel
+   modal (see showAppConfirm) instead of resetting immediately, since this discards elapsed time
+   with no undo. Only actually resets on OK. */
+async function confirmResetLiveSetTimer(idx){
+  const ok=await showAppConfirm({title:'⏱ Reset Timer',body:"This set's timer will go back to 0:00. This can't be undone.",confirmText:'OK',cancelText:'Cancel'});
+  if(ok)resetLiveSetTimer(idx);
+}
+/* Resets a Live-mode Cardio set's Duration back to 0:00 (see confirmResetLiveSetTimer above for
+   the confirm step). Clears any running/paused elapsed time, zeroes the Time box, unlocks it, and
+   returns the row to its pristine pre-Play look (Reset hidden again, Time box showing 0:00, just
+   the ▶ button visible) so a fresh timed attempt can start clean. Km is left untouched — this only
+   resets the Duration side. */
+function resetLiveSetTimer(idx){
+  if(liveSetTimers[idx]){clearInterval(liveSetTimers[idx]);delete liveSetTimers[idx]}
+  delete liveSetTimerStartEpoch[idx];delete liveSetTimerAccumAtStart[idx];liveSetSeconds[idx]=0;
+  const btn=document.getElementById(`liveTimerBtn_${idx}`);if(btn){btn.textContent="▶";btn.className="live-timer-btn start"}
+  const resetBtn=document.getElementById(`liveTimerResetBtn_${idx}`);if(resetBtn)resetBtn.style.display="none";
+  const dispEl=document.getElementById(`liveTimerDisplay_${idx}`);if(dispEl){dispEl.style.display="none";dispEl.textContent="00:00"}
+  setCardioPickerValue(`liveSet_${idx}`,0,0);
+  setCardioPickerLocked(`liveSet_${idx}`,false);
+  const saveBtn=document.getElementById(`liveSetSaveBtn_${idx}`);if(saveBtn)saveBtn.style.display="block";
   saveLiveDraft();
 }
 async function saveLiveSet(idx){
@@ -14618,7 +14670,7 @@ async function saveLiveSet(idx){
     const km=parseFloat(document.getElementById(`liveKm_${idx}`)?.value)||0;
     const totalSec=getPickerSeconds(`liveSet_${idx}`);
     if(km<=0){alert(`Set ${idx}: Please enter a Km (distance) greater than 0.`);return}
-    if(totalSec<=0){alert(`Set ${idx}: Please enter a Duration greater than 0 — start the timer or tap the ✏️ icon to set it manually.`);return}
+    if(totalSec<=0){alert(`Set ${idx}: Please enter a Duration greater than 0 — start the timer or tap the Duration box to set it manually.`);return}
     if(liveSetTimers[idx]){clearInterval(liveSetTimers[idx]);delete liveSetTimers[idx]}
     delete liveSetTimerStartEpoch[idx];delete liveSetTimerAccumAtStart[idx];
     setStr=formatCardioSetDisplay(km,Math.floor(totalSec/60),totalSec%60);
@@ -14722,6 +14774,9 @@ document.addEventListener('visibilitychange',()=>{
    so a slow or dropped connection can never throw a running timer off either. */
 function resyncAllRunningWorkoutTimers(){
   const now=Date.now();
+  // Cardio and normal sets both show their running elapsed time in the same near-Play digit
+  // readout now (see toggleLiveSetTimer) — the Cardio Time box stays fixed in place (just
+  // locked/dimmed) while running, so there's nothing extra to repaint there.
   Object.keys(liveSetTimers||{}).forEach(i=>{
     if(liveSetTimerStartEpoch[i]===undefined)return;
     liveSetSeconds[i]=(liveSetTimerAccumAtStart[i]||0)+Math.floor((now-liveSetTimerStartEpoch[i])/1000);
@@ -14882,6 +14937,9 @@ function finishLiveSession(name){
 /* ===================== SAVED WORKOUTS: BREAKDOWN TOGGLE + MANUAL SWAP ===================== */
 /* Fixed inline-SVG icons (not emoji) so Edit/Swap/Delete render identically across every device/OS. */
 const ICON_EDIT='<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>';
+/* Reset icon for the Live-mode Cardio set timer (see resetLiveSetTimer) — a counter-clockwise
+   refresh arrow, same 14x14 stroke style as every other inline icon here. */
+const ICON_RESET='<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 2.6-6.3"/><path d="M3 4v5h5"/></svg>';
 const ICON_DELETE='<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>';
 const ICON_TRACK='<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 17 9 11 13 15 21 7"/><polyline points="14 7 21 7 21 14"/></svg>';
 /* Fixed SVG "copy" icon (two overlapping rectangles) — replaces the 📋 copy emoji everywhere a
