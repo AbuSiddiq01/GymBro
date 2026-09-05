@@ -1787,24 +1787,6 @@ body.workout-edit-lock{overflow:hidden}
 .live-set-done-badge{background:#16a34a;color:#fff;font-size:11px;padding:3px 10px;border-radius:8px;font-family:var(--font-alt);font-weight:700}
 .live-set-inputs{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .live-set-inputs input{flex:1;min-width:80px;margin-top:0;padding:9px}
-/* Live-mode Cardio's Time box (the min:sec picker mounted next to Km — see buildLiveSetHTML) —
-   flex:1 with a 0 basis, same rule Km already gets from the generic ".live-set-inputs input"
-   above, so the two split the row exactly evenly at any width, same as Kg/Reps do in a normal
-   Live Mode set (see the reference screenshot). Uses .nl-cardio-time-compact's clamp-based
-   internal scaling (see further below) so it stays legible however narrow its half of the row
-   gets. This box is FIXED in place on line 1 next to Km at all times — it never hides or moves.
-   While the timer is actively running it locks AND empties out its displayed value (see
-   .time-running below) and the running count shows separately next to Play via
-   .live-timer-display, same as a normal Live Mode set; the box is filled with the frozen elapsed
-   time (and unlocked again) the moment the timer is paused. */
-.live-cardio-time-box{flex:1;min-width:80px;max-width:200px;display:flex;justify-content:center}
-/* While the timer is actively running, only the picked digits inside the Time box are hidden —
-   the box's own border/background (.minsec-scroll-group) AND its ':' separator / MIN·SEC labels
-   stay fully visible the whole time, so it still unmistakably reads as "the time box, just empty"
-   rather than looking like it vanished. The box stays put at its normal equal-share size/position
-   (no reflow) — the running elapsed time is shown separately on line 2 instead (see
-   .live-timer-display). Restored the instant the timer is paused (see toggleLiveSetTimer). */
-.live-cardio-time-box.time-running .minsec-scroll-item{visibility:hidden}
 .live-timer-row{display:flex;align-items:center;gap:clamp(6px,2.5cqw,10px);margin-top:10px;flex-wrap:wrap}
 .live-timer-display{font-family:var(--font-display);font-size:clamp(20px,7.5cqw,30px);color:var(--accent);letter-spacing:clamp(1px,0.6cqw,3px);min-width:clamp(62px,22cqw,90px);text-align:center;flex-shrink:0}
 .live-timer-btn{width:clamp(36px,10cqw,44px);height:clamp(36px,10cqw,44px);border-radius:50%;border:none;cursor:pointer;font-size:clamp(15px,4cqw,18px);display:flex;align-items:center;justify-content:center;transition:all 0.2s ease;flex-shrink:0}
@@ -5929,6 +5911,24 @@ function isCardioSetString(seg){
    inputs are visually identical and just as short. The one addition made to that shared
    widget is tap-to-type: tapping the currently-visible value swaps it for an inline number
    input (see setupMinSecScrollList's click handler) — no separate icon or external box. */
+/* ===================== LIVE MODE CARDIO TIME BOX (plain text, not the scroll picker) =====================
+   Live Mode's Time box is a plain read-only text input — same class as Km (.km-input), so the two
+   sit at exactly equal height/width, same as Kg/Reps in a normal Live set. It shows nothing until
+   the timer has actually produced a value; typing/scrolling isn't offered here since the value only
+   ever comes from starting → pausing the timer (see toggleLiveSetTimer). Registers into the exact
+   same window._minsecMounts registry the scroll-picker uses, keyed by pickerKey, so every existing
+   getPickerSeconds/setCardioPickerValue call site (previous-performance copy, copy-from-previous-set,
+   draft restore, save) keeps working completely unchanged — the mount is simply the input itself,
+   with the picked minutes/seconds stored right on its own dataset. */
+function mountCardioTimeTextBox(inputId,pickerKey,initMin,initSec){
+  const el=document.getElementById(inputId);
+  if(!el)return;
+  initMin=parseInt(initMin)||0;initSec=parseInt(initSec)||0;
+  el.dataset.pickedMin=initMin;el.dataset.pickedSec=initSec;
+  el.value=(initMin||initSec)?(String(initMin).padStart(2,'0')+':'+String(initSec).padStart(2,'0')):'';
+  if(!window._minsecMounts)window._minsecMounts={};
+  window._minsecMounts[pickerKey]=inputId;
+}
 function mountCardioDurationPicker(containerId,pickerKey,initMin,initSec,locked,onChange){
   mountMinSecPicker(containerId,pickerKey,initMin,initSec,onChange,300);
   setCardioPickerLocked(pickerKey,locked);
@@ -5946,6 +5946,13 @@ function setCardioPickerValue(pickerKey,min,sec){
   setMinSecListValue(`minsecMinList_${pickerKey}`,parseInt(min)||0);
   setMinSecListValue(`minsecSecList_${pickerKey}`,parseInt(sec)||0);
   mount.dataset.pickedMin=parseInt(min)||0;mount.dataset.pickedSec=parseInt(sec)||0;
+  // Live Mode's Time box IS the mount itself (a plain <input>, see mountCardioTimeTextBox) — so
+  // besides the scroll-list update above (a no-op there, since it has none), also write the
+  // formatted text straight into the box. Blank when both are 0, same as Km's own empty look.
+  if(mount.tagName==='INPUT'){
+    const mm=parseInt(min)||0,ss=parseInt(sec)||0;
+    mount.value=(mm||ss)?(String(mm).padStart(2,'0')+':'+String(ss).padStart(2,'0')):'';
+  }
 }
 function setMinSecListValue(listId,val){
   const list=document.getElementById(listId);if(!list)return;
@@ -14291,7 +14298,7 @@ function restoreLiveSessionUI(draft,fromQueue,silent){
   }
   for(let i=1;i<=liveTotalSets;i++)container.innerHTML+=buildLiveSetHTML(i,i===activeIdxForBuild);
   guardAllNumericSetInputs(container);
-  if(isCardioLive)for(let i=1;i<=liveTotalSets;i++)mountCardioDurationPicker(`liveCardioDurMount_${i}`,`liveSet_${i}`,0,0,false,()=>syncLiveCardioDurDisplay(i));
+  if(isCardioLive)for(let i=1;i<=liveTotalSets;i++)mountCardioTimeTextBox(`liveCardioDurMount_${i}`,`liveSet_${i}`,0,0);
   const hasDefault=getDefaultBreakSeconds()>0;
   if(!hasDefault)for(let i=1;i<=liveTotalSets;i++)mountMinSecPicker(`liveBreakPickerMount_${i}`,`liveBreak_${i}`,0,0);
 
@@ -14338,8 +14345,7 @@ function restoreLiveSessionUI(draft,fromQueue,silent){
         liveSetSeconds[i]=elapsed;liveSetTimerAccumAtStart[i]=elapsed;liveSetTimerStartEpoch[i]=Date.now();
         const m=Math.floor(elapsed/60),sec=elapsed%60;
         const dispEl=document.getElementById(`liveTimerDisplay_${i}`);if(dispEl)dispEl.textContent=String(m).padStart(2,'0')+':'+String(sec).padStart(2,'0');
-        setCardioPickerLocked(`liveSet_${i}`,true);
-        const timeBox=document.getElementById(`liveCardioDurMount_${i}`);if(timeBox)timeBox.classList.add('time-running');
+        const timeBox=document.getElementById(`liveCardioDurMount_${i}`);if(timeBox)timeBox.value='';
         const resetBtn=document.getElementById(`liveTimerResetBtn_${i}`);if(resetBtn)resetBtn.style.display="flex";
         const btn=document.getElementById(`liveTimerBtn_${i}`);if(btn){btn.textContent="⏹";btn.className="live-timer-btn stop"}
         const saveBtn=document.getElementById(`liveSetSaveBtn_${i}`);if(saveBtn)saveBtn.style.display="none";
@@ -14488,7 +14494,7 @@ function startLiveSession(){
   for(let i=1;i<=liveTotalSets;i++){container.innerHTML+=buildLiveSetHTML(i,i===1)}
   guardAllNumericSetInputs(container);
   const _isCardioName=isCardioExercise(name);
-  if(_isCardioName)for(let i=1;i<=liveTotalSets;i++)mountCardioDurationPicker(`liveCardioDurMount_${i}`,`liveSet_${i}`,0,0,false,()=>syncLiveCardioDurDisplay(i));
+  if(_isCardioName)for(let i=1;i<=liveTotalSets;i++)mountCardioTimeTextBox(`liveCardioDurMount_${i}`,`liveSet_${i}`,0,0);
   // Only mount the manual scrollable picker when the user has NOT configured a default break time.
   // If a default is set, the break auto-runs silently after each set — no manual UI needed.
   const hasDefault=getDefaultBreakSeconds()>0;
@@ -14512,7 +14518,7 @@ function buildLiveSetHTML(idx,active){
     <div class="live-set-header"><span class="live-set-title">SET ${idx}</span><span class="live-set-done-badge" id="liveSetDoneBadge_${idx}" style="display:none">✓ DONE</span></div>
     <div class="live-set-inputs" id="liveSetInputs_${idx}" ${!active?'style="opacity:0.4;pointer-events:none"':''}>
       <input type="number" id="liveKm_${idx}" placeholder="Km" min="0" max="300" step="0.01" class="km-input" oninput="saveLiveDraft()">
-      <div id="liveCardioDurMount_${idx}" class="live-cardio-time-box nl-cardio-time-compact"></div>
+      <input type="text" id="liveCardioDurMount_${idx}" placeholder="Time" class="km-input" readonly>
       ${copyBtn}
     </div>
     <div class="live-timer-row" id="liveTimerRow_${idx}" ${!active?'style="display:none"':''}>
@@ -14591,12 +14597,12 @@ function buildLiveSetHTML(idx,active){
    running, elapsed time ticks in the near-Play digit readout (#liveTimerDisplay_<idx>), exactly
    like a normal stopwatch — and for BOTH Cardio and normal sets that readout stays visible at all
    times (running or paused), same pattern, no difference between the two forms. For Cardio sets
-   specifically, the Time box (#liveCardioDurMount_<idx>) additionally locks AND empties out its
-   own value the moment Play is pressed (see .time-running) — it plays no part while the clock is
-   running, since line 2 is now the only place showing the count — and reappears filled with the
-   just-frozen elapsed time, unlocked for manual fine-tuning, the moment the timer is paused.
-   Pressing Play again resumes counting up from exactly where it left off (epoch-based, so it
-   can't drift). The box itself never moves or changes size — only its displayed value toggles. */
+   specifically, the Time box (#liveCardioDurMount_<idx>) is a plain read-only text input — it goes
+   blank the moment Play is pressed (it plays no part while the clock is running, since line 2 is
+   now the only place showing the count) and fills back in with the just-frozen elapsed time,
+   formatted MM:SS, the moment the timer is paused (see setCardioPickerValue). Pressing Play again
+   resumes counting up from exactly where it left off (epoch-based, so it can't drift). The box
+   itself never moves or changes size — only its displayed value toggles. */
 function toggleLiveSetTimer(idx){
   const btn=document.getElementById(`liveTimerBtn_${idx}`);
   const isCardio=isCardioExercise(document.getElementById("liveWorkoutNameInput")?.value.trim());
@@ -14611,12 +14617,9 @@ function toggleLiveSetTimer(idx){
     btn.textContent="▶";btn.className="live-timer-btn start";document.getElementById(`liveSetSaveBtn_${idx}`).style.display="block";
     if(isCardio){
       // Write the frozen elapsed time into the Time box (line 1, next to Km — it never moves or
-      // resizes), unlock it (no pencil/Edit icon anymore — pausing is what makes it editable), and
-      // let its value show again now that it matches what line 2 is also showing.
+      // resizes) now that it matches what line 2 is also showing.
       const m=Math.floor(liveSetSeconds[idx]/60),s=liveSetSeconds[idx]%60;
       setCardioPickerValue(`liveSet_${idx}`,m,s);
-      setCardioPickerLocked(`liveSet_${idx}`,false);
-      if(timeBox)timeBox.classList.remove('time-running');
     }
   }
   else{
@@ -14629,11 +14632,10 @@ function toggleLiveSetTimer(idx){
     if(isCardio){
       // First press of Play reveals Reset — it stays visible from here on so the person can always
       // restart this set's Duration. The Time box in line 1 stays exactly where it is, size and
-      // all, and just locks + empties out (see .time-running) while the near-Play readout on line 2
-      // takes over showing the count — same as a normal/strength live set.
+      // all, and just goes blank while the near-Play readout on line 2 takes over showing the
+      // count — same as a normal/strength live set.
       if(resetBtn)resetBtn.style.display="flex";
-      setCardioPickerLocked(`liveSet_${idx}`,true);
-      if(timeBox)timeBox.classList.add('time-running');
+      if(timeBox)timeBox.value='';
     }
     liveSetTimers[idx]=setInterval(()=>{
       // Epoch-based recompute every tick — immune to locked screens / backgrounded tabs / throttled
@@ -14664,9 +14666,7 @@ function resetLiveSetTimer(idx){
   const btn=document.getElementById(`liveTimerBtn_${idx}`);if(btn){btn.textContent="▶";btn.className="live-timer-btn start"}
   const resetBtn=document.getElementById(`liveTimerResetBtn_${idx}`);if(resetBtn)resetBtn.style.display="none";
   const dispEl=document.getElementById(`liveTimerDisplay_${idx}`);if(dispEl)dispEl.textContent="00:00";
-  const timeBox=document.getElementById(`liveCardioDurMount_${idx}`);if(timeBox)timeBox.classList.remove('time-running');
   setCardioPickerValue(`liveSet_${idx}`,0,0);
-  setCardioPickerLocked(`liveSet_${idx}`,false);
   const saveBtn=document.getElementById(`liveSetSaveBtn_${idx}`);if(saveBtn)saveBtn.style.display="block";
   saveLiveDraft();
 }
