@@ -5976,6 +5976,7 @@ function handleCardioTimeDotClick(e,i,page){
   e.stopPropagation();
   setCardioTimePage(i,page);
   updateNonLiveActiveSetHighlight(i);
+  saveCardioSwStorage();
 }
 /* Records the drag/touch start point on the Time box's swipe viewport. stopPropagation is the
    important part: this element sits inside a set-row that ALSO listens for its own, unrelated
@@ -6007,6 +6008,7 @@ function cardioTimeSwipeEnd(evt,i){
   if(Math.abs(dx)<20)return; // too small — treat as a tap, not a swipe
   setCardioTimePage(i,dx<0?1:0);
   updateNonLiveActiveSetHighlight(i);
+  saveCardioSwStorage();
 }
 /* ===================== NON-LIVE "CURRENT SET" HIGHLIGHT =====================
    Live Mode already lifts/glows whichever set is next up (see .seq-active-set, assigned by
@@ -6054,6 +6056,7 @@ function stopCardioStopwatchIfRunning(i){
   if(resetBtn)resetBtn.style.display='inline-flex'; // CSS hides it again once .set-row-locked lands
   const mm=Math.floor(st.accumSec/60),ss=st.accumSec%60;
   setCardioPickerValue(`nlSet_${i}`,mm,ss);
+  saveCardioSwStorage();
 }
 /* Play/Pause toggle. Starting (Play tapped) just begins counting up from wherever the stopwatch
    left off. Pausing (Pause tapped) stops the count, writes the elapsed time straight into that
@@ -6074,6 +6077,7 @@ function toggleCardioStopwatch(i){
     const mm=Math.floor(st.accumSec/60),ss=st.accumSec%60;
     setCardioPickerValue(`nlSet_${i}`,mm,ss);
     handleNonLiveSetInputChange();
+    saveCardioSwStorage();
   }else{
     st.running=true;st.startEpoch=Date.now();
     if(btn){btn.innerHTML=ICON_PAUSE;btn.title='Pause stopwatch'}
@@ -6083,6 +6087,7 @@ function toggleCardioStopwatch(i){
       const cur=st.accumSec+Math.floor((Date.now()-st.startEpoch)/1000);
       if(timeEl)timeEl.textContent=cardioSwFmt(cur);
     },1000);
+    saveCardioSwStorage();
   }
 }
 /* Only reachable once paused (the icon is hidden while idle/running). Asks for themed
@@ -6107,7 +6112,83 @@ async function resetCardioStopwatch(i){
   if(timeEl)timeEl.textContent='00:00';
   if(btn){btn.innerHTML=ICON_PLAY;btn.title='Start stopwatch'}
   if(resetBtn)resetBtn.style.display='none';
+  // Resetting the stopwatch also clears whatever it had auto-filled into that set's Time box —
+  // otherwise the picker would keep showing a duration that no longer corresponds to anything the
+  // stopwatch actually timed. Manually-typed durations (never touched by the stopwatch) are
+  // unaffected since this only fires from the stopwatch's own Reset icon.
+  setCardioPickerValue(`nlSet_${i}`,0,0);
+  handleNonLiveSetInputChange();
+  saveCardioSwStorage();
 }
+
+/* ===================== CARDIO STOPWATCH PERSISTENCE (survives refresh, tab switch, app close/reopen) =====================
+   Mirrors the floating Timer/Stopwatch widget's own localStorage pattern (see K.sw()/K.tm() and
+   loadJSON/saveJSON above): every state-changing action (Play, Pause, Reset, swiping/tapping between
+   the Duration and Stopwatch pages) writes a snapshot straight to localStorage, epoch-based so a
+   still-running stopwatch resumes counting from the correct elapsed time even after the tab/app was
+   fully closed and reopened — not just paused where it visually stood. Keyed by uid only (one
+   in-progress non-live form at a time), and deliberately NOT wiped by stopAllCardioStopwatches()
+   (which only tears down the live in-memory timers/DOM before a re-render) — it's cleared explicitly
+   once the form itself is done with (saved, cancelled, or swapped for a different queued entry), via
+   clearCardioSwStorage(). */
+function getCardioSwStorageKey(){return `gymbro_cardio_sw_${getEffectiveUid()}`}
+function saveCardioSwStorage(){
+  try{
+    const data={};
+    Object.keys(window._cardioSwState||{}).forEach(i=>{
+      const st=window._cardioSwState[i];
+      if(!st||(!st.running&&!st.accumSec))return; // nothing worth persisting for this set
+      data[i]={running:st.running,accumSec:st.accumSec,startEpoch:st.startEpoch};
+    });
+    // Also remember which page (Duration picker vs digital Stopwatch) each cardio set's Time box is
+    // currently showing, so a restore lands back on the same view, not just the same numbers.
+    document.querySelectorAll('[id^="cardioTimeTrack_set_"]').forEach(track=>{
+      const i=track.id.replace('cardioTimeTrack_set_','');
+      if(track.classList.contains('sw-page-1')){data[i]=data[i]||{running:false,accumSec:0,startEpoch:0};data[i].page=1;}
+    });
+    if(!Object.keys(data).length){localStorage.removeItem(getCardioSwStorageKey());return}
+    localStorage.setItem(getCardioSwStorageKey(),JSON.stringify(data));
+  }catch(e){}
+}
+/* Called once the cardio set rows are mounted in the DOM (after renderNonLiveSetsRows), for whichever
+   form was just restored (fresh in-progress entry OR an in-progress edit). Rebuilds
+   window._cardioSwState for every set this persisted snapshot still applies to, restarts a running
+   stopwatch's interval (computing elapsed from the saved startEpoch, so time away isn't lost), and
+   flips each set's Time box back to whichever page (Duration/Stopwatch) it was showing. */
+function restoreCardioSwStorage(){
+  let data;
+  try{data=JSON.parse(localStorage.getItem(getCardioSwStorageKey())||'null')}catch(e){data=null}
+  if(!data)return;
+  Object.keys(data).forEach(iStr=>{
+    const i=parseInt(iStr);
+    const entry=data[iStr];
+    const btn=document.getElementById(`cardioSwBtn_set_${i}`);
+    if(!btn)return; // this set no longer exists in the current render — nothing to restore it onto
+    const timeEl=document.getElementById(`cardioSwTime_set_${i}`);
+    const resetBtn=document.getElementById(`cardioSwResetBtn_set_${i}`);
+    if(entry.running||entry.accumSec){
+      window._cardioSwState[i]={running:!!entry.running,accumSec:entry.accumSec||0,startEpoch:entry.running?(entry.startEpoch||Date.now()):0};
+      const st=window._cardioSwState[i];
+      if(st.running){
+        btn.innerHTML=ICON_PAUSE;btn.title='Pause stopwatch';
+        if(resetBtn)resetBtn.style.display='none';
+        if(window._cardioSwTimers[i])clearInterval(window._cardioSwTimers[i]);
+        const tick=()=>{
+          const cur=st.accumSec+Math.floor((Date.now()-st.startEpoch)/1000);
+          if(timeEl)timeEl.textContent=cardioSwFmt(cur);
+        };
+        tick();
+        window._cardioSwTimers[i]=setInterval(tick,1000);
+      } else {
+        if(timeEl)timeEl.textContent=cardioSwFmt(st.accumSec);
+        btn.innerHTML=ICON_PLAY;btn.title='Resume stopwatch';
+        if(resetBtn)resetBtn.style.display=st.accumSec?'inline-flex':'none';
+      }
+    }
+    if(entry.page===1)setCardioTimePage(i,1);
+  });
+}
+function clearCardioSwStorage(){try{localStorage.removeItem(getCardioSwStorageKey())}catch(e){}}
 
 
 /* ===================== LIVE MODE SEQUENTIAL BREAK (tick a set → break → next set unlocks) =====================
@@ -12429,7 +12510,20 @@ function handleSetLockToggle(i){
   const seqApplies=liveMode&&(currentEditingIndex===null||i>editOriginalSetCount);
   if(isCardioExercise(exName)){
     const kmEl=document.getElementById(`km_set_${i}`);
-    if(locked)stopCardioStopwatchIfRunning(i);
+    if(locked){
+      // If the digital Stopwatch view is currently showing (or still ticking away in the background
+      // even though the Duration page is what's visible), ticking the box first captures whatever
+      // it's counted into the Time box exactly like tapping Pause would, then flips the swipeable
+      // Time box back to the Duration page — so what actually gets locked in is always the plain
+      // Duration view, never left sitting on the stopwatch.
+      const track=document.getElementById(`cardioTimeTrack_set_${i}`);
+      const swActive=!!(track&&track.classList.contains('sw-page-1'));
+      const swState=window._cardioSwState&&window._cardioSwState[i];
+      if(swActive||(swState&&swState.running)){
+        stopCardioStopwatchIfRunning(i);
+        setCardioTimePage(i,0);
+      }
+    }
     const totalSec=getPickerSeconds(`nlSet_${i}`);
     if(locked){
       const km=parseFloat(kmEl?.value)||0;
@@ -12547,6 +12641,7 @@ function loadNonLiveDraft(){
 }
 function clearNonLiveDraft(){
   try{localStorage.removeItem(getNonLiveDraftKey())}catch(e){}
+  clearCardioSwStorage();
 }
 function nonLiveDraftHasContent(d){
   return!!(d&&d.sets&&d.sets.length&&(d.name||d.sets.some(s=>s.w||s.r||s.km||s.min||s.sec)));
@@ -12602,6 +12697,7 @@ function loadNonLiveEditDraft(){
 }
 function clearNonLiveEditDraft(){
   try{localStorage.removeItem(getNonLiveEditDraftKey())}catch(e){}
+  clearCardioSwStorage();
 }
 /* Resolves a restored edit draft back to a live ci for the CURRENT render of the saved-workouts list
    (loadWorkoutsForDate rebuilds window._workoutCiMap/window._workoutCiRawMap fresh every call, and ci
@@ -12638,6 +12734,7 @@ async function restoreNonLiveEditDraftIfAny(){
   updateTrackWorkoutBtnVisibility('nonlive');
   const sets=draft.sets||[];
   renderNonLiveSetsRows(sets.map(s=>s.w),sets.map(s=>s.r),sets.map(s=>s.locked),sets.map(s=>s.km),sets.map(s=>s.min),sets.map(s=>s.sec));
+  restoreCardioSwStorage();
   // Same as the fresh-edit path (initiateWorkoutEdit): Previous Performance is looked up live from
   // the DB and wasn't part of the persisted edit draft, so re-run it now — excluding this entry's
   // own date so it shows the genuine prior occurrence, not the entry being edited.
@@ -12686,6 +12783,7 @@ function serializeCurrentNonLiveForm(){
 /* Loads a serialized {name,setsCount,sets} entry into the (blank) non-live form — mirrors the
    refresh-restore logic in showAddWorkoutForm/restoreInProgressWorkoutFormIfAny above. */
 function loadNonLiveFormEntry(entry){
+  clearCardioSwStorage();
   document.getElementById("workoutNameInput").value=entry.name||"";
   document.getElementById("setsCountSelect").value=String(entry.setsCount||(entry.sets&&entry.sets.length)||1);
   const sets=entry.sets||[];
@@ -12841,6 +12939,7 @@ async function restoreInProgressWorkoutFormIfAny(wasRefresh,opts){
       // the saved value shows instead of being blanked/zeroed out by the hidden-input render path.
       if(isBodyweightNoWeightExercise((nlDraft.name||'').trim())&&nlDraft.sets.some(s=>parseFloat(s.w)>0))bwKgRevealed.nonlive=true;
       renderNonLiveSetsRows(nlDraft.sets.map(s=>s.w),nlDraft.sets.map(s=>s.r),nlDraft.sets.map(s=>s.locked),nlDraft.sets.map(s=>s.km),nlDraft.sets.map(s=>s.min),nlDraft.sets.map(s=>s.sec));
+      restoreCardioSwStorage();
       // Previous Performance is looked up live from the DB and was never part of the persisted
       // draft, so a refresh (or tab-switch/app-resume triggering this same restore path) left the
       // badge blank until the name box was touched again. Re-run the lookup here so it reappears
@@ -13646,6 +13745,7 @@ function resetWorkoutFormUIOnly(){
   updateTrackWorkoutBtnVisibility('nonlive');
   editOriginalDurations={};editOriginalSetCount=0;applySetsCountMinConstraint();
   stopAllSeqBreakTimers();
+  stopAllCardioStopwatches(); // in-memory only — storage stays untouched, restored fresh per the newly-effective uid
   document.getElementById("dynamicSetsContainer").innerHTML=""; // wipe old set rows so the next "Add Workout" starts blank, not pre-filled
   updateNonLiveSetsStructureVisibility();
   updateNameClearIconVisibility('workoutNameInput','workoutNameClearIcon');
