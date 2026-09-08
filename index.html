@@ -859,9 +859,9 @@ input::placeholder{color:var(--text-muted)}
    label, Timer and Actions columns keep their own natural, floor-protected size on every screen. */
 .set-row.cardio-set-row{
   display:grid;
-  grid-template-columns:minmax(22px,auto) minmax(40px,1fr) minmax(80px,auto) auto auto;
+  grid-template-columns:minmax(22px,auto) minmax(40px,1fr) auto auto auto;
   align-items:center;
-  column-gap:clamp(4px,1.8cqw,10px);
+  column-gap:clamp(6px,1.8cqw,10px);
   overflow:hidden;
   container-type:inline-size;
 }
@@ -886,31 +886,67 @@ input::placeholder{color:var(--text-muted)}
    the exact same width on every set, keeping the Km/Time columns aligned across all rows. */
 .set-row.cardio-set-row .cardio-set-actions{display:flex;align-items:center;gap:clamp(4px,2cqw,14px);justify-self:end}
 .set-row.cardio-set-row .set-copy-btn{width:clamp(24px,7.5cqw,38px);height:clamp(24px,7.5cqw,38px);flex-shrink:0}
-/* ===================== CARDIO SET STOPWATCH (2nd line, below Km + Time) =====================
-   A small Play/Pause stopwatch that lets the person time the set live instead of dialing the
-   Duration picker by hand. Pinned to its own explicit grid cell (row 2, spanning the Km + Time
-   columns) so it always sits directly under those two boxes, left-aligned, on every set — the
-   rest of row 1 (label/Km/Time/actions/delete) keeps auto-flowing exactly as before since this
-   item is fully placed and never consumes the auto-placement cursor.
-   Hidden by default (display:none collapses the whole implicit 2nd row, so a cardio set with no
-   stopwatch open looks exactly like before) and only shown on the ONE set row currently marked
-   ".sw-revealed" — see revealCardioSwRow() in JS, triggered by hover/touch/tap on that row and
-   automatically un-revealing whichever other set was previously open.
-   Tap Play → starts counting up (icon swaps to Pause). Tap Pause → stops, autofills the elapsed
-   time straight into the Time picker for that set, and reveals a small red Reset icon next to it.
-   Tap Reset → asks for themed confirmation, then (if confirmed) zeroes the stopwatch back to
-   00:00 and hides the Reset icon again. */
-.set-row.cardio-set-row .cardio-sw-row{grid-column:2/4;grid-row:2;display:none;align-items:center;gap:8px;justify-self:start;margin-top:6px}
-.set-row.cardio-set-row.sw-revealed .cardio-sw-row{display:flex}
-.cardio-sw-btn{display:flex;align-items:center;justify-content:center;width:clamp(22px,7cqw,28px);height:clamp(22px,7cqw,28px);flex-shrink:0;border-radius:50%;border:none;background:var(--btn-bg);box-shadow:var(--btn-shadow);color:#fff;cursor:pointer;padding:0;transition:transform 0.12s ease,opacity 0.15s ease}
+/* ===================== CARDIO TIME BOX — SWIPEABLE Duration ⇄ Stopwatch =====================
+   The Time box itself is now a 2-page horizontal carousel living IN PLACE of where the Duration
+   picker used to sit alone — nothing added below the row, everything stays on the one line:
+     Page 0 (default): the existing Duration (min:sec) picker, unchanged.
+     Page 1: the Play/Pause stopwatch (see toggleCardioStopwatch/resetCardioStopwatch in JS) —
+             tap Play to start counting up, tap Pause to stop (which autofills the elapsed time
+             straight into Page 0's picker) and reveal a small red Reset icon next to it.
+   Swipe (touch-drag) or mouse-drag left/right on the box to switch pages — see
+   cardioTimeSwipeStart/cardioTimeSwipeEnd in JS, which stopPropagation so this local drag never
+   also triggers the set-row's own swipe-to-lock/delete gesture. Two tiny dots below double as a
+   page indicator and a tap target, for anyone who'd rather click than swipe (desktop especially).
+   Sizing: .cardio-time-swipe gets an explicit, container-query-driven width (not the old
+   minmax(80px,auto) column, which would leave the box's own auto/intrinsic size ambiguous once
+   its content becomes a 200%-wide sliding track — see the long comment above .set-row.cardio-set-row's
+   column list). Every set gets a comfortable base width; whichever set is the person's CURRENT
+   one (.seq-active-set — the same highlight Live Mode already uses for its active set, applied in
+   non-Live mode too on click/typing, see updateNonLiveActiveSetHighlight in JS) gets extra room on
+   top of that, since that's the one set anybody is actually likely to be swiping/playing/pausing
+   at any given moment — every other row on the list stays at its normal, compact width instead of
+   every row permanently reserving space nobody's using. Km's column keeps its own 40px floor
+   (minmax(40px,1fr)) so it never gets crushed to nothing by the extra room the active row's Time
+   box claims — the two negotiate purely through the grid's normal flexible-space distribution. */
+.cardio-time-swipe{display:flex;flex-direction:column;align-items:center;gap:3px;width:clamp(90px,32cqw,132px);justify-self:start;overflow:hidden}
+.set-row.cardio-set-row.seq-active-set .cardio-time-swipe{width:clamp(118px,42cqw,172px)}
+/* clip-path is a stronger, sub-pixel-safe clip than overflow:hidden alone on some mobile browsers —
+   without it, a hairline sliver of the adjacent (hidden) page's content (e.g. the Play button on
+   Page 2) can bleed through at the edge of Page 1 when the 200%-wide track's translateX(-50%) lands
+   on a fractional pixel. */
+.cardio-time-viewport{width:100%;overflow:hidden;clip-path:inset(0)}
+.cardio-time-track{display:flex;width:200%;transition:transform 0.25s ease}
+.cardio-time-track.sw-page-1{transform:translateX(-50%)}
+.cardio-time-page{width:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;min-height:34px}
+.cardio-time-page-sw{gap:clamp(5px,2.4cqw,9px)}
+.cardio-time-dots{display:none;align-items:center;gap:5px}
+.cardio-time-dot{width:5px;height:5px;border-radius:50%;background:var(--border-col);cursor:pointer;transition:background 0.15s ease,transform 0.15s ease;flex-shrink:0}
+.cardio-time-dot.active{background:var(--accent);transform:scale(1.35)}
+/* FIX: the generic ".set-row span{min-width:46px}" rule (aimed at the "Set N" label, further
+   below) was also matching these dot <span>s and the stopwatch time <span>, silently stretching
+   the 5px round dots into ~46px-wide ovals (and widening the time readout past its own 32px
+   min-width) — the visible "swipe line" bug. These two rules restore each element's own intended
+   size by out-specificity-ing that generic rule (two classes beats one class + one element). */
+.set-row.cardio-set-row .cardio-time-dot{min-width:0;min-height:0;font-weight:400;font-size:0;color:transparent}
+.set-row.cardio-set-row .cardio-sw-time{min-width:32px}
+/* Only the CURRENT (active) set's Time box shows the swipe/page-indicator dots — every other set
+   stays on a single, static page with no swipe affordance, per design: only one set is ever being
+   actively played/swiped at a time. Locking a set (ticking it) already drops .seq-active-set (see
+   the lock handlers in JS), so this also naturally hides the dots the moment a set is ticked. */
+.set-row.cardio-set-row.seq-active-set .cardio-time-dots{display:flex}
+/* Once a set is locked (ticked), only Play + Time should remain visible — strip the Reset icon
+   (which the stopwatch's own toggleCardioStopwatch/resetCardioStopwatch logic doesn't know to
+   hide on lock) regardless of its inline display style. */
+.set-row.cardio-set-row.set-row-locked .cardio-sw-reset-btn{display:none!important}
+.cardio-sw-btn{display:flex;align-items:center;justify-content:center;width:clamp(20px,6.5cqw,26px);height:clamp(20px,6.5cqw,26px);flex-shrink:0;border-radius:50%;border:none;background:var(--btn-bg);box-shadow:var(--btn-shadow);color:#fff;cursor:pointer;padding:0;transition:transform 0.12s ease,opacity 0.15s ease}
 .cardio-sw-btn svg{width:45%;height:45%}
 .cardio-sw-btn:active{transform:scale(0.9)}
 .cardio-sw-btn:disabled{opacity:0.4;cursor:not-allowed;box-shadow:none}
-.cardio-sw-time{font-family:var(--font-alt);font-weight:700;letter-spacing:0.02em;font-size:clamp(11px,3.5cqw,14px);color:var(--text-secondary);min-width:36px}
+.cardio-sw-time{font-family:var(--font-alt);font-weight:700;letter-spacing:0.02em;font-size:clamp(10px,3.3cqw,13px);color:var(--text-secondary);min-width:32px;text-align:center}
 /* Reset is destructive (zeroes a running/paused count) so it's colored red like every other
    destructive control in the app (matches .app-confirm-modal-btn.danger's red) rather than the
    neutral muted-icon styling used elsewhere. */
-.cardio-sw-reset-btn{display:flex;align-items:center;justify-content:center;width:clamp(18px,6cqw,22px);height:clamp(18px,6cqw,22px);flex-shrink:0;border-radius:50%;border:1px solid #e11d48;background:rgba(225,29,72,0.12);color:#e11d48;cursor:pointer;padding:0;transition:background 0.15s ease,color 0.15s ease}
+.cardio-sw-reset-btn{display:flex;align-items:center;justify-content:center;width:clamp(16px,5.5cqw,20px);height:clamp(16px,5.5cqw,20px);flex-shrink:0;margin-left:3px;border-radius:50%;border:1px solid #e11d48;background:rgba(225,29,72,0.12);color:#e11d48;cursor:pointer;padding:0;transition:background 0.15s ease,color 0.15s ease}
 .cardio-sw-reset-btn svg{width:55%;height:55%}
 .cardio-sw-reset-btn:hover{background:#e11d48;color:#fff}
 .cardio-sw-reset-btn:disabled{opacity:0.4;cursor:not-allowed}
@@ -5910,70 +5946,82 @@ function setCardioPickerLocked(pickerKey,locked){
 }
 
 /* ===================== CARDIO SET STOPWATCH =====================
-   Per-set Play/Pause stopwatch that lives on the 2nd line of every cardio set row (below the
-   Km + Time boxes — see .cardio-sw-row CSS). Epoch-based, same pattern as every other timer in
-   this app (seqBreak, the floating Timer/Stopwatch widgets): a start epoch + accumulated seconds
-   survive a re-render mid-count, and the visible ticking is display-only (setInterval just
-   updates the text node, it never rebuilds the DOM). State is keyed by set index and lives only
-   for the current form session — renderNonLiveSetsRows wipes it on every rebuild (new sets grid),
-   same as it already does for the Live-Mode break timers. */
+   Per-set Play/Pause stopwatch that now lives on Page 1 of the Time box's own swipe carousel
+   (Page 0 is the normal Duration picker — see .cardio-time-swipe CSS and the cardio branch of
+   renderNonLiveSetsRows). Epoch-based, same pattern as every other timer in this app (seqBreak,
+   the floating Timer/Stopwatch widgets): a start epoch + accumulated seconds survive a re-render
+   mid-count, and the visible ticking is display-only (setInterval just updates the text node, it
+   never rebuilds the DOM). State is keyed by set index and lives only for the current form
+   session — renderNonLiveSetsRows wipes it on every rebuild (new sets grid), same as it already
+   does for the Live-Mode break timers. */
 window._cardioSwState=window._cardioSwState||{};
 window._cardioSwTimers=window._cardioSwTimers||{};
-window._cardioSwRevealedIndex=window._cardioSwRevealedIndex||null;
 function stopAllCardioStopwatches(){
   Object.values(window._cardioSwTimers).forEach(t=>clearInterval(t));
   window._cardioSwTimers={};window._cardioSwState={};
-  window._cardioSwRevealedIndex=null;
 }
-/* Shows set `i`'s 2nd-line stopwatch and hides every other set's — only one is ever open at a
-   time. A no-op if `i` is already the revealed one. */
-function revealCardioSwRow(i){
-  if(window._cardioSwRevealedIndex===i)return;
-  document.querySelectorAll('.set-row.cardio-set-row.sw-revealed').forEach(el=>el.classList.remove('sw-revealed'));
-  const row=document.getElementById(`setRow_${i}`);
-  if(row)row.classList.add('sw-revealed');
-  window._cardioSwRevealedIndex=i;
+/* Switches set `i`'s Time box to Page 0 (Duration picker) or Page 1 (stopwatch) by sliding the
+   track and syncing the two little dots underneath — purely a DOM-class toggle, no state to track
+   in JS, since the track's own "sw-page-1" class (or its absence) IS the current page. */
+function setCardioTimePage(i,page){
+  const track=document.getElementById(`cardioTimeTrack_set_${i}`);
+  if(track)track.classList.toggle('sw-page-1',page===1);
+  const wrap=document.getElementById(`cardioTimeSwipe_set_${i}`);
+  if(wrap)wrap.querySelectorAll('.cardio-time-dot').forEach((d,idx)=>d.classList.toggle('active',idx===page));
 }
-function hideCardioSwRow(i){
-  const row=document.getElementById(`setRow_${i}`);
-  if(row)row.classList.remove('sw-revealed');
-  if(window._cardioSwRevealedIndex===i)window._cardioSwRevealedIndex=null;
-}
-/* Single click handler for an entire cardio set box (no hover involved — reveal/hide is tap-only,
-   on both desktop and mobile). Rules:
-   - First tap anywhere on the box reveals that set's 2nd-line stopwatch (and hides whichever
-     other set had it open, via revealCardioSwRow's single-open guarantee).
-   - Once revealed, tapping any actual control — the Km box, the Time picker, the Play/Pause/Reset
-     buttons, the Set-label/lock checkbox, the Copy icon — leaves it open. Those are exactly the
-     things someone needs to keep touching while it's showing.
-   - Once revealed, tapping genuinely EMPTY space on the box (the row's own padding/background —
-     e.g. the blank area to the right, below the Copy icon) hides it again.
-   Uses e.composedPath() (the propagation path captured at dispatch time) instead of
-   e.target.closest(): Play/Pause swaps its own innerHTML synchronously in its own click handler
-   (which runs before this row-level handler, since it fires first during bubbling), which detaches
-   the exact node that was clicked from the DOM. A closest() call afterward on that now-detached
-   node can no longer see any of its old ancestors and wrongly reports "empty space" — composedPath
-   was already computed before that mutation happened, so it stays correct regardless. */
-function handleCardioSetRowClick(e,i){
+/* Tapping a dot directly (mainly for desktop/mouse, no drag needed) — stopPropagation so it
+   doesn't also fire the set-row's own onclick highlight logic twice over (harmless either way,
+   but keeps a single clear cause per interaction). */
+function handleCardioTimeDotClick(e,i,page){
+  e.stopPropagation();
+  setCardioTimePage(i,page);
   updateNonLiveActiveSetHighlight(i);
-  const path=typeof e.composedPath==='function'?e.composedPath():[e.target];
-  const onControl=path.some(el=>el instanceof Element&&el.matches('input,button,label,.cardio-sw-row,.km-input,.nl-cardio-time-compact'));
-  if(onControl){
-    revealCardioSwRow(i);
-    return;
-  }
-  if(window._cardioSwRevealedIndex===i){hideCardioSwRow(i)}else{revealCardioSwRow(i)}
+}
+/* Records the drag/touch start point on the Time box's swipe viewport. stopPropagation is the
+   important part: this element sits inside a set-row that ALSO listens for its own, unrelated
+   horizontal swipe gesture (swipe-to-lock / swipe-to-delete — see nlSetSwipeStart/nlSetSwipeEnd).
+   Without stopping propagation here, dragging across the Time box to flip pages would simultaneously
+   register as a swipe on the whole row and risk locking or deleting the set by accident. Handles
+   both touch (mobile swipe) and mouse (desktop click-drag) — `evt.touches` only exists on touch
+   events, so `evt.touches?.[0]||evt` picks the right coordinate source either way. */
+function cardioTimeSwipeStart(evt){
+  evt.stopPropagation();
+  const p=evt.touches?evt.touches[0]:evt;
+  if(!p)return;
+  evt.currentTarget.dataset.tsX=p.clientX;
+  evt.currentTarget.dataset.tsY=p.clientY;
+}
+/* ...and on release, if it was a clear, mostly-horizontal drag (not a tap, and not the picker's
+   own vertical scroll — a bigger dy than dx means someone was scrolling the min/sec wheels, so
+   this bails out and leaves the page alone), flips to the next page in the direction dragged. */
+function cardioTimeSwipeEnd(evt,i){
+  evt.stopPropagation();
+  const el=evt.currentTarget;
+  const startX=parseFloat(el.dataset.tsX),startY=parseFloat(el.dataset.tsY);
+  delete el.dataset.tsX;delete el.dataset.tsY;
+  if(isNaN(startX)||isNaN(startY))return;
+  const p=evt.changedTouches?evt.changedTouches[0]:evt;
+  if(!p)return;
+  const dx=p.clientX-startX,dy=p.clientY-startY;
+  if(Math.abs(dy)>Math.abs(dx))return; // vertical scroll (picker digits) — not a page swipe
+  if(Math.abs(dx)<20)return; // too small — treat as a tap, not a swipe
+  setCardioTimePage(i,dx<0?1:0);
+  updateNonLiveActiveSetHighlight(i);
 }
 /* ===================== NON-LIVE "CURRENT SET" HIGHLIGHT =====================
    Live Mode already lifts/glows whichever set is next up (see .seq-active-set, assigned by
    renderNonLiveSetsRows via seqActiveIndex). This gives the SAME visual treatment to whichever
    set the person is currently working in while Live Mode is OFF — reusing the identical
    .seq-active-set class/animation rather than a separate style, so the effect looks and feels
-   identical either way. Triggered by tapping anywhere in a set box, or typing into any of its
-   fields (Kg/Reps, Km, or the Time picker — see their onclick/oninput/onChange wiring above),
-   so "the set I'm currently touching" always reads as the highlighted one. Only one set is ever
-   marked current at a time. No-ops while Live Mode is ON — that mode drives the same class
-   through its own sequential-unlock logic instead, and the two must never fight over it. */
+   identical either way. It also drives how wide a cardio row's Time box gets — see
+   .cardio-time-swipe / .seq-active-set .cardio-time-swipe in CSS — since the current set is the
+   one anyone is actually likely to be swiping/playing/pausing, so it alone gets extra breathing
+   room for that 2-page carousel instead of every row permanently reserving the space.
+   Triggered by tapping anywhere in a set box, or typing into any of its fields (Kg/Reps, Km, or
+   the Time picker/stopwatch — see their onclick/oninput/onChange wiring above), so "the set I'm
+   currently touching" always reads (and sizes) as the current one. Only one set is ever marked
+   current at a time. No-ops while Live Mode is ON — that mode drives the same class through its
+   own sequential-unlock logic instead, and the two must never fight over it. */
 function updateNonLiveActiveSetHighlight(i){
   if(liveMode)return;
   document.querySelectorAll('#dynamicSetsContainer .set-row.seq-active-set').forEach(el=>el.classList.remove('seq-active-set'));
@@ -5984,6 +6032,28 @@ function cardioSwFmt(totalSec){
   totalSec=Math.max(0,totalSec|0);
   const m=Math.floor(totalSec/60),s=totalSec%60;
   return String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+}
+/* Ticking a set locks it immediately, regardless of whether its stopwatch is mid-run — nothing
+   about the Play/Pause button itself is touched by locking. Without this, a still-running
+   setInterval keeps ticking away in the background after lock (updating a now-hidden time span and
+   never getting captured into the picker), and the elapsed time the person was actually timing is
+   lost. Called from handleSetLockToggle right before it reads the picker's seconds, so locking
+   while running behaves exactly like tapping Pause first would: the count stops and is written
+   straight into that set's Time picker. No-op if the stopwatch isn't running (nothing to stop). */
+function stopCardioStopwatchIfRunning(i){
+  const st=window._cardioSwState&&window._cardioSwState[i];
+  if(!st||!st.running)return;
+  st.accumSec+=Math.floor((Date.now()-st.startEpoch)/1000);
+  st.running=false;st.startEpoch=0;
+  if(window._cardioSwTimers[i]){clearInterval(window._cardioSwTimers[i]);delete window._cardioSwTimers[i]}
+  const timeEl=document.getElementById(`cardioSwTime_set_${i}`);
+  if(timeEl)timeEl.textContent=cardioSwFmt(st.accumSec);
+  const btn=document.getElementById(`cardioSwBtn_set_${i}`);
+  if(btn){btn.innerHTML=ICON_PLAY;btn.title='Resume stopwatch'}
+  const resetBtn=document.getElementById(`cardioSwResetBtn_set_${i}`);
+  if(resetBtn)resetBtn.style.display='inline-flex'; // CSS hides it again once .set-row-locked lands
+  const mm=Math.floor(st.accumSec/60),ss=st.accumSec%60;
+  setCardioPickerValue(`nlSet_${i}`,mm,ss);
 }
 /* Play/Pause toggle. Starting (Play tapped) just begins counting up from wherever the stopwatch
    left off. Pausing (Pause tapped) stops the count, writes the elapsed time straight into that
@@ -12186,9 +12256,9 @@ function renderNonLiveSetsRows(weights,reps,locks,kms,mins,secs){
       const cardioCopyBtn=i>=2?`<button type="button" class="set-copy-btn" id="setCopyBtn_${i}" title="Copy previous set's values" onclick="copyFromPrevNonLiveSet(${i})" ${pendAttr}>${ICON_COPY}</button>`:`<button type="button" class="set-copy-btn" style="visibility:hidden;pointer-events:none" tabindex="-1" aria-hidden="true">${ICON_COPY}</button>`;
       const bodyClass='cardio-set-body';
       const swDisabledAttr=(locked||pending)?'disabled':'';
-      const cardioSwHtml=`<div class="cardio-sw-row" id="cardioSwRow_set_${i}"><button type="button" class="cardio-sw-btn" id="cardioSwBtn_set_${i}" title="Start stopwatch" onclick="toggleCardioStopwatch(${i})" ${swDisabledAttr}>${ICON_PLAY}</button><span class="cardio-sw-time" id="cardioSwTime_set_${i}">00:00</span><button type="button" class="cardio-sw-reset-btn" id="cardioSwResetBtn_set_${i}" title="Reset stopwatch" onclick="resetCardioStopwatch(${i})" style="display:none" ${swDisabledAttr}>${ICON_RESET_SMALL}</button></div>`;
-      const leftGroupHtml=`<div class="cardio-set-primary">${labelHtml}${kmInputHtml}</div><div id="cardioDurMount_set_${i}" class="nl-cardio-time-compact"></div>${cardioSwHtml}`;
-      c.innerHTML+=`<div class="set-row cardio-set-row${locked?' set-row-locked':''}${pendingClass}${activeClass}" id="setRow_${i}" onclick="handleCardioSetRowClick(event,${i})" ontouchstart="nlSetSwipeStart(event)" ontouchend="nlSetSwipeEnd(event,${i})"><div class="${bodyClass}"><div class="cardio-set-leftgroup">${leftGroupHtml}</div><div class="cardio-set-actions">${cardioCopyBtn}${lockHtml}</div></div>${delBtn}</div>${breakRowHtml}`;
+      const cardioSwHtml=`<div class="cardio-time-swipe" id="cardioTimeSwipe_set_${i}"><div class="cardio-time-viewport" ontouchstart="cardioTimeSwipeStart(event)" ontouchend="cardioTimeSwipeEnd(event,${i})" onmousedown="cardioTimeSwipeStart(event)" onmouseup="cardioTimeSwipeEnd(event,${i})"><div class="cardio-time-track" id="cardioTimeTrack_set_${i}"><div class="cardio-time-page cardio-time-page-picker"><div id="cardioDurMount_set_${i}" class="nl-cardio-time-compact"></div></div><div class="cardio-time-page cardio-time-page-sw"><button type="button" class="cardio-sw-btn" id="cardioSwBtn_set_${i}" title="Start stopwatch" onclick="toggleCardioStopwatch(${i})" ${swDisabledAttr}>${ICON_PLAY}</button><span class="cardio-sw-time" id="cardioSwTime_set_${i}">00:00</span><button type="button" class="cardio-sw-reset-btn" id="cardioSwResetBtn_set_${i}" title="Reset stopwatch" onclick="resetCardioStopwatch(${i})" style="display:none" ${swDisabledAttr}>${ICON_RESET_SMALL}</button></div></div></div><div class="cardio-time-dots"><span class="cardio-time-dot active" title="Duration picker" onclick="handleCardioTimeDotClick(event,${i},0)"></span><span class="cardio-time-dot" title="Stopwatch" onclick="handleCardioTimeDotClick(event,${i},1)"></span></div></div>`;
+      const leftGroupHtml=`<div class="cardio-set-primary">${labelHtml}${kmInputHtml}</div>${cardioSwHtml}`;
+      c.innerHTML+=`<div class="set-row cardio-set-row${locked?' set-row-locked':''}${pendingClass}${activeClass}" id="setRow_${i}" onclick="updateNonLiveActiveSetHighlight(${i})" ontouchstart="nlSetSwipeStart(event)" ontouchend="nlSetSwipeEnd(event,${i})"><div class="${bodyClass}"><div class="cardio-set-leftgroup">${leftGroupHtml}</div><div class="cardio-set-actions">${cardioCopyBtn}${lockHtml}</div></div>${delBtn}</div>${breakRowHtml}`;
       mountList.push({i,min,sec,locked});
     } else {
       const w=weights[i-1]||'',r=reps[i-1]||'';
@@ -12359,6 +12429,7 @@ function handleSetLockToggle(i){
   const seqApplies=liveMode&&(currentEditingIndex===null||i>editOriginalSetCount);
   if(isCardioExercise(exName)){
     const kmEl=document.getElementById(`km_set_${i}`);
+    if(locked)stopCardioStopwatchIfRunning(i);
     const totalSec=getPickerSeconds(`nlSet_${i}`);
     if(locked){
       const km=parseFloat(kmEl?.value)||0;
