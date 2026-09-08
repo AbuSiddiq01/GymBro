@@ -886,6 +886,16 @@ input::placeholder{color:var(--text-muted)}
    the exact same width on every set, keeping the Km/Time columns aligned across all rows. */
 .set-row.cardio-set-row .cardio-set-actions{display:flex;align-items:center;gap:clamp(4px,2cqw,14px);justify-self:end}
 .set-row.cardio-set-row .set-copy-btn{width:clamp(24px,7.5cqw,38px);height:clamp(24px,7.5cqw,38px);flex-shrink:0}
+/* ===================== "TIME ONLY" SET ROWS (Km+Time row, minus the Km column) =====================
+   Exactly the same grid as .cardio-set-row above, just with the Km column removed outright rather
+   than left empty — the Time picker's own column inherits the same minmax(..,1fr) growth rule the
+   Km column used to have, so it fluidly fills whatever width Km would've taken on every screen
+   (narrow/medium/wide) instead of leaving a dead gap or an off-center Time box. justify-self:center
+   plus a generous max-width keeps the picker looking centered/balanced rather than stretched edge-
+   to-edge on very wide screens. */
+.set-row.cardio-set-row.cardio-set-row-timeonly{grid-template-columns:minmax(22px,auto) minmax(90px,1fr) auto auto}
+.set-row.cardio-set-row.cardio-set-row-timeonly .cardio-time-swipe{width:100%;max-width:260px;justify-self:center}
+.set-row.cardio-set-row.cardio-set-row-timeonly.seq-active-set .cardio-time-swipe{width:100%;max-width:300px}
 /* ===================== CARDIO TIME BOX — SWIPEABLE Duration ⇄ Stopwatch =====================
    The Time box itself is now a 2-page horizontal carousel living IN PLACE of where the Duration
    picker used to sit alone — nothing added below the row, everything stays on the one line:
@@ -3417,7 +3427,7 @@ body.tracker-fs-lock{overflow:hidden}
                   <option value="weight" class="trk-opt-strength">Weight</option>
                   <option value="reps" class="trk-opt-strength">Reps</option>
                   <option value="duration" class="trk-opt-cardio">Duration</option>
-                  <option value="distance" class="trk-opt-cardio">Distance</option>
+                  <option value="distance" class="trk-opt-cardio trk-opt-distance">Distance</option>
                 </select>
               </div>
               <button class="tracker-analytics-close" onclick="closeTrackerAnalytics()">✕ Close</button>
@@ -5720,7 +5730,7 @@ const EXERCISE_CATALOG=[
   {name:"Dumbbell Row",class:"Lat/Back",equipment:"Dumbbell",format:"Kg+Reps"},{name:"Single Arm Cable Row",class:"Lat/Back",equipment:"Cable",format:"Kg+Reps"},
   {name:"Chin Up (Assisted)",class:"Lat/Back",equipment:"Machine",format:"Kg+Reps"},{name:"Chin Up",class:"Lat/Back",equipment:"Bodyweight",format:"Reps Only"},
   {name:"Chin Up (Weighted)",class:"Lat/Back",equipment:"Bodyweight",format:"Reps Only"},{name:"Back Extension (Machine)",class:"Lat/Back",equipment:"Machine",format:"Kg+Reps"},
-  {name:"Dead Hang",class:"Lat/Back",equipment:"Bodyweight",format:"Reps Only"},{name:"Back Extension (Hyperextension)",class:"Lat/Back",equipment:"Bodyweight",format:"Reps Only"},
+  {name:"Dead Hang",class:"Lat/Back",equipment:"Bodyweight",format:"Time Only"},{name:"Back Extension (Hyperextension)",class:"Lat/Back",equipment:"Bodyweight",format:"Reps Only"},
   {name:"Kneeling Pulldown (band)",class:"Lat/Back",equipment:"Band",format:"Kg+Reps"},{name:"Pullover (Dumbbell)",class:"Lat/Back",equipment:"Dumbbell",format:"Kg+Reps"},
   {name:"Pullover (Machine)",class:"Lat/Back",equipment:"Machine",format:"Kg+Reps"},{name:"Rope Straight Arm Pulldown",class:"Lat/Back",equipment:"Cable",format:"Kg+Reps"},
   {name:"Superman",class:"Lat/Back",equipment:"Bodyweight",format:"Reps Only"},{name:"Vertical Traction (Machine)",class:"Lat/Back",equipment:"Machine",format:"Kg+Reps"},
@@ -5775,9 +5785,9 @@ const EXERCISE_CATALOG=[
   {name:"Cable Pull Through",class:"Legs",equipment:"Cable",format:"Kg+Reps"},{name:"Rear Kick (Machine)",class:"Legs",equipment:"Machine",format:"Kg+Reps"},
   {name:"Reverse Hyperextension",class:"Legs",equipment:"Machine",format:"Kg+Reps"},{name:"Single Leg Glute Bridge",class:"Legs",equipment:"Bodyweight",format:"Reps Only"},
   {name:"Standing Cable Glute Kickbacks",class:"Legs",equipment:"Cable",format:"Kg+Reps"},{name:"Dumbbell Step Up",class:"Legs",equipment:"Dumbbell",format:"Kg+Reps"},
-  {name:"Step Up",class:"Legs",equipment:"Bodyweight",format:"Reps Only"},{name:"Wall Sit",class:"Legs",equipment:"Bodyweight",format:"Reps Only"},
-  {name:"Plank",class:"Abs",equipment:"Bodyweight",format:"Reps Only"},{name:"Reverse Plank",class:"Abs",equipment:"Bodyweight",format:"Reps Only"},
-  {name:"Side Plank",class:"Abs",equipment:"Bodyweight",format:"Reps Only"},{name:"Hanging Leg Raise",class:"Abs",equipment:"Bodyweight",format:"Reps Only"},
+  {name:"Step Up",class:"Legs",equipment:"Bodyweight",format:"Reps Only"},{name:"Wall Sit",class:"Legs",equipment:"Bodyweight",format:"Time Only"},
+  {name:"Plank",class:"Abs",equipment:"Bodyweight",format:"Time Only"},{name:"Reverse Plank",class:"Abs",equipment:"Bodyweight",format:"Time Only"},
+  {name:"Side Plank",class:"Abs",equipment:"Bodyweight",format:"Time Only"},{name:"Hanging Leg Raise",class:"Abs",equipment:"Bodyweight",format:"Reps Only"},
   {name:"Leg Raise Parallel Bars",class:"Abs",equipment:"Bodyweight",format:"Reps Only"},{name:"Lying Leg Raise",class:"Abs",equipment:"Bodyweight",format:"Reps Only"},
   {name:"Jackknife Sit Up",class:"Abs",equipment:"Bodyweight",format:"Reps Only"},{name:"Sit Up",class:"Abs",equipment:"Bodyweight",format:"Reps Only"},
   {name:"Sit Up (Weighted)",class:"Abs",equipment:"Bodyweight",format:"Reps Only"},{name:"Decline Crunch",class:"Abs",equipment:"Bodyweight",format:"Reps Only"},
@@ -5788,29 +5798,29 @@ const EXERCISE_CATALOG=[
   {name:"Dragon Flag",class:"Abs",equipment:"Bodyweight",format:"Reps Only"},{name:"Dragonfly",class:"Abs",equipment:"Bodyweight",format:"Reps Only"},
   {name:"Elbow to Knee",class:"Abs",equipment:"Bodyweight",format:"Reps Only"},{name:"Flutter Kicks",class:"Abs",equipment:"Bodyweight",format:"Reps Only"},
   {name:"Hanging Knee Raise",class:"Abs",equipment:"Bodyweight",format:"Reps Only"},{name:"Heel Taps",class:"Abs",equipment:"Bodyweight",format:"Reps Only"},
-  {name:"Hollow Rock",class:"Abs",equipment:"Bodyweight",format:"Reps Only"},{name:"Jack Knife (Suspension)",class:"Abs",equipment:"Bodyweight",format:"Reps Only"},
-  {name:"Knee Raise Parallel Bars",class:"Abs",equipment:"Bodyweight",format:"Reps Only"},{name:"L-Sit Hold",class:"Abs",equipment:"Bodyweight",format:"Reps Only"},
+  {name:"Hollow Rock",class:"Abs",equipment:"Bodyweight",format:"Time Only"},{name:"Jack Knife (Suspension)",class:"Abs",equipment:"Bodyweight",format:"Reps Only"},
+  {name:"Knee Raise Parallel Bars",class:"Abs",equipment:"Bodyweight",format:"Reps Only"},{name:"L-Sit Hold",class:"Abs",equipment:"Bodyweight",format:"Time Only"},
   {name:"Landmine 180",class:"Abs",equipment:"Bodyweight",format:"Reps Only"},{name:"Lying Knee Raise",class:"Abs",equipment:"Bodyweight",format:"Reps Only"},
   {name:"Side Bend (Dumbbell)",class:"Abs",equipment:"Dumbbell",format:"Kg+Reps"},{name:"Side Bend",class:"Abs",equipment:"Bodyweight",format:"Reps Only"},
   {name:"Spiderman",class:"Abs",equipment:"Bodyweight",format:"Reps Only"},{name:"Toe Touch",class:"Abs",equipment:"Bodyweight",format:"Reps Only"},
   {name:"Torso Rotation",class:"Abs",equipment:"Bodyweight",format:"Reps Only"},{name:"Treadmill Sprint (Machine)",class:"Cardio",equipment:"Machine",format:"Km+Time"},
   {name:"Treadmill Incline Walk (Machine)",class:"Cardio",equipment:"Machine",format:"Km+Time"},{name:"Stationary Cycling (Machine)",class:"Cardio",equipment:"Machine",format:"Km+Time"},
-  {name:"Rowing Machine",class:"Cardio",equipment:"Machine",format:"Km+Time"},{name:"Jump Rope",class:"Cardio",equipment:"Bodyweight",format:"Km+Time"},
+  {name:"Rowing Machine",class:"Cardio",equipment:"Machine",format:"Km+Time"},{name:"Jump Rope",class:"Cardio",equipment:"Bodyweight",format:"Time Only"},
   {name:"Elliptical Trainer",class:"Cardio",equipment:"Machine",format:"Km+Time"},{name:"Stair Machine (Floors)",class:"Cardio",equipment:"Machine",format:"Km+Time"},
-  {name:"Assault Bike (Machine)",class:"Cardio",equipment:"Machine",format:"Km+Time"},{name:"Battle Ropes",class:"Cardio",equipment:"Bodyweight",format:"Km+Time"},
-  {name:"Skating",class:"Cardio",equipment:"Bodyweight",format:"Km+Time"},{name:"Ski Erg",class:"Cardio",equipment:"Machine",format:"Km+Time"},
-  {name:"Skiing",class:"Cardio",equipment:"Bodyweight",format:"Km+Time"},{name:"Spinning",class:"Cardio",equipment:"Machine",format:"Km+Time"},
+  {name:"Assault Bike (Machine)",class:"Cardio",equipment:"Machine",format:"Km+Time"},{name:"Battle Ropes",class:"Cardio",equipment:"Bodyweight",format:"Time Only"},
+  {name:"Skating",class:"Cardio",equipment:"Bodyweight",format:"Time Only"},{name:"Ski Erg",class:"Cardio",equipment:"Machine",format:"Km+Time"},
+  {name:"Skiing",class:"Cardio",equipment:"Bodyweight",format:"Time Only"},{name:"Spinning",class:"Cardio",equipment:"Machine",format:"Time Only"},
   {name:"Stair Machine (Steps)",class:"Cardio",equipment:"Machine",format:"Km+Time"},{name:"Running",class:"Cardio",equipment:"Bodyweight",format:"Km+Time"},
-  {name:"Boxing",class:"Cardio",equipment:"Bodyweight",format:"Km+Time"},{name:"Skater Jumps (Bodyweight)",class:"Cardio",equipment:"Bodyweight",format:"Km+Time"},
+  {name:"Boxing",class:"Cardio",equipment:"Bodyweight",format:"Time Only"},{name:"Skater Jumps (Bodyweight)",class:"Cardio",equipment:"Bodyweight",format:"Km+Time"},
   {name:"Sled Pull",class:"Full Body",equipment:"Machine",format:"Kg+Reps"},{name:"Sled Push",class:"Full Body",equipment:"Machine",format:"Km+Time"},
   {name:"Swimming",class:"Cardio",equipment:"Bodyweight",format:"Km+Time"},{name:"Walking Lunge (Sandbag)",class:"Legs",equipment:"Sandbag",format:"Kg+Reps"},
   {name:"Arm Circles (Bodyweight)",class:"Warmup",equipment:"Bodyweight",format:"Reps Only"},{name:"Leg Swings (Bodyweight)",class:"Warmup",equipment:"Bodyweight",format:"Reps Only"},
   {name:"Bulgarian Split Squat (Barbell)",class:"Legs",equipment:"Barbell",format:"Kg+Reps"},{name:"Sprints",class:"Cardio",equipment:"Bodyweight",format:"Km+Time"},
   {name:"Recumbent Bike",class:"Cardio",equipment:"Machine",format:"Km+Time"},{name:"Hip Circles (Bodyweight)",class:"Warmup",equipment:"Bodyweight",format:"Reps Only"},
   {name:"Torso Twists (Bodyweight)",class:"Warmup",equipment:"Bodyweight",format:"Reps Only"},{name:"Cycling",class:"Cardio",equipment:"Bodyweight",format:"Km+Time"},
-  {name:"Aerobics",class:"Cardio",equipment:"Bodyweight",format:"Km+Time"},{name:"Inchworm (Bodyweight)",class:"Warmup",equipment:"Bodyweight",format:"Reps Only"},
-  {name:"Air Bike",class:"Cardio",equipment:"Machine",format:"Km+Time"},{name:"Push Up",class:"Warmup",equipment:"Bodyweight",format:"Reps Only"},
-  {name:"Shoulder Dislocates (Band)",class:"Warmup",equipment:"Band",format:"Kg+Reps"},{name:"HIIT",class:"Cardio",equipment:"Bodyweight",format:"Km+Time"},
+  {name:"Aerobics",class:"Cardio",equipment:"Bodyweight",format:"Time Only"},{name:"Inchworm (Bodyweight)",class:"Warmup",equipment:"Bodyweight",format:"Reps Only"},
+  {name:"Air Bike",class:"Cardio",equipment:"Machine",format:"Time Only"},{name:"Push Up",class:"Warmup",equipment:"Bodyweight",format:"Reps Only"},
+  {name:"Shoulder Dislocates (Band)",class:"Warmup",equipment:"Band",format:"Kg+Reps"},{name:"HIIT",class:"Cardio",equipment:"Bodyweight",format:"Time Only"},
   {name:"Burpee",class:"Full Body",equipment:"Bodyweight",format:"Reps Only"},{name:"Burpee Over the Bar",class:"Full Body",equipment:"Bodyweight",format:"Reps Only"},
   {name:"Clean and Press",class:"Full Body",equipment:"Barbell",format:"Kg+Reps"},{name:"Power Clean",class:"Full Body",equipment:"Barbell",format:"Kg+Reps"},
   {name:"Clean and Jerk",class:"Full Body",equipment:"Barbell",format:"Kg+Reps"},{name:"Thruster (Barbell)",class:"Full Body",equipment:"Barbell",format:"Kg+Reps"},
@@ -5819,13 +5829,13 @@ const EXERCISE_CATALOG=[
   {name:"Ball Slams",class:"Full Body",equipment:"Machine",format:"Kg+Reps"},{name:"Clean",class:"Full Body",equipment:"Barbell",format:"Kg+Reps"},
   {name:"Kettlebell Clean",class:"Full Body",equipment:"Kettlebell",format:"Kg+Reps"},{name:"Clean Pull",class:"Full Body",equipment:"Barbell",format:"Kg+Reps"},
   {name:"Deadlift High Pull",class:"Full Body",equipment:"Barbell",format:"Kg+Reps"},{name:"Downward Dog",class:"Full Body",equipment:"Bodyweight",format:"Reps Only"},
-  {name:"Front Lever Hold",class:"Full Body",equipment:"Bodyweight",format:"Reps Only"},{name:"Front Lever Raise",class:"Full Body",equipment:"Bodyweight",format:"Reps Only"},
-  {name:"Handstand Hold",class:"Full Body",equipment:"Bodyweight",format:"Reps Only"},{name:"Hang Clean",class:"Full Body",equipment:"Barbell",format:"Kg+Reps"},
+  {name:"Front Lever Hold",class:"Full Body",equipment:"Bodyweight",format:"Time Only"},{name:"Front Lever Raise",class:"Full Body",equipment:"Bodyweight",format:"Reps Only"},
+  {name:"Handstand Hold",class:"Full Body",equipment:"Bodyweight",format:"Time Only"},{name:"Hang Clean",class:"Full Body",equipment:"Barbell",format:"Kg+Reps"},
   {name:"Hang Snatch",class:"Full Body",equipment:"Barbell",format:"Kg+Reps"},{name:"High Knee Skips",class:"Full Body",equipment:"Bodyweight",format:"Reps Only"},
   {name:"Romanian Deadlift (Smith Machine)",class:"Legs",equipment:"Smith Machine",format:"Kg+Reps"},{name:"Kettlebell High Pull",class:"Full Body",equipment:"Kettlebell",format:"Kg+Reps"},
   {name:"Jump Shrug",class:"Full Body",equipment:"Barbell",format:"Kg+Reps"},{name:"Jumping Jack",class:"Full Body",equipment:"Bodyweight",format:"Reps Only"},
   {name:"Landmine Squat and Press",class:"Full Body",equipment:"Barbell",format:"Kg+Reps"},{name:"Muscle Up",class:"Full Body",equipment:"Bodyweight",format:"Reps Only"},
-  {name:"Overhead Squat",class:"Full Body",equipment:"Barbell",format:"Kg+Reps"},{name:"Pilates",class:"Full Body",equipment:"Bodyweight",format:"Reps Only"},
+  {name:"Overhead Squat",class:"Full Body",equipment:"Barbell",format:"Kg+Reps"},{name:"Pilates",class:"Full Body",equipment:"Bodyweight",format:"Time Only"},
   {name:"Power Snatch",class:"Full Body",equipment:"Barbell",format:"Kg+Reps"},{name:"Press Under",class:"Full Body",equipment:"Barbell",format:"Kg+Reps"},
   {name:"Hiking",class:"Cardio",equipment:"Bodyweight",format:"Km+Time"},{name:"Snatch",class:"Full Body",equipment:"Barbell",format:"Kg+Reps"},
   {name:"Dumbbell Snatch",class:"Full Body",equipment:"Dumbbell",format:"Kg+Reps"},{name:"Kettlebell Snatch",class:"Full Body",equipment:"Kettlebell",format:"Kg+Reps"},
@@ -5833,8 +5843,8 @@ const EXERCISE_CATALOG=[
   {name:"Kettlebell Swing",class:"Full Body",equipment:"Kettlebell",format:"Kg+Reps"},{name:"Kettlebell Turkish Get Up",class:"Full Body",equipment:"Kettlebell",format:"Kg+Reps"},
   {name:"Hip Thrust (Dumbbell)",class:"Legs",equipment:"Dumbbell",format:"Kg+Reps"},{name:"Glute Bridge (Barbell)",class:"Legs",equipment:"Barbell",format:"Kg+Reps"},
   {name:"Standing Calf Raise",class:"Legs",equipment:"Bodyweight",format:"Reps Only"},{name:"Hip Adduction (Cable)",class:"Legs",equipment:"Cable",format:"Kg+Reps"},
-  {name:"Hip Abduction (Cable)",class:"Legs",equipment:"Cable",format:"Kg+Reps"},{name:"Yoga",class:"Full Body",equipment:"Bodyweight",format:"Reps Only"},
-  {name:"Warm Up",class:"Full Body",equipment:"Bodyweight",format:"Reps Only"},{name:"Suitcase Carry (Dumbbell)",class:"Full Body",equipment:"Dumbbell",format:"Kg+Reps"},
+  {name:"Hip Abduction (Cable)",class:"Legs",equipment:"Cable",format:"Kg+Reps"},{name:"Yoga",class:"Full Body",equipment:"Bodyweight",format:"Time Only"},
+  {name:"Warm Up",class:"Full Body",equipment:"Bodyweight",format:"Time Only"},{name:"Suitcase Carry (Dumbbell)",class:"Full Body",equipment:"Dumbbell",format:"Kg+Reps"},
   {name:"Bear Crawl",class:"Full Body",equipment:"Bodyweight",format:"Km+Time"},{name:"Burpee Broad Jumps",class:"Full Body",equipment:"Bodyweight",format:"Km+Time"},
   {name:"Treadmill",class:"Cardio",equipment:"Machine",format:"Km+Time"},{name:"Walking",class:"Cardio",equipment:"Bodyweight",format:"Km+Time"},
   {name:"Reverse Wrist Curl (Dumbbell)",class:"Forearms",equipment:"Dumbbell",format:"Kg+Reps"},{name:"Seated Wrist Curl (Barbell)",class:"Forearms",equipment:"Barbell",format:"Kg+Reps"},
@@ -5901,10 +5911,16 @@ function getExerciseEquipment(nameRaw){
      - "Kg+Reps"   — the default weighted form (Kg field + Reps field)
      - "Reps Only" — bodyweight-only exercises; no Kg field shown (Push Up, Pull Up, Squat, etc.)
      - "Km+Time"   — cardio exercises; Distance(Km) + Duration(Time) picker instead of Kg/Reps
+     - "Time Only" — holds and duration-only work (Plank, Wall Sit, Dead Hang, Yoga, HIIT, etc.);
+       exactly the "Km+Time" set-row, minus the Km input — the Time picker alone fills that space.
+       Shares 100% of the "Km+Time" storage/parsing/graph pipeline under the hood (see
+       isTimeBasedExercise below) — every set is still saved as a Km+Time-shaped segment with Km
+       fixed at 0, and formatCardioSetDisplay simply omits the "0.00km x" prefix whenever Km is 0,
+       so a Time Only set reads as plain "5min 30sec" everywhere it's displayed.
    Reserved for future updates (not implemented yet — every exercise below still falls back to one
-   of the three formats above until these are built): "Time Only" (holds — Plank, Wall Sit, Dead
-   Hang), "Kg+Km" (loaded carries — Farmers Walk, Sled Pull/Push), "Floors/Steps+Time" (Stair
-   Machine). Add the new value here and to this comment when implementing one of those. */
+   of the four formats above until these are built): "Kg+Km" (loaded carries — Farmers Walk, Sled
+   Pull/Push), "Floors/Steps+Time" (Stair Machine). Add the new value here and to this comment when
+   implementing one of those. */
 function getExerciseFormat(nameRaw){
   if(!nameRaw)return 'Kg+Reps';
   let found=EXERCISE_CATALOG.find(e=>e.name===nameRaw);
@@ -5952,6 +5968,21 @@ function isCardioExercise(nameRaw){
   if(!nameRaw)return false;
   return getExerciseFormat(nameRaw)==='Km+Time';
 }
+/* True for any exercise whose format is "Time Only" (catalog or custom-exercise registry) — holds
+   and duration-only work (Plank, Wall Sit, Dead Hang, Yoga, HIIT...) logged by Duration alone. */
+function isTimeOnlyExercise(nameRaw){
+  if(!nameRaw)return false;
+  return getExerciseFormat(nameRaw)==='Time Only';
+}
+/* True for either time-picker format ("Km+Time" OR "Time Only") — i.e. any exercise that uses the
+   compact scroll/tap-to-type Duration picker instead of the standard Kg/Reps set-row. Everywhere
+   that only cares "does this exercise use the time-picker set-row" (rendering, copy/lock/quick-fill,
+   drafts, history/tracker parsing) should gate on this, not on isCardioExercise alone — the two
+   formats share the exact same set-row and storage pipeline; only the Km input differs (see
+   isCardioExercise for "does this ALSO need the Km box"). */
+function isTimeBasedExercise(nameRaw){
+  return isCardioExercise(nameRaw)||isTimeOnlyExercise(nameRaw);
+}
 
 /* Parses a saved "0.50Km x 30min 23sec" (or legacy "0.50Km x 05:30") segment into
    {km,min,sec,totalSec}. Returns all-zero if the segment doesn't match (never throws — callers
@@ -5962,16 +5993,27 @@ function parseCardioSetSegment(seg){
   if(m)return{km:parseFloat(m[1])||0,min:parseInt(m[2])||0,sec:parseInt(m[3])||0,totalSec:(parseInt(m[2])||0)*60+(parseInt(m[3])||0)};
   m=s.match(/^([\d.]+)\s*[Kk][Mm]\s*x\s*(\d+):(\d{2})/); // legacy mm:ss format, still readable
   if(m)return{km:parseFloat(m[1])||0,min:parseInt(m[2])||0,sec:parseInt(m[3])||0,totalSec:(parseInt(m[2])||0)*60+(parseInt(m[3])||0)};
+  // "Time Only" segment — same Duration, no Km prefix at all (e.g. "5min 30sec").
+  m=s.match(/^(\d+)\s*min\s*(\d+)\s*sec/i);
+  if(m)return{km:0,min:parseInt(m[1])||0,sec:parseInt(m[2])||0,totalSec:(parseInt(m[1])||0)*60+(parseInt(m[2])||0)};
   return{km:0,min:0,sec:0,totalSec:0};
 }
-/* Formats a cardio segment's distance+duration the way it should read everywhere in the UI:
-   workout list, edit form badges, Track Workout Recent/Highest/Lowest, tracker set breakdown. */
+/* Formats a cardio/time-only segment's distance+duration the way it should read everywhere in the
+   UI: workout list, edit form badges, Track Workout Recent/Highest/Lowest, tracker set breakdown.
+   Km<=0 means a "Time Only" set (that format never has a Km field to fill in — see
+   isTimeOnlyExercise) — the "0.00km x" prefix is dropped entirely rather than shown as a fake zero
+   distance, so it reads as plain "5min 30sec". Real Km+Time sets are always saved with Km > 0 (see
+   the save-time validation in saveWorkoutLogEntry), so this never clips a genuine cardio distance. */
 function formatCardioSetDisplay(km,min,sec){
-  return `${(parseFloat(km)||0).toFixed(2)}km x ${min||0}min ${String(sec||0).padStart(2,'0')}sec`;
+  const k=parseFloat(km)||0;
+  if(k<=0)return `${min||0}min ${String(sec||0).padStart(2,'0')}sec`;
+  return `${k.toFixed(2)}km x ${min||0}min ${String(sec||0).padStart(2,'0')}sec`;
 }
-/* True if a saved set-string is a cardio (Km/duration) segment rather than a Kg/reps one. */
+/* True if a saved set-string is a cardio/time-only (Km+duration, or duration-alone) segment rather
+   than a Kg/reps one. */
 function isCardioSetString(seg){
-  return /^[\d.]+\s*[Kk][Mm]\s*x\s*\d/.test((seg||'').trim());
+  const s=(seg||'').trim();
+  return /^[\d.]+\s*[Kk][Mm]\s*x\s*\d/.test(s)||/^\d+\s*min\s*\d+\s*sec/i.test(s);
 }
 
 /* ===================== CARDIO DURATION PICKER =====================
@@ -12332,7 +12374,9 @@ function renderNonLiveSetsRows(weights,reps,locks,kms,mins,secs){
   const exName=document.getElementById("workoutNameInput")?.value.trim();
   const isBW=isBodyweightNoWeightExercise(exName);
   const isCardio=isCardioExercise(exName);
-  const mountList=[]; // cardio time-pickers need scrollTop set post-mount
+  const isTimeOnly=isTimeOnlyExercise(exName);
+  const isTimeBased=isCardio||isTimeOnly;
+  const mountList=[]; // cardio/time-only time-pickers need scrollTop set post-mount
   // ===== LIVE MODE: which set is next up? =====
   // Sets must be completed in order only while Live Mode is ON, and (during an edit) only for
   // sets beyond whatever was already saved before this edit started — already-saved sets stay
@@ -12382,7 +12426,7 @@ function renderNonLiveSetsRows(weights,reps,locks,kms,mins,secs){
         <div class="live-break-msg" id="seqBreakMsg_${i}"></div>
         <button type="button" class="live-break-btn" id="seqBreakAutoSkip_${i}" style="display:none;background:var(--accent-soft);color:var(--text-secondary);margin-top:8px" onclick="skipSeqBreak(${i})">SKIP BREAK</button>
       </div>`:'';
-    if(isCardio){
+    if(isTimeBased){
       // Same Km + compact scroll/tap-to-type Time picker format is used whether Live Mode is ON or
       // OFF — exactly how a normal (Kg/Reps) exercise already works below (no Live-only variant).
       // Km + Time live together in .cardio-set-leftgroup, which grows to fill whatever width
@@ -12390,14 +12434,20 @@ function renderNonLiveSetsRows(weights,reps,locks,kms,mins,secs){
       // every set, on any screen size. Set 1 gets an invisible Copy placeholder (below) rather than
       // omitting it, so .cardio-set-actions stays the same width on every row and that column-match
       // holds.
+      // "Time Only" exercises (isTimeOnly) are the exact same row, minus the Km box: kmInputHtml is
+      // left empty instead of rendering the input, and the row picks up the
+      // .cardio-set-row-timeonly class, which drops the grid down to a 4-column template (see CSS)
+      // so the Time picker's own column simply grows into the space the Km column would've taken —
+      // no empty gap, no separate narrow/medium/wide-specific markup needed.
       const km=kms[i-1]||'',min=mins[i-1]||'0',sec=secs[i-1]||'0';
-      const kmInputHtml=`<input type="number" placeholder="Km" id="km_set_${i}" min="0" max="300" step="0.01" value="${km}" ${locked?'readonly':''} ${pendAttr} class="km-input" oninput="handleNonLiveSetInputChange();updateNonLiveActiveSetHighlight(${i})">`;
+      const kmInputHtml=isCardio?`<input type="number" placeholder="Km" id="km_set_${i}" min="0" max="300" step="0.01" value="${km}" ${locked?'readonly':''} ${pendAttr} class="km-input" oninput="handleNonLiveSetInputChange();updateNonLiveActiveSetHighlight(${i})">`:'';
       const cardioCopyBtn=i>=2?`<button type="button" class="set-copy-btn" id="setCopyBtn_${i}" title="Copy previous set's values" onclick="copyFromPrevNonLiveSet(${i})" ${pendAttr}>${ICON_COPY}</button>`:`<button type="button" class="set-copy-btn" style="visibility:hidden;pointer-events:none" tabindex="-1" aria-hidden="true">${ICON_COPY}</button>`;
       const bodyClass='cardio-set-body';
       const swDisabledAttr=(locked||pending)?'disabled':'';
       const cardioSwHtml=`<div class="cardio-time-swipe" id="cardioTimeSwipe_set_${i}"><div class="cardio-time-viewport" ontouchstart="cardioTimeSwipeStart(event)" ontouchend="cardioTimeSwipeEnd(event,${i})" onmousedown="cardioTimeSwipeStart(event)" onmouseup="cardioTimeSwipeEnd(event,${i})"><div class="cardio-time-track" id="cardioTimeTrack_set_${i}"><div class="cardio-time-page cardio-time-page-picker"><div id="cardioDurMount_set_${i}" class="nl-cardio-time-compact"></div></div><div class="cardio-time-page cardio-time-page-sw"><button type="button" class="cardio-sw-btn" id="cardioSwBtn_set_${i}" title="Start stopwatch" onclick="toggleCardioStopwatch(${i})" ${swDisabledAttr}>${ICON_PLAY}</button><span class="cardio-sw-time" id="cardioSwTime_set_${i}">00:00</span><button type="button" class="cardio-sw-reset-btn" id="cardioSwResetBtn_set_${i}" title="Reset stopwatch" onclick="resetCardioStopwatch(${i})" style="display:none" ${swDisabledAttr}>${ICON_RESET_SMALL}</button></div></div></div><div class="cardio-time-dots"><span class="cardio-time-dot active" title="Duration picker" onclick="handleCardioTimeDotClick(event,${i},0)"></span><span class="cardio-time-dot" title="Stopwatch" onclick="handleCardioTimeDotClick(event,${i},1)"></span></div></div>`;
       const leftGroupHtml=`<div class="cardio-set-primary">${labelHtml}${kmInputHtml}</div>${cardioSwHtml}`;
-      c.innerHTML+=`<div class="set-row cardio-set-row${locked?' set-row-locked':''}${pendingClass}${activeClass}" id="setRow_${i}" onclick="updateNonLiveActiveSetHighlight(${i})" ontouchstart="nlSetSwipeStart(event)" ontouchend="nlSetSwipeEnd(event,${i})"><div class="${bodyClass}"><div class="cardio-set-leftgroup">${leftGroupHtml}</div><div class="cardio-set-actions">${cardioCopyBtn}${lockHtml}</div></div>${delBtn}</div>${breakRowHtml}`;
+      const cardioRowClass=`cardio-set-row${isTimeOnly?' cardio-set-row-timeonly':''}`;
+      c.innerHTML+=`<div class="set-row ${cardioRowClass}${locked?' set-row-locked':''}${pendingClass}${activeClass}" id="setRow_${i}" onclick="updateNonLiveActiveSetHighlight(${i})" ontouchstart="nlSetSwipeStart(event)" ontouchend="nlSetSwipeEnd(event,${i})"><div class="${bodyClass}"><div class="cardio-set-leftgroup">${leftGroupHtml}</div><div class="cardio-set-actions">${cardioCopyBtn}${lockHtml}</div></div>${delBtn}</div>${breakRowHtml}`;
       mountList.push({i,min,sec,locked});
     } else {
       const w=weights[i-1]||'',r=reps[i-1]||'';
@@ -12505,7 +12555,7 @@ function copyFromPrevNonLiveSet(i){
   const locked=document.getElementById(`lock_set_${i}`)?.checked;
   if(window._nlSetCopiedFlags[i]){
     // Undo: clear whatever this icon pasted in, then leave the set editable again.
-    if(isCardioExercise(exName)){
+    if(isTimeBasedExercise(exName)){
       const kmEl=document.getElementById(`km_set_${i}`);if(kmEl&&!kmEl.readOnly)kmEl.value='';
       if(!locked)setCardioPickerValue(`nlSet_${i}`,0,0);
     } else {
@@ -12520,7 +12570,7 @@ function copyFromPrevNonLiveSet(i){
     showToast(`↩️ Set ${i} copy undone.`);
     return;
   }
-  if(isCardioExercise(exName)){
+  if(isTimeBasedExercise(exName)){
     const kmPrev=parseFloat(document.getElementById(`km_set_${i-1}`)?.value)||0;
     const secPrev=getPickerSeconds(`nlSet_${i-1}`);
     if(kmPrev<=0&&secPrev<=0){showToast(`⚠️ Set ${i-1} must have Km/Time filled in first.`);return}
@@ -12566,7 +12616,7 @@ function handleSetLockToggle(i){
   // behaves exactly like a plain form always has. During an edit, this only applies to sets added
   // beyond whatever was already saved — pre-existing saved sets stay freely editable, ungated.
   const seqApplies=liveMode&&(currentEditingIndex===null||i>editOriginalSetCount);
-  if(isCardioExercise(exName)){
+  if(isTimeBasedExercise(exName)){
     const kmEl=document.getElementById(`km_set_${i}`);
     if(locked){
       // If the digital Stopwatch view is currently showing (or still ticking away in the background
@@ -12672,7 +12722,7 @@ function saveNonLiveDraft(){
   if(currentEditingIndex!==null){saveNonLiveEditDraft();return} // editing an already-saved entry — persist via the edit-draft path instead
   const name=document.getElementById("workoutNameInput")?.value||'';
   const cnt=parseInt(document.getElementById("setsCountSelect")?.value)||1;
-  const cardio=isCardioExercise(name.trim());
+  const cardio=isTimeBasedExercise(name.trim());
   const sets=[];
   for(let i=1;i<=cnt;i++){
     if(cardio){
@@ -12721,7 +12771,7 @@ function saveNonLiveEditDraft(){
   if(!slotRef)return; // can't identify which saved entry this is — nothing safe to persist
   const name=document.getElementById("workoutNameInput")?.value||'';
   const cnt=parseInt(document.getElementById("setsCountSelect")?.value)||1;
-  const cardio=isCardioExercise(name.trim());
+  const cardio=isTimeBasedExercise(name.trim());
   const sets=[];
   for(let i=1;i<=cnt;i++){
     if(cardio){
@@ -12826,7 +12876,7 @@ function clearNonLiveQueue(){
 function serializeCurrentNonLiveForm(){
   const name=document.getElementById("workoutNameInput")?.value||'';
   const cnt=parseInt(document.getElementById("setsCountSelect")?.value)||1;
-  const cardio=isCardioExercise(name.trim());
+  const cardio=isTimeBasedExercise(name.trim());
   const sets=[];
   for(let i=1;i<=cnt;i++){
     if(cardio){
@@ -13069,12 +13119,15 @@ async function saveWorkoutLogEntry(){
   name=finalizeCustomExerciseName(name,window._selectedWorkoutClass,window._selectedWorkoutEquipment);
   const isBW=isBodyweightNoWeightExercise(name);
   const isCardio=isCardioExercise(name);
+  const isTimeOnly=isTimeOnlyExercise(name);
   let sd=[],tv=0,totalCardioSec=0;
   for(let i=1;i<=sc;i++){
-    if(isCardio){
-      const km=parseFloat(document.getElementById(`km_set_${i}`)?.value)||0;
+    if(isCardio||isTimeOnly){
+      // Time Only has no Km field at all (see renderNonLiveSetsRows), so km_set_N simply doesn't
+      // exist in the DOM for it — km stays a hard 0, and only Duration is required/validated.
+      const km=isCardio?(parseFloat(document.getElementById(`km_set_${i}`)?.value)||0):0;
       const totalSec=getPickerSeconds(`nlSet_${i}`);
-      if(km<=0){alert(`Set ${i}: Must have a Km (distance) greater than 0.`);return}
+      if(isCardio&&km<=0){alert(`Set ${i}: Must have a Km (distance) greater than 0.`);return}
       if(totalSec<=0){alert(`Set ${i}: Must have a Duration greater than 0.`);return}
       totalCardioSec+=totalSec;
       sd.push(formatCardioSetDisplay(km,Math.floor(totalSec/60),totalSec%60));
@@ -13343,7 +13396,7 @@ function copyPrevPerfToFields(mode){
     return;
   }
   const exName=document.getElementById('workoutNameInput')?.value.trim();
-  const isCardio=isCardioExercise(exName);
+  const isCardio=isTimeBasedExercise(exName);
   const count=parseInt(document.getElementById('setsCountSelect')?.value)||1;
   // Bodyweight/Warmup exercises hide the Kg box by default (see bwKgRevealed). If the previous
   // performance being copied in actually logged a Kg value on one of the sets we're about to fill,
@@ -13392,7 +13445,7 @@ function checkQuickFillVisibility(){
   // that, so Quick Fill stays hidden whenever it's ON.
   if(cnt<2||liveMode){btn.classList.remove("visible");return}
   const exName=document.getElementById("workoutNameInput")?.value.trim();
-  if(isCardioExercise(exName)){
+  if(isTimeBasedExercise(exName)){
     const km1=parseFloat(document.getElementById("km_set_1")?.value)||0;
     const sec1=getPickerSeconds('nlSet_1');
     if(km1>0||sec1>0)btn.classList.add("visible");
@@ -13424,7 +13477,7 @@ function resetNlCopyAllState(){
 function quickFillCopyAll(){
   const cnt=parseInt(document.getElementById("setsCountSelect").value)||1;
   const exName=document.getElementById("workoutNameInput")?.value.trim();
-  const isCardio=isCardioExercise(exName);
+  const isCardio=isTimeBasedExercise(exName);
   const btn=document.getElementById("quickFillCopyAllBtn");
 
   // 2nd tap: undo — restore exactly what each field held before the copy
@@ -14232,7 +14285,7 @@ async function loadWorkoutsForDate(){
       window._workoutCiMap[ci]={rowCreatedAt:row.created_at,idx:arrIdx};
       window._workoutCiRawMap[ci]=cell;
       anyEntry=true;
-      let ename=cell,tags="",hasDuration=false,isCardioRow=false;if(cell.includes(":")){let pts=cell.split(":");ename=pts[0].trim();isCardioRow=isCardioExercise(ename);pts[1].trim().split(",").map(s=>s.trim()).filter(Boolean).forEach((s,si)=>{if(s.includes("["))hasDuration=true;tags+=`<span class="workout-tag${isCardioRow?' workout-tag-wide':''}">${formatSetTagLabel(s,si+1)}</span>`})}
+      let ename=cell,tags="",hasDuration=false,isCardioRow=false;if(cell.includes(":")){let pts=cell.split(":");ename=pts[0].trim();isCardioRow=isTimeBasedExercise(ename);pts[1].trim().split(",").map(s=>s.trim()).filter(Boolean).forEach((s,si)=>{if(s.includes("["))hasDuration=true;tags+=`<span class="workout-tag${isCardioRow?' workout-tag-wide':''}">${formatSetTagLabel(s,si+1)}</span>`})}
       const tagGridClass=(isCardioRow||hasDuration)?"workout-tag-grid tag-grid-2col":"workout-tag-grid";
       const exCls=extractClassFromWorkoutName(cell),exColor=CLASS_COLORS[exCls]||CLASS_COLORS['Unknown'];
       const cellVol=parseWorkoutVolume(cell);
@@ -14862,7 +14915,7 @@ function initiateWorkoutEdit(e,ci,rv){
   document.getElementById("workoutFormStructure").style.display="block";
   openWorkoutEditOverlay(document.getElementById("workoutFormStructure"));
 
-  const cardio=isCardioExercise(en);
+  const cardio=isTimeBasedExercise(en);
   let parsedSets=segs.map((seg,i)=>{
     if(cardio){
       const p=parseCardioSetSegment(seg);
@@ -14914,7 +14967,7 @@ async function deleteNonLiveSavedSet(i){
   if(!await showAppConfirm({title:'🗑 Delete Set?',body:`Delete Set ${i}? This will permanently remove it from this saved entry.`}))return;
   if(editOriginalSetCount<=1){alert("This entry has only one saved set. Use the 🗑 icon on the workout card to delete the whole entry instead.");return}
   const cnt=parseInt(document.getElementById("setsCountSelect").value)||editOriginalSetCount;
-  const cardio=isCardioExercise(document.getElementById("workoutNameInput")?.value.trim());
+  const cardio=isTimeBasedExercise(document.getElementById("workoutNameInput")?.value.trim());
   let weights=[],reps=[],kms=[],mins=[],secs=[];
   for(let k=1;k<=cnt;k++){
     if(k===i)continue;
@@ -17059,7 +17112,7 @@ async function runWorkoutTracker(){
     if(!exerciseMap[exName].sessions[rowDate])exerciseMap[exName].sessions[rowDate]={date:rowDate,sets:[]};
     setsRaw.forEach(setStr=>{const vol=parseSetVolume(setStr);const{weight,reps}=parseSetWeightReps(setStr);const cardioP=parseCardioSetSegment(setStr);const setObj={date:rowDate,raw:setStr,vol,weight,reps,km:cardioP.km,sec:cardioP.totalSec,isCardioSet:isCardioSetString(setStr)};exerciseMap[exName].sets.push(setObj);exerciseMap[exName].sessions[rowDate].sets.push(setObj)})})});
   trackerSortedList=Object.entries(exerciseMap).sort((a,b)=>b[1].frequency-a[1].frequency).map(([name,data],idx)=>{
-    const isCardio=isCardioExercise(name);
+    const isCardio=isTimeBasedExercise(name);
     const sessionList=Object.values(data.sessions).sort((a,b)=>a.date.localeCompare(b.date));
     // Recent session = the session with the latest date (most recent workout session for this exercise)
     const recentSession=sessionList.length?sessionList[sessionList.length-1]:null;
@@ -17122,7 +17175,7 @@ function renderTrackerTable(filterName){
     return `<div class="tracker-vol-cell">${collapsed}${expanded}</div>`;
   };
   let rowsHtml=pageItems.map((item,i)=>{
-    const isCardio=isCardioExercise(item.name);
+    const isCardio=isTimeBasedExercise(item.name);
     const isBW=!isCardio&&item.sets.every(s=>s.weight===0);
     const recentHtml=buildVolCell(item.recentSet,item.recentSession,isBW);
     const highestHtml=buildVolCell(item.highestSet,item.highestSession,isBW);
@@ -17251,12 +17304,15 @@ function showTrackerAnalytics(exName){
   const decoded=exName.replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&#039;/g,"'");
   const exData=trackerAllData[decoded];if(!exData||!exData.sets.length){alert("No set data available for this exercise.");return}
   const isCardio=isCardioExercise(decoded);
+  const isTimeOnly=isTimeOnlyExercise(decoded);
+  const isTimeBased=isCardio||isTimeOnly;
   // Pure-bodyweight detection: if EVERY logged set for this exercise has 0kg, weight/volume are meaningless
   // (always 0), so only the Reps graph is offered and the mode dropdown stays hidden. If even one set has
   // real weight logged, the full Volume/Weight/Reps dropdown is shown (covers bodyweight exercises that are
-  // sometimes done weighted, e.g. weighted dips). Cardio exercises are never routed down this path — they
-  // get their own Distance/Duration dropdown below, regardless of weight (which is always 0 for cardio sets).
-  const isBodyweightOnly=!isCardio&&exData.sets.every(s=>s.weight===0);
+  // sometimes done weighted, e.g. weighted dips). Cardio/Time Only exercises are never routed down this
+  // path — they get their own Duration (Cardio also gets Distance) dropdown below, regardless of weight
+  // (which is always 0 for cardio/time-only sets).
+  const isBodyweightOnly=!isTimeBased&&exData.sets.every(s=>s.weight===0);
   // Build one entry per training day, keeping every individual set (with raw string, so duration survives) for
   // that session, plus the day's total volume, total reps, highest single-set weight, total Km and total
   // cardio duration (seconds) logged that day.
@@ -17274,20 +17330,24 @@ function showTrackerAnalytics(exName){
 
   // Reset the View dropdown. Bodyweight-only exercises (never logged with Kg) are always Reps with the
   // dropdown hidden — unchanged. Cardio exercises always show the dropdown, restricted to Duration/Distance,
-  // defaulting to Duration. Everything else shows the full Volume/Weight/Reps dropdown, but the *default*
-  // selection now depends on the exercise's catalog equipment tag: true bodyweight exercises that happen to
-  // have some Kg logged (e.g. a weighted dip, or an optional Kg entry on a bodyweight move) open on Reps by
-  // default since reps is still their primary metric; everything else (normal weighted exercises) keeps
-  // opening on Volume, exactly as before.
+  // defaulting to Duration. Time Only exercises show the same dropdown restricted to Duration ALONE (no
+  // Distance option — there's no Km to plot, every set is logged at 0). Everything else shows the full
+  // Volume/Weight/Reps dropdown, but the *default* selection now depends on the exercise's catalog
+  // equipment tag: true bodyweight exercises that happen to have some Kg logged (e.g. a weighted dip, or
+  // an optional Kg entry on a bodyweight move) open on Reps by default since reps is still their primary
+  // metric; everything else (normal weighted exercises) keeps opening on Volume, exactly as before.
   const isBodyweightCatalog=getExerciseEquipment(decoded)==='Bodyweight';
-  trackerGraphMode=isCardio?'duration':(isBodyweightOnly?'reps':(isBodyweightCatalog?'reps':'volume'));
+  trackerGraphMode=isTimeBased?'duration':(isBodyweightOnly?'reps':(isBodyweightCatalog?'reps':'volume'));
   const modeWrap=document.getElementById('trackerGraphModeWrap'),modeSelect=document.getElementById('trackerGraphModeSelect');
   if(modeWrap)modeWrap.style.display=isBodyweightOnly?'none':'flex';
-  modeSelect?.querySelectorAll('.trk-opt-strength').forEach(o=>o.style.display=isCardio?'none':'');
-  modeSelect?.querySelectorAll('.trk-opt-cardio').forEach(o=>o.style.display=isCardio?'':'none');
+  modeSelect?.querySelectorAll('.trk-opt-strength').forEach(o=>o.style.display=isTimeBased?'none':'');
+  modeSelect?.querySelectorAll('.trk-opt-cardio').forEach(o=>o.style.display=isTimeBased?'':'none');
+  // Distance never applies to Time Only (Km is always 0 for it) — hide that one option specifically,
+  // even though the general Cardio-group toggle above just turned it on.
+  modeSelect?.querySelectorAll('.trk-opt-distance').forEach(o=>o.style.display=(isTimeBased&&!isTimeOnly)?'':'none');
   if(modeSelect)modeSelect.value=trackerGraphMode;
 
-  trackerGraphContext={decoded,isBodyweightOnly,isCardio,dateMap,sortedDates,labels};
+  trackerGraphContext={decoded,isBodyweightOnly,isCardio,isTimeOnly,isTimeBased,dateMap,sortedDates,labels};
 
   const panel=document.getElementById("trackerAnalyticsPanel");panel.classList.add("visible");
   renderTrackerChart();
