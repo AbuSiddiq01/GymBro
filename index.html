@@ -11134,12 +11134,26 @@ function formatTotalCardioTime(totalSec){
   const m=Math.floor(t/60),s=t%60;
   return `${m}:${String(s).padStart(2,'0')}`;
 }
+/* Long-form duration used specifically for Time Only totals in the Volume Breakdown panel (and its
+   Compare view) — e.g. 555 -> "9min 15sec". A bare "9:15" there reads ambiguously like a score/volume
+   figure rather than a duration, and doesn't match how each individual set already reads above it
+   ("Set 1 · 3min 05sec"), so the TOTAL box is spelled out the same way. */
+function formatDurationLongForm(totalSec){
+  const t=Math.max(0,Math.round(totalSec||0));
+  const m=Math.floor(t/60),s=t%60;
+  return `${m}min ${String(s).padStart(2,'0')}sec`;
+}
 /* Cardio-only footer total (Volume page's per-exercise "TOTAL" box) shows BOTH total distance
-   (Km) and total Duration (M:SS) together — everywhere else a Cardio total appears (the saved
-   workout card header, the collapsed drilldown row) stays Duration-only, per formatExerciseVolTotal. */
+   (Km) and total Duration (M:SS) together for real Km+Time cardio — everywhere else a Cardio
+   total appears (the saved workout card header, the collapsed drilldown row) stays Duration-only,
+   per formatExerciseVolTotal. Time Only exercises never log a Km at all (totalKm is always 0 for
+   them — see formatCardioSetDisplay for the same km<=0 rule), so the "0.00km ·" prefix is dropped
+   and the box just reads the plain Duration, spelled out long-form ("9min 15sec") to match how each
+   individual set already displays ("0min 05sec") in the Sets list right above it. */
 function formatCardioTotalDetail(sets){
   const totalKm=sets.reduce((a,s)=>a+(s.km||0),0);
   const totalSec=sets.reduce((a,s)=>a+(s.sec||0),0);
+  if(totalKm<=0)return formatDurationLongForm(totalSec);
   return `${totalKm.toFixed(2)}km · ${formatTotalCardioTime(totalSec)}`;
 }
 /* Returns {primary, unit} for an exercise's total — total Duration (M:SS) for Cardio entries,
@@ -17339,7 +17353,10 @@ function showTrackerAnalytics(exName){
   const isBodyweightCatalog=getExerciseEquipment(decoded)==='Bodyweight';
   trackerGraphMode=isTimeBased?'duration':(isBodyweightOnly?'reps':(isBodyweightCatalog?'reps':'volume'));
   const modeWrap=document.getElementById('trackerGraphModeWrap'),modeSelect=document.getElementById('trackerGraphModeSelect');
-  if(modeWrap)modeWrap.style.display=isBodyweightOnly?'none':'flex';
+  // Time Only exercises have exactly one possible graph (Duration) — a dropdown offering a single,
+  // already-selected choice is pure clutter, so it's hidden entirely (same as the bodyweight-only
+  // case above), not just narrowed down to one visible option like Km+Time's Duration/Distance pair.
+  if(modeWrap)modeWrap.style.display=(isBodyweightOnly||isTimeOnly)?'none':'flex';
   modeSelect?.querySelectorAll('.trk-opt-strength').forEach(o=>o.style.display=isTimeBased?'none':'');
   modeSelect?.querySelectorAll('.trk-opt-cardio').forEach(o=>o.style.display=isTimeBased?'':'none');
   // Distance never applies to Time Only (Km is always 0 for it) — hide that one option specifically,
@@ -17636,6 +17653,12 @@ const TJ_ICON_CHECK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" 
 function fmtTrackerJourneyVal(v,mode){
   if(mode==='weight'){const w=v%1===0?v:parseFloat(v.toFixed(1));return `${w}Kg`}
   if(mode==='reps')return `${v} Reps`;
+  // Duration values are stored in the values[] array as minutes (rounded to 2dp — see the
+  // mode==='duration' branch that builds `values`), so convert back to whole seconds here and
+  // spell it out the same long-form way as everywhere else Duration is shown ("9min 15sec"),
+  // instead of falling through to the plain-number Volume formatting below.
+  if(mode==='duration')return formatDurationLongForm(Math.round(v*60));
+  if(mode==='distance')return `${v.toFixed(2)}km`;
   const vol=Math.round(v);
   return vol>=1000?`${(vol/1000).toFixed(1)}k`:`${vol}`;
 }
@@ -17643,14 +17666,17 @@ function fmtTrackerJourneyVal(v,mode){
 // previous point's value: "consistent" (no change), "upgraded" (increase), or "dropped" (decrease).
 // idx===0 has no previous point to compare against, so it's introduced as the starting point instead.
 // Copy is deliberately a bit richer than a bare number comparison — one short motivating sentence that
-// gives the value context, without turning into a paragraph.
+// gives the value context, without turning into a paragraph. Duration/Distance modes get their own
+// phrasing (time on the clock / distance covered) instead of being folded into the generic
+// Volume/Weight/Reps wording, since a plain "Volume" label on a duration figure like "9min 15sec"
+// misrepresents what's actually being tracked.
 function buildTrackerJourneyCaption(idx){
   const{values,sortedDates,mode}=trackerJourneyValues;
   const curr=values[idx],currText=fmtTrackerJourneyVal(curr,mode);
-  const metricLabel=mode==='weight'?'weight':mode==='reps'?'rep count':'volume';
   const wrap=(icon,text)=>`<span class="tjc-icon">${icon}</span><span class="tjc-text">${text}</span>`;
   if(idx===0){
-    return{type:'start',html:wrap(TJ_ICON_FLAG,`This is where it all began — <strong>${currText}</strong> ${metricLabel==='volume'?'Volume':metricLabel==='weight'?'Weight':'Reps'}. ${sortedDates.length} sessions of progress start right here.`)};
+    const startWord=mode==='weight'?'Weight':mode==='reps'?'Reps':mode==='duration'?'logged':mode==='distance'?'covered':'Volume';
+    return{type:'start',html:wrap(TJ_ICON_FLAG,`This is where it all began — <strong>${currText}</strong> ${startWord}. ${sortedDates.length} sessions of progress start right here.`)};
   }
   const prev=values[idx-1],prevText=fmtTrackerJourneyVal(prev,mode);
   if(curr===prev){
@@ -17658,10 +17684,20 @@ function buildTrackerJourneyCaption(idx){
   }
   if(curr>prev){
     const diffText=fmtTrackerJourneyVal(curr-prev,mode);
-    return{type:'up',html:wrap(TJ_ICON_UP,`Leveled up from ${prevText} to <strong>${currText}</strong> — that's +${diffText} of real progress. Keep this up!`)};
+    const upText=mode==='duration'
+      ?`Leveled up from ${prevText} to <strong>${currText}</strong> — that's +${diffText} more time on the clock. Keep this up!`
+      :mode==='distance'
+      ?`Leveled up from ${prevText} to <strong>${currText}</strong> — that's +${diffText} further. Keep this up!`
+      :`Leveled up from ${prevText} to <strong>${currText}</strong> — that's +${diffText} of real progress. Keep this up!`;
+    return{type:'up',html:wrap(TJ_ICON_UP,upText)};
   }
   const diffText=fmtTrackerJourneyVal(prev-curr,mode);
-  return{type:'down',html:wrap(TJ_ICON_DOWN,`Eased back to <strong>${currText}</strong> from ${prevText} (-${diffText}) — a lighter session is still a session. Bounce back next time.`)};
+  const downText=mode==='duration'
+    ?`Eased back to <strong>${currText}</strong> from ${prevText} (-${diffText}) — a shorter session is still a session. Bounce back next time.`
+    :mode==='distance'
+    ?`Eased back to <strong>${currText}</strong> from ${prevText} (-${diffText}) — a shorter distance is still a distance. Bounce back next time.`
+    :`Eased back to <strong>${currText}</strong> from ${prevText} (-${diffText}) — a lighter session is still a session. Bounce back next time.`;
+  return{type:'down',html:wrap(TJ_ICON_DOWN,downText)};
 }
 // Toggle handler for the "View Journey" button: starts playback from the beginning, or stops it early
 // if it's already running (tapping the button again acts as a manual stop). A manual stop also closes
@@ -19557,4 +19593,4 @@ function closeLearnVideo(){
 })();
 </script>
 </body>
-</html> 
+</html>
