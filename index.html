@@ -13331,7 +13331,7 @@ async function saveWorkoutLogEntry(){
     checkAndShowTimeLevelUp(name,_tmx.maxDurationSec,_tmx.totalDurationSec,_tmx.maxKm,isCardio);
   } else {
     const _mx=computeSessionMaxes(sd);
-    checkAndShowLevelUp(name,_mx.maxKg,_mx.maxKg>0?_mx.maxKgReps:_mx.totalReps,_mx.totalVolume,isKgKm,_mx.maxKm);
+    checkAndShowLevelUp(name,_mx.maxKg,_mx.maxKg>0?_mx.maxKgReps:_mx.totalReps,_mx.totalVolume,isKgKm,_mx.maxKm,_mx.maxReps);
   }
   showToast(`✅ Workout saved! +${xpe} XP earned!`);
   // Multiple-workouts-at-a-time: if more entries are queued, load the next one into the still-open
@@ -13820,7 +13820,7 @@ function formatLevelUpDate(dateStr){
    - Otherwise, if currentReps>0 (a true bodyweight exercise with no Kg entered): compares the
      CURRENT TOTAL reps against the HIGHEST TOTAL reps ever logged in a single saved entry (summed
      across that entry's sets, only counting entries that were also bodyweight-only). */
-async function checkAndShowLevelUp(exerciseName,currentKg,currentReps,currentVolume,isKgKm,currentKm){
+async function checkAndShowLevelUp(exerciseName,currentKg,currentReps,currentVolume,isKgKm,currentKm,currentMaxSetReps){
   if(!exerciseName)return;
   if(currentKg<=0&&currentReps<=0)return;
   if(isRoomMemberModeActive())return; // members: skip prior-day comparisons/toasts
@@ -13890,27 +13890,37 @@ async function checkAndShowLevelUp(exerciseName,currentKg,currentReps,currentVol
       // across every set in this session) against the highest TOTAL reps ever logged in a single
       // saved entry (summed across that entry's sets) — across ALL saved history. Only entries
       // where every set was also bodyweight (no Kg) count toward the comparison.
+      // Max Set Reps record: compares the CURRENT single-set best (highest reps in any one set
+      // this session) against the HIGHEST single-set reps ever logged for this exercise, across
+      // every set in every saved entry — the Reps equivalent of the Kg record's "any set, any
+      // day" shape, so a single standout set can be a PR even if the overall session total isn't.
       let bestTotalReps=null,bestTotalRepsDate=null;
+      let bestMaxSetReps=null,bestMaxSetRepsDate=null;
       for(const row of data){
         for(const wEntryRaw of sessionWorkoutsArray(row)){
           const wEntry=sessionDecodeWorkoutEntry(wEntryRaw);
           if(wEntry.name.toLowerCase()!==nameLower)continue;
           const segs=(wEntry.sets||'').split(',').map(s=>s.trim()).filter(Boolean);
-          let entryTotalReps=0,entryHasKg=false;
+          let entryTotalReps=0,entryHasKg=false,entryMaxReps=0;
           for(const seg of segs){
             const m=seg.match(/([\d.]+)\s*[Kk][Gg]?\s*x\s*([\d.]+)/i);
             if(!m)continue;
             const segKg=parseFloat(m[1])||0,segReps=parseFloat(m[2])||0;
             if(segKg>0){entryHasKg=true;break}
             entryTotalReps+=segReps;
+            if(segReps>entryMaxReps)entryMaxReps=segReps;
           }
-          if(entryHasKg||entryTotalReps<=0)continue;
-          if(bestTotalReps===null||entryTotalReps>bestTotalReps){bestTotalReps=entryTotalReps;bestTotalRepsDate=row.date}
+          if(entryHasKg)continue;
+          if(entryTotalReps>0&&(bestTotalReps===null||entryTotalReps>bestTotalReps)){bestTotalReps=entryTotalReps;bestTotalRepsDate=row.date}
+          if(entryMaxReps>0&&(bestMaxSetReps===null||entryMaxReps>bestMaxSetReps)){bestMaxSetReps=entryMaxReps;bestMaxSetRepsDate=row.date}
         }
       }
-      console.log('[LevelUp]',exerciseName,'bestTotalReps='+bestTotalReps,'currentTotalReps='+currentReps);
+      console.log('[LevelUp]',exerciseName,'bestTotalReps='+bestTotalReps,'currentTotalReps='+currentReps,'bestMaxSetReps='+bestMaxSetReps,'currentMaxSetReps='+currentMaxSetReps);
       if(bestTotalReps!==null&&currentReps>bestTotalReps){
         records.push({type:'reps',prevVal:bestTotalReps,prevDate:bestTotalRepsDate,curVal:currentReps,curDate:todayStr});
+      }
+      if(bestMaxSetReps!==null&&(currentMaxSetReps||0)>bestMaxSetReps){
+        records.push({type:'maxSetReps',prevVal:bestMaxSetReps,prevDate:bestMaxSetRepsDate,curVal:currentMaxSetReps,curDate:todayStr});
       }
     }
     if(records.length)showLevelUpNotification(exerciseName,records);
@@ -14035,8 +14045,15 @@ function showLevelUpNotification(exerciseName,records){
       type='Total Duration';highestLabel='Highest Total Duration';
       prevContent=`${formatDurationLongForm(info.prevVal)}${prevDateSuffix}`;
       curContent=`${formatDurationLongForm(info.curVal)}${curDateSuffix}`;
+    }else if(info.type==='maxSetReps'){
+      // Reps only — the highest reps done in any ONE set, any day (see checkAndShowLevelUp) — the
+      // Reps equivalent of the Kg record's "any set, any day" shape, separate from the Total Reps
+      // record below (a single standout set can be a PR even when the session total isn't).
+      type='Set Reps';highestLabel='Highest Reps (Single Set)';
+      prevContent=`${info.prevVal} reps${prevDateSuffix}`;
+      curContent=`${info.curVal} reps${curDateSuffix}`;
     }else{
-      type='Reps';highestLabel='Highest Reps Done';
+      type='Reps';highestLabel='Highest Total Reps';
       prevContent=`${info.prevVal} reps${prevDateSuffix}`;
       curContent=`${info.curVal} reps${curDateSuffix}`;
     }
@@ -19942,4 +19959,4 @@ function closeLearnVideo(){
 })();
 </script>
 </body>
-</html> 
+</html>
