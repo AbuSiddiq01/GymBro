@@ -1904,13 +1904,30 @@ body.workout-edit-lock{overflow:hidden}
   display:none;align-items:flex-start;gap:8px;
   background:var(--accent-soft);border:1px solid var(--accent);border-radius:10px;
   padding:10px 12px;margin-top:8px;font-family:var(--font-alt);
-  animation:fadeIn 0.3s ease;position:relative;
+  animation:fadeIn 0.3s ease;position:relative;container-type:inline-size;
 }
 .prev-perf-badge.visible{display:flex}
 .prev-perf-icon{font-size:16px;flex-shrink:0;margin-top:2px}
+.prev-perf-content{flex:1;min-width:0}
 .prev-perf-label{font-size:10px;font-weight:700;color:var(--text-muted);letter-spacing:0.6px;text-transform:uppercase;display:block;margin-bottom:1px}
-.prev-perf-value{font-size:13px;font-weight:700;color:var(--accent);letter-spacing:0.3px;flex:1;min-width:0;padding-right:32px}
+.prev-perf-value{font-size:13px;font-weight:700;color:var(--accent);letter-spacing:0.3px;flex:1;min-width:0;padding-right:32px;display:block}
 .prev-perf-loading{font-size:12px;color:var(--text-muted);font-family:var(--font-alt);font-style:italic}
+/* Max/Min stat row — bottom of the Previous Performance badge. Min weight (or min total reps, for
+   pure Reps-only/bodyweight exercises) sits bottom-LEFT, Max sits bottom-RIGHT, computed across the
+   exercise's ENTIRE logged history (not just the single previous session shown above), see
+   computeExerciseMaxMinStats(). Sized with cqw/clamp() off the badge's OWN inline-size container
+   (see container-type:inline-size on .prev-perf-badge above) so both chips shrink together and stay
+   on one line — never a tight overlap with the copy icon (top-right, absolutely positioned, outside
+   this row's flow) — across narrow/medium/wide screens alike. Hidden entirely (inline display:none
+   in markup) until fetchPrevPerformance has real history to show. */
+.prev-perf-stats{display:flex;justify-content:space-between;align-items:flex-end;gap:clamp(6px,4cqw,18px);margin-top:8px;padding-top:7px;border-top:1px dashed var(--accent);width:100%}
+.prev-perf-stat{display:flex;flex-direction:column;min-width:0;max-width:50%;line-height:1.3}
+.prev-perf-stat-min{align-items:flex-start;text-align:left}
+.prev-perf-stat-max{align-items:flex-end;text-align:right;margin-left:auto}
+.prev-perf-stat-tag{font-size:clamp(8px,2.6cqw,10px);font-weight:800;letter-spacing:0.5px;text-transform:uppercase;white-space:nowrap}
+.prev-perf-stat-min .prev-perf-stat-tag{color:#e11d48}
+.prev-perf-stat-max .prev-perf-stat-tag{color:#16a34a}
+.prev-perf-stat-num{font-size:clamp(11px,3.6cqw,14px);font-weight:800;color:var(--text-primary);font-family:var(--font-alt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 /* Live-mode "active session" exercise name — a fixed, view-only (non-editable) label shown once a
    FRESH Live session has actually started, sitting directly above the Previous Performance badge
    (never below the Track Workout button — see liveSetupPanelEnterActiveSession/ExitActiveSession
@@ -3426,9 +3443,13 @@ body.tracker-fs-lock{overflow:hidden}
           <!-- Previous Performance Badge (Non-Live) -->
           <div class="prev-perf-badge" id="prevPerfBadgeNonLive">
             <span class="prev-perf-icon">📊</span>
-            <div>
+            <div class="prev-perf-content">
               <span class="prev-perf-label">Previous Performance</span>
               <span class="prev-perf-value" id="prevPerfValueNonLive">—</span>
+              <div class="prev-perf-stats" id="prevPerfStatsNonLive" style="display:none">
+                <span class="prev-perf-stat prev-perf-stat-min"><span class="prev-perf-stat-tag" id="prevPerfMinTagNonLive">MIN</span><span class="prev-perf-stat-num" id="prevPerfMinNonLive">—</span></span>
+                <span class="prev-perf-stat prev-perf-stat-max"><span class="prev-perf-stat-tag" id="prevPerfMaxTagNonLive">MAX</span><span class="prev-perf-stat-num" id="prevPerfMaxNonLive">—</span></span>
+              </div>
             </div>
             <button type="button" class="prev-perf-copy-btn" id="prevPerfCopyBtnNonLive" title="Copy previous performance into the current sets (tap again to undo)" onclick="copyPrevPerfToFields('nonlive')">
               <svg class="prev-perf-copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
@@ -13616,6 +13637,7 @@ async function fetchPrevPerformance(exerciseName, mode, excludeDate){
   resetPrevPerfCopyState(mode);
   badgeEl.classList.add("visible");
   valueEl.innerHTML=`<span class="prev-perf-loading">Looking up history...</span>`;
+  renderPrevPerfStats(mode,null); // clear any stale Max/Min from a previous exercise while this one loads
   // "Reference date" = the date this entry is being logged FOR. Live entries are always logged for
   // right now, so that's always actual today. Non-live entries can be backdated via the
   // workoutCalendarFilter date picker — when they are, THAT selected date acts as "today" for
@@ -13625,7 +13647,7 @@ async function fetchPrevPerformance(exerciseName, mode, excludeDate){
   const refDate=mode==='live'?getLocalDateString():(document.getElementById("workoutCalendarFilter")?.value||getLocalDateString());
   try{
     const{data,error}=await db.from(SESSION_TABLE).select("date,workouts").eq("user_id",uid).order("date",{ascending:false}).limit(60);
-    if(error||!data||!data.length){badgeEl.classList.remove("visible");return}
+    if(error||!data||!data.length){badgeEl.classList.remove("visible");renderPrevPerfStats(mode,null);return}
     const nameLower=exerciseName.toLowerCase().trim();
     let found=null,foundDate=null;
     outer:for(const row of data){
@@ -13636,7 +13658,7 @@ async function fetchPrevPerformance(exerciseName, mode, excludeDate){
         if(cellName===nameLower){found=sessionWorkoutEntryToText(wEntry);foundDate=row.date;break outer}
       }
     }
-    if(!found){badgeEl.classList.remove("visible");if(mode==='live')window._prevPerfSetsLive=null;else window._prevPerfSetsNonLive=null;return}
+    if(!found){badgeEl.classList.remove("visible");renderPrevPerfStats(mode,null);if(mode==='live')window._prevPerfSetsLive=null;else window._prevPerfSetsNonLive=null;return}
     const setsStr=found.substring(found.indexOf(":")+1).trim();
     const segs=setsStr.split(",").map(s=>s.trim()).filter(Boolean);
     const dateObj=new Date(foundDate+"T00:00:00");
@@ -13677,7 +13699,85 @@ async function fetchPrevPerformance(exerciseName, mode, excludeDate){
     }).join('');
     valueEl.innerHTML=`<div style="margin-bottom:2px"><span style="font-size:10px;font-weight:700;color:var(--text-muted);font-family:var(--font-alt);letter-spacing:0.4px">${segs.length} SET${segs.length>1?'S':''} — ${dateLabel}</span></div>${setsHtml}`;
     badgeEl.classList.add("visible");
-  }catch(err){badgeEl.classList.remove("visible");if(mode==='live')window._prevPerfSetsLive=null;else window._prevPerfSetsNonLive=null}
+    // Max/Min stat row — only meaningful for genuine Kg+Reps / Reps-only sets (see
+    // computeExerciseMaxMinStats above); Cardio and Kg+Km (loaded carries) exercises carry no
+    // comparable Kg/Reps pair, so the row stays hidden for those instead of showing something misleading.
+    if(isTimeBasedExercise(exerciseName)||segs.some(seg=>isKgKmSetString(seg))){
+      renderPrevPerfStats(mode,null);
+    } else {
+      computeExerciseMaxMinStats(exerciseName).then(stats=>renderPrevPerfStats(mode,stats));
+    }
+  }catch(err){badgeEl.classList.remove("visible");renderPrevPerfStats(mode,null);if(mode==='live')window._prevPerfSetsLive=null;else window._prevPerfSetsNonLive=null}
+}
+/* ===================== PREVIOUS PERFORMANCE — MAX/MIN STAT ROW =====================
+   Computed across the exercise's ENTIRE saved history (every session ever logged for this name),
+   not just the single previous session shown in the badge above. Only called for genuine Kg+Reps /
+   Reps-only (bodyweight) strength formats — Cardio and Kg+Km (loaded carries) sets are filtered out
+   before this is ever invoked (see fetchPrevPerformance above).
+   Kg+Reps: Max/Min Weight = the heaviest/lightest SINGLE SET weight ever logged, set-wise, across
+   every session. Reps-only (every logged set is 0kg): Max/Min instead compare the SUMMED reps of a
+   whole session (all sets on one date added together), since a lone set's rep count alone isn't a
+   meaningful "best/worst session" the way a weight is — the same Total-Reps convention already used
+   by the Workout Tracker's Recent/Highest/Lowest column (see buildVolCell's isBW branch). */
+async function computeExerciseMaxMinStats(exerciseName){
+  const uid=getEffectiveUid();
+  if(!uid||!exerciseName)return null;
+  const nameLower=exerciseName.toLowerCase().trim();
+  try{
+    const{data,error}=await db.from(SESSION_TABLE).select("date,workouts").eq("user_id",uid);
+    if(error||!data||!data.length)return null;
+    const allSets=[];
+    data.forEach(row=>{
+      sessionWorkoutsArray(row).forEach(wEntryRaw=>{
+        const wEntry=sessionDecodeWorkoutEntry(wEntryRaw);
+        if((wEntry.name||'').toLowerCase().trim()!==nameLower)return;
+        (wEntry.sets||'').split(',').map(s=>s.trim()).filter(Boolean).forEach(setStr=>{
+          if(isCardioSetString(setStr)||isKgKmSetString(setStr))return; // only plain Kg/Reps sets count
+          const{weight,reps}=parseSetWeightReps(setStr);
+          allSets.push({weight,reps,date:row.date});
+        });
+      });
+    });
+    if(!allSets.length)return null;
+    const isBW=allSets.every(s=>s.weight===0); // pure Reps-only/bodyweight — see isBW convention above
+    if(isBW){
+      const sessTotals={};
+      allSets.forEach(s=>{sessTotals[s.date]=(sessTotals[s.date]||0)+s.reps;});
+      const totals=Object.values(sessTotals);
+      if(!totals.length)return null;
+      return{type:'reps',max:Math.max(...totals),min:Math.min(...totals)};
+    }
+    const weights=allSets.map(s=>s.weight);
+    return{type:'weight',max:Math.max(...weights),min:Math.min(...weights)};
+  }catch(err){return null}
+}
+/* Formats a Kg value the same trimmed way as the rest of the app (e.g. Track Workout's Highest
+   Weight box): whole numbers show with no decimal, fractional Kg shows to 1 decimal place. */
+function _fmtStatWeight(w){const n=parseFloat(w)||0;return n%1===0?n:parseFloat(n.toFixed(1))}
+/* Renders (or hides) the Max/Min stat row for the given mode ('nonlive'|'live') — Min bottom-left,
+   Max bottom-right (see .prev-perf-stats CSS, which keeps both on one line and auto-shrinks via
+   cqw/clamp() on narrow screens). Safe no-op when the mode's DOM elements don't exist (there is
+   currently no Live-mode badge markup — Live previous-performance lookups return before reaching
+   here, see the !badgeEl||!valueEl guard at the top of fetchPrevPerformance). */
+function renderPrevPerfStats(mode,stats){
+  const suffix=mode==='live'?'Live':'NonLive';
+  const row=document.getElementById(`prevPerfStats${suffix}`);
+  const minTag=document.getElementById(`prevPerfMinTag${suffix}`),maxTag=document.getElementById(`prevPerfMaxTag${suffix}`);
+  const minEl=document.getElementById(`prevPerfMin${suffix}`),maxEl=document.getElementById(`prevPerfMax${suffix}`);
+  if(!row||!minEl||!maxEl)return;
+  if(!stats){row.style.display='none';return}
+  if(stats.type==='reps'){
+    if(minTag)minTag.textContent='Min Reps';
+    if(maxTag)maxTag.textContent='Max Reps';
+    minEl.textContent=`${stats.min} reps`;
+    maxEl.textContent=`${stats.max} reps`;
+  } else {
+    if(minTag)minTag.textContent='Min Weight';
+    if(maxTag)maxTag.textContent='Max Weight';
+    minEl.textContent=`${_fmtStatWeight(stats.min)}kg`;
+    maxEl.textContent=`${_fmtStatWeight(stats.max)}kg`;
+  }
+  row.style.display='flex';
 }
 
 /* ===================== COPY PREVIOUS PERFORMANCE INTO CURRENT WORKOUT ===================== */
