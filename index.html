@@ -13322,10 +13322,17 @@ async function saveWorkoutLogEntry(){
   const savedSlot=await sessionUpsertWorkoutEntry(uid,td,slotRef,entry);
   if(!savedSlot){alert("Daily capacity of 15 entries reached for this session.");return}
   editOriginalDurations={};
-  // Level Up check: highest Kg (or, for pure bodyweight, highest Reps) across all sets being saved,
-  // compared vs ALL-time saved history for this exercise.
-  {const _mx=computeSessionMaxes(sd);
-   checkAndShowLevelUp(name,_mx.maxKg,_mx.maxKg>0?_mx.maxKgReps:_mx.totalReps,_mx.totalVolume,isKgKm);}
+  // Level Up check: highest Kg (or, for pure bodyweight, highest Reps; or, for Kg+Km, highest Km
+  // too) across all sets being saved, compared vs ALL-time saved history for this exercise. Cardio/
+  // Time Only route to their own Duration-based check instead — they carry no Kg/Reps at all, so
+  // computeSessionMaxes would always read 0 for them.
+  if(isCardio||isTimeOnly){
+    const _tmx=computeSessionTimeMaxes(sd);
+    checkAndShowTimeLevelUp(name,_tmx.maxDurationSec,_tmx.totalDurationSec,_tmx.maxKm,isCardio);
+  } else {
+    const _mx=computeSessionMaxes(sd);
+    checkAndShowLevelUp(name,_mx.maxKg,_mx.maxKg>0?_mx.maxKgReps:_mx.totalReps,_mx.totalVolume,isKgKm,_mx.maxKm);
+  }
   showToast(`✅ Workout saved! +${xpe} XP earned!`);
   // Multiple-workouts-at-a-time: if more entries are queued, load the next one into the still-open
   // form instead of closing it. Only relevant for the non-live, brand-new-entry flow that queued them.
@@ -13745,10 +13752,13 @@ window._liveEditSetCopiedFlags={};
 /* Small helper: given an array of saved set-segment strings (e.g. "20Kg x 10 [30 sec]" or
    "0kg x 15"), returns the highest Kg logged (+ the reps that went with it), the highest Reps
    logged across ALL sets regardless of Kg (used so pure-bodyweight sessions can be compared on
-   Reps), the TOTAL reps across every set (for the bodyweight total-reps PR), and the TOTAL volume
-   (Kg × Reps, summed across every set — for the weighted-exercise total-volume PR). */
+   Reps), the TOTAL reps across every set (for the bodyweight total-reps PR), the TOTAL volume
+   (Kg × Reps, summed across every set — for the weighted-exercise total-volume PR), and — for
+   Kg+Km (loaded carries) only — the highest single-set Km logged regardless of which set it was
+   (maxKm, for the Kg+Km Distance PR; independent of maxKgReps, which pairs Km with the heaviest
+   Kg specifically, since the longest carry and the heaviest carry aren't always the same set). */
 function computeSessionMaxes(segs){
-  let maxKg=0,maxKgReps=0,maxReps=0,totalReps=0,totalVolume=0;
+  let maxKg=0,maxKgReps=0,maxReps=0,totalReps=0,totalVolume=0,maxKm=0;
   (segs||[]).forEach(seg=>{
     if(isKgKmSetString(seg)){
       // Kg+Km (loaded carries) — the "Volume" PR is the Kg field's own plain total here too (see
@@ -13757,6 +13767,7 @@ function computeSessionMaxes(segs){
       // shape a Kg+Reps set's maxKg/maxKgReps pairing already has.
       const kp=parseKgKmSetSegment(seg);
       if(kp.weight>maxKg){maxKg=kp.weight;maxKgReps=kp.km}
+      if(kp.km>maxKm)maxKm=kp.km;
       totalVolume+=kp.weight;
       return;
     }
@@ -13771,7 +13782,25 @@ function computeSessionMaxes(segs){
     totalReps+=r;
     totalVolume+=k*r;
   });
-  return{maxKg,maxKgReps,maxReps,totalReps,totalVolume};
+  return{maxKg,maxKgReps,maxReps,totalReps,totalVolume,maxKm};
+}
+/* Time-based equivalent of computeSessionMaxes, for Cardio (Km+Time) and Time Only exercises —
+   given an array of saved cardio/time-only segment strings (e.g. "0.50Km x 5min 30sec" or
+   "5min 30sec"), returns the highest single-set Duration logged (maxDurationSec), the TOTAL
+   Duration across every set (totalDurationSec — the session/entry's overall time), and — for
+   Cardio only — the highest single-set Km logged (maxKm; always 0 for Time Only, which has no
+   Km field at all). Mirrors computeSessionMaxes' shape/naming so the two stay easy to read
+   side-by-side. */
+function computeSessionTimeMaxes(segs){
+  let maxDurationSec=0,totalDurationSec=0,maxKm=0;
+  (segs||[]).forEach(seg=>{
+    if(!isCardioSetString(seg))return;
+    const cp=parseCardioSetSegment(seg);
+    if(cp.totalSec>maxDurationSec)maxDurationSec=cp.totalSec;
+    totalDurationSec+=cp.totalSec;
+    if(cp.km>maxKm)maxKm=cp.km;
+  });
+  return{maxDurationSec,totalDurationSec,maxKm};
 }
 /* Formats a saved DB date string ("YYYY-MM-DD") the same way the Previous Performance badge does. */
 function formatLevelUpDate(dateStr){
@@ -13791,7 +13820,7 @@ function formatLevelUpDate(dateStr){
    - Otherwise, if currentReps>0 (a true bodyweight exercise with no Kg entered): compares the
      CURRENT TOTAL reps against the HIGHEST TOTAL reps ever logged in a single saved entry (summed
      across that entry's sets, only counting entries that were also bodyweight-only). */
-async function checkAndShowLevelUp(exerciseName,currentKg,currentReps,currentVolume,isKgKm){
+async function checkAndShowLevelUp(exerciseName,currentKg,currentReps,currentVolume,isKgKm,currentKm){
   if(!exerciseName)return;
   if(currentKg<=0&&currentReps<=0)return;
   if(isRoomMemberModeActive())return; // members: skip prior-day comparisons/toasts
@@ -13809,8 +13838,11 @@ async function checkAndShowLevelUp(exerciseName,currentKg,currentReps,currentVol
     if(currentKg>0){
       // Kg record: HIGHEST single-set Kg ever recorded for this exercise across ALL saved history.
       // Volume record: HIGHEST total volume (Kg × Reps, summed per saved entry) ever recorded.
+      // Distance record (Kg+Km only): HIGHEST single-set Km ever recorded — independent of which
+      // set was heaviest, since the longest carry and the heaviest carry aren't always the same set.
       let bestKg=null,bestKgReps=null,bestKgDate=null;
       let bestVolume=null,bestVolumeDate=null;
+      let bestKm=null,bestKmDate=null;
       for(const row of data){
         for(const wEntryRaw of sessionWorkoutsArray(row)){
           const wEntry=sessionDecodeWorkoutEntry(wEntryRaw);
@@ -13825,6 +13857,7 @@ async function checkAndShowLevelUp(exerciseName,currentKg,currentReps,currentVol
               const kp=parseKgKmSetSegment(seg);
               entryVolume+=kp.weight;
               if(bestKg===null||kp.weight>bestKg){bestKg=kp.weight;bestKgReps=kp.km;bestKgDate=row.date}
+              if(bestKm===null||kp.km>bestKm){bestKm=kp.km;bestKmDate=row.date}
               continue;
             }
             const m=seg.match(/([\d.]+)\s*[Kk][Gg]?\s*x\s*([\d.]+)/i);
@@ -13836,7 +13869,7 @@ async function checkAndShowLevelUp(exerciseName,currentKg,currentReps,currentVol
           if(entryVolume>0&&(bestVolume===null||entryVolume>bestVolume)){bestVolume=entryVolume;bestVolumeDate=row.date}
         }
       }
-      console.log('[LevelUp]',exerciseName,'bestKg='+bestKg,'currentKg='+currentKg,'bestVolume='+bestVolume,'currentVolume='+currentVolume);
+      console.log('[LevelUp]',exerciseName,'bestKg='+bestKg,'currentKg='+currentKg,'bestVolume='+bestVolume,'currentVolume='+currentVolume,'bestKm='+bestKm,'currentKm='+currentKm);
       if(bestKg!==null&&currentKg>bestKg){
         records.push({type:'kg',prevVal:bestKg,prevReps:bestKgReps,prevDate:bestKgDate,curVal:currentKg,curReps:currentReps,curDate:todayStr,isKgKm});
       }
@@ -13848,6 +13881,9 @@ async function checkAndShowLevelUp(exerciseName,currentKg,currentReps,currentVol
         records.push(isKgKm
           ?{type:'volume',prevVal:parseFloat(formatTrimmedNum(bestVolume)),prevDate:bestVolumeDate,curVal:parseFloat(formatTrimmedNum(currentVolume)),curDate:todayStr,isKgKm:true}
           :{type:'volume',prevVal:Math.round(bestVolume),prevDate:bestVolumeDate,curVal:Math.round(currentVolume),curDate:todayStr});
+      }
+      if(isKgKm&&bestKm!==null&&(currentKm||0)>bestKm){
+        records.push({type:'distance',prevVal:bestKm,prevDate:bestKmDate,curVal:currentKm,curDate:todayStr});
       }
     } else if(currentReps>0){
       // Reps record (pure bodyweight, no Kg entered): compare the CURRENT TOTAL reps (summed
@@ -13876,6 +13912,66 @@ async function checkAndShowLevelUp(exerciseName,currentKg,currentReps,currentVol
       if(bestTotalReps!==null&&currentReps>bestTotalReps){
         records.push({type:'reps',prevVal:bestTotalReps,prevDate:bestTotalRepsDate,curVal:currentReps,curDate:todayStr});
       }
+    }
+    if(records.length)showLevelUpNotification(exerciseName,records);
+  }catch(e){console.error('[LevelUp] Exception:',e)}
+}
+/* Time-based equivalent of checkAndShowLevelUp, for Cardio (Km+Time) and Time Only exercises —
+   these carry no Kg/Reps at all, so they were previously skipped by checkAndShowLevelUp entirely
+   (currentKg<=0 && currentReps<=0 always true for them) and never showed a PR toast. Scans ALL
+   saved prior-day history for this exercise and shows a "Level Up / NEW PR" toast if the current
+   session beats the all-time best on any of:
+     • Duration record: the HIGHEST single-set Duration ever logged for this exercise, across
+       EVERY individual set in every saved entry (any set, any day — same "any set's personal
+       best" shape the Kg record already has, just for Duration instead of Kg).
+     • Total Duration record: the HIGHEST total Duration (summed across every set) ever logged in
+       a single saved entry for this exercise — the Duration equivalent of the Volume record.
+     • Distance record (Cardio/Km+Time only — Time Only never logs a Km at all, so this simply
+       never fires for it): the HIGHEST single-set Km ever logged for this exercise, across every
+       saved entry — same "any set's personal best" shape as Kg+Km's own Distance record. */
+async function checkAndShowTimeLevelUp(exerciseName,currentMaxDurationSec,currentTotalDurationSec,currentKm,isCardio){
+  if(!exerciseName)return;
+  if(currentMaxDurationSec<=0&&currentTotalDurationSec<=0)return;
+  if(isRoomMemberModeActive())return; // members: skip prior-day comparisons/toasts
+  const uid=getEffectiveUid();
+  if(!uid)return;
+  // Exclude today — only compare against strictly prior-day historical data so that
+  // sets saved within the same day's session don't compare against themselves.
+  const todayStr=getLocalDateString();
+  try{
+    const{data,error}=await db.from(SESSION_TABLE).select('date,workouts').eq('user_id',uid).lt('date',todayStr).order('date',{ascending:false}).limit(500);
+    if(error){console.warn('[LevelUp] DB error:',error);return}
+    if(!data||!data.length){console.log('[LevelUp] No prior-day data found for uid',uid);return}
+    const nameLower=exerciseName.toLowerCase().trim();
+    const records=[];
+    let bestMaxDurationSec=null,bestMaxDurationDate=null;
+    let bestTotalDurationSec=null,bestTotalDurationDate=null;
+    let bestKm=null,bestKmDate=null;
+    for(const row of data){
+      for(const wEntryRaw of sessionWorkoutsArray(row)){
+        const wEntry=sessionDecodeWorkoutEntry(wEntryRaw);
+        if(wEntry.name.toLowerCase()!==nameLower)continue;
+        const segs=(wEntry.sets||'').split(',').map(s=>s.trim()).filter(Boolean);
+        let entryTotalSec=0;
+        for(const seg of segs){
+          if(!isCardioSetString(seg))continue;
+          const cp=parseCardioSetSegment(seg);
+          entryTotalSec+=cp.totalSec;
+          if(bestMaxDurationSec===null||cp.totalSec>bestMaxDurationSec){bestMaxDurationSec=cp.totalSec;bestMaxDurationDate=row.date}
+          if(cp.km>0&&(bestKm===null||cp.km>bestKm)){bestKm=cp.km;bestKmDate=row.date}
+        }
+        if(entryTotalSec>0&&(bestTotalDurationSec===null||entryTotalSec>bestTotalDurationSec)){bestTotalDurationSec=entryTotalSec;bestTotalDurationDate=row.date}
+      }
+    }
+    console.log('[LevelUp]',exerciseName,'bestMaxDurationSec='+bestMaxDurationSec,'currentMaxDurationSec='+currentMaxDurationSec,'bestTotalDurationSec='+bestTotalDurationSec,'currentTotalDurationSec='+currentTotalDurationSec,'bestKm='+bestKm,'currentKm='+currentKm);
+    if(bestMaxDurationSec!==null&&currentMaxDurationSec>bestMaxDurationSec){
+      records.push({type:'duration',prevVal:bestMaxDurationSec,prevDate:bestMaxDurationDate,curVal:currentMaxDurationSec,curDate:todayStr});
+    }
+    if(bestTotalDurationSec!==null&&currentTotalDurationSec>bestTotalDurationSec){
+      records.push({type:'totalDuration',prevVal:bestTotalDurationSec,prevDate:bestTotalDurationDate,curVal:currentTotalDurationSec,curDate:todayStr});
+    }
+    if(isCardio&&bestKm!==null&&(currentKm||0)>bestKm){
+      records.push({type:'distance',prevVal:bestKm,prevDate:bestKmDate,curVal:currentKm,curDate:todayStr});
     }
     if(records.length)showLevelUpNotification(exerciseName,records);
   }catch(e){console.error('[LevelUp] Exception:',e)}
@@ -13920,6 +14016,25 @@ function showLevelUpNotification(exerciseName,records){
       type='Volume';highestLabel='Highest Volume Done';
       prevContent=info.isKgKm?`${info.prevVal.toLocaleString()} Kg${prevDateSuffix}`:`${info.prevVal.toLocaleString()} kg·reps${prevDateSuffix}`;
       curContent=info.isKgKm?`${info.curVal.toLocaleString()} Kg${curDateSuffix}`:`${info.curVal.toLocaleString()} kg·reps${curDateSuffix}`;
+    }else if(info.type==='distance'){
+      // Kg+Km's and Cardio's own Distance record — the highest single-set Km ever logged for this
+      // exercise, independent of which set was heaviest/longest (see checkAndShowLevelUp/
+      // checkAndShowTimeLevelUp).
+      type='Distance';highestLabel='Highest Distance (Single Set)';
+      prevContent=`${info.prevVal.toFixed(2)}km${prevDateSuffix}`;
+      curContent=`${info.curVal.toFixed(2)}km${curDateSuffix}`;
+    }else if(info.type==='duration'){
+      // Cardio/Time Only — the highest single-set Duration ever logged for this exercise, any set,
+      // any day (see checkAndShowTimeLevelUp).
+      type='Duration';highestLabel='Highest Set Duration';
+      prevContent=`${formatDurationLongForm(info.prevVal)}${prevDateSuffix}`;
+      curContent=`${formatDurationLongForm(info.curVal)}${curDateSuffix}`;
+    }else if(info.type==='totalDuration'){
+      // Cardio/Time Only — the highest TOTAL Duration (summed across every set) ever logged in a
+      // single saved entry for this exercise — the Duration equivalent of the Volume record.
+      type='Total Duration';highestLabel='Highest Total Duration';
+      prevContent=`${formatDurationLongForm(info.prevVal)}${prevDateSuffix}`;
+      curContent=`${formatDurationLongForm(info.curVal)}${curDateSuffix}`;
     }else{
       type='Reps';highestLabel='Highest Reps Done';
       prevContent=`${info.prevVal} reps${prevDateSuffix}`;
