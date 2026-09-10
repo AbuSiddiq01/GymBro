@@ -14245,6 +14245,13 @@ function _initLevelUpSwipe(el){
   function onStart(e){
     const t=e.touches?e.touches[0]:e;
     startX=t.clientX;dx=0;dragging=true;
+    // The toast's entrance CSS animation (levelUpIn) uses fill-mode "forwards", which means its
+    // final keyframe (transform/opacity) keeps overriding any inline style.transform/opacity we
+    // set from JS below — even though it "finished" playing. Without cancelling it here, the box
+    // never visually follows the finger during a drag (the animation silently wins every frame),
+    // even though onEnd's dismiss-on-threshold logic still fires normally — so it looked like any
+    // swipe just made the box disappear instantly instead of actually dragging with the finger.
+    el.style.animation='none';
     el.style.transition='none';
   }
   function onMove(e){
