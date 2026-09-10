@@ -3424,10 +3424,10 @@ body.tracker-fs-lock{overflow:hidden}
                 <label for="trackerGraphModeSelect">View</label>
                 <select class="tracker-graph-mode-select" id="trackerGraphModeSelect" onchange="changeTrackerGraphMode(this.value)">
                   <option value="volume" class="trk-opt-strength">Volume</option>
-                  <option value="weight" class="trk-opt-strength">Weight</option>
+                  <option value="weight" class="trk-opt-strength trk-opt-kgkm">Weight</option>
                   <option value="reps" class="trk-opt-strength">Reps</option>
                   <option value="duration" class="trk-opt-cardio">Duration</option>
-                  <option value="distance" class="trk-opt-cardio trk-opt-distance">Distance</option>
+                  <option value="distance" class="trk-opt-cardio trk-opt-distance trk-opt-kgkm">Distance</option>
                 </select>
               </div>
               <button class="tracker-analytics-close" onclick="closeTrackerAnalytics()">✕ Close</button>
@@ -5519,7 +5519,9 @@ function calculateVolumeXP(s){
   s.split(':')[1].split(',').forEach(seg=>{
     seg=seg.trim();
     if(isCardioSetString(seg)){cardioSec+=parseCardioSetSegment(seg).totalSec;return}
-    const m=seg.match(/([\d.]+)\s*kg\s*x\s*(\d+)/i);if(m)t+=parseFloat(m[1])*parseInt(m[2]);
+    // Decimal-aware second number so Kg+Km sets (loaded carries) contribute their full Km value to
+    // volume-based XP too, instead of being truncated to a whole number.
+    const m=seg.match(/([\d.]+)\s*kg\s*x\s*([\d.]+)/i);if(m)t+=parseFloat(m[1])*parseFloat(m[2]);
   });
   return Math.floor(t/100)*10+Math.floor(cardioSec/60)*10;
 }
@@ -5812,7 +5814,7 @@ const EXERCISE_CATALOG=[
   {name:"Skiing",class:"Cardio",equipment:"Bodyweight",format:"Time Only"},{name:"Spinning",class:"Cardio",equipment:"Machine",format:"Time Only"},
   {name:"Stair Machine (Steps)",class:"Cardio",equipment:"Machine",format:"Km+Time"},{name:"Running",class:"Cardio",equipment:"Bodyweight",format:"Km+Time"},
   {name:"Boxing",class:"Cardio",equipment:"Bodyweight",format:"Time Only"},{name:"Skater Jumps (Bodyweight)",class:"Cardio",equipment:"Bodyweight",format:"Km+Time"},
-  {name:"Sled Pull",class:"Full Body",equipment:"Machine",format:"Kg+Reps"},{name:"Sled Push",class:"Full Body",equipment:"Machine",format:"Km+Time"},
+  {name:"Sled Pull",class:"Full Body",equipment:"Machine",format:"Kg+Km"},{name:"Sled Push",class:"Full Body",equipment:"Machine",format:"Km+Time"},
   {name:"Swimming",class:"Cardio",equipment:"Bodyweight",format:"Km+Time"},{name:"Walking Lunge (Sandbag)",class:"Legs",equipment:"Sandbag",format:"Kg+Reps"},
   {name:"Arm Circles (Bodyweight)",class:"Warmup",equipment:"Bodyweight",format:"Reps Only"},{name:"Leg Swings (Bodyweight)",class:"Warmup",equipment:"Bodyweight",format:"Reps Only"},
   {name:"Bulgarian Split Squat (Barbell)",class:"Legs",equipment:"Barbell",format:"Kg+Reps"},{name:"Sprints",class:"Cardio",equipment:"Bodyweight",format:"Km+Time"},
@@ -5824,7 +5826,7 @@ const EXERCISE_CATALOG=[
   {name:"Burpee",class:"Full Body",equipment:"Bodyweight",format:"Reps Only"},{name:"Burpee Over the Bar",class:"Full Body",equipment:"Bodyweight",format:"Reps Only"},
   {name:"Clean and Press",class:"Full Body",equipment:"Barbell",format:"Kg+Reps"},{name:"Power Clean",class:"Full Body",equipment:"Barbell",format:"Kg+Reps"},
   {name:"Clean and Jerk",class:"Full Body",equipment:"Barbell",format:"Kg+Reps"},{name:"Thruster (Barbell)",class:"Full Body",equipment:"Barbell",format:"Kg+Reps"},
-  {name:"Thruster (Kettlebell)",class:"Full Body",equipment:"Kettlebell",format:"Kg+Reps"},{name:"Farmers Walk",class:"Full Body",equipment:"Dumbbell",format:"Kg+Reps"},
+  {name:"Thruster (Kettlebell)",class:"Full Body",equipment:"Kettlebell",format:"Kg+Reps"},{name:"Farmers Walk",class:"Full Body",equipment:"Dumbbell",format:"Kg+Km"},
   {name:"Wall Ball",class:"Full Body",equipment:"Machine",format:"Kg+Reps"},{name:"Mountain Climber",class:"Full Body",equipment:"Bodyweight",format:"Reps Only"},
   {name:"Ball Slams",class:"Full Body",equipment:"Machine",format:"Kg+Reps"},{name:"Clean",class:"Full Body",equipment:"Barbell",format:"Kg+Reps"},
   {name:"Kettlebell Clean",class:"Full Body",equipment:"Kettlebell",format:"Kg+Reps"},{name:"Clean Pull",class:"Full Body",equipment:"Barbell",format:"Kg+Reps"},
@@ -5844,7 +5846,7 @@ const EXERCISE_CATALOG=[
   {name:"Hip Thrust (Dumbbell)",class:"Legs",equipment:"Dumbbell",format:"Kg+Reps"},{name:"Glute Bridge (Barbell)",class:"Legs",equipment:"Barbell",format:"Kg+Reps"},
   {name:"Standing Calf Raise",class:"Legs",equipment:"Bodyweight",format:"Reps Only"},{name:"Hip Adduction (Cable)",class:"Legs",equipment:"Cable",format:"Kg+Reps"},
   {name:"Hip Abduction (Cable)",class:"Legs",equipment:"Cable",format:"Kg+Reps"},{name:"Yoga",class:"Full Body",equipment:"Bodyweight",format:"Time Only"},
-  {name:"Warm Up",class:"Full Body",equipment:"Bodyweight",format:"Time Only"},{name:"Suitcase Carry (Dumbbell)",class:"Full Body",equipment:"Dumbbell",format:"Kg+Reps"},
+  {name:"Warm Up",class:"Full Body",equipment:"Bodyweight",format:"Time Only"},{name:"Suitcase Carry (Dumbbell)",class:"Full Body",equipment:"Dumbbell",format:"Kg+Km"},
   {name:"Bear Crawl",class:"Full Body",equipment:"Bodyweight",format:"Km+Time"},{name:"Burpee Broad Jumps",class:"Full Body",equipment:"Bodyweight",format:"Km+Time"},
   {name:"Treadmill",class:"Cardio",equipment:"Machine",format:"Km+Time"},{name:"Walking",class:"Cardio",equipment:"Bodyweight",format:"Km+Time"},
   {name:"Reverse Wrist Curl (Dumbbell)",class:"Forearms",equipment:"Dumbbell",format:"Kg+Reps"},{name:"Seated Wrist Curl (Barbell)",class:"Forearms",equipment:"Barbell",format:"Kg+Reps"},
@@ -5917,10 +5919,19 @@ function getExerciseEquipment(nameRaw){
        isTimeBasedExercise below) — every set is still saved as a Km+Time-shaped segment with Km
        fixed at 0, and formatCardioSetDisplay simply omits the "0.00km x" prefix whenever Km is 0,
        so a Time Only set reads as plain "5min 30sec" everywhere it's displayed.
+     - "Kg+Km"     — loaded carries (Farmers Walk, Sled Pull, Suitcase Carry (Dumbbell)); exactly
+       the "Kg+Reps" set-row, with the Reps field swapped for a Km field. Every set is saved as a
+       self-describing "20Kg x 5.00Km" segment (see isKgKmSetString/parseKgKmSetSegment/
+       formatKgKmSetDisplay) — the "Km" suffix on the second number is what tells the shared
+       Kg/Reps-shaped storage & volume pipeline (parseWorkoutSets, parseWorkoutVolume,
+       parseSetVolume/parseSetWeightReps) that this is a distance, not a rep count, without needing
+       exercise-name context at every call site. Volume/PR aggregation reuses the exact same
+       weight×value formula a normal Kg+Reps set already uses (see formatExerciseVolTotal), just
+       relabeled "kg·km"; the Track Workout graph reuses the existing Weight and Distance modes
+       (see isKgKmExercise below and showTrackerAnalytics) rather than building a new graph type.
    Reserved for future updates (not implemented yet — every exercise below still falls back to one
-   of the four formats above until these are built): "Kg+Km" (loaded carries — Farmers Walk, Sled
-   Pull/Push), "Floors/Steps+Time" (Stair Machine). Add the new value here and to this comment when
-   implementing one of those. */
+   of the formats above until it's built): "Floors/Steps+Time" (Stair Machine). Add the new value
+   here and to this comment when implementing it. */
 function getExerciseFormat(nameRaw){
   if(!nameRaw)return 'Kg+Reps';
   let found=EXERCISE_CATALOG.find(e=>e.name===nameRaw);
@@ -5983,6 +5994,13 @@ function isTimeOnlyExercise(nameRaw){
 function isTimeBasedExercise(nameRaw){
   return isCardioExercise(nameRaw)||isTimeOnlyExercise(nameRaw);
 }
+/* True for any exercise whose format is "Kg+Km" (catalog or custom-exercise registry) — loaded
+   carries (Farmers Walk, Sled Pull, Suitcase Carry) logged by Weight + Distance instead of
+   Weight + Reps. See the "Kg+Km" entry in the format comment above for the full pipeline. */
+function isKgKmExercise(nameRaw){
+  if(!nameRaw)return false;
+  return getExerciseFormat(nameRaw)==='Kg+Km';
+}
 
 /* Parses a saved "0.50Km x 30min 23sec" (or legacy "0.50Km x 05:30") segment into
    {km,min,sec,totalSec}. Returns all-zero if the segment doesn't match (never throws — callers
@@ -6014,6 +6032,30 @@ function formatCardioSetDisplay(km,min,sec){
 function isCardioSetString(seg){
   const s=(seg||'').trim();
   return /^[\d.]+\s*[Kk][Mm]\s*x\s*\d/.test(s)||/^\d+\s*min\s*\d+\s*sec/i.test(s);
+}
+
+/* ===================== KG+KM (loaded carries: Farmers Walk, Sled Pull, Suitcase Carry) ====================
+   Same "Kg x value" shape a normal Kg+Reps set already uses, but the second number carries an
+   explicit "Km" suffix ("20Kg x 5.00Km") so it reads unambiguously as a distance rather than a
+   rep count, purely from the string itself — no exercise-name lookup needed at parse time, exactly
+   like isCardioSetString above needs none either. */
+function isKgKmSetString(seg){
+  return /^[\d.]+\s*[Kk]g\s*x\s*[\d.]+\s*[Kk][Mm]\b/.test((seg||'').trim());
+}
+/* Parses a saved "20Kg x 5.00Km" segment into {weight,km}. Returns all-zero if the segment doesn't
+   match (never throws — callers treat a non-match as "no data", same convention as
+   parseCardioSetSegment). */
+function parseKgKmSetSegment(seg){
+  const s=(seg||'').trim();
+  const m=s.match(/^([\d.]+)\s*[Kk]g\s*x\s*([\d.]+)\s*[Kk][Mm]/);
+  if(m)return{weight:parseFloat(m[1])||0,km:parseFloat(m[2])||0};
+  return{weight:0,km:0};
+}
+/* Formats a Kg+Km segment's weight+distance the way it should read everywhere in the UI: workout
+   list, edit form badges, Volume Breakdown set lines, tracker set breakdown. */
+function formatKgKmSetDisplay(weight,km){
+  const w=parseFloat(weight)||0,k=parseFloat(km)||0;
+  return `${w}Kg x ${k.toFixed(2)}km`;
 }
 
 /* ===================== CARDIO DURATION PICKER =====================
@@ -10103,9 +10145,11 @@ async function updateDurationLineChart(){
 function parseWorkoutVolume(str){
   if(!str||!str.trim())return 0;
   let total=0;
-  // match patterns like 5kg x 10 or 5Kg x 10 x 30sec
-  const matches=str.matchAll(/(\d+(?:\.\d+)?)\s*[Kk]g\s*x\s*(\d+)/g);
-  for(const m of matches)total+=parseFloat(m[1])*parseInt(m[2]);
+  // match patterns like 5kg x 10 or 5Kg x 10 x 30sec — second number allows a decimal so Kg+Km
+  // sets (loaded carries: Farmers Walk, Sled Pull, Suitcase Carry — see isKgKmExercise) can carry
+  // a Km distance in this same slot (e.g. "20Kg x 0.50Km") without losing precision.
+  const matches=str.matchAll(/(\d+(?:\.\d+)?)\s*[Kk]g\s*x\s*(\d+(?:\.\d+)?)/g);
+  for(const m of matches)total+=parseFloat(m[1])*parseFloat(m[2]);
   return total;
 }
 
@@ -11103,6 +11147,13 @@ function parseWorkoutSets(rawStr){
       const cp=parseCardioSetSegment(seg);
       return{desc:formatCardioSetDisplay(cp.km,cp.min,cp.sec),vol:0,w:0,r:0,isBW:false,isCardio:true,km:cp.km,sec:cp.totalSec};
     }
+    if(isKgKmSetString(seg)){
+      // Loaded carries (Farmers Walk, Sled Pull, Suitcase Carry) — same weight×value volume formula
+      // a normal Kg+Reps set uses, just with Km standing in for Reps (see the "Kg+Km" format note).
+      const kp=parseKgKmSetSegment(seg);
+      const vol=Math.round(kp.weight*kp.km);
+      return{desc:formatKgKmSetDisplay(kp.weight,kp.km),vol,w:kp.weight,r:kp.km,isBW:false,isCardio:false,isKgKm:true,km:kp.km};
+    }
     const durMatch=seg.match(/\[(.*?)\]/);
     const duration=durMatch?durMatch[1].trim():null;
     const clean=seg.replace(/\[.*?\]/g,'').trim();
@@ -11126,6 +11177,11 @@ function isAllBodyweightSets(sets){
    all, so they're always routed to their own distance/duration total instead of Volume/Reps. */
 function isAllCardioSets(sets){
   return sets.length>0&&sets.every(s=>s.isCardio);
+}
+/* Whether every set in a workout entry is a Kg+Km (loaded carry) set — routed to the "kg·km" total\r
+   below instead of the default "kg·reps" one. */
+function isAllKgKmSets(sets){
+  return sets.length>0&&sets.every(s=>s.isKgKm);
 }
 /* Formats a total cardio duration (seconds) as "M:SS" (e.g. 600 → "10:00") — used anywhere a
    Cardio exercise's total is shown, in place of the total distance in Km. */
@@ -11156,6 +11212,22 @@ function formatCardioTotalDetail(sets){
   if(totalKm<=0)return formatDurationLongForm(totalSec);
   return `${totalKm.toFixed(2)}km · ${formatTotalCardioTime(totalSec)}`;
 }
+/* Trims a number to at most 2 decimal places and drops trailing zeros — 3 stays "3", 1.25 stays
+   "1.25", 1.20 becomes "1.2". Used wherever a summed Kg or Km total needs to read naturally instead
+   of always carrying two decimals. */
+function formatTrimmedNum(n){
+  return String(parseFloat((n||0).toFixed(2)));
+}
+/* Kg+Km footer total (Volume page's per-exercise "TOTAL" box, loaded carries only) shows the summed
+   Kg and summed Km SEPARATELY ("15Kg-3Km") instead of their multiplied volume figure that
+   formatExerciseVolTotal's "kg·km" unit gives everywhere else (header row, saved workout card,
+   Previous Performance badge, tracker) — a plain "15" there reads as if only Kg were logged, when
+   what's actually useful in the Volume Breakdown total specifically is both raw totals at a glance. */
+function formatKgKmTotalDetail(sets){
+  const totalKg=sets.reduce((a,s)=>a+(s.w||0),0);
+  const totalKm=sets.reduce((a,s)=>a+(s.km||0),0);
+  return `${formatTrimmedNum(totalKg)}Kg-${formatTrimmedNum(totalKm)}Km`;
+}
 /* Returns {primary, unit} for an exercise's total — total Duration (M:SS) for Cardio entries,
    reps-based for pure bodyweight entries, kg·reps-based otherwise — used across the saved workout
    list header and the Volume breakdown views. */
@@ -11163,6 +11235,11 @@ function formatExerciseVolTotal(w,sets){
   if(isAllCardioSets(sets)){
     const totalSec=sets.reduce((a,s)=>a+(s.sec||0),0);
     return{primary:formatTotalCardioTime(totalSec),unit:''};
+  }
+  if(isAllKgKmSets(sets)){
+    // Same aggregate weight×value total a normal Kg+Reps exercise gets, just relabeled — the
+    // "value" here is Km carried, not Reps performed (see the "Kg+Km" format note).
+    return{primary:Math.round(w.vol).toLocaleString(),unit:'kg·km'};
   }
   if(isAllBodyweightSets(sets)){
     const totalReps=sets.reduce((a,s)=>a+(s.r||0),0);
@@ -11626,7 +11703,7 @@ function renderVolDrilldownEnhanced(day,titleId,bodyId,panel){
       sets.forEach((s,si)=>{
         html+=`<div class="vol-set-line"><span class="vol-set-desc">Set ${si+1} · ${s.desc}</span><span class="vol-set-vol">${(s.isBW||s.isCardio)?'':s.vol.toLocaleString()+' kg'}</span></div>`;
       });
-      const totalDetail=isAllCardioSets(sets)?formatCardioTotalDetail(sets):`${vt.primary} ${vt.unit}`;
+      const totalDetail=isAllCardioSets(sets)?formatCardioTotalDetail(sets):(isAllKgKmSets(sets)?formatKgKmTotalDetail(sets):`${vt.primary} ${vt.unit}`);
       html+=`<div class="vol-sets-total"><span>Total</span><strong>${totalDetail}</strong></div>`;
     }
     // Compare-mode only: lets the user check this exact exercise against whatever day/week is
@@ -11699,7 +11776,7 @@ function openExerciseCompare(panel,exName){
   const sideData=(panelSide,day,workout)=>{
     const sets=parseWorkoutSets(workout.name);
     const vt=formatExerciseVolTotal(workout,sets);
-    const totalDetail=isAllCardioSets(sets)?formatCardioTotalDetail(sets):`${vt.primary} ${vt.unit}`;
+    const totalDetail=isAllCardioSets(sets)?formatCardioTotalDetail(sets):(isAllKgKmSets(sets)?formatKgKmTotalDetail(sets):`${vt.primary} ${vt.unit}`);
     return{panelSide,dateLabel:fmtDate(day),sets,totalDetail};
   };
 
@@ -12390,6 +12467,7 @@ function renderNonLiveSetsRows(weights,reps,locks,kms,mins,secs){
   const isCardio=isCardioExercise(exName);
   const isTimeOnly=isTimeOnlyExercise(exName);
   const isTimeBased=isCardio||isTimeOnly;
+  const isKgKm=isKgKmExercise(exName);
   const mountList=[]; // cardio/time-only time-pickers need scrollTop set post-mount
   // ===== LIVE MODE: which set is next up? =====
   // Sets must be completed in order only while Live Mode is ON, and (during an edit) only for
@@ -12473,7 +12551,13 @@ function renderNonLiveSetsRows(weights,reps,locks,kms,mins,secs){
       const bwHidden=isBW&&!bwKgRevealed.nonlive;
       const weightInputHtml=bwHidden?`<input type="number" id="weight_set_${i}" value="0" style="display:none">`:(isBW?`<input type="number" placeholder="Kgs (optional)" id="weight_set_${i}" min="0" max="500" step="0.5" value="${w}" ${locked?'readonly':''} ${pendAttr} class="kg-input" style="margin-top:0;padding:9px;flex:1" oninput="handleNonLiveSetInputChange();updateNonLiveActiveSetHighlight(${i})">`:`<input type="number" placeholder="Kgs" id="weight_set_${i}" min="0.5" max="500" step="0.5" value="${w}" ${locked?'readonly':''} ${pendAttr} class="kg-input" style="margin-top:0;padding:9px;flex:1" oninput="handleNonLiveSetInputChange();updateNonLiveActiveSetHighlight(${i})">`);
       const bwIcon=(isBW&&i===1)?bwInfoIconHtml('nonlive'):'';
-      c.innerHTML+=`<div class="set-row${locked?' set-row-locked':''}${pendingClass}${activeClass}" id="setRow_${i}" onclick="updateNonLiveActiveSetHighlight(${i})" ontouchstart="nlSetSwipeStart(event)" ontouchend="nlSetSwipeEnd(event,${i})">${labelHtml}${weightInputHtml}<input type="number" placeholder="Reps" id="reps_set_${i}" min="1" max="500" value="${r}" ${locked?'readonly':''} ${pendAttr} class="reps-input" style="margin-top:0;padding:9px;flex:1" oninput="handleNonLiveSetInputChange();updateNonLiveActiveSetHighlight(${i})">${bwIcon}${extraHtml}${copyBtn}${lockHtml}${delBtn}</div>${breakRowHtml}`;
+      // Kg+Km (loaded carries: Farmers Walk, Sled Pull, Suitcase Carry) reuses this exact Kg+Reps
+      // row/ids/save pipeline — only the second input's placeholder/step/decimals change to read as
+      // a Km distance instead of a rep count (see isKgKmExercise and saveWorkoutLogEntry).
+      const secondInputHtml=isKgKm
+        ?`<input type="number" placeholder="Km" id="reps_set_${i}" min="0.01" max="300" step="0.01" value="${r}" ${locked?'readonly':''} ${pendAttr} class="reps-input reps-input-kgkm" style="margin-top:0;padding:9px;flex:1" oninput="handleNonLiveSetInputChange();updateNonLiveActiveSetHighlight(${i})">`
+        :`<input type="number" placeholder="Reps" id="reps_set_${i}" min="1" max="500" value="${r}" ${locked?'readonly':''} ${pendAttr} class="reps-input" style="margin-top:0;padding:9px;flex:1" oninput="handleNonLiveSetInputChange();updateNonLiveActiveSetHighlight(${i})">`;
+      c.innerHTML+=`<div class="set-row${locked?' set-row-locked':''}${pendingClass}${activeClass}" id="setRow_${i}" onclick="updateNonLiveActiveSetHighlight(${i})" ontouchstart="nlSetSwipeStart(event)" ontouchend="nlSetSwipeEnd(event,${i})">${labelHtml}${weightInputHtml}${secondInputHtml}${bwIcon}${extraHtml}${copyBtn}${lockHtml}${delBtn}</div>${breakRowHtml}`;
     }
   }
   guardAllNumericSetInputs(c);
@@ -12545,6 +12629,11 @@ function guardNumericSetInput(el,kind,allowDecimal){
    field via their shared classes and wires the guard onto whichever ones aren't already bound. */
 function guardAllNumericSetInputs(root){
   (root||document).querySelectorAll('.kg-input').forEach(el=>guardNumericSetInput(el,'kg',true));
+  // Kg+Km's second field (loaded carries) reuses the .reps-input class for shared row styling, but
+  // needs decimal entry ("1.25") — guard it with allowDecimal first (sets el._numGuarded), so the
+  // generic .reps-input pass right below (integer-only, for real Reps fields) skips over it instead
+  // of re-guarding it and stripping the decimal point back out.
+  (root||document).querySelectorAll('.reps-input-kgkm').forEach(el=>guardNumericSetInput(el,'km',true));
   (root||document).querySelectorAll('.reps-input').forEach(el=>guardNumericSetInput(el,'reps',false));
   (root||document).querySelectorAll('.km-input').forEach(el=>guardNumericSetInput(el,'km',true));
 }
@@ -12600,8 +12689,10 @@ function copyFromPrevNonLiveSet(i){
   }
   const isBW=isBodyweightNoWeightExercise(exName);
   const kgPrev=parseFloat(document.getElementById(`weight_set_${i-1}`)?.value)||0;
-  const repsPrev=parseInt(document.getElementById(`reps_set_${i-1}`)?.value)||0;
-  if((!isBW&&kgPrev<0.5)||repsPrev<1){showToast(`⚠️ Set ${i-1} must have ${isBW?'Reps':'Kgs and Reps'} filled in first.`);return}
+  // parseFloat (not parseInt) — see checkQuickFillVisibility for why: this field is a Km value for
+  // Kg+Km exercises (loaded carries), not always a whole-number Reps count.
+  const repsPrev=parseFloat(document.getElementById(`reps_set_${i-1}`)?.value)||0;
+  if((!isBW&&kgPrev<0.5)||repsPrev<=0){showToast(`⚠️ Set ${i-1} must have ${isBW?'Reps':'Kgs and Reps'} filled in first.`);return}
   const wEl=document.getElementById(`weight_set_${i}`),rEl=document.getElementById(`reps_set_${i}`);
   if(wEl&&!wEl.readOnly)wEl.value=kgPrev;
   if(rEl&&!rEl.readOnly)rEl.value=repsPrev;
@@ -13134,6 +13225,7 @@ async function saveWorkoutLogEntry(){
   const isBW=isBodyweightNoWeightExercise(name);
   const isCardio=isCardioExercise(name);
   const isTimeOnly=isTimeOnlyExercise(name);
+  const isKgKm=isKgKmExercise(name);
   let sd=[],tv=0,totalCardioSec=0;
   for(let i=1;i<=sc;i++){
     if(isCardio||isTimeOnly){
@@ -13145,6 +13237,16 @@ async function saveWorkoutLogEntry(){
       if(totalSec<=0){alert(`Set ${i}: Must have a Duration greater than 0.`);return}
       totalCardioSec+=totalSec;
       sd.push(formatCardioSetDisplay(km,Math.floor(totalSec/60),totalSec%60));
+      continue;
+    }
+    if(isKgKm){
+      // Loaded carries (Farmers Walk, Sled Pull, Suitcase Carry) — same Kg/Reps row and validation
+      // shape, just with the second field read as a Km distance instead of a rep count.
+      const w=parseFloat(document.getElementById(`weight_set_${i}`).value)||0;
+      const km=parseFloat(document.getElementById(`reps_set_${i}`).value)||0;
+      if(w<0.5||km<=0){alert(`Set ${i}: Must have at least 0.5kg and a Km greater than 0.`);return}
+      tv+=w*km;
+      sd.push(formatKgKmSetDisplay(w,km));
       continue;
     }
     let w=parseFloat(document.getElementById(`weight_set_${i}`).value)||0,r=parseInt(document.getElementById(`reps_set_${i}`).value)||0;
@@ -13312,6 +13414,12 @@ async function fetchPrevPerformance(exerciseName, mode, excludeDate){
         const cp=parseCardioSetSegment(seg);
         return{type:'cardio',km:cp.km,min:cp.min,sec:cp.sec};
       }
+      if(isKgKmSetString(seg)){
+        // Kg+Km (loaded carries) — kg/reps slots still get reused (reps holds the Km value here),
+        // so "Copy previous performance" keeps working unchanged for this format too.
+        const kp=parseKgKmSetSegment(seg);
+        return{type:'strength',kg:String(kp.weight),reps:String(kp.km)};
+      }
       const m=seg.match(/([\d.]+)\s*[Kk][Gg]?\s*x\s*(\d+)/i);
       if(m)return{type:'strength',kg:m[1],reps:m[2]};
       // "N Reps" bodyweight-only format — no Kg component
@@ -13324,6 +13432,10 @@ async function fetchPrevPerformance(exerciseName, mode, excludeDate){
       if(isCardioSetString(seg)){
         const cp=parseCardioSetSegment(seg);
         return `<div style="display:flex;align-items:center;gap:6px;margin-top:3px"><span style="min-width:42px;font-size:10px;color:var(--text-muted);font-family:var(--font-alt);font-weight:700">Set ${si+1}</span><span style="font-size:13px;font-weight:700;color:var(--accent)">${formatCardioSetDisplay(cp.km,cp.min,cp.sec)}</span></div>`;
+      }
+      if(isKgKmSetString(seg)){
+        const kp=parseKgKmSetSegment(seg);
+        return `<div style="display:flex;align-items:center;gap:6px;margin-top:3px"><span style="min-width:42px;font-size:10px;color:var(--text-muted);font-family:var(--font-alt);font-weight:700">Set ${si+1}</span><span style="font-size:13px;font-weight:700;color:var(--accent)">${kp.weight}kg × ${kp.km.toFixed(2)} km</span></div>`;
       }
       const m=seg.match(/([\d.]+)\s*[Kk][Gg]?\s*x\s*(\d+)/i);
       const kg=m?m[1]:'?',reps=m?m[2]:'?';
@@ -13468,8 +13580,11 @@ function checkQuickFillVisibility(){
   }
   const isBW=isBodyweightNoWeightExercise(exName);
   const kg1=parseFloat(document.getElementById("weight_set_1")?.value)||0;
-  const reps1=parseInt(document.getElementById("reps_set_1")?.value)||0;
-  if((isBW||kg1>=0.5)&&reps1>=1)btn.classList.add("visible");
+  // parseFloat (not parseInt) so a Kg+Km Set 1 value like 1.25 or 0.25 isn't truncated down to a
+  // whole number or read as 0 — Reps itself is always a whole number anyway, so this is a no-op for
+  // every other format.
+  const reps1=parseFloat(document.getElementById("reps_set_1")?.value)||0;
+  if((isBW||kg1>=0.5)&&reps1>0)btn.classList.add("visible");
   else btn.classList.remove("visible");
 }
 /* Toggle for the non-live "copy set 1 to all sets" button (does NOT apply to live mode, which has
@@ -13542,8 +13657,9 @@ function quickFillCopyAll(){
   }
   const isBW=isBodyweightNoWeightExercise(exName);
   const kg1=parseFloat(document.getElementById("weight_set_1").value)||0;
-  const reps1=parseInt(document.getElementById("reps_set_1").value)||0;
-  if((!isBW&&kg1<0.5)||reps1<1){alert(isBW?"Please fill in Set 1 Reps first.":"Please fill in Set 1 Kgs and Reps first.");return}
+  // parseFloat (not parseInt) — see checkQuickFillVisibility above for why.
+  const reps1=parseFloat(document.getElementById("reps_set_1").value)||0;
+  if((!isBW&&kg1<0.5)||reps1<=0){alert(isBW?"Please fill in Set 1 Reps first.":"Please fill in Set 1 Kgs and Reps first.");return}
   const orig={};
   for(let i=2;i<=cnt;i++){
     const wEl=document.getElementById(`weight_set_${i}`);
@@ -13581,9 +13697,11 @@ window._liveEditSetCopiedFlags={};
 function computeSessionMaxes(segs){
   let maxKg=0,maxKgReps=0,maxReps=0,totalReps=0,totalVolume=0;
   (segs||[]).forEach(seg=>{
-    const m=String(seg).match(/([\d.]+)\s*[Kk][Gg]?\s*x\s*(\d+)/i);
+    // Second number allows a decimal so Kg+Km sets (loaded carries) keep their full Km precision
+    // here too, instead of being truncated down to a whole number.
+    const m=String(seg).match(/([\d.]+)\s*[Kk][Gg]?\s*x\s*([\d.]+)/i);
     if(!m)return;
-    const k=parseFloat(m[1])||0,r=parseInt(m[2])||0;
+    const k=parseFloat(m[1])||0,r=parseFloat(m[2])||0;
     if(k>maxKg){maxKg=k;maxKgReps=r}
     if(r>maxReps)maxReps=r;
     totalReps+=r;
@@ -13636,9 +13754,11 @@ async function checkAndShowLevelUp(exerciseName,currentKg,currentReps,currentVol
           const segs=(wEntry.sets||'').split(',').map(s=>s.trim()).filter(Boolean);
           let entryVolume=0;
           for(const seg of segs){
-            const m=seg.match(/([\d.]+)\s*[Kk][Gg]?\s*x\s*(\d+)/i);
+            // Decimal-aware second number so Kg+Km sets (loaded carries) keep their full Km precision in
+            // this all-time PR comparison too, instead of being truncated to a whole number.
+            const m=seg.match(/([\d.]+)\s*[Kk][Gg]?\s*x\s*([\d.]+)/i);
             if(!m)continue;
-            const segKg=parseFloat(m[1])||0,segReps=parseInt(m[2])||0;
+            const segKg=parseFloat(m[1])||0,segReps=parseFloat(m[2])||0;
             entryVolume+=segKg*segReps;
             if(bestKg===null||segKg>bestKg){bestKg=segKg;bestKgReps=segReps;bestKgDate=row.date}
           }
@@ -13665,9 +13785,9 @@ async function checkAndShowLevelUp(exerciseName,currentKg,currentReps,currentVol
           const segs=(wEntry.sets||'').split(',').map(s=>s.trim()).filter(Boolean);
           let entryTotalReps=0,entryHasKg=false;
           for(const seg of segs){
-            const m=seg.match(/([\d.]+)\s*[Kk][Gg]?\s*x\s*(\d+)/i);
+            const m=seg.match(/([\d.]+)\s*[Kk][Gg]?\s*x\s*([\d.]+)/i);
             if(!m)continue;
-            const segKg=parseFloat(m[1])||0,segReps=parseInt(m[2])||0;
+            const segKg=parseFloat(m[1])||0,segReps=parseFloat(m[2])||0;
             if(segKg>0){entryHasKg=true;break}
             entryTotalReps+=segReps;
           }
@@ -14299,7 +14419,7 @@ async function loadWorkoutsForDate(){
       window._workoutCiMap[ci]={rowCreatedAt:row.created_at,idx:arrIdx};
       window._workoutCiRawMap[ci]=cell;
       anyEntry=true;
-      let ename=cell,tags="",hasDuration=false,isCardioRow=false;if(cell.includes(":")){let pts=cell.split(":");ename=pts[0].trim();isCardioRow=isTimeBasedExercise(ename);pts[1].trim().split(",").map(s=>s.trim()).filter(Boolean).forEach((s,si)=>{if(s.includes("["))hasDuration=true;tags+=`<span class="workout-tag${isCardioRow?' workout-tag-wide':''}">${formatSetTagLabel(s,si+1)}</span>`})}
+      let ename=cell,tags="",hasDuration=false,isCardioRow=false;if(cell.includes(":")){let pts=cell.split(":");ename=pts[0].trim();isCardioRow=isTimeBasedExercise(ename)||isKgKmExercise(ename);pts[1].trim().split(",").map(s=>s.trim()).filter(Boolean).forEach((s,si)=>{if(s.includes("["))hasDuration=true;tags+=`<span class="workout-tag${isCardioRow?' workout-tag-wide':''}">${formatSetTagLabel(s,si+1)}</span>`})}
       const tagGridClass=(isCardioRow||hasDuration)?"workout-tag-grid tag-grid-2col":"workout-tag-grid";
       const exCls=extractClassFromWorkoutName(cell),exColor=CLASS_COLORS[exCls]||CLASS_COLORS['Unknown'];
       const cellVol=parseWorkoutVolume(cell);
@@ -14938,7 +15058,7 @@ function initiateWorkoutEdit(e,ci,rv){
     let durMatch=seg.match(/\[(.*?)\]/);
     if(durMatch)editOriginalDurations[i+1]=durMatch[1].trim();
     let clean=seg.replace(/\[.*?\]/g,'').trim();
-    let m=clean.match(/^([\d.]+)\s*[Kk][Gg]?\s*x\s*(\d+)/i);
+    let m=clean.match(/^([\d.]+)\s*[Kk][Gg]?\s*x\s*([\d.]+)/i);
     if(m)return{w:m[1],r:m[2]};
     return{w:'',r:''};
   });
@@ -14982,6 +15102,7 @@ async function deleteNonLiveSavedSet(i){
   if(editOriginalSetCount<=1){alert("This entry has only one saved set. Use the 🗑 icon on the workout card to delete the whole entry instead.");return}
   const cnt=parseInt(document.getElementById("setsCountSelect").value)||editOriginalSetCount;
   const cardio=isTimeBasedExercise(document.getElementById("workoutNameInput")?.value.trim());
+  const isKgKm=isKgKmExercise(document.getElementById("workoutNameInput")?.value.trim());
   let weights=[],reps=[],kms=[],mins=[],secs=[];
   for(let k=1;k<=cnt;k++){
     if(k===i)continue;
@@ -15011,6 +15132,9 @@ async function deleteNonLiveSavedSet(i){
     if(cardio){
       const km=parseFloat(kms[k])||0;
       sd.push(formatCardioSetDisplay(km,mins[k]||0,secs[k]||0));
+    } else if(isKgKm){
+      const w=parseFloat(weights[k])||0,km=parseFloat(reps[k])||0;
+      sd.push(formatKgKmSetDisplay(w,km));
     } else {
       const w=parseFloat(weights[k])||0,r=parseInt(reps[k])||0;
       sd.push(editOriginalDurations[k+1]?`${w}Kg x ${r} [${editOriginalDurations[k+1]}]`:`${w}kg x ${r}`);
@@ -15046,6 +15170,10 @@ function formatSetTagLabel(seg,idx){
   if(isCardioSetString(seg)){
     const cp=parseCardioSetSegment(seg);
     return `Set${idx}: ${formatCardioSetDisplay(cp.km,cp.min,cp.sec)}`;
+  }
+  if(isKgKmSetString(seg)){
+    const kp=parseKgKmSetSegment(seg);
+    return `Set${idx}: ${formatKgKmSetDisplay(kp.weight,kp.km)}`;
   }
   const p=parseSetSegment(seg);
   const w=parseFloat(p.w)||0,r=p.r||'0';
@@ -17047,13 +17175,17 @@ function animateTrackerJourneyTravel(fromIdx,toIdx,trend,onDone){
   trackerJourneyDriveAnim();
 }
 function formatTrackerDate(dateStr){const d=new Date(dateStr+'T00:00:00'),months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];return `${months[d.getMonth()]} ${String(d.getDate()).padStart(2,'0')}/${d.getFullYear()}`}
-function parseSetVolume(setStr){const m=setStr.trim().match(/^([\d.]+)\s*[Kk][Gg]?\s*x\s*(\d+)/);if(!m)return 0;return parseFloat(m[1])*(parseInt(m[2])||0)}
-function parseSetWeightReps(setStr){const m=setStr.trim().match(/^([\d.]+)\s*[Kk][Gg]?\s*x\s*(\d+)/);if(!m)return{weight:0,reps:0};return{weight:parseFloat(m[1])||0,reps:parseInt(m[2])||0}}
+function parseSetVolume(setStr){const m=setStr.trim().match(/^([\d.]+)\s*[Kk][Gg]?\s*x\s*([\d.]+)/);if(!m)return 0;return parseFloat(m[1])*(parseFloat(m[2])||0)}
+function parseSetWeightReps(setStr){const m=setStr.trim().match(/^([\d.]+)\s*[Kk][Gg]?\s*x\s*([\d.]+)/);if(!m)return{weight:0,reps:0};return{weight:parseFloat(m[1])||0,reps:parseFloat(m[2])||0}}
 // Parses "8.5Kg x 15 [20 sec]" (the real saved format) into weight/reps/duration.
 // showDuration=false (default): "8.5kgs x 15" — used in the collapsed/default cell view.
 // showDuration=true: "8.5kgs x 15 [20 sec]" — used only inside the expanded per-set breakdown.
 function formatSetDisplay(setStr,showDuration){
   const s=setStr.trim();
+  if(isKgKmSetString(s)){
+    const kp=parseKgKmSetSegment(s);
+    return formatKgKmSetDisplay(kp.weight,kp.km);
+  }
   const durMatch=s.match(/\[(.*?)\]/);
   const duration=durMatch?durMatch[1].trim():null;
   const clean=s.replace(/\[.*?\]/g,'').trim();
@@ -17124,7 +17256,7 @@ async function runWorkoutTracker(){
   data.forEach(row=>{const rowDate=row.date;sessionWorkoutsArray(row).forEach(wEntryRaw=>{const wEntry=sessionDecodeWorkoutEntry(wEntryRaw);const exName=wEntry.name||'Unknown';const setsRaw=(wEntry.sets||'').split(',').map(s=>s.trim()).filter(Boolean);if(!exerciseMap[exName])exerciseMap[exName]={frequency:0,sets:[],sessions:{}};exerciseMap[exName].frequency++;
     // Track per-session (per-date) groups of sets so we can show a full session breakdown (Recent / Highest / Lowest)
     if(!exerciseMap[exName].sessions[rowDate])exerciseMap[exName].sessions[rowDate]={date:rowDate,sets:[]};
-    setsRaw.forEach(setStr=>{const vol=parseSetVolume(setStr);const{weight,reps}=parseSetWeightReps(setStr);const cardioP=parseCardioSetSegment(setStr);const setObj={date:rowDate,raw:setStr,vol,weight,reps,km:cardioP.km,sec:cardioP.totalSec,isCardioSet:isCardioSetString(setStr)};exerciseMap[exName].sets.push(setObj);exerciseMap[exName].sessions[rowDate].sets.push(setObj)})})});
+    setsRaw.forEach(setStr=>{const vol=parseSetVolume(setStr);const{weight,reps}=parseSetWeightReps(setStr);const cardioP=parseCardioSetSegment(setStr);const isKgKmSet=isKgKmSetString(setStr);const setObj={date:rowDate,raw:setStr,vol,weight,reps,km:isKgKmSet?reps:cardioP.km,sec:cardioP.totalSec,isCardioSet:isCardioSetString(setStr)};exerciseMap[exName].sets.push(setObj);exerciseMap[exName].sessions[rowDate].sets.push(setObj)})})});
   trackerSortedList=Object.entries(exerciseMap).sort((a,b)=>b[1].frequency-a[1].frequency).map(([name,data],idx)=>{
     const isCardio=isTimeBasedExercise(name);
     const sessionList=Object.values(data.sessions).sort((a,b)=>a.date.localeCompare(b.date));
@@ -17320,13 +17452,18 @@ function showTrackerAnalytics(exName){
   const isCardio=isCardioExercise(decoded);
   const isTimeOnly=isTimeOnlyExercise(decoded);
   const isTimeBased=isCardio||isTimeOnly;
+  // Loaded carries (Farmers Walk, Sled Pull, Suitcase Carry) — logged as Weight+Km rather than
+  // Weight+Reps, so neither Volume/Reps (no rep count exists) nor Duration (no time logged) apply.
+  // They get their own restricted Weight/Distance dropdown below, reusing the exact same graph
+  // modes a normal strength exercise (Weight) and a cardio exercise (Distance) already have.
+  const isKgKm=isKgKmExercise(decoded);
   // Pure-bodyweight detection: if EVERY logged set for this exercise has 0kg, weight/volume are meaningless
   // (always 0), so only the Reps graph is offered and the mode dropdown stays hidden. If even one set has
   // real weight logged, the full Volume/Weight/Reps dropdown is shown (covers bodyweight exercises that are
-  // sometimes done weighted, e.g. weighted dips). Cardio/Time Only exercises are never routed down this
-  // path — they get their own Duration (Cardio also gets Distance) dropdown below, regardless of weight
-  // (which is always 0 for cardio/time-only sets).
-  const isBodyweightOnly=!isTimeBased&&exData.sets.every(s=>s.weight===0);
+  // sometimes done weighted, e.g. weighted dips). Cardio/Time Only/Kg+Km exercises are never routed down
+  // this path — they get their own restricted dropdown below, regardless of weight (which is always 0 for
+  // cardio/time-only sets).
+  const isBodyweightOnly=!isTimeBased&&!isKgKm&&exData.sets.every(s=>s.weight===0);
   // Build one entry per training day, keeping every individual set (with raw string, so duration survives) for
   // that session, plus the day's total volume, total reps, highest single-set weight, total Km and total
   // cardio duration (seconds) logged that day.
@@ -17351,20 +17488,27 @@ function showTrackerAnalytics(exName){
   // an optional Kg entry on a bodyweight move) open on Reps by default since reps is still their primary
   // metric; everything else (normal weighted exercises) keeps opening on Volume, exactly as before.
   const isBodyweightCatalog=getExerciseEquipment(decoded)==='Bodyweight';
-  trackerGraphMode=isTimeBased?'duration':(isBodyweightOnly?'reps':(isBodyweightCatalog?'reps':'volume'));
+  trackerGraphMode=isKgKm?'weight':(isTimeBased?'duration':(isBodyweightOnly?'reps':(isBodyweightCatalog?'reps':'volume')));
   const modeWrap=document.getElementById('trackerGraphModeWrap'),modeSelect=document.getElementById('trackerGraphModeSelect');
   // Time Only exercises have exactly one possible graph (Duration) — a dropdown offering a single,
   // already-selected choice is pure clutter, so it's hidden entirely (same as the bodyweight-only
   // case above), not just narrowed down to one visible option like Km+Time's Duration/Distance pair.
   if(modeWrap)modeWrap.style.display=(isBodyweightOnly||isTimeOnly)?'none':'flex';
-  modeSelect?.querySelectorAll('.trk-opt-strength').forEach(o=>o.style.display=isTimeBased?'none':'');
-  modeSelect?.querySelectorAll('.trk-opt-cardio').forEach(o=>o.style.display=isTimeBased?'':'none');
-  // Distance never applies to Time Only (Km is always 0 for it) — hide that one option specifically,
-  // even though the general Cardio-group toggle above just turned it on.
-  modeSelect?.querySelectorAll('.trk-opt-distance').forEach(o=>o.style.display=(isTimeBased&&!isTimeOnly)?'':'none');
+  if(isKgKm){
+    // Restrict the dropdown to just Weight + Distance — the same two graphs a normal Kg exercise
+    // and a normal Km exercise already have, simply offered together for this one exercise instead
+    // of building a brand new combined graph type.
+    modeSelect?.querySelectorAll('option').forEach(o=>o.style.display=o.classList.contains('trk-opt-kgkm')?'':'none');
+  }else{
+    modeSelect?.querySelectorAll('.trk-opt-strength').forEach(o=>o.style.display=isTimeBased?'none':'');
+    modeSelect?.querySelectorAll('.trk-opt-cardio').forEach(o=>o.style.display=isTimeBased?'':'none');
+    // Distance never applies to Time Only (Km is always 0 for it) — hide that one option specifically,
+    // even though the general Cardio-group toggle above just turned it on.
+    modeSelect?.querySelectorAll('.trk-opt-distance').forEach(o=>o.style.display=(isTimeBased&&!isTimeOnly)?'':'none');
+  }
   if(modeSelect)modeSelect.value=trackerGraphMode;
 
-  trackerGraphContext={decoded,isBodyweightOnly,isCardio,isTimeOnly,isTimeBased,dateMap,sortedDates,labels};
+  trackerGraphContext={decoded,isBodyweightOnly,isCardio,isTimeOnly,isTimeBased,isKgKm,dateMap,sortedDates,labels};
 
   const panel=document.getElementById("trackerAnalyticsPanel");panel.classList.add("visible");
   renderTrackerChart();
