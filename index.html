@@ -5899,11 +5899,11 @@ const EXERCISE_CATALOG=[
   {name:"Torso Rotation",class:"Abs",equipment:"Bodyweight",format:"Reps Only"},{name:"Treadmill Sprint (Machine)",class:"Cardio",equipment:"Machine",format:"Km+Time"},
   {name:"Treadmill Incline Walk (Machine)",class:"Cardio",equipment:"Machine",format:"Km+Time"},{name:"Stationary Cycling (Machine)",class:"Cardio",equipment:"Machine",format:"Km+Time"},
   {name:"Rowing Machine",class:"Cardio",equipment:"Machine",format:"Km+Time"},{name:"Jump Rope",class:"Cardio",equipment:"Bodyweight",format:"Time Only"},
-  {name:"Elliptical Trainer",class:"Cardio",equipment:"Machine",format:"Km+Time"},{name:"Stair Machine (Floors)",class:"Cardio",equipment:"Machine",format:"Km+Time"},
+  {name:"Elliptical Trainer",class:"Cardio",equipment:"Machine",format:"Km+Time"},{name:"Stair Machine (Floors)",class:"Cardio",equipment:"Machine",format:"Floors+Time"},
   {name:"Assault Bike (Machine)",class:"Cardio",equipment:"Machine",format:"Km+Time"},{name:"Battle Ropes",class:"Cardio",equipment:"Bodyweight",format:"Time Only"},
   {name:"Skating",class:"Cardio",equipment:"Bodyweight",format:"Time Only"},{name:"Ski Erg",class:"Cardio",equipment:"Machine",format:"Km+Time"},
   {name:"Skiing",class:"Cardio",equipment:"Bodyweight",format:"Time Only"},{name:"Spinning",class:"Cardio",equipment:"Machine",format:"Time Only"},
-  {name:"Stair Machine (Steps)",class:"Cardio",equipment:"Machine",format:"Km+Time"},{name:"Running",class:"Cardio",equipment:"Bodyweight",format:"Km+Time"},
+  {name:"Stair Machine (Steps)",class:"Cardio",equipment:"Machine",format:"Steps+Time"},{name:"Running",class:"Cardio",equipment:"Bodyweight",format:"Km+Time"},
   {name:"Boxing",class:"Cardio",equipment:"Bodyweight",format:"Time Only"},{name:"Skater Jumps (Bodyweight)",class:"Cardio",equipment:"Bodyweight",format:"Km+Time"},
   {name:"Sled Pull",class:"Full Body",equipment:"Machine",format:"Kg+Km"},{name:"Sled Push",class:"Full Body",equipment:"Machine",format:"Km+Time"},
   {name:"Swimming",class:"Cardio",equipment:"Bodyweight",format:"Km+Time"},{name:"Walking Lunge (Sandbag)",class:"Legs",equipment:"Sandbag",format:"Kg+Reps"},
@@ -6020,9 +6020,18 @@ function getExerciseEquipment(nameRaw){
        weight×value formula a normal Kg+Reps set already uses (see formatExerciseVolTotal), just
        relabeled "kg·km"; the Track Workout graph reuses the existing Weight and Distance modes
        (see isKgKmExercise below and showTrackerAnalytics) rather than building a new graph type.
-   Reserved for future updates (not implemented yet — every exercise below still falls back to one
-   of the formats above until it's built): "Floors/Steps+Time" (Stair Machine). Add the new value
-   here and to this comment when implementing it. */
+     - "Floors+Time" / "Steps+Time" — Stair Machine's own two variants; exactly the "Km+Time"
+       set-row/pipeline (see isCardioExercise/isTimeBasedExercise below), except the Km distance box
+       is replaced by a Floors count or a Steps count. Unlike Km, this count field is a WHOLE NUMBER
+       — validated the same way the Reps field is (no decimal point at all), not the Km field's own
+       2-decimal precision. getCardioUnit() below is the single place that maps an exercise to which
+       of "Km"/"Floors"/"Steps" its quantity field actually is; every place that used to assume "Km"
+       specifically (parseCardioSetSegment/formatCardioSetDisplay/isCardioSetString, the Track
+       Workout "Distance" graph mode, the PR/Level-Up "Distance" record) now reads that unit and
+       formats/labels itself accordingly — Km stays 2-decimal ("0.50km"), Floors/Steps stay whole
+       numbers ("8 Floors"/"450 Steps"). Floors/Steps additionally get an "overall count" PR (the
+       highest TOTAL Floors/Steps summed across a whole saved entry — see checkAndShowTimeLevelUp),
+       mirroring the Duration field's own single-set/total pairing. */
 function getExerciseFormat(nameRaw){
   if(!nameRaw)return 'Kg+Reps';
   let found=EXERCISE_CATALOG.find(e=>e.name===nameRaw);
@@ -6062,13 +6071,43 @@ function isBodyweightNoWeightExercise(nameRaw){
   if(!nameRaw)return false;
   return getExerciseFormat(nameRaw)==='Reps Only';
 }
-/* True for any exercise whose format is "Km+Time" (catalog or custom-exercise registry).
-   Cardio exercises are logged by Distance(Km) + Duration(Time) instead of the standard Kg/Reps
-   pattern — see the Km/Time-picker set-row rendering in renderNonLiveSetsRows and the cardio
-   branch of the Track Workout graph (updateTrackerGraph). */
+/* True for any exercise whose format is "Km+Time", "Floors+Time", or "Steps+Time" (catalog or
+   custom-exercise registry) — every one of these three logs a quantity (Km distance, Floors count,
+   or Steps count) + Duration(Time) instead of the standard Kg/Reps pattern — see the quantity/Time-
+   picker set-row rendering in renderNonLiveSetsRows and the cardio branch of the Track Workout
+   graph (updateTrackerGraph). Use getCardioUnit() below to find out WHICH of the three quantities
+   a given exercise actually uses. */
 function isCardioExercise(nameRaw){
   if(!nameRaw)return false;
-  return getExerciseFormat(nameRaw)==='Km+Time';
+  const fmt=getExerciseFormat(nameRaw);
+  return fmt==='Km+Time'||fmt==='Floors+Time'||fmt==='Steps+Time';
+}
+/* Which quantity unit isCardioExercise's set-row actually logs for this exercise: 'Km' (a decimal
+   distance), 'Floors', or 'Steps' (both whole-number counts) — or null for anything that isn't a
+   quantity+Time exercise at all (Time Only, or a totally different format). Single source of truth
+   for every unit-aware bit of formatting/labelling downstream (parseCardioSetSegment,
+   formatCardioSetDisplay, isCardioSetString, the Track Workout "Distance" graph mode, the PR/
+   Level-Up "Distance"/"Total Distance" records, the quantity input's placeholder/validation). */
+function getCardioUnit(nameRaw){
+  const fmt=getExerciseFormat(nameRaw);
+  if(fmt==='Km+Time')return'Km';
+  if(fmt==='Floors+Time')return'Floors';
+  if(fmt==='Steps+Time')return'Steps';
+  return null;
+}
+/* Display word for user-facing messages ("enter ___/Time before locking") that need SOME unit word
+   even in a context that might technically be Time Only (which has no unit at all) — falls back to
+   "Km" there, same wording those messages always had before Floors/Steps existed. */
+function getCardioUnitLabel(nameRaw){
+  return getCardioUnit(nameRaw)||'Km';
+}
+/* The noun phrase used in save-time validation alerts ("Must have a ___ greater than 0.") — kept
+   separate from getCardioUnitLabel since this one's only ever called where a real quantity unit is
+   guaranteed to apply (never falls back to a wrong-but-harmless "Km" the way the label above does). */
+function getCardioQuantityNoun(unit){
+  if(unit==='Floors')return'Floors count';
+  if(unit==='Steps')return'Steps count';
+  return'Km (distance)';
 }
 /* True for any exercise whose format is "Time Only" (catalog or custom-exercise registry) — holds
    and duration-only work (Plank, Wall Sit, Dead Hang, Yoga, HIIT...) logged by Duration alone. */
@@ -6093,36 +6132,50 @@ function isKgKmExercise(nameRaw){
   return getExerciseFormat(nameRaw)==='Kg+Km';
 }
 
-/* Parses a saved "0.50Km x 30min 23sec" (or legacy "0.50Km x 05:30") segment into
-   {km,min,sec,totalSec}. Returns all-zero if the segment doesn't match (never throws — callers
-   treat a non-match as "no data"). */
+/* Parses a saved "0.50Km x 30min 23sec" (or legacy "0.50Km x 05:30"), "8Floors x 12min 00sec", or
+   "450Steps x 20min 00sec" segment into {km,min,sec,totalSec,unit}. `km` is the raw quantity value
+   regardless of which unit it actually is (kept under this name for backward compatibility with
+   every existing Km+Time caller); `unit` is 'Km'/'Floors'/'Steps', or null for a bare "Time Only"
+   segment with no quantity prefix at all. Returns all-zero/null-unit if the segment doesn't match
+   any of these shapes (never throws — callers treat a non-match as "no data"). */
 function parseCardioSetSegment(seg){
   const s=(seg||'').trim();
   let m=s.match(/^([\d.]+)\s*[Kk][Mm]\s*x\s*(\d+)\s*min\s*(\d+)\s*sec/i);
-  if(m)return{km:parseFloat(m[1])||0,min:parseInt(m[2])||0,sec:parseInt(m[3])||0,totalSec:(parseInt(m[2])||0)*60+(parseInt(m[3])||0)};
+  if(m)return{km:parseFloat(m[1])||0,min:parseInt(m[2])||0,sec:parseInt(m[3])||0,totalSec:(parseInt(m[2])||0)*60+(parseInt(m[3])||0),unit:'Km'};
   m=s.match(/^([\d.]+)\s*[Kk][Mm]\s*x\s*(\d+):(\d{2})/); // legacy mm:ss format, still readable
-  if(m)return{km:parseFloat(m[1])||0,min:parseInt(m[2])||0,sec:parseInt(m[3])||0,totalSec:(parseInt(m[2])||0)*60+(parseInt(m[3])||0)};
-  // "Time Only" segment — same Duration, no Km prefix at all (e.g. "5min 30sec").
+  if(m)return{km:parseFloat(m[1])||0,min:parseInt(m[2])||0,sec:parseInt(m[3])||0,totalSec:(parseInt(m[2])||0)*60+(parseInt(m[3])||0),unit:'Km'};
+  // Floors / Steps — whole-number counts, same "x <duration>" shape as Km above.
+  m=s.match(/^(\d+)\s*Floors\s*x\s*(\d+)\s*min\s*(\d+)\s*sec/i);
+  if(m)return{km:parseInt(m[1])||0,min:parseInt(m[2])||0,sec:parseInt(m[3])||0,totalSec:(parseInt(m[2])||0)*60+(parseInt(m[3])||0),unit:'Floors'};
+  m=s.match(/^(\d+)\s*Steps\s*x\s*(\d+)\s*min\s*(\d+)\s*sec/i);
+  if(m)return{km:parseInt(m[1])||0,min:parseInt(m[2])||0,sec:parseInt(m[3])||0,totalSec:(parseInt(m[2])||0)*60+(parseInt(m[3])||0),unit:'Steps'};
+  // "Time Only" segment — same Duration, no quantity prefix at all (e.g. "5min 30sec").
   m=s.match(/^(\d+)\s*min\s*(\d+)\s*sec/i);
-  if(m)return{km:0,min:parseInt(m[1])||0,sec:parseInt(m[2])||0,totalSec:(parseInt(m[1])||0)*60+(parseInt(m[2])||0)};
-  return{km:0,min:0,sec:0,totalSec:0};
+  if(m)return{km:0,min:parseInt(m[1])||0,sec:parseInt(m[2])||0,totalSec:(parseInt(m[1])||0)*60+(parseInt(m[2])||0),unit:null};
+  return{km:0,min:0,sec:0,totalSec:0,unit:null};
 }
-/* Formats a cardio/time-only segment's distance+duration the way it should read everywhere in the
+/* Formats a cardio/time-only segment's quantity+duration the way it should read everywhere in the
    UI: workout list, edit form badges, Track Workout Recent/Highest/Lowest, tracker set breakdown.
-   Km<=0 means a "Time Only" set (that format never has a Km field to fill in — see
-   isTimeOnlyExercise) — the "0.00km x" prefix is dropped entirely rather than shown as a fake zero
-   distance, so it reads as plain "5min 30sec". Real Km+Time sets are always saved with Km > 0 (see
-   the save-time validation in saveWorkoutLogEntry), so this never clips a genuine cardio distance. */
-function formatCardioSetDisplay(km,min,sec){
+   `unit` ('Km'/'Floors'/'Steps'/undefined) picks the precision+wording: Km keeps its existing
+   2-decimal "0.50km x ..." shape (the default when unit is omitted, for every pre-existing caller
+   that never had a unit to pass); Floors/Steps are whole-number counts, shown as "8 Floors x ..." /
+   "450 Steps x ...". A quantity <=0 means a "Time Only" set (that format never has a quantity field
+   to fill in — see isTimeOnlyExercise) — the quantity prefix is dropped entirely rather than shown
+   as a fake zero, so it reads as plain "5min 30sec". Real quantity+Time sets are always saved with
+   quantity > 0 (see the save-time validation in saveWorkoutLogEntry), so this never clips a genuine
+   logged distance/count. */
+function formatCardioSetDisplay(km,min,sec,unit){
   const k=parseFloat(km)||0;
   if(k<=0)return `${min||0}min ${String(sec||0).padStart(2,'0')}sec`;
+  if(unit==='Floors')return `${Math.round(k)} Floors x ${min||0}min ${String(sec||0).padStart(2,'0')}sec`;
+  if(unit==='Steps')return `${Math.round(k)} Steps x ${min||0}min ${String(sec||0).padStart(2,'0')}sec`;
   return `${k.toFixed(2)}km x ${min||0}min ${String(sec||0).padStart(2,'0')}sec`;
 }
-/* True if a saved set-string is a cardio/time-only (Km+duration, or duration-alone) segment rather
-   than a Kg/reps one. */
+/* True if a saved set-string is a cardio/time-only (Km/Floors/Steps + duration, or duration-alone)
+   segment rather than a Kg/reps one. */
 function isCardioSetString(seg){
   const s=(seg||'').trim();
-  return /^[\d.]+\s*[Kk][Mm]\s*x\s*\d/.test(s)||/^\d+\s*min\s*\d+\s*sec/i.test(s);
+  return /^[\d.]+\s*[Kk][Mm]\s*x\s*\d/.test(s)||/^\d+\s*Floors\s*x\s*\d/i.test(s)||/^\d+\s*Steps\s*x\s*\d/i.test(s)||/^\d+\s*min\s*\d+\s*sec/i.test(s);
 }
 
 /* ===================== KG+KM (loaded carries: Farmers Walk, Sled Pull, Suitcase Carry) ====================
@@ -11254,7 +11307,7 @@ function parseWorkoutSets(rawStr){
   return sets.map(seg=>{
     if(isCardioSetString(seg)){
       const cp=parseCardioSetSegment(seg);
-      return{desc:formatCardioSetDisplay(cp.km,cp.min,cp.sec),vol:0,w:0,r:0,isBW:false,isCardio:true,km:cp.km,sec:cp.totalSec};
+      return{desc:formatCardioSetDisplay(cp.km,cp.min,cp.sec,cp.unit),vol:0,w:0,r:0,isBW:false,isCardio:true,km:cp.km,sec:cp.totalSec,unit:cp.unit};
     }
     if(isKgKmSetString(seg)){
       // Loaded carries (Farmers Walk, Sled Pull, Suitcase Carry) — same weight×value volume formula
@@ -11314,17 +11367,20 @@ function formatDurationLongForm(totalSec){
   const m=Math.floor(t/60),s=t%60;
   return `${m}min ${String(s).padStart(2,'0')}sec`;
 }
-/* Cardio-only footer total (Volume page's per-exercise "TOTAL" box) shows BOTH total distance
-   (Km) and total Duration (M:SS) together for real Km+Time cardio — everywhere else a Cardio
-   total appears (the saved workout card header, the collapsed drilldown row) stays Duration-only,
-   per formatExerciseVolTotal. Time Only exercises never log a Km at all (totalKm is always 0 for
-   them — see formatCardioSetDisplay for the same km<=0 rule), so the "0.00km ·" prefix is dropped
-   and the box just reads the plain Duration, spelled out long-form ("9min 15sec") to match how each
-   individual set already displays ("0min 05sec") in the Sets list right above it. */
+/* Cardio-only footer total (Volume page's per-exercise "TOTAL" box) shows BOTH total quantity
+   (Km distance, or Floors/Steps count) and total Duration (M:SS) together for real quantity+Time
+   cardio — everywhere else a Cardio total appears (the saved workout card header, the collapsed
+   drilldown row) stays Duration-only, per formatExerciseVolTotal. Time Only exercises never log a
+   quantity at all (totalKm is always 0 for them — see formatCardioSetDisplay for the same km<=0
+   rule), so the quantity prefix is dropped and the box just reads the plain Duration, spelled out
+   long-form ("9min 15sec") to match how each individual set already displays ("0min 05sec") in the
+   Sets list right above it. */
 function formatCardioTotalDetail(sets){
   const totalKm=sumSetKm(sets);
   const totalSec=sets.reduce((a,s)=>a+(s.sec||0),0);
   if(totalKm<=0)return formatDurationLongForm(totalSec);
+  const unit=(sets.find(s=>s.unit)||{}).unit; // 'Km' | 'Floors' | 'Steps' — shared across every set in one entry
+  if(unit==='Floors'||unit==='Steps')return `${Math.round(totalKm)} ${unit} · ${formatTotalCardioTime(totalSec)}`;
   return `${totalKm.toFixed(2)}km · ${formatTotalCardioTime(totalSec)}`;
 }
 /* Trims a number to at most 2 decimal places and drops trailing zeros — 3 stays "3", 1.25 stays
@@ -12665,7 +12721,18 @@ function renderNonLiveSetsRows(weights,reps,locks,kms,mins,secs){
       // so the Time picker's own column simply grows into the space the Km column would've taken —
       // no empty gap, no separate narrow/medium/wide-specific markup needed.
       const km=kms[i-1]||'',min=mins[i-1]||'0',sec=secs[i-1]||'0';
-      const kmInputHtml=isCardio?`<input type="number" placeholder="Km" id="km_set_${i}" min="0" max="300" step="0.01" value="${km}" ${locked?'readonly':''} ${pendAttr} class="km-input" oninput="handleNonLiveSetInputChange();updateNonLiveActiveSetHighlight(${i})">`:'';
+      const cardioUnit=isCardio?getCardioUnit(exName):null; // 'Km' | 'Floors' | 'Steps'
+      let kmInputHtml='';
+      if(isCardio&&cardioUnit==='Km'){
+        kmInputHtml=`<input type="number" placeholder="Km" id="km_set_${i}" min="0" max="300" step="0.01" value="${km}" ${locked?'readonly':''} ${pendAttr} class="km-input" oninput="handleNonLiveSetInputChange();updateNonLiveActiveSetHighlight(${i})">`;
+      } else if(isCardio){
+        // Stair Machine's Floors/Steps count — same box/column/id as the Km input above, but a
+        // WHOLE-NUMBER count (no decimal point at all), exactly like the plain Reps field's own
+        // validation, just with a realistic ceiling of its own instead of Reps' 500 cap.
+        const qtyKind=cardioUnit==='Floors'?'floors':'steps';
+        const qtyMax=cardioUnit==='Floors'?2000:100000;
+        kmInputHtml=`<input type="number" placeholder="${cardioUnit}" id="km_set_${i}" min="0" max="${qtyMax}" step="1" value="${km}" data-qty-kind="${qtyKind}" ${locked?'readonly':''} ${pendAttr} class="km-input km-input-count" oninput="handleNonLiveSetInputChange();updateNonLiveActiveSetHighlight(${i})">`;
+      }
       const cardioCopyBtn=i>=2?`<button type="button" class="set-copy-btn" id="setCopyBtn_${i}" title="Copy previous set's values" onclick="copyFromPrevNonLiveSet(${i})" ${pendAttr}>${ICON_COPY}</button>`:`<button type="button" class="set-copy-btn" style="visibility:hidden;pointer-events:none" tabindex="-1" aria-hidden="true">${ICON_COPY}</button>`;
       const bodyClass='cardio-set-body';
       const swDisabledAttr=(locked||pending)?'disabled':'';
@@ -12728,7 +12795,7 @@ function renderNonLiveSetsRows(weights,reps,locks,kms,mins,secs){
    - Reps: 500 max, whole numbers only (no decimals — a rep is never fractional)
    - Km: 300 max, 2 decimal places (5.25 km — typical distance-tracking precision)
    - Cardio duration: 5 hours (300 minutes) per set — see mountMinSecPicker's minute-column max. */
-const SET_FIELD_MAX={kg:500,reps:500,km:300};
+const SET_FIELD_MAX={kg:500,reps:500,km:300,floors:2000,steps:100000};
 const SET_FIELD_MAX_DECIMALS={kg:1,km:2};
 function _sanitizeNumericSetInput(el,kind,allowDecimal){
   let v=el.value;
@@ -12768,6 +12835,11 @@ function guardAllNumericSetInputs(root){
   // of re-guarding it and stripping the decimal point back out.
   (root||document).querySelectorAll('.reps-input-kgkm').forEach(el=>guardNumericSetInput(el,'km',true));
   (root||document).querySelectorAll('.reps-input').forEach(el=>guardNumericSetInput(el,'reps',false));
+  // Stair Machine's Floors/Steps count field reuses the Km box's row/column layout (.km-input) but
+  // needs WHOLE-NUMBER entry, not the Km field's own 2-decimal precision — guard it first (sets
+  // el._numGuarded) so the generic .km-input pass right after skips over it instead of re-guarding
+  // it back into decimal mode.
+  (root||document).querySelectorAll('.km-input-count').forEach(el=>guardNumericSetInput(el,el.dataset.qtyKind||'floors',false));
   (root||document).querySelectorAll('.km-input').forEach(el=>guardNumericSetInput(el,'km',true));
 }
 
@@ -12809,7 +12881,7 @@ function copyFromPrevNonLiveSet(i){
   if(isTimeBasedExercise(exName)){
     const kmPrev=parseFloat(document.getElementById(`km_set_${i-1}`)?.value)||0;
     const secPrev=getPickerSeconds(`nlSet_${i-1}`);
-    if(kmPrev<=0&&secPrev<=0){showToast(`⚠️ Set ${i-1} must have Km/Time filled in first.`);return}
+    if(kmPrev<=0&&secPrev<=0){showToast(`⚠️ Set ${i-1} must have ${getCardioUnitLabel(exName)}/Time filled in first.`);return}
     const kmEl=document.getElementById(`km_set_${i}`);
     if(kmEl&&!kmEl.readOnly)kmEl.value=kmPrev;
     if(!locked)setCardioPickerValue(`nlSet_${i}`,Math.floor(secPrev/60),secPrev%60);
@@ -12873,7 +12945,7 @@ function handleSetLockToggle(i){
     const totalSec=getPickerSeconds(`nlSet_${i}`);
     if(locked){
       const km=parseFloat(kmEl?.value)||0;
-      if(km<=0&&totalSec<=0){alert(`Set ${i}: enter Km/Time before locking.`);cb.checked=false;return}
+      if(km<=0&&totalSec<=0){alert(`Set ${i}: enter ${getCardioUnitLabel(exName)}/Time before locking.`);cb.checked=false;return}
     }
     if(kmEl)kmEl.readOnly=locked;
     setCardioPickerLocked(`nlSet_${i}`,locked);
@@ -13370,17 +13442,20 @@ async function saveWorkoutLogEntry(){
   const isCardio=isCardioExercise(name);
   const isTimeOnly=isTimeOnlyExercise(name);
   const isKgKm=isKgKmExercise(name);
+  const cardioUnit=isCardio?getCardioUnit(name):null; // 'Km' | 'Floors' | 'Steps'
   let sd=[],tv=0,totalCardioSec=0;
   for(let i=1;i<=sc;i++){
     if(isCardio||isTimeOnly){
-      // Time Only has no Km field at all (see renderNonLiveSetsRows), so km_set_N simply doesn't
-      // exist in the DOM for it — km stays a hard 0, and only Duration is required/validated.
-      const km=isCardio?(parseFloat(document.getElementById(`km_set_${i}`)?.value)||0):0;
+      // Time Only has no quantity field at all (see renderNonLiveSetsRows), so km_set_N simply
+      // doesn't exist in the DOM for it — km stays a hard 0, and only Duration is required/
+      // validated. Floors/Steps are whole-number counts (parseInt, same as Reps), not the Km
+      // field's own decimal distance (parseFloat).
+      const km=isCardio?((cardioUnit==='Km'?parseFloat(document.getElementById(`km_set_${i}`)?.value):parseInt(document.getElementById(`km_set_${i}`)?.value))||0):0;
       const totalSec=getPickerSeconds(`nlSet_${i}`);
-      if(isCardio&&km<=0){alert(`Set ${i}: Must have a Km (distance) greater than 0.`);return}
+      if(isCardio&&km<=0){alert(`Set ${i}: Must have a ${getCardioQuantityNoun(cardioUnit)} greater than 0.`);return}
       if(totalSec<=0){alert(`Set ${i}: Must have a Duration greater than 0.`);return}
       totalCardioSec+=totalSec;
-      sd.push(formatCardioSetDisplay(km,Math.floor(totalSec/60),totalSec%60));
+      sd.push(formatCardioSetDisplay(km,Math.floor(totalSec/60),totalSec%60,cardioUnit));
       continue;
     }
     if(isKgKm){
@@ -13419,7 +13494,7 @@ async function saveWorkoutLogEntry(){
   // computeSessionMaxes would always read 0 for them.
   if(isCardio||isTimeOnly){
     const _tmx=computeSessionTimeMaxes(sd);
-    checkAndShowTimeLevelUp(name,_tmx.maxDurationSec,_tmx.totalDurationSec,_tmx.maxKm,isCardio);
+    checkAndShowTimeLevelUp(name,_tmx.maxDurationSec,_tmx.totalDurationSec,_tmx.maxKm,isCardio,_tmx.totalKm);
   } else {
     const _mx=computeSessionMaxes(sd);
     checkAndShowLevelUp(name,_mx.maxKg,_mx.maxKg>0?_mx.maxKgReps:_mx.totalReps,_mx.totalVolume,isKgKm,_mx.maxKm,_mx.maxReps);
@@ -13582,7 +13657,7 @@ async function fetchPrevPerformance(exerciseName, mode, excludeDate){
     let setsHtml=segs.map((seg,si)=>{
       if(isCardioSetString(seg)){
         const cp=parseCardioSetSegment(seg);
-        return `<div style="display:flex;align-items:center;gap:6px;margin-top:3px"><span style="min-width:42px;font-size:10px;color:var(--text-muted);font-family:var(--font-alt);font-weight:700">Set ${si+1}</span><span style="font-size:13px;font-weight:700;color:var(--accent)">${formatCardioSetDisplay(cp.km,cp.min,cp.sec)}</span></div>`;
+        return `<div style="display:flex;align-items:center;gap:6px;margin-top:3px"><span style="min-width:42px;font-size:10px;color:var(--text-muted);font-family:var(--font-alt);font-weight:700">Set ${si+1}</span><span style="font-size:13px;font-weight:700;color:var(--accent)">${formatCardioSetDisplay(cp.km,cp.min,cp.sec,cp.unit)}</span></div>`;
       }
       if(isKgKmSetString(seg)){
         const kp=parseKgKmSetSegment(seg);
@@ -13789,7 +13864,7 @@ function quickFillCopyAll(){
   if(isCardio){
     const km1=parseFloat(document.getElementById("km_set_1")?.value)||0;
     const sec1=getPickerSeconds('nlSet_1');
-    if(km1<=0&&sec1<=0){alert("Please fill in Set 1 Km/Time first.");return}
+    if(km1<=0&&sec1<=0){alert(`Please fill in Set 1 ${getCardioUnitLabel(exName)}/Time first.`);return}
     const orig={};
     for(let i=2;i<=cnt;i++){
       const kmEl=document.getElementById(`km_set_${i}`);
@@ -13875,23 +13950,25 @@ function computeSessionMaxes(segs){
   });
   return{maxKg,maxKgReps,maxReps,totalReps,totalVolume,maxKm};
 }
-/* Time-based equivalent of computeSessionMaxes, for Cardio (Km+Time) and Time Only exercises —
-   given an array of saved cardio/time-only segment strings (e.g. "0.50Km x 5min 30sec" or
-   "5min 30sec"), returns the highest single-set Duration logged (maxDurationSec), the TOTAL
-   Duration across every set (totalDurationSec — the session/entry's overall time), and — for
-   Cardio only — the highest single-set Km logged (maxKm; always 0 for Time Only, which has no
-   Km field at all). Mirrors computeSessionMaxes' shape/naming so the two stay easy to read
-   side-by-side. */
+/* Time-based equivalent of computeSessionMaxes, for Cardio (Km/Floors/Steps+Time) and Time Only
+   exercises — given an array of saved cardio/time-only segment strings (e.g. "0.50Km x 5min 30sec",
+   "8Floors x 12min 00sec", or "5min 30sec"), returns the highest single-set Duration logged
+   (maxDurationSec), the TOTAL Duration across every set (totalDurationSec — the session/entry's
+   overall time), and — for Cardio only — the highest single-set quantity logged (maxKm; always 0
+   for Time Only, which has no quantity field at all) plus the TOTAL quantity summed across every
+   set (totalKm — the Floors/Steps "overall count" PR's own equivalent of totalDurationSec). Mirrors
+   computeSessionMaxes' shape/naming so the two stay easy to read side-by-side. */
 function computeSessionTimeMaxes(segs){
-  let maxDurationSec=0,totalDurationSec=0,maxKm=0;
+  let maxDurationSec=0,totalDurationSec=0,maxKm=0,totalKm=0;
   (segs||[]).forEach(seg=>{
     if(!isCardioSetString(seg))return;
     const cp=parseCardioSetSegment(seg);
     if(cp.totalSec>maxDurationSec)maxDurationSec=cp.totalSec;
     totalDurationSec+=cp.totalSec;
     if(cp.km>maxKm)maxKm=cp.km;
+    totalKm+=cp.km;
   });
-  return{maxDurationSec,totalDurationSec,maxKm};
+  return{maxDurationSec,totalDurationSec,maxKm,totalKm};
 }
 /* Formats a saved DB date string ("YYYY-MM-DD") the same way the Previous Performance badge does. */
 function formatLevelUpDate(dateStr){
@@ -14027,15 +14104,22 @@ async function checkAndShowLevelUp(exerciseName,currentKg,currentReps,currentVol
        best" shape the Kg record already has, just for Duration instead of Kg).
      • Total Duration record: the HIGHEST total Duration (summed across every set) ever logged in
        a single saved entry for this exercise — the Duration equivalent of the Volume record.
-     • Distance record (Cardio/Km+Time only — Time Only never logs a Km at all, so this simply
-       never fires for it): the HIGHEST single-set Km ever logged for this exercise, across every
-       saved entry — same "any set's personal best" shape as Kg+Km's own Distance record. */
-async function checkAndShowTimeLevelUp(exerciseName,currentMaxDurationSec,currentTotalDurationSec,currentKm,isCardio){
+     • Distance record (Cardio only — Time Only never logs a quantity at all, so this simply never
+       fires for it): the HIGHEST single-set quantity ever logged for this exercise, across every
+       saved entry — same "any set's personal best" shape as Kg+Km's own Distance record. For Km
+       this reads as a distance ("0.50km"); for Stair Machine's Floors/Steps formats it reads as a
+       whole-number count ("8 Floors"/"450 Steps") instead — see getCardioUnit.
+     • Total Floors/Total Steps record (Floors+Time/Steps+Time only): the HIGHEST TOTAL Floors/Steps
+       count (summed across every set) ever logged in a single saved entry for this exercise — the
+       Floors/Steps equivalent of the Total Duration record above, i.e. the "overall count" PR. */
+async function checkAndShowTimeLevelUp(exerciseName,currentMaxDurationSec,currentTotalDurationSec,currentKm,isCardio,currentTotalKm){
   if(!exerciseName)return;
   if(currentMaxDurationSec<=0&&currentTotalDurationSec<=0)return;
   if(isRoomMemberModeActive())return; // members: skip prior-day comparisons/toasts
   const uid=getEffectiveUid();
   if(!uid)return;
+  const cardioUnit=isCardio?getCardioUnit(exerciseName):null; // 'Km' | 'Floors' | 'Steps'
+  const isCountUnit=cardioUnit==='Floors'||cardioUnit==='Steps'; // Stair Machine's own two formats
   // Exclude today — only compare against strictly prior-day historical data so that
   // sets saved within the same day's session don't compare against themselves.
   const todayStr=getLocalDateString();
@@ -14048,23 +14132,26 @@ async function checkAndShowTimeLevelUp(exerciseName,currentMaxDurationSec,curren
     let bestMaxDurationSec=null,bestMaxDurationDate=null;
     let bestTotalDurationSec=null,bestTotalDurationDate=null;
     let bestKm=null,bestKmDate=null;
+    let bestTotalKm=null,bestTotalKmDate=null;
     for(const row of data){
       for(const wEntryRaw of sessionWorkoutsArray(row)){
         const wEntry=sessionDecodeWorkoutEntry(wEntryRaw);
         if(wEntry.name.toLowerCase()!==nameLower)continue;
         const segs=(wEntry.sets||'').split(',').map(s=>s.trim()).filter(Boolean);
-        let entryTotalSec=0;
+        let entryTotalSec=0,entryTotalKm=0;
         for(const seg of segs){
           if(!isCardioSetString(seg))continue;
           const cp=parseCardioSetSegment(seg);
           entryTotalSec+=cp.totalSec;
+          entryTotalKm+=cp.km;
           if(bestMaxDurationSec===null||cp.totalSec>bestMaxDurationSec){bestMaxDurationSec=cp.totalSec;bestMaxDurationDate=row.date}
           if(cp.km>0&&(bestKm===null||cp.km>bestKm)){bestKm=cp.km;bestKmDate=row.date}
         }
         if(entryTotalSec>0&&(bestTotalDurationSec===null||entryTotalSec>bestTotalDurationSec)){bestTotalDurationSec=entryTotalSec;bestTotalDurationDate=row.date}
+        if(isCountUnit&&entryTotalKm>0&&(bestTotalKm===null||entryTotalKm>bestTotalKm)){bestTotalKm=entryTotalKm;bestTotalKmDate=row.date}
       }
     }
-    console.log('[LevelUp]',exerciseName,'bestMaxDurationSec='+bestMaxDurationSec,'currentMaxDurationSec='+currentMaxDurationSec,'bestTotalDurationSec='+bestTotalDurationSec,'currentTotalDurationSec='+currentTotalDurationSec,'bestKm='+bestKm,'currentKm='+currentKm);
+    console.log('[LevelUp]',exerciseName,'bestMaxDurationSec='+bestMaxDurationSec,'currentMaxDurationSec='+currentMaxDurationSec,'bestTotalDurationSec='+bestTotalDurationSec,'currentTotalDurationSec='+currentTotalDurationSec,'bestKm='+bestKm,'currentKm='+currentKm,'bestTotalKm='+bestTotalKm,'currentTotalKm='+currentTotalKm);
     if(bestMaxDurationSec!==null&&currentMaxDurationSec>bestMaxDurationSec){
       records.push({type:'duration',prevVal:bestMaxDurationSec,prevDate:bestMaxDurationDate,curVal:currentMaxDurationSec,curDate:todayStr});
     }
@@ -14072,7 +14159,10 @@ async function checkAndShowTimeLevelUp(exerciseName,currentMaxDurationSec,curren
       records.push({type:'totalDuration',prevVal:bestTotalDurationSec,prevDate:bestTotalDurationDate,curVal:currentTotalDurationSec,curDate:todayStr});
     }
     if(isCardio&&bestKm!==null&&(currentKm||0)>bestKm){
-      records.push({type:'distance',prevVal:bestKm,prevDate:bestKmDate,curVal:currentKm,curDate:todayStr});
+      records.push({type:'distance',prevVal:bestKm,prevDate:bestKmDate,curVal:currentKm,curDate:todayStr,unit:cardioUnit});
+    }
+    if(isCountUnit&&bestTotalKm!==null&&(currentTotalKm||0)>bestTotalKm){
+      records.push({type:'totalDistance',prevVal:bestTotalKm,prevDate:bestTotalKmDate,curVal:currentTotalKm,curDate:todayStr,unit:cardioUnit});
     }
     if(records.length)showLevelUpNotification(exerciseName,records);
   }catch(e){console.error('[LevelUp] Exception:',e)}
@@ -14177,12 +14267,26 @@ function renderLevelUpToast(exerciseName,records){
       prevContent=info.isKgKm?`${info.prevVal.toLocaleString()} Kg${prevDateSuffix}`:`${info.prevVal.toLocaleString()} kg·reps${prevDateSuffix}`;
       curContent=info.isKgKm?`${info.curVal.toLocaleString()} Kg${curDateSuffix}`:`${info.curVal.toLocaleString()} kg·reps${curDateSuffix}`;
     }else if(info.type==='distance'){
-      // Kg+Km's and Cardio's own Distance record — the highest single-set Km ever logged for this
-      // exercise, independent of which set was heaviest/longest (see checkAndShowLevelUp/
-      // checkAndShowTimeLevelUp).
-      type='Distance';highestLabel='Highest Distance (Single Set)';
-      prevContent=`${info.prevVal.toFixed(2)}km${prevDateSuffix}`;
-      curContent=`${info.curVal.toFixed(2)}km${curDateSuffix}`;
+      // Kg+Km's and Cardio's own Distance record — the highest single-set quantity ever logged for
+      // this exercise, independent of which set was heaviest/longest (see checkAndShowLevelUp/
+      // checkAndShowTimeLevelUp). Km (incl. Kg+Km, which never sets info.unit) keeps the existing
+      // decimal-distance shape; Stair Machine's Floors/Steps are whole-number counts instead.
+      if(info.unit==='Floors'||info.unit==='Steps'){
+        type=info.unit;highestLabel=`Highest ${info.unit} (Single Set)`;
+        prevContent=`${Math.round(info.prevVal)} ${info.unit}${prevDateSuffix}`;
+        curContent=`${Math.round(info.curVal)} ${info.unit}${curDateSuffix}`;
+      }else{
+        type='Distance';highestLabel='Highest Distance (Single Set)';
+        prevContent=`${info.prevVal.toFixed(2)}km${prevDateSuffix}`;
+        curContent=`${info.curVal.toFixed(2)}km${curDateSuffix}`;
+      }
+    }else if(info.type==='totalDistance'){
+      // Stair Machine's Floors/Steps only — the highest TOTAL Floors/Steps count (summed across
+      // every set) ever logged in a single saved entry for this exercise — the "overall count" PR,
+      // mirroring Total Duration above.
+      type=`Total ${info.unit}`;highestLabel=`Highest Total ${info.unit}`;
+      prevContent=`${Math.round(info.prevVal)} ${info.unit}${prevDateSuffix}`;
+      curContent=`${Math.round(info.curVal)} ${info.unit}${curDateSuffix}`;
     }else if(info.type==='duration'){
       // Cardio/Time Only — the highest single-set Duration ever logged for this exercise, any set,
       // any day (see checkAndShowTimeLevelUp).
@@ -15504,6 +15608,7 @@ async function deleteNonLiveSavedSet(i){
   const cnt=parseInt(document.getElementById("setsCountSelect").value)||editOriginalSetCount;
   const cardio=isTimeBasedExercise(document.getElementById("workoutNameInput")?.value.trim());
   const isKgKm=isKgKmExercise(document.getElementById("workoutNameInput")?.value.trim());
+  const cardioUnit=getCardioUnit(document.getElementById("workoutNameInput")?.value.trim()); // 'Km' | 'Floors' | 'Steps' | null
   let weights=[],reps=[],kms=[],mins=[],secs=[];
   for(let k=1;k<=cnt;k++){
     if(k===i)continue;
@@ -15531,8 +15636,8 @@ async function deleteNonLiveSavedSet(i){
   let sd=[];
   for(let k=0;k<editOriginalSetCount;k++){
     if(cardio){
-      const km=parseFloat(kms[k])||0;
-      sd.push(formatCardioSetDisplay(km,mins[k]||0,secs[k]||0));
+      const km=cardioUnit==='Km'?(parseFloat(kms[k])||0):(parseInt(kms[k])||0);
+      sd.push(formatCardioSetDisplay(km,mins[k]||0,secs[k]||0,cardioUnit));
     } else if(isKgKm){
       const w=parseFloat(weights[k])||0,km=parseFloat(reps[k])||0;
       sd.push(formatKgKmSetDisplay(w,km));
@@ -15570,7 +15675,7 @@ function parseSetSegment(seg){
 function formatSetTagLabel(seg,idx){
   if(isCardioSetString(seg)){
     const cp=parseCardioSetSegment(seg);
-    return `Set${idx}: ${formatCardioSetDisplay(cp.km,cp.min,cp.sec)}`;
+    return `Set${idx}: ${formatCardioSetDisplay(cp.km,cp.min,cp.sec,cp.unit)}`;
   }
   if(isKgKmSetString(seg)){
     const kp=parseKgKmSetSegment(seg);
@@ -17916,8 +18021,13 @@ function showTrackerAnalytics(exName){
     modeSelect?.querySelectorAll('.trk-opt-distance').forEach(o=>o.style.display=(isTimeBased&&!isTimeOnly)?'':'none');
   }
   if(modeSelect)modeSelect.value=trackerGraphMode;
+  // Stair Machine's Floors/Steps formats reuse the "Distance" option/graph wholesale — just
+  // relabelled to match what it's actually counting (see getCardioUnit).
+  const cardioUnit=isCardio?getCardioUnit(decoded):null; // 'Km' | 'Floors' | 'Steps' | null
+  const distOpt=modeSelect?.querySelector('.trk-opt-distance');
+  if(distOpt)distOpt.textContent=(cardioUnit==='Floors'||cardioUnit==='Steps')?cardioUnit:'Distance';
 
-  trackerGraphContext={decoded,isBodyweightOnly,isCardio,isTimeOnly,isTimeBased,isKgKm,dateMap,sortedDates,labels};
+  trackerGraphContext={decoded,isBodyweightOnly,isCardio,isTimeOnly,isTimeBased,isKgKm,cardioUnit,dateMap,sortedDates,labels};
 
   const panel=document.getElementById("trackerAnalyticsPanel");panel.classList.add("visible");
   renderTrackerChart();
@@ -17936,16 +18046,17 @@ function changeTrackerGraphMode(mode){
 // changeTrackerGraphMode (dropdown switch).
 function renderTrackerChart(){
   stopTrackerJourney(true);
-  const{decoded,isBodyweightOnly,isCardio,dateMap,sortedDates,labels}=trackerGraphContext;
+  const{decoded,isBodyweightOnly,isCardio,cardioUnit,dateMap,sortedDates,labels}=trackerGraphContext;
   const mode=trackerGraphMode;
-  const modeLabel=mode==='weight'?'Weight':mode==='reps'?'Reps':mode==='duration'?'Duration':mode==='distance'?'Distance':'Volume';
+  const distModeLabel=(cardioUnit==='Floors'||cardioUnit==='Steps')?cardioUnit:'Distance';
+  const modeLabel=mode==='weight'?'Weight':mode==='reps'?'Reps':mode==='duration'?'Duration':mode==='distance'?distModeLabel:'Volume';
   const dayWord=`${sortedDates.length} training day${sortedDates.length!==1?'s':''}`;
   const subtitleByMode={
     volume:`Total volume (kg × reps) per session across ${dayWord}`,
     weight:`Highest weight logged per session across ${dayWord}`,
     reps:`Total reps per session across ${dayWord}`,
     duration:`Total duration logged per session across ${dayWord}`,
-    distance:`Total distance (Km) logged per session across ${dayWord}`
+    distance:(cardioUnit==='Floors'||cardioUnit==='Steps')?`Total ${cardioUnit} logged per session across ${dayWord}`:`Total distance (Km) logged per session across ${dayWord}`
   };
   document.getElementById("trackerAnalyticsTitle").textContent=`📊 ${decoded} — ${modeLabel} Journey`;
   document.getElementById("trackerAnalyticsSubtitle").textContent=subtitleByMode[mode];
@@ -17999,7 +18110,9 @@ function renderTrackerChart(){
       const totalSec=dateMap[date].totalSec,mm=Math.floor(totalSec/60),ss=totalSec%60;
       totalEl.innerHTML=`Total Duration: <strong>${mm}:${String(ss).padStart(2,'0')}</strong>`;
     }else if(mode==='distance'){
-      totalEl.innerHTML=`Total Distance: <strong>${dateMap[date].totalKm.toFixed(2)}km</strong>`;
+      const totalQty=dateMap[date].totalKm;
+      if(cardioUnit==='Floors'||cardioUnit==='Steps')totalEl.innerHTML=`Total ${cardioUnit}: <strong>${Math.round(totalQty)} ${cardioUnit}</strong>`;
+      else totalEl.innerHTML=`Total Distance: <strong>${totalQty.toFixed(2)}km</strong>`;
     }else{
       const totalVol=Math.round(dateMap[date].totalVol);
       totalEl.innerHTML=`Total Volume: <strong>${totalVol>=1000?(totalVol/1000).toFixed(1)+'k':totalVol}</strong>`;
@@ -18027,7 +18140,7 @@ function renderTrackerChart(){
   const basePointRadius=sortedDates.map(()=>6),baseHoverRadius=sortedDates.map(()=>12);
   const basePointBg=sortedDates.map(()=>pointColor),basePointBorder=sortedDates.map(()=>'#fff'),basePointBorderW=sortedDates.map(()=>2);
 
-  const yAxisTitle=mode==='weight'?'Weight (kg)':mode==='reps'?'Reps':mode==='duration'?'Duration (min)':mode==='distance'?'Distance (Km)':'Volume (kg × reps)';
+  const yAxisTitle=mode==='weight'?'Weight (kg)':mode==='reps'?'Reps':mode==='duration'?'Duration (min)':mode==='distance'?((cardioUnit==='Floors'||cardioUnit==='Steps')?cardioUnit:'Distance (Km)'):'Volume (kg × reps)';
 
   // Highest/Lowest point markers: a bold green "H" above the highest-value point and a bold red "L"
   // above the lowest-value point, for whichever metric is currently plotted (Volume, Weight, or Reps) —
@@ -18085,7 +18198,7 @@ function renderTrackerChart(){
       // Default Chart.js tooltip is disabled — the fixed top-right detail box replaces it with the full per-set breakdown
       plugins:{legend:{display:false},tooltip:{enabled:false}},
       scales:{
-        y:{beginAtZero:true,suggestedMax:trkSuggestedMax,grid:{color:'rgba(128,128,128,0.08)'},ticks:{color:'#6b7280',font:{family:'Rajdhani',size:12},callback(v){if(mode==='reps')return v;if(mode==='duration')return v+'m';if(mode==='distance')return v+'km';return v+'kg'}},title:{display:true,text:yAxisTitle,color:'#6b7280',font:{family:'Rajdhani',size:11}}},
+        y:{beginAtZero:true,suggestedMax:trkSuggestedMax,grid:{color:'rgba(128,128,128,0.08)'},ticks:{color:'#6b7280',font:{family:'Rajdhani',size:12},callback(v){if(mode==='reps')return v;if(mode==='duration')return v+'m';if(mode==='distance')return(cardioUnit==='Floors'||cardioUnit==='Steps')?v:v+'km';return v+'kg'}},title:{display:true,text:yAxisTitle,color:'#6b7280',font:{family:'Rajdhani',size:11}}},
         // X axis: no date labels and no gridlines, per spec — dates only ever appear inside the detail box
         x:{display:false,grid:{display:false},ticks:{display:false}}
       },
@@ -18211,7 +18324,11 @@ function fmtTrackerJourneyVal(v,mode){
   // spell it out the same long-form way as everywhere else Duration is shown ("9min 15sec"),
   // instead of falling through to the plain-number Volume formatting below.
   if(mode==='duration')return formatDurationLongForm(Math.round(v*60));
-  if(mode==='distance')return `${v.toFixed(2)}km`;
+  if(mode==='distance'){
+    const unit=trackerGraphContext&&trackerGraphContext.cardioUnit;
+    if(unit==='Floors'||unit==='Steps')return `${Math.round(v)} ${unit}`;
+    return `${v.toFixed(2)}km`;
+  }
   const vol=Math.round(v);
   return vol>=1000?`${(vol/1000).toFixed(1)}k`:`${vol}`;
 }
@@ -18225,10 +18342,12 @@ function fmtTrackerJourneyVal(v,mode){
 // misrepresents what's actually being tracked.
 function buildTrackerJourneyCaption(idx){
   const{values,sortedDates,mode}=trackerJourneyValues;
+  const unit=trackerGraphContext&&trackerGraphContext.cardioUnit;
+  const isCountUnit=unit==='Floors'||unit==='Steps';
   const curr=values[idx],currText=fmtTrackerJourneyVal(curr,mode);
   const wrap=(icon,text)=>`<span class="tjc-icon">${icon}</span><span class="tjc-text">${text}</span>`;
   if(idx===0){
-    const startWord=mode==='weight'?'Weight':mode==='reps'?'Reps':mode==='duration'?'logged':mode==='distance'?'covered':'Volume';
+    const startWord=mode==='weight'?'Weight':mode==='reps'?'Reps':mode==='duration'?'logged':mode==='distance'?(isCountUnit?'done':'covered'):'Volume';
     return{type:'start',html:wrap(TJ_ICON_FLAG,`This is where it all began — <strong>${currText}</strong> ${startWord}. ${sortedDates.length} sessions of progress start right here.`)};
   }
   const prev=values[idx-1],prevText=fmtTrackerJourneyVal(prev,mode);
@@ -18240,7 +18359,9 @@ function buildTrackerJourneyCaption(idx){
     const upText=mode==='duration'
       ?`Leveled up from ${prevText} to <strong>${currText}</strong> — that's +${diffText} more time on the clock. Keep this up!`
       :mode==='distance'
-      ?`Leveled up from ${prevText} to <strong>${currText}</strong> — that's +${diffText} further. Keep this up!`
+      ?(isCountUnit
+        ?`Leveled up from ${prevText} to <strong>${currText}</strong> — that's +${diffText} more. Keep this up!`
+        :`Leveled up from ${prevText} to <strong>${currText}</strong> — that's +${diffText} further. Keep this up!`)
       :`Leveled up from ${prevText} to <strong>${currText}</strong> — that's +${diffText} of real progress. Keep this up!`;
     return{type:'up',html:wrap(TJ_ICON_UP,upText)};
   }
@@ -18248,7 +18369,9 @@ function buildTrackerJourneyCaption(idx){
   const downText=mode==='duration'
     ?`Eased back to <strong>${currText}</strong> from ${prevText} (-${diffText}) — a shorter session is still a session. Bounce back next time.`
     :mode==='distance'
-    ?`Eased back to <strong>${currText}</strong> from ${prevText} (-${diffText}) — a shorter distance is still a distance. Bounce back next time.`
+    ?(isCountUnit
+      ?`Eased back to <strong>${currText}</strong> from ${prevText} (-${diffText}) — a lower count is still a session. Bounce back next time.`
+      :`Eased back to <strong>${currText}</strong> from ${prevText} (-${diffText}) — a shorter distance is still a distance. Bounce back next time.`)
     :`Eased back to <strong>${currText}</strong> from ${prevText} (-${diffText}) — a lighter session is still a session. Bounce back next time.`;
   return{type:'down',html:wrap(TJ_ICON_DOWN,downText)};
 }
@@ -20146,4 +20269,4 @@ function closeLearnVideo(){
 })();
 </script>
 </body>
-</html>
+</html> 
