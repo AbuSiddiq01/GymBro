@@ -10141,15 +10141,33 @@ async function updateDurationLineChart(){
 }
 
 /* ===================== VOLUME PARSER ===================== */
-// parses "ExerciseName: 5kg x 10 x 30sec, 7kg x 8" → total volume (kg·reps)
+// parses "ExerciseName: 5kg x 10 x 30sec, 7kg x 8" → total volume (kg·reps). Used everywhere a
+// volume figure gets summed ACROSS exercises/classes/days (Class Breakdown, Daily Total, weekly/
+// monthly volume charts, High/Low Volume, Finish modal chips) — every one of those pulls from this
+// single function, so a bug here shows up in all of them at once.
 function parseWorkoutVolume(str){
   if(!str||!str.trim())return 0;
   let total=0;
-  // match patterns like 5kg x 10 or 5Kg x 10 x 30sec — second number allows a decimal so Kg+Km
-  // sets (loaded carries: Farmers Walk, Sled Pull, Suitcase Carry — see isKgKmExercise) can carry
-  // a Km distance in this same slot (e.g. "20Kg x 0.50Km") without losing precision.
-  const matches=str.matchAll(/(\d+(?:\.\d+)?)\s*[Kk]g\s*x\s*(\d+(?:\.\d+)?)/g);
-  for(const m of matches)total+=parseFloat(m[1])*parseFloat(m[2]);
+  // Segment-by-segment (not one blind regex scan across the whole string) so each set can be
+  // checked against isKgKmSetString individually — see the Kg+Km branch below for why that split
+  // matters here.
+  const colonIdx=str.indexOf(':');
+  const setsStr=colonIdx>=0?str.slice(colonIdx+1):str;
+  const segs=setsStr.split(',');
+  for(const seg of segs){
+    if(isKgKmSetString(seg)){
+      // Kg+Km (loaded carries) contribute their Kg field ONLY here — the exact same "just add up
+      // what was entered, never multiplied by the other field" rule the Kg+Km header/TOTAL box
+      // already follow (see formatExerciseVolTotal/formatKgKmTotalDetail/sumSetWeight) — so a Class
+      // Breakdown or Daily Total that happens to include a Kg+Km entry doesn't quietly fold a
+      // weight×Km product into what's supposed to be a plain Kg sum.
+      total+=parseKgKmSetSegment(seg).weight;
+      continue;
+    }
+    // match patterns like 5kg x 10 or 5Kg x 10 x 30sec
+    const matches=seg.matchAll(/(\d+(?:\.\d+)?)\s*[Kk]g\s*x\s*(\d+(?:\.\d+)?)/g);
+    for(const m of matches)total+=parseFloat(m[1])*parseFloat(m[2]);
+  }
   return total;
 }
 
@@ -11150,8 +11168,14 @@ function parseWorkoutSets(rawStr){
     if(isKgKmSetString(seg)){
       // Loaded carries (Farmers Walk, Sled Pull, Suitcase Carry) — same weight×value volume formula
       // a normal Kg+Reps set uses, just with Km standing in for Reps (see the "Kg+Km" format note).
+      // Reps is always a whole number so Math.round-ing a Kg+Reps set's volume never loses anything,
+      // but Km is frequently a decimal (0.25km, 0.50km) — rounding THIS product to a whole number
+      // the same way could floor an entire real set's volume down to 0 (or inflate/deflate a small
+      // one). Kept at 2 decimal places instead — the same precision Km+Time's own Km field displays
+      // at (see formatCardioSetDisplay's .toFixed(2)) — so the Set line and TOTAL box downstream
+      // (formatExerciseVolTotal/formatKgKmTotalDetail) both read the real figure.
       const kp=parseKgKmSetSegment(seg);
-      const vol=Math.round(kp.weight*kp.km);
+      const vol=Math.round(kp.weight*kp.km*100)/100;
       return{desc:formatKgKmSetDisplay(kp.weight,kp.km),vol,w:kp.weight,r:kp.km,isBW:false,isCardio:false,isKgKm:true,km:kp.km};
     }
     const durMatch=seg.match(/\[(.*?)\]/);
@@ -11207,7 +11231,7 @@ function formatDurationLongForm(totalSec){
    and the box just reads the plain Duration, spelled out long-form ("9min 15sec") to match how each
    individual set already displays ("0min 05sec") in the Sets list right above it. */
 function formatCardioTotalDetail(sets){
-  const totalKm=sets.reduce((a,s)=>a+(s.km||0),0);
+  const totalKm=sumSetKm(sets);
   const totalSec=sets.reduce((a,s)=>a+(s.sec||0),0);
   if(totalKm<=0)return formatDurationLongForm(totalSec);
   return `${totalKm.toFixed(2)}km · ${formatTotalCardioTime(totalSec)}`;
@@ -11218,15 +11242,24 @@ function formatCardioTotalDetail(sets){
 function formatTrimmedNum(n){
   return String(parseFloat((n||0).toFixed(2)));
 }
+/* ===================== PER-FIELD SET TOTALS (reusable across every "Field format" combo) =====================
+   Every set object parseWorkoutSets produces carries whichever raw field values its format actually
+   logs — .w (Kg, from the Kg+Reps/Kg+Km families), .r (Reps), .km (Km, from the Km+Time/Kg+Km
+   families), .sec (Time, from the Cardio/Time-only families). These sum ONE field at a time straight
+   off those raw values, with no cross-field multiplication — the exact "just add up what was
+   entered" behaviour the Kg field already has in a Kg+Reps form and the Km field already has in a
+   Km+Time form. Written as small standalone helpers (rather than inline reduce()s living inside
+   each format's own total function) specifically so a future format combo — Kg+Time, Time only, or
+   whatever the custom-format picker eventually offers — can total whichever of its own fields it
+   needs by calling the matching helper here, instead of re-deriving the same sum again. */
+function sumSetWeight(sets){return sets.reduce((a,s)=>a+(s.w||0),0);}
+function sumSetKm(sets){return sets.reduce((a,s)=>a+(s.km||0),0);}
 /* Kg+Km footer total (Volume page's per-exercise "TOTAL" box, loaded carries only) shows the summed
-   Kg and summed Km SEPARATELY ("15Kg-3Km") instead of their multiplied volume figure that
-   formatExerciseVolTotal's "kg·km" unit gives everywhere else (header row, saved workout card,
-   Previous Performance badge, tracker) — a plain "15" there reads as if only Kg were logged, when
-   what's actually useful in the Volume Breakdown total specifically is both raw totals at a glance. */
+   Kg and summed Km SEPARATELY ("15Kg-3Km") — each one plain-added via sumSetWeight/sumSetKm above,
+   never multiplied together — so it reads as two real, independently-meaningful totals instead of a
+   kg·km volume figure. */
 function formatKgKmTotalDetail(sets){
-  const totalKg=sets.reduce((a,s)=>a+(s.w||0),0);
-  const totalKm=sets.reduce((a,s)=>a+(s.km||0),0);
-  return `${formatTrimmedNum(totalKg)}Kg-${formatTrimmedNum(totalKm)}Km`;
+  return `${formatTrimmedNum(sumSetWeight(sets))}Kg-${formatTrimmedNum(sumSetKm(sets))}Km`;
 }
 /* Returns {primary, unit} for an exercise's total — total Duration (M:SS) for Cardio entries,
    reps-based for pure bodyweight entries, kg·reps-based otherwise — used across the saved workout
@@ -11237,9 +11270,12 @@ function formatExerciseVolTotal(w,sets){
     return{primary:formatTotalCardioTime(totalSec),unit:''};
   }
   if(isAllKgKmSets(sets)){
-    // Same aggregate weight×value total a normal Kg+Reps exercise gets, just relabeled — the
-    // "value" here is Km carried, not Reps performed (see the "Kg+Km" format note).
-    return{primary:Math.round(w.vol).toLocaleString(),unit:'kg·km'};
+    // The saved-workout-card header (and every other "single number" total for this exercise) shows
+    // the Kg field's own total ONLY — reusing exactly the plain-sum behaviour the Kg field already
+    // has in a Kg+Reps form (sumSetWeight, no multiplication) — and leaves Km out of this figure
+    // entirely, however many decimal places it carries. The combined Kg-and-Km breakdown still lives
+    // one tap away in the Volume Breakdown TOTAL box (see formatKgKmTotalDetail) for whoever wants it.
+    return{primary:formatTrimmedNum(sumSetWeight(sets)),unit:'Kg'};
   }
   if(isAllBodyweightSets(sets)){
     const totalReps=sets.reduce((a,s)=>a+(s.r||0),0);
@@ -11701,7 +11737,13 @@ function renderVolDrilldownEnhanced(day,titleId,bodyId,panel){
       html+=`<div class="vol-set-line"><span class="vol-set-desc" style="color:var(--text-muted)">No set data found</span></div>`;
     } else {
       sets.forEach((s,si)=>{
-        html+=`<div class="vol-set-line"><span class="vol-set-desc">Set ${si+1} · ${s.desc}</span><span class="vol-set-vol">${(s.isBW||s.isCardio)?'':s.vol.toLocaleString()+' kg'}</span></div>`;
+        // Kg+Km sets show no per-set figure here at all (like Bodyweight/Cardio sets already don't)
+        // — the set's own line ("Set 1 · 2.5Kg x 0.25km", from s.desc) already says everything there
+        // is to say about that one set; a separate weight×km number next to it was never something
+        // this format needs. The combined Kg/Km totals still show in the TOTAL box right below (see
+        // formatKgKmTotalDetail).
+        const volLabel=(s.isBW||s.isCardio||s.isKgKm)?'':s.vol.toLocaleString()+' kg';
+        html+=`<div class="vol-set-line"><span class="vol-set-desc">Set ${si+1} · ${s.desc}</span><span class="vol-set-vol">${volLabel}</span></div>`;
       });
       const totalDetail=isAllCardioSets(sets)?formatCardioTotalDetail(sets):(isAllKgKmSets(sets)?formatKgKmTotalDetail(sets):`${vt.primary} ${vt.unit}`);
       html+=`<div class="vol-sets-total"><span>Total</span><strong>${totalDetail}</strong></div>`;
@@ -11786,7 +11828,7 @@ function openExerciseCompare(panel,exName){
   const renderSide=(side)=>{
     const setsHtml=side.sets.length===0
       ?`<div class="excmp-set-line" style="color:var(--text-muted)">No set data found</div>`
-      :side.sets.map((s,si)=>`<div class="excmp-set-line"><span>Set ${si+1} · ${s.desc}</span><span>${(s.isBW||s.isCardio)?'':s.vol.toLocaleString()+' kg'}</span></div>`).join('');
+      :side.sets.map((s,si)=>`<div class="excmp-set-line"><span>Set ${si+1} · ${s.desc}</span><span>${(s.isBW||s.isCardio||s.isKgKm)?'':s.vol.toLocaleString()+' kg'}</span></div>`).join('');
     // Total volume lives OUTSIDE .excmp-sets so it stays visible even when the dropdown is folded.
     return`<div class="excmp-col">
       <div class="excmp-col-badge">Panel ${side.panelSide}</div>
@@ -12760,10 +12802,21 @@ function handleSetLockToggle(i){
   }
   const wEl=document.getElementById(`weight_set_${i}`),rEl=document.getElementById(`reps_set_${i}`);
   const isBW=isBodyweightNoWeightExercise(exName);
+  const isKgKm=isKgKmExercise(exName);
   if(locked){
-    const w=parseFloat(wEl?.value)||0,r=parseInt(rEl?.value)||0;
-    if(isBW){if(r<1){alert(`Set ${i}: enter Reps before locking.`);cb.checked=false;return}}
-    else if(w<0.5||r<1){alert(`Set ${i}: enter Kgs and Reps before locking.`);cb.checked=false;return}
+    // Kg+Km (loaded carries) reuses this row/pipeline, but its second field is a Km distance, not a
+    // whole-number Reps count — reads it with parseFloat and a ">0" check (same shape Km+Time's own
+    // Km field validates with, see the isTimeBasedExercise branch above) instead of parseInt+"<1",
+    // which used to floor a value like 0.25 down to 0 and block the tick with a false "enter Reps"
+    // alert every time Km was under 1.
+    if(isKgKm){
+      const w=parseFloat(wEl?.value)||0,km=parseFloat(rEl?.value)||0;
+      if(w<0.5||km<=0){alert(`Set ${i}: enter Kgs and Km before locking.`);cb.checked=false;return}
+    } else {
+      const w=parseFloat(wEl?.value)||0,r=parseInt(rEl?.value)||0;
+      if(isBW){if(r<1){alert(`Set ${i}: enter Reps before locking.`);cb.checked=false;return}}
+      else if(w<0.5||r<1){alert(`Set ${i}: enter Kgs and Reps before locking.`);cb.checked=false;return}
+    }
   }
   if(wEl)wEl.readOnly=locked;
   if(rEl)rEl.readOnly=locked;
@@ -13272,7 +13325,7 @@ async function saveWorkoutLogEntry(){
   // Level Up check: highest Kg (or, for pure bodyweight, highest Reps) across all sets being saved,
   // compared vs ALL-time saved history for this exercise.
   {const _mx=computeSessionMaxes(sd);
-   checkAndShowLevelUp(name,_mx.maxKg,_mx.maxKg>0?_mx.maxKgReps:_mx.totalReps,_mx.totalVolume);}
+   checkAndShowLevelUp(name,_mx.maxKg,_mx.maxKg>0?_mx.maxKgReps:_mx.totalReps,_mx.totalVolume,isKgKm);}
   showToast(`✅ Workout saved! +${xpe} XP earned!`);
   // Multiple-workouts-at-a-time: if more entries are queued, load the next one into the still-open
   // form instead of closing it. Only relevant for the non-live, brand-new-entry flow that queued them.
@@ -13697,8 +13750,19 @@ window._liveEditSetCopiedFlags={};
 function computeSessionMaxes(segs){
   let maxKg=0,maxKgReps=0,maxReps=0,totalReps=0,totalVolume=0;
   (segs||[]).forEach(seg=>{
-    // Second number allows a decimal so Kg+Km sets (loaded carries) keep their full Km precision
-    // here too, instead of being truncated down to a whole number.
+    if(isKgKmSetString(seg)){
+      // Kg+Km (loaded carries) — the "Volume" PR is the Kg field's own plain total here too (see
+      // sumSetWeight/formatExerciseVolTotal), never weight×Km, so a decimal Km never inflates or
+      // hides a real Volume record. maxKg/maxKgReps still pair the heaviest Kg with its own Km, same
+      // shape a Kg+Reps set's maxKg/maxKgReps pairing already has.
+      const kp=parseKgKmSetSegment(seg);
+      if(kp.weight>maxKg){maxKg=kp.weight;maxKgReps=kp.km}
+      totalVolume+=kp.weight;
+      return;
+    }
+    // Second number allows a decimal so Km+Time-adjacent segments (if any ever reach here) keep
+    // their precision, though every real caller of this function only ever passes Kg+Reps/Kg+Km
+    // segments — see the Kg+Km branch above for that format specifically.
     const m=String(seg).match(/([\d.]+)\s*[Kk][Gg]?\s*x\s*([\d.]+)/i);
     if(!m)return;
     const k=parseFloat(m[1])||0,r=parseFloat(m[2])||0;
@@ -13727,7 +13791,7 @@ function formatLevelUpDate(dateStr){
    - Otherwise, if currentReps>0 (a true bodyweight exercise with no Kg entered): compares the
      CURRENT TOTAL reps against the HIGHEST TOTAL reps ever logged in a single saved entry (summed
      across that entry's sets, only counting entries that were also bodyweight-only). */
-async function checkAndShowLevelUp(exerciseName,currentKg,currentReps,currentVolume){
+async function checkAndShowLevelUp(exerciseName,currentKg,currentReps,currentVolume,isKgKm){
   if(!exerciseName)return;
   if(currentKg<=0&&currentReps<=0)return;
   if(isRoomMemberModeActive())return; // members: skip prior-day comparisons/toasts
@@ -13754,8 +13818,15 @@ async function checkAndShowLevelUp(exerciseName,currentKg,currentReps,currentVol
           const segs=(wEntry.sets||'').split(',').map(s=>s.trim()).filter(Boolean);
           let entryVolume=0;
           for(const seg of segs){
-            // Decimal-aware second number so Kg+Km sets (loaded carries) keep their full Km precision in
-            // this all-time PR comparison too, instead of being truncated to a whole number.
+            if(isKgKmSetString(seg)){
+              // Kg+Km (loaded carries) — this all-time PR scan follows the same Kg-only "Volume"
+              // rule computeSessionMaxes uses for the current session, so the two sides of the
+              // comparison (past-best vs. current) are always measuring the same thing.
+              const kp=parseKgKmSetSegment(seg);
+              entryVolume+=kp.weight;
+              if(bestKg===null||kp.weight>bestKg){bestKg=kp.weight;bestKgReps=kp.km;bestKgDate=row.date}
+              continue;
+            }
             const m=seg.match(/([\d.]+)\s*[Kk][Gg]?\s*x\s*([\d.]+)/i);
             if(!m)continue;
             const segKg=parseFloat(m[1])||0,segReps=parseFloat(m[2])||0;
@@ -13767,10 +13838,16 @@ async function checkAndShowLevelUp(exerciseName,currentKg,currentReps,currentVol
       }
       console.log('[LevelUp]',exerciseName,'bestKg='+bestKg,'currentKg='+currentKg,'bestVolume='+bestVolume,'currentVolume='+currentVolume);
       if(bestKg!==null&&currentKg>bestKg){
-        records.push({type:'kg',prevVal:bestKg,prevReps:bestKgReps,prevDate:bestKgDate,curVal:currentKg,curReps:currentReps,curDate:todayStr});
+        records.push({type:'kg',prevVal:bestKg,prevReps:bestKgReps,prevDate:bestKgDate,curVal:currentKg,curReps:currentReps,curDate:todayStr,isKgKm});
       }
       if(bestVolume!==null&&currentVolume>bestVolume){
-        records.push({type:'volume',prevVal:Math.round(bestVolume),prevDate:bestVolumeDate,curVal:Math.round(currentVolume),curDate:todayStr});
+        // Kg+Km's "Volume" here is the Kg-only total (see the loop above), which is typically
+        // already a clean half-kg figure but isn't guaranteed to be — trimmed to 2 decimals
+        // (formatTrimmedNum, same as the Kg+Km header/TOTAL box) rather than Math.round-ed, so a
+        // total like 2.5kg never gets shown as a misleading whole "3".
+        records.push(isKgKm
+          ?{type:'volume',prevVal:parseFloat(formatTrimmedNum(bestVolume)),prevDate:bestVolumeDate,curVal:parseFloat(formatTrimmedNum(currentVolume)),curDate:todayStr,isKgKm:true}
+          :{type:'volume',prevVal:Math.round(bestVolume),prevDate:bestVolumeDate,curVal:Math.round(currentVolume),curDate:todayStr});
       }
     } else if(currentReps>0){
       // Reps record (pure bodyweight, no Kg entered): compare the CURRENT TOTAL reps (summed
@@ -13832,12 +13909,17 @@ function showLevelUpNotification(exerciseName,records){
     let type,highestLabel,prevContent,curContent;
     if(info.type==='kg'){
       type='Weight';highestLabel='Highest Weight Lift';
-      prevContent=`${info.prevVal}kg x${info.prevReps}${prevDateSuffix}`;
-      curContent=`${info.curVal}kg x${info.curReps}${curDateSuffix}`;
+      // Kg+Km (loaded carries) pairs the heaviest Kg with the Km it was carried over, labelled so
+      // it doesn't read like a rep count — same pairing a Kg+Reps record already shows, just with
+      // the right unit for this format.
+      prevContent=info.isKgKm?`${info.prevVal}kg x${info.prevReps}km${prevDateSuffix}`:`${info.prevVal}kg x${info.prevReps}${prevDateSuffix}`;
+      curContent=info.isKgKm?`${info.curVal}kg x${info.curReps}km${curDateSuffix}`:`${info.curVal}kg x${info.curReps}${curDateSuffix}`;
     }else if(info.type==='volume'){
+      // Kg+Km's "Volume" record is the Kg field's own plain total (see checkAndShowLevelUp) — labelled
+      // "Kg", not "kg·reps", so it doesn't read as a weight×Km product that was never calculated.
       type='Volume';highestLabel='Highest Volume Done';
-      prevContent=`${info.prevVal.toLocaleString()} kg·reps${prevDateSuffix}`;
-      curContent=`${info.curVal.toLocaleString()} kg·reps${curDateSuffix}`;
+      prevContent=info.isKgKm?`${info.prevVal.toLocaleString()} Kg${prevDateSuffix}`:`${info.prevVal.toLocaleString()} kg·reps${prevDateSuffix}`;
+      curContent=info.isKgKm?`${info.curVal.toLocaleString()} Kg${curDateSuffix}`:`${info.curVal.toLocaleString()} kg·reps${curDateSuffix}`;
     }else{
       type='Reps';highestLabel='Highest Reps Done';
       prevContent=`${info.prevVal} reps${prevDateSuffix}`;
@@ -17175,7 +17257,15 @@ function animateTrackerJourneyTravel(fromIdx,toIdx,trend,onDone){
   trackerJourneyDriveAnim();
 }
 function formatTrackerDate(dateStr){const d=new Date(dateStr+'T00:00:00'),months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];return `${months[d.getMonth()]} ${String(d.getDate()).padStart(2,'0')}/${d.getFullYear()}`}
-function parseSetVolume(setStr){const m=setStr.trim().match(/^([\d.]+)\s*[Kk][Gg]?\s*x\s*([\d.]+)/);if(!m)return 0;return parseFloat(m[1])*(parseFloat(m[2])||0)}
+function parseSetVolume(setStr){
+  const s=(setStr||'').trim();
+  // Kg+Km (loaded carries) — same Kg-only rule every other volume total in the app now follows (see
+  // parseWorkoutVolume/sumSetWeight) — this one's currently inert for Kg+Km specifically (the
+  // Tracker's View dropdown never offers "Volume" for this format, see showTrackerAnalytics), but
+  // fixed here too so nothing downstream ever inherits a stale weight×Km product from it.
+  if(isKgKmSetString(s))return parseKgKmSetSegment(s).weight;
+  const m=s.match(/^([\d.]+)\s*[Kk][Gg]?\s*x\s*([\d.]+)/);if(!m)return 0;return parseFloat(m[1])*(parseFloat(m[2])||0)
+}
 function parseSetWeightReps(setStr){const m=setStr.trim().match(/^([\d.]+)\s*[Kk][Gg]?\s*x\s*([\d.]+)/);if(!m)return{weight:0,reps:0};return{weight:parseFloat(m[1])||0,reps:parseFloat(m[2])||0}}
 // Parses "8.5Kg x 15 [20 sec]" (the real saved format) into weight/reps/duration.
 // showDuration=false (default): "8.5kgs x 15" — used in the collapsed/default cell view.
@@ -19737,4 +19827,4 @@ function closeLearnVideo(){
 })();
 </script>
 </body>
-</html>
+</html> 
