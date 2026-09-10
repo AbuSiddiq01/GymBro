@@ -13494,10 +13494,10 @@ async function saveWorkoutLogEntry(){
   // computeSessionMaxes would always read 0 for them.
   if(isCardio||isTimeOnly){
     const _tmx=computeSessionTimeMaxes(sd);
-    checkAndShowTimeLevelUp(name,_tmx.maxDurationSec,_tmx.totalDurationSec,_tmx.maxKm,isCardio,_tmx.totalKm);
+    checkAndShowTimeLevelUp(name,_tmx.maxDurationSec,_tmx.totalDurationSec,_tmx.maxKm,isCardio,_tmx.totalKm,td);
   } else {
     const _mx=computeSessionMaxes(sd);
-    checkAndShowLevelUp(name,_mx.maxKg,_mx.maxKg>0?_mx.maxKgReps:_mx.totalReps,_mx.totalVolume,isKgKm,_mx.maxKm,_mx.maxReps);
+    checkAndShowLevelUp(name,_mx.maxKg,_mx.maxKg>0?_mx.maxKgReps:_mx.totalReps,_mx.totalVolume,isKgKm,_mx.maxKm,_mx.maxReps,td);
   }
   showToast(`✅ Workout saved! +${xpe} XP earned!`);
   // Multiple-workouts-at-a-time: if more entries are queued, load the next one into the still-open
@@ -13616,13 +13616,21 @@ async function fetchPrevPerformance(exerciseName, mode, excludeDate){
   resetPrevPerfCopyState(mode);
   badgeEl.classList.add("visible");
   valueEl.innerHTML=`<span class="prev-perf-loading">Looking up history...</span>`;
+  // "Reference date" = the date this entry is being logged FOR. Live entries are always logged for
+  // right now, so that's always actual today. Non-live entries can be backdated via the
+  // workoutCalendarFilter date picker — when they are, THAT selected date acts as "today" for
+  // comparison purposes, so "previous performance" must mean the most recent occurrence strictly
+  // BEFORE the selected date, not simply the most recent row in the whole table (which could
+  // otherwise be a later/actual-today entry, or the entry currently being edited).
+  const refDate=mode==='live'?getLocalDateString():(document.getElementById("workoutCalendarFilter")?.value||getLocalDateString());
   try{
     const{data,error}=await db.from(SESSION_TABLE).select("date,workouts").eq("user_id",uid).order("date",{ascending:false}).limit(60);
     if(error||!data||!data.length){badgeEl.classList.remove("visible");return}
     const nameLower=exerciseName.toLowerCase().trim();
     let found=null,foundDate=null;
     outer:for(const row of data){
-      if(excludeDate&&row.date===excludeDate)continue; // this is the entry being edited itself — not a genuine "previous" performance
+      if(row.date>=refDate)continue; // only strictly-prior-to-refDate rows count as "previous" (also naturally excludes the entry being edited, its own date, and any real-today entry when backdating)
+      if(excludeDate&&row.date===excludeDate)continue; // belt-and-braces: the entry being edited itself, if its date somehow wasn't already caught above
       for(const wEntry of sessionWorkoutsArray(row)){
         const cellName=sessionDecodeWorkoutEntry(wEntry).name.toLowerCase();
         if(cellName===nameLower){found=sessionWorkoutEntryToText(wEntry);foundDate=row.date;break outer}
@@ -13988,15 +13996,19 @@ function formatLevelUpDate(dateStr){
    - Otherwise, if currentReps>0 (a true bodyweight exercise with no Kg entered): compares the
      CURRENT TOTAL reps against the HIGHEST TOTAL reps ever logged in a single saved entry (summed
      across that entry's sets, only counting entries that were also bodyweight-only). */
-async function checkAndShowLevelUp(exerciseName,currentKg,currentReps,currentVolume,isKgKm,currentKm,currentMaxSetReps){
+async function checkAndShowLevelUp(exerciseName,currentKg,currentReps,currentVolume,isKgKm,currentKm,currentMaxSetReps,entryDate){
   if(!exerciseName)return;
   if(currentKg<=0&&currentReps<=0)return;
   if(isRoomMemberModeActive())return; // members: skip prior-day comparisons/toasts
   const uid=getEffectiveUid();
   if(!uid)return;
-  // Exclude today — only compare against strictly prior-day historical data so that
-  // sets saved within the same day's session don't compare against themselves.
-  const todayStr=getLocalDateString();
+  // Exclude the day this entry is FOR — only compare against strictly-prior-day historical data so
+  // that sets saved within that same day's session don't compare against themselves. entryDate is
+  // the selected date from the workout form (workoutCalendarFilter), which is actual-today for a
+  // fresh entry but can be backdated — when it is, that selected date is treated as "today" for
+  // this comparison, so the baseline is whatever was logged on the day immediately before it, not
+  // whatever happens to be logged on the real, actual today.
+  const todayStr=entryDate||getLocalDateString();
   try{
     const{data,error}=await db.from(SESSION_TABLE).select('date,workouts').eq('user_id',uid).lt('date',todayStr).order('date',{ascending:false}).limit(500);
     if(error){console.warn('[LevelUp] DB error:',error);return}
@@ -14112,7 +14124,7 @@ async function checkAndShowLevelUp(exerciseName,currentKg,currentReps,currentVol
      • Total Floors/Total Steps record (Floors+Time/Steps+Time only): the HIGHEST TOTAL Floors/Steps
        count (summed across every set) ever logged in a single saved entry for this exercise — the
        Floors/Steps equivalent of the Total Duration record above, i.e. the "overall count" PR. */
-async function checkAndShowTimeLevelUp(exerciseName,currentMaxDurationSec,currentTotalDurationSec,currentKm,isCardio,currentTotalKm){
+async function checkAndShowTimeLevelUp(exerciseName,currentMaxDurationSec,currentTotalDurationSec,currentKm,isCardio,currentTotalKm,entryDate){
   if(!exerciseName)return;
   if(currentMaxDurationSec<=0&&currentTotalDurationSec<=0)return;
   if(isRoomMemberModeActive())return; // members: skip prior-day comparisons/toasts
@@ -14120,9 +14132,9 @@ async function checkAndShowTimeLevelUp(exerciseName,currentMaxDurationSec,curren
   if(!uid)return;
   const cardioUnit=isCardio?getCardioUnit(exerciseName):null; // 'Km' | 'Floors' | 'Steps'
   const isCountUnit=cardioUnit==='Floors'||cardioUnit==='Steps'; // Stair Machine's own two formats
-  // Exclude today — only compare against strictly prior-day historical data so that
-  // sets saved within the same day's session don't compare against themselves.
-  const todayStr=getLocalDateString();
+  // Exclude the day this entry is FOR — see the matching comment in checkAndShowLevelUp; entryDate
+  // lets a backdated (non-live) entry compare against the day before ITS date, not real-today.
+  const todayStr=entryDate||getLocalDateString();
   try{
     const{data,error}=await db.from(SESSION_TABLE).select('date,workouts').eq('user_id',uid).lt('date',todayStr).order('date',{ascending:false}).limit(500);
     if(error){console.warn('[LevelUp] DB error:',error);return}
@@ -20269,4 +20281,4 @@ function closeLearnVideo(){
 })();
 </script>
 </body>
-</html> 
+</html>
