@@ -10366,13 +10366,13 @@ function _renderVolumeExtremes(volumeMap){
   const headingEl=document.getElementById('volStatsHeading');
   if(headingEl)headingEl.textContent=`${_periodTag(volRangeMode).toUpperCase()} STATS`;
   if(high.length){
-    highLabel.textContent=high.map(c=>`${c}: ${Math.round(volumeMap[c]).toLocaleString()} Kg-Reps`).join(', ');
+    highLabel.textContent=high.map(c=>`${c}: ${formatVolNum(volumeMap[c])} Kg-Reps`).join(', ');
     highRow.style.display='';
   } else {
     highRow.style.display='none';
   }
   if(low.length){
-    lowLabel.textContent=low.map(c=>`${c}: ${Math.round(volumeMap[c]).toLocaleString()} Kg-Reps`).join(', ');
+    lowLabel.textContent=low.map(c=>`${c}: ${formatVolNum(volumeMap[c])} Kg-Reps`).join(', ');
     lowRow.style.display='';
   } else {
     lowRow.style.display='none';
@@ -10390,13 +10390,13 @@ function _renderVolumeAverage(days){
   const activeDays=days.filter(d=>d.volume>0);
   if(!activeDays.length){row.style.display='none';if(totalRow)totalRow.style.display='none';return;}
   const avg=activeDays.reduce((s,d)=>s+d.volume,0)/activeDays.length;
-  lbl.textContent=`${Math.round(avg).toLocaleString()} Kg-Reps / day (${activeDays.length} active day${activeDays.length!==1?'s':''})`;
+  lbl.textContent=`${formatVolNum(avg)} Kg-Reps / day (${activeDays.length} active day${activeDays.length!==1?'s':''})`;
   row.style.display='';
   // Total volume row
   if(totalRow&&totalLbl&&totalVal){
     const totalVol=activeDays.reduce((s,d)=>s+d.volume,0);
     totalLbl.textContent='Total Volume';
-    totalVal.textContent=`${Math.round(totalVol).toLocaleString()} Kg-Reps / ${activeDays.length} active day${activeDays.length!==1?'s':''}`;
+    totalVal.textContent=`${formatVolNum(totalVol)} Kg-Reps / ${activeDays.length} active day${activeDays.length!==1?'s':''}`;
     totalRow.style.display='';
   }
 }
@@ -11280,8 +11280,8 @@ function _updateVolGraphDetailBox(day,side){
       }).join('');
     }
     // Line 3: Daily Total
-    const dailyTotal=Math.round(day.volume||0);
-    const totalLine=`${divider}<div style="font-size:10px;margin-top:1px;white-space:nowrap">Daily total:<br><strong style="font-size:12px">${dailyTotal.toLocaleString()} Kg</strong></div>`;
+    const dailyTotal=formatVolNum(day.volume||0);
+    const totalLine=`${divider}<div style="font-size:10px;margin-top:1px;white-space:nowrap">Daily total:<br><strong style="font-size:12px">${dailyTotal} Kg</strong></div>`;
     volEl.innerHTML=(classLines||'')+totalLine;
     return;
   }
@@ -11289,14 +11289,15 @@ function _updateVolGraphDetailBox(day,side){
   // Case 3: Detailed View ON + class selected
   const selCls=volSelectedClass[side];
   if(selCls){
-    const dayClassVol=Math.round(cv[selCls]||0);
-    const weekTotalVol=Math.round((volClassVolumeMap[side]||{})[selCls]||0);
+    const dayClassVolRaw=cv[selCls]||0;
+    const dayClassVol=formatVolNum(dayClassVolRaw);
+    const weekTotalVol=formatVolNum((volClassVolumeMap[side]||{})[selCls]||0);
     const periodLabel=side==='main'?(volRangeMode==='weekly'?'Weekly':volRangeMode==='monthly'?'Monthly':'3-Month'):'Weekly';
     const col=CLASS_COLORS[selCls]||'var(--accent)';
-    const line2=dayClassVol>0
-      ?`<div style="display:flex;align-items:center;font-size:10px;font-weight:700;color:${col};margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${dot(col)}<span style="overflow:hidden;text-overflow:ellipsis">${selCls}: ${dayClassVol.toLocaleString()} Kg-Reps</span></div>`
+    const line2=dayClassVolRaw>0
+      ?`<div style="display:flex;align-items:center;font-size:10px;font-weight:700;color:${col};margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${dot(col)}<span style="overflow:hidden;text-overflow:ellipsis">${selCls}: ${dayClassVol} Kg-Reps</span></div>`
       :`<div style="font-size:10px;color:var(--text-muted);margin-top:2px">${selCls}: No data</div>`;
-    const line3=`${divider}<div style="font-size:10px;white-space:nowrap">${periodLabel} Total:<br><strong style="font-size:12px">${weekTotalVol.toLocaleString()} Kg-Reps</strong></div>`;
+    const line3=`${divider}<div style="font-size:10px;white-space:nowrap">${periodLabel} Total:<br><strong style="font-size:12px">${weekTotalVol} Kg-Reps</strong></div>`;
     volEl.innerHTML=line2+line3;
     return;
   }
@@ -11306,13 +11307,13 @@ function _updateVolGraphDetailBox(day,side){
   if(classEntries.length>0){
     classLines=classEntries.map(([cls,vol])=>{
       const col=CLASS_COLORS[cls]||'var(--accent)';
-      return`<div style="display:flex;align-items:center;font-size:10px;font-weight:700;color:${col};margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${dot(col)}<span style="overflow:hidden;text-overflow:ellipsis">${cls}: ${Math.round(vol).toLocaleString()} Kg</span></div>`;
+      return`<div style="display:flex;align-items:center;font-size:10px;font-weight:700;color:${col};margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${dot(col)}<span style="overflow:hidden;text-overflow:ellipsis">${cls}: ${formatVolNum(vol)} Kg</span></div>`;
     }).join('');
   } else {
     classLines=`<div style="font-size:10px;color:var(--text-muted);margin-top:2px">No data</div>`;
   }
-  const dailyTotal=Math.round(day.volume||0);
-  const totalLine=`${divider}<div style="font-size:10px;white-space:nowrap">Daily Total:<br><strong style="font-size:12px">${dailyTotal.toLocaleString()} Kg-Reps</strong></div>`;
+  const dailyTotal=formatVolNum(day.volume||0);
+  const totalLine=`${divider}<div style="font-size:10px;white-space:nowrap">Daily Total:<br><strong style="font-size:12px">${dailyTotal} Kg-Reps</strong></div>`;
   volEl.innerHTML=classLines+totalLine;
 }
 
@@ -11411,6 +11412,19 @@ function formatCardioTotalDetail(sets){
 function formatTrimmedNum(n){
   return String(parseFloat((n||0).toFixed(2)));
 }
+/* Same trimming as formatTrimmedNum, plus thousands-separator commas on the integer part — used for
+   Class Breakdown / Daily Total figures (Workouts page card + Stats page Volume Breakdown panel),
+   which used to run these through Math.round(...).toLocaleString() and silently swallow any decimal
+   Kg entered (e.g. a 8.5Kg Farmers Walk showing as "9 Kg"/"9 kg·reps") — those now show the exact
+   logged value, e.g. "8.5 Kg", while still keeping the "1,234" comma formatting for big totals. */
+function formatVolNum(n){
+  const trimmed=formatTrimmedNum(n);
+  const dot=trimmed.indexOf('.');
+  const intPart=dot>=0?trimmed.slice(0,dot):trimmed;
+  const decPart=dot>=0?trimmed.slice(dot+1):'';
+  const withCommas=Number(intPart).toLocaleString();
+  return decPart?`${withCommas}.${decPart}`:withCommas;
+}
 /* ===================== PER-FIELD SET TOTALS (reusable across every "Field format" combo) =====================
    Every set object parseWorkoutSets produces carries whichever raw field values its format actually
    logs — .w (Kg, from the Kg+Reps/Kg+Km families), .r (Reps), .km (Km, from the Km+Time/Kg+Km
@@ -11450,7 +11464,7 @@ function formatExerciseVolTotal(w,sets){
     const totalReps=sets.reduce((a,s)=>a+(s.r||0),0);
     return{primary:String(totalReps),unit:'Reps'};
   }
-  return{primary:Math.round(w.vol).toLocaleString(),unit:'kg·reps'};
+  return{primary:formatVolNum(w.vol),unit:'kg·reps'};
 }
 
 function toggleVolSets(rowKey,rowId,setsId){
@@ -11681,8 +11695,8 @@ function buildVolLegend(side){
   classes.forEach(c=>{
     const color=CLASS_COLORS[c]||CLASS_COLORS['Unknown'];
     const freq=freqMap[c]||0;
-    const totalVol=Math.round(volMap[c]||0);
-    const volStr=totalVol.toLocaleString()+' Kg';
+    const totalVol=formatVolNum(volMap[c]||0);
+    const volStr=totalVol+' Kg';
     const isActive=volSelectedClass[side]===c;
     html+=`<div onclick="volSelectClass('${side}','${c}')" style="display:inline-flex;flex-direction:column;align-items:center;gap:1px;font-family:var(--font-alt);font-weight:700;color:#fff;cursor:pointer;padding:4px 8px;border-radius:14px;border:2px solid ${isActive?'#fff':color};background:${color};box-shadow:${isActive?'0 0 6px rgba(0,0,0,0.35)':'none'};transition:all 0.15s;-webkit-tap-highlight-color:transparent;white-space:nowrap">
       <div style="display:flex;align-items:center;gap:4px;font-size:10.5px">${c}<span style="background:rgba(255,255,255,0.28);color:#fff;border-radius:9px;padding:1px 5px;font-size:9px;font-weight:800;min-width:14px;text-align:center">${freq}</span></div>
@@ -11940,7 +11954,7 @@ function renderVolDrilldownEnhanced(day,titleId,bodyId,panel){
             <span style="width:9px;height:9px;border-radius:2px;background:${col};flex-shrink:0;display:inline-block"></span>
             <span style="font-family:var(--font-alt);font-size:11px;font-weight:700;color:${col};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${c}</span>
           </div>
-          <span style="font-family:var(--font-alt);font-size:10px;font-weight:700;color:var(--text-secondary);white-space:nowrap;flex-shrink:0">${Math.round(attClassVol[c]).toLocaleString()} Kg (${pct}%)</span>
+          <span style="font-family:var(--font-alt);font-size:10px;font-weight:700;color:var(--text-secondary);white-space:nowrap;flex-shrink:0">${formatVolNum(attClassVol[c])} Kg (${pct}%)</span>
         </div>
         <div style="width:100%;height:8px;border-radius:4px;background:var(--border-col);overflow:hidden"><div style="height:100%;width:${pct}%;background:${col};border-radius:4px;transition:width 0.3s ease"></div></div>
       </div>`;
@@ -11948,7 +11962,7 @@ function renderVolDrilldownEnhanced(day,titleId,bodyId,panel){
     html+=`</div>`;
   }
 
-  html+=`<div class="vol-drill-total" style="margin-top:4px"><span>📦 Daily Total</span><strong>${Math.round(day.volume).toLocaleString()} kg·reps</strong></div>`;
+  html+=`<div class="vol-drill-total" style="margin-top:4px"><span>📦 Daily Total</span><strong>${formatVolNum(day.volume)} kg·reps</strong></div>`;
   bodyEl.innerHTML=html;
 }
 
@@ -14165,12 +14179,14 @@ async function checkAndShowLevelUp(exerciseName,currentKg,currentReps,currentVol
       }
       if(bestVolume!==null&&currentVolume>bestVolume){
         // Kg+Km's "Volume" here is the Kg-only total (see the loop above), which is typically
-        // already a clean half-kg figure but isn't guaranteed to be — trimmed to 2 decimals
-        // (formatTrimmedNum, same as the Kg+Km header/TOTAL box) rather than Math.round-ed, so a
-        // total like 2.5kg never gets shown as a misleading whole "3".
+        // already a clean half-kg figure but isn't guaranteed to be — and a plain Kg+Reps volume
+        // (weight×reps) can just as easily land on a decimal when the weight itself is fractional
+        // (e.g. 2.5kg × 3 reps = 7.5). Both branches now trim to 2 decimals (formatTrimmedNum, same
+        // as the Kg+Km header/TOTAL box) rather than Math.round-ed, so a total like 7.5 never gets
+        // shown as a misleading whole "8".
         records.push(isKgKm
           ?{type:'volume',prevVal:parseFloat(formatTrimmedNum(bestVolume)),prevDate:bestVolumeDate,curVal:parseFloat(formatTrimmedNum(currentVolume)),curDate:todayStr,isKgKm:true}
-          :{type:'volume',prevVal:Math.round(bestVolume),prevDate:bestVolumeDate,curVal:Math.round(currentVolume),curDate:todayStr});
+          :{type:'volume',prevVal:parseFloat(formatTrimmedNum(bestVolume)),prevDate:bestVolumeDate,curVal:parseFloat(formatTrimmedNum(currentVolume)),curDate:todayStr});
       }
       if(isKgKm&&bestKm!==null&&(currentKm||0)>bestKm){
         records.push({type:'distance',prevVal:bestKm,prevDate:bestKmDate,curVal:currentKm,curDate:todayStr});
@@ -15076,14 +15092,14 @@ async function loadWorkoutsForDate(){
             <span style="width:9px;height:9px;border-radius:2px;background:${col};flex-shrink:0;display:inline-block"></span>
             <span style="font-family:var(--font-alt);font-size:11px;font-weight:700;color:${col};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${c}</span>
           </div>
-          <span style="font-family:var(--font-alt);font-size:10px;font-weight:700;color:var(--text-secondary);white-space:nowrap;flex-shrink:0">${Math.round(classVolMap[c]).toLocaleString()} Kg (${pct}%)</span>
+          <span style="font-family:var(--font-alt);font-size:10px;font-weight:700;color:var(--text-secondary);white-space:nowrap;flex-shrink:0">${formatVolNum(classVolMap[c])} Kg (${pct}%)</span>
         </div>
         <div style="width:100%;height:8px;border-radius:4px;background:var(--border-col);overflow:hidden"><div style="height:100%;width:${pct}%;background:${col};border-radius:4px;transition:width 0.3s ease"></div></div>
       </div>`;
     });
     html+=`</div>`;
   }
-  html+=`<div class="vol-drill-total"><span>📦 Daily Total</span><strong>${Math.round(totalVolAll).toLocaleString()} kg·reps</strong></div>`;
+  html+=`<div class="vol-drill-total"><span>📦 Daily Total</span><strong>${formatVolNum(totalVolAll)} kg·reps</strong></div>`;
   con.innerHTML=html;
   wcInitScrollGlow();
 }
@@ -15378,12 +15394,12 @@ function wfRenderChipsAndVolume(){
           <span style="width:9px;height:9px;border-radius:2px;background:${col};flex-shrink:0;display:inline-block"></span>
           <span style="font-family:var(--font-alt);font-size:11px;font-weight:700;color:${col};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${c}</span>
         </div>
-        <span style="font-family:var(--font-alt);font-size:10px;font-weight:700;color:var(--text-secondary);white-space:nowrap;flex-shrink:0">${Math.round(classVolMap[c]).toLocaleString()} Kg (${pct}%)</span>
+        <span style="font-family:var(--font-alt);font-size:10px;font-weight:700;color:var(--text-secondary);white-space:nowrap;flex-shrink:0">${formatVolNum(classVolMap[c])} Kg (${pct}%)</span>
       </div>
       <div style="width:100%;height:8px;border-radius:4px;background:var(--border-col);overflow:hidden"><div style="height:100%;width:${pct}%;background:${col};border-radius:4px;transition:width 0.3s ease"></div></div>
     </div>`;
   });
-  html+=`<div class="vol-drill-total"><span>📦 Daily Total</span><strong>${Math.round(totalVolAll).toLocaleString()} kg·reps</strong></div>`;
+  html+=`<div class="vol-drill-total"><span>📦 Daily Total</span><strong>${formatVolNum(totalVolAll)} kg·reps</strong></div>`;
   volEl.innerHTML=html;
 }
 /* Consecutive-day streak ending on (and including) the given date — walks backward day by day
@@ -18236,7 +18252,7 @@ function renderTrackerChart(){
       if(cardioUnit==='Floors'||cardioUnit==='Steps')totalEl.innerHTML=`Total ${cardioUnit}: <strong>${Math.round(totalQty)} ${cardioUnit}</strong>`;
       else totalEl.innerHTML=`Total Distance: <strong>${totalQty.toFixed(2)}km</strong>`;
     }else{
-      const totalVol=Math.round(dateMap[date].totalVol);
+      const totalVol=parseFloat(formatTrimmedNum(dateMap[date].totalVol));
       totalEl.innerHTML=`Total Volume: <strong>${totalVol>=1000?(totalVol/1000).toFixed(1)+'k':totalVol}</strong>`;
     }
   }
@@ -20391,4 +20407,4 @@ function closeLearnVideo(){
 })();
 </script>
 </body>
-</html>
+</html> 
