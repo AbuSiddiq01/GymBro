@@ -1949,6 +1949,16 @@ body.workout-edit-lock{overflow:hidden}
 .prev-perf-copy-icon{width:16px;height:16px;color:var(--accent);display:block}
 .prev-perf-copy-btn.copied{background:var(--accent)}
 .prev-perf-copy-btn.copied .prev-perf-copy-icon{color:#fff}
+/* Previous-performance HISTORY NAV: the </> row that steps back through every earlier saved
+   occurrence of the exercise (oldest at the far left, index length-1) and forward again to the
+   most-recent one shown by default (index 0). Hidden whenever there's only one (or zero) prior
+   entries to page through — see updatePrevPerfNav() — so the badge looks exactly as it always has
+   for the common single-entry case. */
+.prev-perf-nav{display:none;align-items:center;gap:7px;margin-top:5px}
+.prev-perf-nav-btn{background:transparent;border:1px solid var(--accent);color:var(--accent);border-radius:6px;width:22px;height:20px;font-size:13px;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;font-family:var(--font-alt);font-weight:800;padding:0}
+.prev-perf-nav-btn:hover:not(:disabled){background:var(--accent-soft)}
+.prev-perf-nav-btn:disabled{opacity:0.3;cursor:default}
+.prev-perf-nav-count{font-size:10px;font-weight:700;color:var(--text-muted);font-family:var(--font-alt);letter-spacing:0.3px}
 
 /* ===================== QUICK FILL BUTTON ===================== */
 .quick-fill-btn{
@@ -3447,6 +3457,16 @@ body.tracker-fs-lock{overflow:hidden}
             <div class="prev-perf-content">
               <span class="prev-perf-label">Previous Performance</span>
               <span class="prev-perf-value" id="prevPerfValueNonLive">—</span>
+              <!-- Previous-performance HISTORY NAV: steps back ('‹') through every earlier saved
+                   occurrence of this exercise, oldest at the far end, and forward ('›') again to the
+                   most-recent one shown by default. Swipe left/right on the value text above does the
+                   same (see prevPerfSwipe below). Stays hidden whenever there's only one (or zero)
+                   prior entries — see updatePrevPerfNav(). -->
+              <div class="prev-perf-nav" id="prevPerfNavNonLive">
+                <button type="button" class="prev-perf-nav-btn" id="prevPerfNavLeftNonLive" onclick="navigatePrevPerf('nonlive',1)" title="Older performance" aria-label="Older performance">&#8249;</button>
+                <span class="prev-perf-nav-count" id="prevPerfNavCountNonLive"></span>
+                <button type="button" class="prev-perf-nav-btn" id="prevPerfNavRightNonLive" onclick="navigatePrevPerf('nonlive',-1)" title="More recent performance" aria-label="More recent performance">&#8250;</button>
+              </div>
               <div class="prev-perf-stats" id="prevPerfStatsNonLive" style="display:none">
                 <span class="prev-perf-stat prev-perf-stat-min"><span class="prev-perf-stat-tag">Lowest</span><span class="prev-perf-stat-num" id="prevPerfMinNonLive">—</span><span class="prev-perf-stat-date" id="prevPerfMinDateNonLive"></span></span>
                 <span class="prev-perf-stat prev-perf-stat-max"><span class="prev-perf-stat-tag">Highest</span><span class="prev-perf-stat-num" id="prevPerfMaxNonLive">—</span><span class="prev-perf-stat-date" id="prevPerfMaxDateNonLive"></span></span>
@@ -13638,6 +13658,12 @@ function applyTrackerFocus(){
    a genuine prior session. Passing the edited entry's date here skips it, same for every set
    format (Kg-Reps, Reps only, Reps with Kg, Km-Time), so the badge always shows the real most
    recent PRIOR occurrence instead. Add-mode callers simply omit this and behave exactly as before. */
+/* History of every strictly-prior saved occurrence of the exercise currently shown in the badge,
+   newest-first (index 0 = the single most-recent entry the badge has always shown by default).
+   Populated by fetchPrevPerformance; paged through via the </> nav buttons or a swipe — see
+   navigatePrevPerf/renderPrevPerfEntry/updatePrevPerfNav below. */
+window._prevPerfHistory={nonlive:[],live:[]};
+window._prevPerfHistoryIdx={nonlive:0,live:0};
 async function fetchPrevPerformance(exerciseName, mode, excludeDate){
   if(isRoomMemberModeActive())return; // members: no history/previous-performance visibility
   const uid=getEffectiveUid();
@@ -13649,10 +13675,13 @@ async function fetchPrevPerformance(exerciseName, mode, excludeDate){
   // A fresh lookup is starting (new exercise name) — any earlier previous-performance data (and any
   // pending "copy on session start" request in Live mode, see copyPrevPerfToFields) is now stale.
   if(mode==='live'){window._prevPerfSetsLive=null;window._pendingLivePrevPerfCopy=null;}else{window._prevPerfSetsNonLive=null;}
+  window._prevPerfHistory[mode]=[];
+  window._prevPerfHistoryIdx[mode]=0;
   resetPrevPerfCopyState(mode);
   badgeEl.classList.add("visible");
   valueEl.innerHTML=`<span class="prev-perf-loading">Looking up history...</span>`;
   renderPrevPerfStats(mode,null); // clear any stale Max/Min from a previous exercise while this one loads
+  updatePrevPerfNav(mode); // hide the nav row while loading
   // "Reference date" = the date this entry is being logged FOR. Live entries are always logged for
   // right now, so that's always actual today. Non-live entries can be backdated via the
   // workoutCalendarFilter date picker — when they are, THAT selected date acts as "today" for
@@ -13662,68 +13691,160 @@ async function fetchPrevPerformance(exerciseName, mode, excludeDate){
   const refDate=mode==='live'?getLocalDateString():(document.getElementById("workoutCalendarFilter")?.value||getLocalDateString());
   try{
     const{data,error}=await db.from(SESSION_TABLE).select("date,workouts").eq("user_id",uid).order("date",{ascending:false}).limit(60);
-    if(error||!data||!data.length){badgeEl.classList.remove("visible");renderPrevPerfStats(mode,null);return}
+    if(error||!data||!data.length){badgeEl.classList.remove("visible");renderPrevPerfStats(mode,null);updatePrevPerfNav(mode);return}
     const nameLower=exerciseName.toLowerCase().trim();
-    let found=null,foundDate=null;
-    outer:for(const row of data){
+    // Every strictly-prior occurrence of this exercise, not just the single most recent one — `data`
+    // is already date-descending, so this list comes out newest-first for free (index 0 = what the
+    // badge shows by default; higher indices = progressively older, reached via the '‹' nav/swipe).
+    const history=[];
+    for(const row of data){
       if(row.date>=refDate)continue; // only strictly-prior-to-refDate rows count as "previous" (also naturally excludes the entry being edited, its own date, and any real-today entry when backdating)
       if(excludeDate&&row.date===excludeDate)continue; // belt-and-braces: the entry being edited itself, if its date somehow wasn't already caught above
       for(const wEntry of sessionWorkoutsArray(row)){
         const cellName=sessionDecodeWorkoutEntry(wEntry).name.toLowerCase();
-        if(cellName===nameLower){found=sessionWorkoutEntryToText(wEntry);foundDate=row.date;break outer}
+        if(cellName===nameLower){
+          const text=sessionWorkoutEntryToText(wEntry);
+          if(text)history.push({date:row.date,text});
+          break; // one matching entry per day, same assumption the old single-match lookup made
+        }
       }
     }
-    if(!found){badgeEl.classList.remove("visible");renderPrevPerfStats(mode,null);if(mode==='live')window._prevPerfSetsLive=null;else window._prevPerfSetsNonLive=null;return}
-    const setsStr=found.substring(found.indexOf(":")+1).trim();
-    const segs=setsStr.split(",").map(s=>s.trim()).filter(Boolean);
-    const dateObj=new Date(foundDate+"T00:00:00");
-    const dateLabel=dateObj.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
-    // Structured per-set data (parallel to the display below) so the "Copy previous performance"
-    // icon can fill the current workout's fields exactly as shown here, set-by-set.
-    const structuredSets=segs.map(seg=>{
-      if(isCardioSetString(seg)){
-        const cp=parseCardioSetSegment(seg);
-        return{type:'cardio',km:cp.km,min:cp.min,sec:cp.sec};
-      }
-      if(isKgKmSetString(seg)){
-        // Kg+Km (loaded carries) — kg/reps slots still get reused (reps holds the Km value here),
-        // so "Copy previous performance" keeps working unchanged for this format too.
-        const kp=parseKgKmSetSegment(seg);
-        return{type:'strength',kg:String(kp.weight),reps:String(kp.km)};
-      }
-      const m=seg.match(/([\d.]+)\s*[Kk][Gg]?\s*x\s*(\d+)/i);
-      if(m)return{type:'strength',kg:m[1],reps:m[2]};
-      // "N Reps" bodyweight-only format — no Kg component
-      const rOnly=seg.match(/(\d+)\s*Reps?/i);
-      return{type:'strength',kg:'0',reps:rOnly?rOnly[1]:'0'};
-    });
-    if(mode==='live')window._prevPerfSetsLive=structuredSets;else window._prevPerfSetsNonLive=structuredSets;
-    // Build a row for every set
-    let setsHtml=segs.map((seg,si)=>{
-      if(isCardioSetString(seg)){
-        const cp=parseCardioSetSegment(seg);
-        return `<div style="display:flex;align-items:center;gap:6px;margin-top:3px"><span style="min-width:42px;font-size:10px;color:var(--text-muted);font-family:var(--font-alt);font-weight:700">Set ${si+1}</span><span style="font-size:13px;font-weight:700;color:var(--accent)">${formatCardioSetDisplay(cp.km,cp.min,cp.sec,cp.unit)}</span></div>`;
-      }
-      if(isKgKmSetString(seg)){
-        const kp=parseKgKmSetSegment(seg);
-        return `<div style="display:flex;align-items:center;gap:6px;margin-top:3px"><span style="min-width:42px;font-size:10px;color:var(--text-muted);font-family:var(--font-alt);font-weight:700">Set ${si+1}</span><span style="font-size:13px;font-weight:700;color:var(--accent)">${kp.weight}kg × ${kp.km.toFixed(2)} km</span></div>`;
-      }
-      const m=seg.match(/([\d.]+)\s*[Kk][Gg]?\s*x\s*(\d+)/i);
-      const kg=m?m[1]:'?',reps=m?m[2]:'?';
-      return `<div style="display:flex;align-items:center;gap:6px;margin-top:3px"><span style="min-width:42px;font-size:10px;color:var(--text-muted);font-family:var(--font-alt);font-weight:700">Set ${si+1}</span><span style="font-size:13px;font-weight:700;color:var(--accent)">${kg}kg × ${reps} reps</span></div>`;
-    }).join('');
-    valueEl.innerHTML=`<div style="margin-bottom:2px"><span style="font-size:10px;font-weight:700;color:var(--text-muted);font-family:var(--font-alt);letter-spacing:0.4px">${segs.length} SET${segs.length>1?'S':''} — ${dateLabel}</span></div>${setsHtml}`;
+    if(!history.length){badgeEl.classList.remove("visible");renderPrevPerfStats(mode,null);if(mode==='live')window._prevPerfSetsLive=null;else window._prevPerfSetsNonLive=null;updatePrevPerfNav(mode);return}
+    window._prevPerfHistory[mode]=history;
+    window._prevPerfHistoryIdx[mode]=0;
+    renderPrevPerfEntry(mode); // renders index 0 (the most recent entry) — same default view as before
     badgeEl.classList.add("visible");
-    // Max/Min stat row — only meaningful for genuine Kg+Reps / Reps-only sets (see
-    // computeExerciseMaxMinStats above); Cardio and Kg+Km (loaded carries) exercises carry no
-    // comparable Kg/Reps pair, so the row stays hidden for those instead of showing something misleading.
-    if(isTimeBasedExercise(exerciseName)||segs.some(seg=>isKgKmSetString(seg))){
+    // Max/Min stat row — computed once across the exercise's ENTIRE logged history, independent of
+    // which single past session is currently being paged through above (see renderPrevPerfEntry).
+    // Only meaningful for genuine Kg+Reps / Reps-only sets; Cardio and Kg+Km (loaded carries)
+    // exercises carry no comparable Kg/Reps pair, so the row stays hidden for those instead of
+    // showing something misleading. Judged off the most-recent (index 0) entry's set format, same
+    // as the format check the old single-entry code ran.
+    const latestSegs=history[0].text.substring(history[0].text.indexOf(":")+1).split(",").map(s=>s.trim()).filter(Boolean);
+    if(isTimeBasedExercise(exerciseName)||latestSegs.some(seg=>isKgKmSetString(seg))){
       renderPrevPerfStats(mode,null);
     } else {
       computeExerciseMaxMinStats(exerciseName).then(stats=>renderPrevPerfStats(mode,stats));
     }
-  }catch(err){badgeEl.classList.remove("visible");renderPrevPerfStats(mode,null);if(mode==='live')window._prevPerfSetsLive=null;else window._prevPerfSetsNonLive=null}
+  }catch(err){badgeEl.classList.remove("visible");renderPrevPerfStats(mode,null);if(mode==='live')window._prevPerfSetsLive=null;else window._prevPerfSetsNonLive=null;updatePrevPerfNav(mode)}
 }
+/* Renders whichever history entry is currently selected (window._prevPerfHistoryIdx[mode]) into the
+   badge — the exact same per-set display + structured copy-data build the badge has always done for
+   its single previous entry, just re-run against window._prevPerfHistory[mode][idx] instead of
+   always index 0. Called on the initial lookup (idx 0) and every time the '‹'/'›' nav or a swipe
+   moves to a different entry — see navigatePrevPerf. */
+function renderPrevPerfEntry(mode){
+  const valueEl=document.getElementById(mode==='live'?'prevPerfValueLive':'prevPerfValueNonLive');
+  const history=window._prevPerfHistory[mode]||[];
+  const idx=window._prevPerfHistoryIdx[mode]||0;
+  const entry=history[idx];
+  if(!valueEl||!entry)return;
+  const found=entry.text,foundDate=entry.date;
+  const setsStr=found.substring(found.indexOf(":")+1).trim();
+  const segs=setsStr.split(",").map(s=>s.trim()).filter(Boolean);
+  const dateObj=new Date(foundDate+"T00:00:00");
+  const dateLabel=dateObj.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+  // Structured per-set data (parallel to the display below) so the "Copy previous performance"
+  // icon can fill the current workout's fields exactly as shown here, set-by-set — always for
+  // whichever entry is currently on screen, not necessarily the most recent one.
+  const structuredSets=segs.map(seg=>{
+    if(isCardioSetString(seg)){
+      const cp=parseCardioSetSegment(seg);
+      return{type:'cardio',km:cp.km,min:cp.min,sec:cp.sec};
+    }
+    if(isKgKmSetString(seg)){
+      // Kg+Km (loaded carries) — kg/reps slots still get reused (reps holds the Km value here),
+      // so "Copy previous performance" keeps working unchanged for this format too.
+      const kp=parseKgKmSetSegment(seg);
+      return{type:'strength',kg:String(kp.weight),reps:String(kp.km)};
+    }
+    const m=seg.match(/([\d.]+)\s*[Kk][Gg]?\s*x\s*(\d+)/i);
+    if(m)return{type:'strength',kg:m[1],reps:m[2]};
+    // "N Reps" bodyweight-only format — no Kg component
+    const rOnly=seg.match(/(\d+)\s*Reps?/i);
+    return{type:'strength',kg:'0',reps:rOnly?rOnly[1]:'0'};
+  });
+  if(mode==='live')window._prevPerfSetsLive=structuredSets;else window._prevPerfSetsNonLive=structuredSets;
+  // Build a row for every set
+  let setsHtml=segs.map((seg,si)=>{
+    if(isCardioSetString(seg)){
+      const cp=parseCardioSetSegment(seg);
+      return `<div style="display:flex;align-items:center;gap:6px;margin-top:3px"><span style="min-width:42px;font-size:10px;color:var(--text-muted);font-family:var(--font-alt);font-weight:700">Set ${si+1}</span><span style="font-size:13px;font-weight:700;color:var(--accent)">${formatCardioSetDisplay(cp.km,cp.min,cp.sec,cp.unit)}</span></div>`;
+    }
+    if(isKgKmSetString(seg)){
+      const kp=parseKgKmSetSegment(seg);
+      return `<div style="display:flex;align-items:center;gap:6px;margin-top:3px"><span style="min-width:42px;font-size:10px;color:var(--text-muted);font-family:var(--font-alt);font-weight:700">Set ${si+1}</span><span style="font-size:13px;font-weight:700;color:var(--accent)">${kp.weight}kg × ${kp.km.toFixed(2)} km</span></div>`;
+    }
+    const m=seg.match(/([\d.]+)\s*[Kk][Gg]?\s*x\s*(\d+)/i);
+    const kg=m?m[1]:'?',reps=m?m[2]:'?';
+    return `<div style="display:flex;align-items:center;gap:6px;margin-top:3px"><span style="min-width:42px;font-size:10px;color:var(--text-muted);font-family:var(--font-alt);font-weight:700">Set ${si+1}</span><span style="font-size:13px;font-weight:700;color:var(--accent)">${kg}kg × ${reps} reps</span></div>`;
+  }).join('');
+  valueEl.innerHTML=`<div style="margin-bottom:2px"><span style="font-size:10px;font-weight:700;color:var(--text-muted);font-family:var(--font-alt);letter-spacing:0.4px">${segs.length} SET${segs.length>1?'S':''} — ${dateLabel}</span></div>${setsHtml}`;
+  updatePrevPerfNav(mode);
+}
+/* Steps to an older ('‹', delta=+1) or more-recent ('›', delta=-1) previous-performance entry for
+   the exercise currently shown in the badge. Clamped to the history's bounds (oldest ever saved
+   entry on one end, the most-recent/default entry on the other) — a no-op past either end, and a
+   no-op entirely when there's nothing to page through (0 or 1 entries). Also driven by a left/right
+   swipe on the badge's value text — see the prevPerfSwipe touch handlers below. */
+function navigatePrevPerf(mode,delta){
+  const history=window._prevPerfHistory[mode]||[];
+  if(history.length<2)return;
+  const curIdx=window._prevPerfHistoryIdx[mode]||0;
+  let idx=curIdx+delta;
+  if(idx<0)idx=0;
+  if(idx>history.length-1)idx=history.length-1;
+  if(idx===curIdx)return;
+  window._prevPerfHistoryIdx[mode]=idx;
+  // Paging to a different past session invalidates any pending "copy previous performance" state —
+  // same treatment a fresh exercise-name lookup gives it (see resetPrevPerfCopyState call above) —
+  // so the copy icon's tap-again "undo" can't fire against values that are no longer on screen.
+  resetPrevPerfCopyState(mode);
+  renderPrevPerfEntry(mode);
+}
+/* Shows/hides the </> history-nav row and keeps its counter + disabled states in sync with the
+   current position in window._prevPerfHistory[mode]. Hidden entirely whenever there's only one (or
+   zero) previous-performance entries to page through — the common case — so the badge looks exactly
+   as it always has unless there's real history to swipe/tap into. */
+function updatePrevPerfNav(mode){
+  const suffix=mode==='live'?'Live':'NonLive';
+  const navEl=document.getElementById(`prevPerfNav${suffix}`);
+  if(!navEl)return;
+  const history=window._prevPerfHistory[mode]||[];
+  if(history.length<2){navEl.style.display='none';return}
+  const idx=window._prevPerfHistoryIdx[mode]||0;
+  navEl.style.display='flex';
+  const leftBtn=document.getElementById(`prevPerfNavLeft${suffix}`),rightBtn=document.getElementById(`prevPerfNavRight${suffix}`);
+  const countEl=document.getElementById(`prevPerfNavCount${suffix}`);
+  if(leftBtn)leftBtn.disabled=idx>=history.length-1; // already at the oldest saved entry
+  if(rightBtn)rightBtn.disabled=idx<=0; // already back at the most-recent/default entry
+  if(countEl)countEl.textContent=`${idx+1}/${history.length}`;
+}
+/* Left/right swipe on the badge's value text pages through previous-performance history exactly
+   like the '‹'/'›' nav buttons (see navigatePrevPerf) — swipe left reveals an older entry, swipe
+   right comes back toward the most recent one. A short, mostly-horizontal drag only, so it doesn't
+   fight with normal vertical page scrolling. Safe no-op wherever the value element doesn't exist
+   (there is currently no Live-mode badge markup, same as everywhere else in this section). */
+(function attachPrevPerfSwipeHandlers(){
+  function attach(mode){
+    const suffix=mode==='live'?'Live':'NonLive';
+    const el=document.getElementById(`prevPerfValue${suffix}`);
+    if(!el)return;
+    let sx=0,sy=0,tracking=false;
+    el.addEventListener('touchstart',e=>{
+      if(!e.touches||!e.touches.length)return;
+      sx=e.touches[0].clientX;sy=e.touches[0].clientY;tracking=true;
+    },{passive:true});
+    el.addEventListener('touchend',e=>{
+      if(!tracking)return;tracking=false;
+      const t=e.changedTouches&&e.changedTouches[0];if(!t)return;
+      const dx=t.clientX-sx,dy=t.clientY-sy;
+      if(Math.abs(dx)<30||Math.abs(dx)<Math.abs(dy))return; // require a real horizontal swipe, not a vertical scroll/tap
+      navigatePrevPerf(mode,dx<0?1:-1);
+    },{passive:true});
+  }
+  attach('nonlive');attach('live');
+})();
 /* ===================== PREVIOUS PERFORMANCE — HIGHEST/LOWEST STAT ROW =====================
    Computed across the exercise's ENTIRE saved history (every session ever logged for this name),
    not just the single previous session shown in the badge above. Only called for genuine Kg+Reps /
