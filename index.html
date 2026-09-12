@@ -1903,27 +1903,36 @@ body.workout-edit-lock{overflow:hidden}
 .prev-perf-badge{
   display:none;align-items:flex-start;gap:8px;
   background:var(--accent-soft);border:1px solid var(--accent);border-radius:10px;
-  padding:10px 12px;margin-top:8px;font-family:var(--font-alt);
+  padding:clamp(7px,2.4cqw,10px) clamp(9px,3cqw,12px);margin-top:6px;font-family:var(--font-alt);
   animation:fadeIn 0.3s ease;position:relative;container-type:inline-size;
 }
 .prev-perf-badge.visible{display:flex}
 .prev-perf-icon{font-size:16px;flex-shrink:0;margin-top:2px}
 .prev-perf-content{flex:1;min-width:0}
-.prev-perf-label{font-size:10px;font-weight:700;color:var(--text-muted);letter-spacing:0.6px;text-transform:uppercase;display:block;margin-bottom:1px}
-.prev-perf-value{font-size:13px;font-weight:700;color:var(--accent);letter-spacing:0.3px;flex:1;min-width:0;padding-right:32px;display:block}
+.prev-perf-label{font-size:10px;font-weight:700;color:var(--text-muted);letter-spacing:0.6px;text-transform:uppercase;display:block}
+.prev-perf-value{font-size:13px;font-weight:700;color:var(--accent);letter-spacing:0.3px;flex:1;min-width:0;padding-right:32px;display:block;overflow:hidden}
+/* Wraps the actual per-set content that gets swapped out on every '‹'/'›' page/swipe — animated
+   in from the side it logically arrived from (see renderPrevPerfEntry) so switching to an older or
+   newer saved session reads as a deliberate slide, matching the app's other card/tab transitions,
+   instead of an abrupt content jump. */
+.prev-perf-value-inner{transition:transform 0.26s cubic-bezier(.4,0,.2,1),opacity 0.22s ease}
+.prev-perf-value-inner.ppv-enter-from-right{transform:translateX(20px);opacity:0}
+.prev-perf-value-inner.ppv-enter-from-left{transform:translateX(-20px);opacity:0}
 .prev-perf-loading{font-size:12px;color:var(--text-muted);font-family:var(--font-alt);font-style:italic}
-/* Max/Min stat row — bottom of the Previous Performance badge. Min weight (or min total reps, for
-   pure Reps-only/bodyweight exercises) sits bottom-LEFT, Max sits bottom-RIGHT, computed across the
-   exercise's ENTIRE logged history (not just the single previous session shown above), see
-   computeExerciseMaxMinStats(). Sized with cqw/clamp() off the badge's OWN inline-size container
-   (see container-type:inline-size on .prev-perf-badge above) so both chips shrink together and stay
-   on one line — never a tight overlap with the copy icon (top-right, absolutely positioned, outside
-   this row's flow) — across narrow/medium/wide screens alike. Hidden entirely (inline display:none
-   in markup) until fetchPrevPerformance has real history to show. */
-.prev-perf-stats{display:flex;justify-content:space-between;align-items:flex-end;gap:clamp(6px,4cqw,18px);margin-top:8px;padding-top:7px;border-top:1px dashed var(--accent);width:100%}
-.prev-perf-stat{display:flex;flex-direction:column;min-width:0;max-width:50%;line-height:1.3}
+/* Max/Min stat row — bottom of the Previous Performance badge, with the </> history-nav now sharing
+   this SAME line, centered between them (see .prev-perf-nav below): Lowest on the left, the nav in
+   the middle, Highest on the right. Min/Max are computed across the exercise's ENTIRE logged history
+   (not just the single previous session shown above), see computeExerciseMaxMinStats(). All three
+   cells use flex:1 1 0 on the two stat cells so the nav sits mathematically centered regardless of
+   how wide either stat's text is, and everything is sized with cqw/clamp() off the badge's OWN
+   inline-size container (see container-type:inline-size on .prev-perf-badge above) so it shrinks/grows
+   together and stays on one compact line — narrow phone or wide screen alike — never overlapping the
+   copy icon (top-right, absolutely positioned, outside this row's flow). Hidden entirely until
+   fetchPrevPerformance/updatePrevPerfNav have something real to show — see refreshPrevPerfStatsRow(). */
+.prev-perf-stats{display:none;align-items:center;gap:clamp(6px,2.6cqw,14px);margin-top:clamp(5px,1.8cqw,9px);padding-top:clamp(5px,1.6cqw,8px);border-top:1px dashed var(--accent);width:100%}
+.prev-perf-stat{flex:1 1 0;display:flex;flex-direction:column;min-width:0;line-height:1.25}
 .prev-perf-stat-min{align-items:flex-start;text-align:left}
-.prev-perf-stat-max{align-items:flex-end;text-align:right;margin-left:auto}
+.prev-perf-stat-max{align-items:flex-end;text-align:right}
 .prev-perf-stat-tag{font-size:clamp(8px,2.6cqw,10px);font-weight:800;letter-spacing:0.5px;text-transform:uppercase;white-space:nowrap}
 .prev-perf-stat-min .prev-perf-stat-tag{color:#e11d48}
 .prev-perf-stat-max .prev-perf-stat-tag{color:#16a34a}
@@ -1949,16 +1958,30 @@ body.workout-edit-lock{overflow:hidden}
 .prev-perf-copy-icon{width:16px;height:16px;color:var(--accent);display:block}
 .prev-perf-copy-btn.copied{background:var(--accent)}
 .prev-perf-copy-btn.copied .prev-perf-copy-icon{color:#fff}
-/* Previous-performance HISTORY NAV: the </> row that steps back through every earlier saved
+/* Previous-performance HISTORY NAV: the </> control that steps back through every earlier saved
    occurrence of the exercise (oldest at the far left, index length-1) and forward again to the
-   most-recent one shown by default (index 0). Hidden whenever there's only one (or zero) prior
-   entries to page through — see updatePrevPerfNav() — so the badge looks exactly as it always has
-   for the common single-entry case. */
-.prev-perf-nav{display:none;align-items:center;gap:7px;margin-top:5px}
-.prev-perf-nav-btn{background:transparent;border:1px solid var(--accent);color:var(--accent);border-radius:6px;width:22px;height:20px;font-size:13px;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;font-family:var(--font-alt);font-weight:800;padding:0}
+   most-recent one shown by default (index 0). Now lives centered on the same line as the Lowest/
+   Highest stats (see .prev-perf-stats above) instead of its own separate row, and is hidden
+   entirely whenever there's only one (or zero) prior entries to page through — see
+   updatePrevPerfNav()/refreshPrevPerfStatsRow() — so the badge looks exactly as it always has for
+   the common single-entry case, with no extra empty space. */
+.prev-perf-nav{display:none;align-items:center;justify-content:center;gap:clamp(6px,2.6cqw,12px);flex:0 0 auto}
+.prev-perf-nav-btn{background:transparent;border:1px solid var(--accent);color:var(--accent);border-radius:6px;width:clamp(19px,6cqw,23px);height:clamp(17px,5cqw,21px);font-size:clamp(11px,3.6cqw,13px);line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;font-family:var(--font-alt);font-weight:800;padding:0;flex-shrink:0}
 .prev-perf-nav-btn:hover:not(:disabled){background:var(--accent-soft)}
 .prev-perf-nav-btn:disabled{opacity:0.3;cursor:default}
-.prev-perf-nav-count{font-size:10px;font-weight:700;color:var(--text-muted);font-family:var(--font-alt);letter-spacing:0.3px}
+.prev-perf-nav-count{font-size:clamp(8.5px,2.6cqw,10px);font-weight:700;color:var(--text-muted);font-family:var(--font-alt);letter-spacing:0.3px;min-width:2.2em;text-align:center}
+/* Previous-performance COLLAPSE (open/close, like the homepage's Previous Schedule box): the chevron
+   sits inline with the "Previous Performance" label and folds everything below it (value + stats/nav
+   line) away without hiding the badge itself — same fold-in-place idea as
+   .today-workout-collapse-btn/#todayWorkoutCollapsibleContent, just scoped to this badge. Default is
+   always expanded; see applyPrevPerfCollapseState/togglePrevPerfCollapse for the persistence rules
+   (survives a refresh, but only until the workout being logged is actually saved). */
+#prevPerfCollapsibleContentNonLive,#prevPerfCollapsibleContentLive{transition:max-height 0.35s ease,opacity 0.3s ease,margin-top 0.3s ease;max-height:600px;opacity:1;overflow:hidden}
+#prevPerfCollapsibleContentNonLive.collapsed,#prevPerfCollapsibleContentLive.collapsed{max-height:0;opacity:0;margin-top:0;pointer-events:none}
+.prev-perf-label-row{display:flex;align-items:center;gap:5px;cursor:pointer;user-select:none;margin-bottom:1px}
+.prev-perf-collapse-btn{font-size:11px;line-height:1;color:var(--text-muted);transition:transform 0.25s ease,color 0.2s ease;flex-shrink:0}
+.prev-perf-label-row:hover .prev-perf-collapse-btn{color:var(--accent)}
+.prev-perf-collapse-btn.is-collapsed{transform:rotate(-90deg)}
 
 /* ===================== QUICK FILL BUTTON ===================== */
 .quick-fill-btn{
@@ -3455,21 +3478,32 @@ body.tracker-fs-lock{overflow:hidden}
           <div class="prev-perf-badge" id="prevPerfBadgeNonLive">
             <span class="prev-perf-icon">📊</span>
             <div class="prev-perf-content">
-              <span class="prev-perf-label">Previous Performance</span>
-              <span class="prev-perf-value" id="prevPerfValueNonLive">—</span>
-              <!-- Previous-performance HISTORY NAV: steps back ('‹') through every earlier saved
-                   occurrence of this exercise, oldest at the far end, and forward ('›') again to the
-                   most-recent one shown by default. Swipe left/right on the value text above does the
-                   same (see prevPerfSwipe below). Stays hidden whenever there's only one (or zero)
-                   prior entries — see updatePrevPerfNav(). -->
-              <div class="prev-perf-nav" id="prevPerfNavNonLive">
-                <button type="button" class="prev-perf-nav-btn" id="prevPerfNavLeftNonLive" onclick="navigatePrevPerf('nonlive',1)" title="Older performance" aria-label="Older performance">&#8249;</button>
-                <span class="prev-perf-nav-count" id="prevPerfNavCountNonLive"></span>
-                <button type="button" class="prev-perf-nav-btn" id="prevPerfNavRightNonLive" onclick="navigatePrevPerf('nonlive',-1)" title="More recent performance" aria-label="More recent performance">&#8250;</button>
-              </div>
-              <div class="prev-perf-stats" id="prevPerfStatsNonLive" style="display:none">
-                <span class="prev-perf-stat prev-perf-stat-min"><span class="prev-perf-stat-tag">Lowest</span><span class="prev-perf-stat-num" id="prevPerfMinNonLive">—</span><span class="prev-perf-stat-date" id="prevPerfMinDateNonLive"></span></span>
-                <span class="prev-perf-stat prev-perf-stat-max"><span class="prev-perf-stat-tag">Highest</span><span class="prev-perf-stat-num" id="prevPerfMaxNonLive">—</span><span class="prev-perf-stat-date" id="prevPerfMaxDateNonLive"></span></span>
+              <!-- Open/close like the homepage's "Previous Schedule" box: tapping the label folds the
+                   value/nav/stats below away in place (badge itself stays visible/reachable). Defaults
+                   open every time; see applyPrevPerfCollapseState/togglePrevPerfCollapse for exactly
+                   when a manual close is remembered vs reset. -->
+              <span class="prev-perf-label-row" onclick="togglePrevPerfCollapse('nonlive')" title="Collapse">
+                <span class="prev-perf-label">Previous Performance</span>
+                <span class="prev-perf-collapse-btn" id="prevPerfCollapseBtnNonLive">▾</span>
+              </span>
+              <div id="prevPerfCollapsibleContentNonLive">
+                <span class="prev-perf-value" id="prevPerfValueNonLive">—</span>
+                <!-- Lowest/Highest (computed across the exercise's ENTIRE history) share this one line
+                     with the </> history-nav centered between them — steps back ('‹') through every
+                     earlier saved occurrence of this exercise, oldest at the far end, and forward ('›')
+                     again to the most-recent one shown by default. Swipe left/right on the value text
+                     above does the same (see prevPerfSwipe below). Each piece hides independently
+                     (nav when there's only one/zero prior entries; the stats when the exercise has none
+                     to show) — see refreshPrevPerfStatsRow()/updatePrevPerfNav()/renderPrevPerfStats(). -->
+                <div class="prev-perf-stats" id="prevPerfStatsNonLive">
+                  <span class="prev-perf-stat prev-perf-stat-min" id="prevPerfStatMinWrapNonLive" style="display:none"><span class="prev-perf-stat-tag">Lowest</span><span class="prev-perf-stat-num" id="prevPerfMinNonLive">—</span><span class="prev-perf-stat-date" id="prevPerfMinDateNonLive"></span></span>
+                  <div class="prev-perf-nav" id="prevPerfNavNonLive">
+                    <button type="button" class="prev-perf-nav-btn" id="prevPerfNavLeftNonLive" onclick="navigatePrevPerf('nonlive',1)" title="Older performance" aria-label="Older performance">&#8249;</button>
+                    <span class="prev-perf-nav-count" id="prevPerfNavCountNonLive"></span>
+                    <button type="button" class="prev-perf-nav-btn" id="prevPerfNavRightNonLive" onclick="navigatePrevPerf('nonlive',-1)" title="More recent performance" aria-label="More recent performance">&#8250;</button>
+                  </div>
+                  <span class="prev-perf-stat prev-perf-stat-max" id="prevPerfStatMaxWrapNonLive" style="display:none"><span class="prev-perf-stat-tag">Highest</span><span class="prev-perf-stat-num" id="prevPerfMaxNonLive">—</span><span class="prev-perf-stat-date" id="prevPerfMaxDateNonLive"></span></span>
+                </div>
               </div>
             </div>
             <button type="button" class="prev-perf-copy-btn" id="prevPerfCopyBtnNonLive" title="Copy previous performance into the current sets (tap again to undo)" onclick="copyPrevPerfToFields('nonlive')">
@@ -13556,6 +13590,10 @@ async function saveWorkoutLogEntry(){
     checkAndShowLevelUp(name,_mx.maxKg,_mx.maxKg>0?_mx.maxKgReps:_mx.totalReps,_mx.totalVolume,isKgKm,_mx.maxKm,_mx.maxReps,td);
   }
   showToast(`✅ Workout saved! +${xpe} XP earned!`);
+  // Previous Performance's open/close choice only survives a refresh for as long as THIS entry is
+  // still being logged — now that it's actually saved ("workout done"), clear it so the very next
+  // exercise (whether queued or freshly typed) shows the badge expanded again by default.
+  {const _ppKey=_prevPerfCollapseKey();if(_ppKey)localStorage.removeItem(_ppKey);}
   // Multiple-workouts-at-a-time: if more entries are queued, load the next one into the still-open
   // form instead of closing it. Only relevant for the non-live, brand-new-entry flow that queued them.
   if(nlMultiEntryAllowed()&&nlWorkoutQueue.length){
@@ -13679,6 +13717,7 @@ async function fetchPrevPerformance(exerciseName, mode, excludeDate){
   window._prevPerfHistoryIdx[mode]=0;
   resetPrevPerfCopyState(mode);
   badgeEl.classList.add("visible");
+  applyPrevPerfCollapseState(mode); // fold state is independent of content — restore it every time the badge (re)shows
   valueEl.innerHTML=`<span class="prev-perf-loading">Looking up history...</span>`;
   renderPrevPerfStats(mode,null); // clear any stale Max/Min from a previous exercise while this one loads
   updatePrevPerfNav(mode); // hide the nav row while loading
@@ -13731,9 +13770,11 @@ async function fetchPrevPerformance(exerciseName, mode, excludeDate){
 /* Renders whichever history entry is currently selected (window._prevPerfHistoryIdx[mode]) into the
    badge — the exact same per-set display + structured copy-data build the badge has always done for
    its single previous entry, just re-run against window._prevPerfHistory[mode][idx] instead of
-   always index 0. Called on the initial lookup (idx 0) and every time the '‹'/'›' nav or a swipe
-   moves to a different entry — see navigatePrevPerf. */
-function renderPrevPerfEntry(mode){
+   always index 0. Called on the initial lookup (idx 0, no `direction` — appears instantly, no
+   animation) and every time the '‹'/'›' nav or a swipe moves to a different entry (see
+   navigatePrevPerf, which passes 'older'|'newer' so the new content slides in from the side it
+   logically arrived from — matching the direction of travel through the history). */
+function renderPrevPerfEntry(mode,direction){
   const valueEl=document.getElementById(mode==='live'?'prevPerfValueLive':'prevPerfValueNonLive');
   const history=window._prevPerfHistory[mode]||[];
   const idx=window._prevPerfHistoryIdx[mode]||0;
@@ -13769,17 +13810,31 @@ function renderPrevPerfEntry(mode){
   let setsHtml=segs.map((seg,si)=>{
     if(isCardioSetString(seg)){
       const cp=parseCardioSetSegment(seg);
-      return `<div style="display:flex;align-items:center;gap:6px;margin-top:3px"><span style="min-width:42px;font-size:10px;color:var(--text-muted);font-family:var(--font-alt);font-weight:700">Set ${si+1}</span><span style="font-size:13px;font-weight:700;color:var(--accent)">${formatCardioSetDisplay(cp.km,cp.min,cp.sec,cp.unit)}</span></div>`;
+      return `<div style="display:flex;align-items:center;gap:6px;margin-top:2px"><span style="min-width:42px;font-size:10px;color:var(--text-muted);font-family:var(--font-alt);font-weight:700">Set ${si+1}</span><span style="font-size:13px;font-weight:700;color:var(--accent)">${formatCardioSetDisplay(cp.km,cp.min,cp.sec,cp.unit)}</span></div>`;
     }
     if(isKgKmSetString(seg)){
       const kp=parseKgKmSetSegment(seg);
-      return `<div style="display:flex;align-items:center;gap:6px;margin-top:3px"><span style="min-width:42px;font-size:10px;color:var(--text-muted);font-family:var(--font-alt);font-weight:700">Set ${si+1}</span><span style="font-size:13px;font-weight:700;color:var(--accent)">${kp.weight}kg × ${kp.km.toFixed(2)} km</span></div>`;
+      return `<div style="display:flex;align-items:center;gap:6px;margin-top:2px"><span style="min-width:42px;font-size:10px;color:var(--text-muted);font-family:var(--font-alt);font-weight:700">Set ${si+1}</span><span style="font-size:13px;font-weight:700;color:var(--accent)">${kp.weight}kg × ${kp.km.toFixed(2)} km</span></div>`;
     }
     const m=seg.match(/([\d.]+)\s*[Kk][Gg]?\s*x\s*(\d+)/i);
     const kg=m?m[1]:'?',reps=m?m[2]:'?';
-    return `<div style="display:flex;align-items:center;gap:6px;margin-top:3px"><span style="min-width:42px;font-size:10px;color:var(--text-muted);font-family:var(--font-alt);font-weight:700">Set ${si+1}</span><span style="font-size:13px;font-weight:700;color:var(--accent)">${kg}kg × ${reps} reps</span></div>`;
+    return `<div style="display:flex;align-items:center;gap:6px;margin-top:2px"><span style="min-width:42px;font-size:10px;color:var(--text-muted);font-family:var(--font-alt);font-weight:700">Set ${si+1}</span><span style="font-size:13px;font-weight:700;color:var(--accent)">${kg}kg × ${reps} reps</span></div>`;
   }).join('');
-  valueEl.innerHTML=`<div style="margin-bottom:2px"><span style="font-size:10px;font-weight:700;color:var(--text-muted);font-family:var(--font-alt);letter-spacing:0.4px">${segs.length} SET${segs.length>1?'S':''} — ${dateLabel}</span></div>${setsHtml}`;
+  const contentHtml=`<div style="margin-bottom:1px"><span style="font-size:10px;font-weight:700;color:var(--text-muted);font-family:var(--font-alt);letter-spacing:0.4px">${segs.length} SET${segs.length>1?'S':''} — ${dateLabel}</span></div>${setsHtml}`;
+  // Slide-in animation: only when a `direction` was passed (i.e. this is a page/swipe move, not the
+  // initial lookup). 'older' arrived by moving forward through history, so the new content enters
+  // from the right (same direction as the '‹' button visually points into); 'newer' enters from the
+  // left, heading back toward the default/most-recent view — mirrors how a swipe drags content in.
+  const enterClass=direction==='older'?'ppv-enter-from-right':direction==='newer'?'ppv-enter-from-left':null;
+  valueEl.innerHTML=`<div class="prev-perf-value-inner${enterClass?(' '+enterClass):''}">${contentHtml}</div>`;
+  if(enterClass){
+    const innerEl=valueEl.firstElementChild;
+    // Force a layout flush so the browser registers the starting (translated/transparent) state
+    // BEFORE the class is removed on the next frame — otherwise both changes would be batched into
+    // the same paint and there'd be nothing to visibly transition.
+    void innerEl.offsetWidth;
+    requestAnimationFrame(()=>innerEl.classList.remove(enterClass));
+  }
   updatePrevPerfNav(mode);
 }
 /* Steps to an older ('‹', delta=+1) or more-recent ('›', delta=-1) previous-performance entry for
@@ -13800,31 +13855,55 @@ function navigatePrevPerf(mode,delta){
   // same treatment a fresh exercise-name lookup gives it (see resetPrevPerfCopyState call above) —
   // so the copy icon's tap-again "undo" can't fire against values that are no longer on screen.
   resetPrevPerfCopyState(mode);
-  renderPrevPerfEntry(mode);
+  renderPrevPerfEntry(mode,delta>0?'older':'newer');
 }
-/* Shows/hides the </> history-nav row and keeps its counter + disabled states in sync with the
-   current position in window._prevPerfHistory[mode]. Hidden entirely whenever there's only one (or
-   zero) previous-performance entries to page through — the common case — so the badge looks exactly
-   as it always has unless there's real history to swipe/tap into. */
+/* Whether the </> nav row + the Lowest/Highest stat cells were last given something real to show —
+   set by updatePrevPerfNav (nav) and renderPrevPerfStats (stats) respectively — so
+   refreshPrevPerfStatsRow can decide whether the shared line they now live on should be visible at
+   all, independent of one another (e.g. a Cardio exercise can have nav history to page through with
+   no comparable Kg/Reps stats, and vice versa for a first-ever cardio entry with no history yet). */
+window._prevPerfStatsPresent={nonlive:false,live:false};
+/* Shows/hides the whole Lowest/Nav/Highest line for the given mode based on whether EITHER the nav
+   or the stats currently has something to show — called after either one changes. Keeps the badge
+   exactly as compact as before (no empty line/gap) whenever neither has anything real yet. */
+function refreshPrevPerfStatsRow(mode){
+  const suffix=mode==='live'?'Live':'NonLive';
+  const row=document.getElementById(`prevPerfStats${suffix}`);
+  if(!row)return;
+  const hasStats=!!window._prevPerfStatsPresent[mode];
+  const hasNav=(window._prevPerfHistory[mode]||[]).length>=2;
+  row.style.display=(hasStats||hasNav)?'flex':'none';
+}
+/* Keeps the </> history-nav's visibility, counter, and disabled states in sync with the current
+   position in window._prevPerfHistory[mode]. Hidden entirely whenever there's only one (or zero)
+   previous-performance entries to page through — the common case — so the shared stats/nav line
+   looks exactly as it always has (just Lowest/Highest) unless there's real history to swipe/tap into. */
 function updatePrevPerfNav(mode){
   const suffix=mode==='live'?'Live':'NonLive';
   const navEl=document.getElementById(`prevPerfNav${suffix}`);
   if(!navEl)return;
   const history=window._prevPerfHistory[mode]||[];
-  if(history.length<2){navEl.style.display='none';return}
-  const idx=window._prevPerfHistoryIdx[mode]||0;
-  navEl.style.display='flex';
-  const leftBtn=document.getElementById(`prevPerfNavLeft${suffix}`),rightBtn=document.getElementById(`prevPerfNavRight${suffix}`);
-  const countEl=document.getElementById(`prevPerfNavCount${suffix}`);
-  if(leftBtn)leftBtn.disabled=idx>=history.length-1; // already at the oldest saved entry
-  if(rightBtn)rightBtn.disabled=idx<=0; // already back at the most-recent/default entry
-  if(countEl)countEl.textContent=`${idx+1}/${history.length}`;
+  const hasNav=history.length>=2;
+  navEl.style.display=hasNav?'flex':'none';
+  if(hasNav){
+    const idx=window._prevPerfHistoryIdx[mode]||0;
+    const leftBtn=document.getElementById(`prevPerfNavLeft${suffix}`),rightBtn=document.getElementById(`prevPerfNavRight${suffix}`);
+    const countEl=document.getElementById(`prevPerfNavCount${suffix}`);
+    if(leftBtn)leftBtn.disabled=idx>=history.length-1; // already at the oldest saved entry
+    if(rightBtn)rightBtn.disabled=idx<=0; // already back at the most-recent/default entry
+    // Counts chronologically (1 = the very first entry ever saved, N = the most recent one — index 0
+    // in window._prevPerfHistory since that array is newest-first), NOT by array position. So the
+    // default view (idx 0, most recent) reads "N/N" — e.g. the 8th entry logged shows "8/8" — and it
+    // counts down toward "1/N" as you page back ('‹') to the oldest saved entry.
+    if(countEl)countEl.textContent=`${history.length-idx}/${history.length}`;
+  }
+  refreshPrevPerfStatsRow(mode);
 }
-/* Left/right swipe on the badge's value text pages through previous-performance history exactly
-   like the '‹'/'›' nav buttons (see navigatePrevPerf) — swipe left reveals an older entry, swipe
-   right comes back toward the most recent one. A short, mostly-horizontal drag only, so it doesn't
-   fight with normal vertical page scrolling. Safe no-op wherever the value element doesn't exist
-   (there is currently no Live-mode badge markup, same as everywhere else in this section). */
+/* Left/right swipe on the badge's value text pages through previous-performance history: dragging
+   left-to-right (finger moves right, dx>0) reveals an OLDER entry (7, 6, ...), dragging right-to-left
+   (dx<0) comes back toward the NEWER/most-recent one (7, 8). A short, mostly-horizontal drag only, so
+   it doesn't fight with normal vertical page scrolling. Safe no-op wherever the value element doesn't
+   exist (there is currently no Live-mode badge markup, same as everywhere else in this section). */
 (function attachPrevPerfSwipeHandlers(){
   function attach(mode){
     const suffix=mode==='live'?'Live':'NonLive';
@@ -13840,11 +13919,52 @@ function updatePrevPerfNav(mode){
       const t=e.changedTouches&&e.changedTouches[0];if(!t)return;
       const dx=t.clientX-sx,dy=t.clientY-sy;
       if(Math.abs(dx)<30||Math.abs(dx)<Math.abs(dy))return; // require a real horizontal swipe, not a vertical scroll/tap
-      navigatePrevPerf(mode,dx<0?1:-1);
+      navigatePrevPerf(mode,dx>0?1:-1); // left-to-right (dx>0) = older; right-to-left (dx<0) = newer
     },{passive:true});
   }
   attach('nonlive');attach('live');
 })();
+/* ===================== PREVIOUS PERFORMANCE — OPEN/CLOSE (like the homepage's Previous Schedule box)
+   =====================
+   Persistence rule (deliberately NOT the schedule box's "resets at midnight" rule): a manual close
+   survives refreshes/tab-switches for as long as the SAME workout entry is still being logged, but
+   is cleared the moment that entry is actually saved — see the localStorage.removeItem call in
+   saveWorkoutLogEntry — so the very next exercise (or the next queued entry, or a fresh Add) always
+   starts back at the default: expanded. Scoped per getEffectiveUid() so it lines up with every other
+   per-member piece of state in this form (drafts, bwKgRevealed, etc.) and behaves correctly whichever
+   member tile a Room host is currently on. */
+function _prevPerfCollapseKey(){
+  const uid=getEffectiveUid();
+  return uid?('gymbro_prevperf_collapsed_'+uid):null;
+}
+/* Applies whatever open/close state is currently remembered (or the expanded default) to the given
+   mode's badge — called every time fetchPrevPerformance (re)shows the badge, since the badge's own
+   innerHTML is rebuilt per exercise/entry but this fold state is independent of that content. */
+function applyPrevPerfCollapseState(mode){
+  const suffix=mode==='live'?'Live':'NonLive';
+  const content=document.getElementById(`prevPerfCollapsibleContent${suffix}`);
+  const btn=document.getElementById(`prevPerfCollapseBtn${suffix}`);
+  if(!content)return;
+  const key=_prevPerfCollapseKey();
+  const collapsed=!!(key&&localStorage.getItem(key)==='1');
+  content.classList.toggle('collapsed',collapsed);
+  if(btn){btn.classList.toggle('is-collapsed',collapsed);btn.title=collapsed?'Expand':'Collapse';}
+}
+/* Click handler for the label row — folds/unfolds the badge's content in place (badge itself always
+   stays visible) and remembers the choice exactly as described above. */
+function togglePrevPerfCollapse(mode){
+  const suffix=mode==='live'?'Live':'NonLive';
+  const content=document.getElementById(`prevPerfCollapsibleContent${suffix}`);
+  const btn=document.getElementById(`prevPerfCollapseBtn${suffix}`);
+  if(!content)return;
+  const willCollapse=!content.classList.contains('collapsed');
+  content.classList.toggle('collapsed',willCollapse);
+  if(btn){btn.classList.toggle('is-collapsed',willCollapse);btn.title=willCollapse?'Expand':'Collapse';}
+  const key=_prevPerfCollapseKey();
+  if(!key)return;
+  if(willCollapse)localStorage.setItem(key,'1');
+  else localStorage.removeItem(key);
+}
 /* ===================== PREVIOUS PERFORMANCE — HIGHEST/LOWEST STAT ROW =====================
    Computed across the exercise's ENTIRE saved history (every session ever logged for this name),
    not just the single previous session shown in the badge above. Only called for genuine Kg+Reps /
@@ -13903,26 +14023,32 @@ function _fmtStatDate(dateStr){
   const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   return `${months[d.getMonth()]} ${d.getDate()} ${d.getFullYear()}`;
 }
-/* Renders (or hides) the Highest/Lowest stat row for the given mode ('nonlive'|'live') — Lowest
-   bottom-left, Highest bottom-right (see .prev-perf-stats CSS, which keeps both on one line and
-   auto-shrinks via cqw/clamp() on narrow screens, wrapping neither the number nor its date onto the
-   copy icon's corner). Safe no-op when the mode's DOM elements don't exist (there is currently no
-   Live-mode badge markup — Live previous-performance lookups return before reaching here, see the
-   !badgeEl||!valueEl guard at the top of fetchPrevPerformance). */
+/* Renders (or hides) the Highest/Lowest stat cells for the given mode ('nonlive'|'live') — Lowest on
+   the left, Highest on the right, now sharing one line with the </> history-nav centered between them
+   (see .prev-perf-stats CSS, which keeps all three on one line and auto-shrinks via cqw/clamp() on
+   narrow screens). Only the two stat cells are toggled here — the nav's own visibility is handled by
+   updatePrevPerfNav, and refreshPrevPerfStatsRow decides whether the shared line shows at all based on
+   either one having something to display. Safe no-op when the mode's DOM elements don't exist (there
+   is currently no Live-mode badge markup — Live previous-performance lookups return before reaching
+   here, see the !badgeEl||!valueEl guard at the top of fetchPrevPerformance). */
 function renderPrevPerfStats(mode,stats){
   const suffix=mode==='live'?'Live':'NonLive';
-  const row=document.getElementById(`prevPerfStats${suffix}`);
+  const minWrap=document.getElementById(`prevPerfStatMinWrap${suffix}`),maxWrap=document.getElementById(`prevPerfStatMaxWrap${suffix}`);
   const minEl=document.getElementById(`prevPerfMin${suffix}`),maxEl=document.getElementById(`prevPerfMax${suffix}`);
   const minDateEl=document.getElementById(`prevPerfMinDate${suffix}`),maxDateEl=document.getElementById(`prevPerfMaxDate${suffix}`);
-  if(!row||!minEl||!maxEl)return;
-  if(!stats){row.style.display='none';return}
-  const unit=stats.type==='reps'?' reps':'kg';
-  const fmtVal=stats.type==='reps'?(v=>v):(v=>_fmtStatWeight(v));
-  minEl.textContent=`${fmtVal(stats.min)}${unit}`;
-  maxEl.textContent=`${fmtVal(stats.max)}${unit}`;
-  if(minDateEl)minDateEl.textContent=_fmtStatDate(stats.minDate);
-  if(maxDateEl)maxDateEl.textContent=_fmtStatDate(stats.maxDate);
-  row.style.display='flex';
+  if(!minWrap||!maxWrap||!minEl||!maxEl){window._prevPerfStatsPresent[mode]=!!stats;return}
+  window._prevPerfStatsPresent[mode]=!!stats;
+  minWrap.style.display=stats?'flex':'none';
+  maxWrap.style.display=stats?'flex':'none';
+  if(stats){
+    const unit=stats.type==='reps'?' reps':'kg';
+    const fmtVal=stats.type==='reps'?(v=>v):(v=>_fmtStatWeight(v));
+    minEl.textContent=`${fmtVal(stats.min)}${unit}`;
+    maxEl.textContent=`${fmtVal(stats.max)}${unit}`;
+    if(minDateEl)minDateEl.textContent=_fmtStatDate(stats.minDate);
+    if(maxDateEl)maxDateEl.textContent=_fmtStatDate(stats.maxDate);
+  }
+  refreshPrevPerfStatsRow(mode);
 }
 
 /* ===================== COPY PREVIOUS PERFORMANCE INTO CURRENT WORKOUT ===================== */
