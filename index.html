@@ -1226,6 +1226,13 @@ body.wlc-dragging-active .workout-log-card:not(.wlc-drag-source){cursor:grabbing
 .stats-block-heading{font-family:var(--font-alt);font-size:11px;font-weight:800;color:var(--text-muted);letter-spacing:0.6px;margin-top:12px;margin-bottom:2px;text-transform:uppercase}
 .analytics-box{background:var(--accent-soft);padding:14px;border-radius:18px;border:1px solid var(--border-col);margin-top:8px}
 .graph-container{position:relative;height:320px;width:100%}
+/* Same tap-highlight reset already applied inside the fullscreen overlays, now applied to the normal
+   (non-fullscreen) Duration/Volume graph card too — #durGraphBox/#volGraphBox and their canvases
+   (workoutChart/volumeChart) are shared across Weekly, Monthly, and 3-Month, so fixing it here covers
+   all three range modes on both pages at once, not just 3-Month/fullscreen. Without this, mobile
+   browsers paint their default translucent blue tap rectangle across the chart every time a bar/point
+   is tapped to select it. */
+.graph-container,.graph-container *{-webkit-tap-highlight-color:transparent}
 
 /* ===================== STATS SUB-NAV ===================== */
 .stats-subnav{display:flex;gap:8px;margin-bottom:14px}
@@ -1395,6 +1402,18 @@ body:not(.theme-dark) .dur-graph-detail-divider strong{color:#1e3a8a}
    original 320px, but the box itself is taller so the fixed detail box has dedicated headroom
    that a tall bar/line point can never reach into or get hidden behind. */
 #durGraphBox,#volGraphBox{height:380px}
+/* BUG FIX: inside the fullscreen overlay this fixed 380px must NOT apply. The overlay's stage is a
+   flex column sharing height with the "‹ ›" nav row + hint text below it (see enterStatsGraphFullscreen/
+   .stats-graph-fs-navpair), so the space actually available to the chart shrinks and grows with the
+   viewport — narrow/short screens (e.g. landscape on a small phone) can end up with less than 380px to
+   work with. Forcing 380px anyway made the graph card overflow past the stage's real boundary and
+   visually spill on top of the nav arrows and hint underneath it, instead of them sitting in their own
+   space below the card. An ID selector needs an equally-specific (ID-level) override to win here rather
+   than the existing 2-class ".stats-graph-fullscreen-overlay .graph-container{height:100%}" rule, which
+   loses to the plain #id selector above regardless of source order. Letting height track the stage's
+   own flex-computed size (100%) instead of a fixed number is what makes this auto-adapt across narrow,
+   medium, and wide screens without ever overlapping the controls below it. */
+.stats-graph-fullscreen-overlay #durGraphBox,.stats-graph-fullscreen-overlay #volGraphBox{height:100%!important;min-height:0}
 
 /* ===================== 3-MONTH GRAPH: SINGLE-FRAME LAYOUT ===================== */
 /* The canvas's real parent is this wrap, kept OUTSIDE the fixed detail box / fullscreen button so it
