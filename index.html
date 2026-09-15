@@ -1396,6 +1396,43 @@ body:not(.theme-dark) .dur-graph-detail-divider strong{color:#1e3a8a}
    that a tall bar/line point can never reach into or get hidden behind. */
 #durGraphBox,#volGraphBox{height:380px}
 
+/* ===================== 3-MONTH GRAPH: SINGLE-FRAME LAYOUT ===================== */
+/* The canvas's real parent is this wrap, kept OUTSIDE the fixed detail box / fullscreen button so it
+   can be resized independently of them — but it never scrolls: the entire 3-Month line always fits in
+   one frame at the card's native width (same as Weekly/Monthly), matching a normal finance-chart look.
+   Panning/dragging a finger across the line still just moves the single selected marker (see
+   selectPoint) — it never pans the chart itself. */
+.graph-scroll-outer{position:relative;width:100%;height:100%;overflow:hidden}
+.graph-scroll-inner{position:relative;height:100%;width:100%}
+.graph-scroll-inner canvas{display:block}
+
+/* Fullscreen-focus icon — 3-Month graphs only (Duration & Volume). Sits top-LEFT so it never collides
+   with the fixed detail box, which always occupies the top-right corner. */
+.graph-fullscreen-btn{position:absolute;top:8px;left:8px;z-index:6;width:26px;height:26px;border-radius:8px;border:1px solid var(--border-col);background:var(--bg-card);color:var(--accent);display:none;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.15);padding:0;transition:transform 0.2s ease,background 0.2s ease}
+.graph-fullscreen-btn.visible{display:flex}
+.graph-fullscreen-btn svg{width:13px;height:13px;display:block}
+.graph-fullscreen-btn:hover{background:var(--accent-soft);transform:scale(1.15) rotate(6deg)}
+@media (max-width:480px){.graph-fullscreen-btn{width:23px;height:23px}.graph-fullscreen-btn svg{width:11px;height:11px}}
+
+/* Fullscreen overlay stage: the 3-Month graph box gets physically relocated in here (see
+   enterStatsGraphFullscreen), which ALSO tries to lock the device into landscape orientation (same
+   Screen Orientation + Fullscreen API technique as Compare Mode's "Rotate Screen") so the chart gets a
+   genuinely wide landscape view of the full 3-month line, matching a rotated-phone chart app. Where
+   orientation-lock isn't supported (notably iOS Safari) it falls back to a plain taller portrait
+   overlay and a toast asking the person to rotate their device by hand. Switching Weekly/Monthly,
+   switching Duration↔Volume, or leaving the Stats page all force an instant exit (see
+   exitStatsGraphFullscreen and its call sites), so this view only ever exists for the 3-Month graph. */
+.stats-graph-fullscreen-overlay{display:none;position:fixed;inset:0;z-index:999850;background:rgba(5,8,14,0.94);backdrop-filter:blur(6px);padding:48px 12px 14px;flex-direction:column;align-items:stretch;justify-content:flex-start;box-sizing:border-box}
+.stats-graph-fullscreen-overlay.active{display:flex}
+.stats-graph-fullscreen-stage{flex:1;display:flex;min-height:0}
+.stats-graph-fullscreen-overlay .graph-container{background:var(--bg-card);border:1px solid var(--border-col);border-radius:16px;padding:12px;box-sizing:border-box;box-shadow:0 12px 32px rgba(0,0,0,0.35);height:100%;width:100%}
+.stats-graph-fullscreen-hint{text-align:center;font-size:11px;color:rgba(255,255,255,0.65);font-family:var(--font-alt);letter-spacing:0.3px;margin-top:8px;flex-shrink:0}
+.stats-graph-fullscreen-close{position:fixed;top:16px;right:16px;width:38px;height:38px;border-radius:50%;border:none;background:var(--btn-bg);color:var(--follow-btn-text);cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:var(--btn-shadow);z-index:2;transition:transform 0.2s ease,opacity 0.2s ease;padding:0}
+.stats-graph-fullscreen-close svg{width:16px;height:16px;display:block}
+.stats-graph-fullscreen-close:hover{opacity:0.85;transform:scale(1.08) rotate(90deg)}
+body.stats-graph-fs-lock{overflow:hidden}
+@media (max-width:480px){.stats-graph-fullscreen-overlay{padding:44px 8px 10px}.stats-graph-fullscreen-close{width:34px;height:34px;top:12px;right:12px}}
+
 /* Drill-down report */
 .vol-drilldown{margin-top:14px;padding:16px;background:var(--bg-card);border-radius:16px;border:1px solid var(--border-col);animation:fadeIn 0.3s ease;min-height:80px}
 .vol-drilldown-title{font-family:var(--font-alt);font-size:14px;font-weight:800;color:var(--section-title-col);margin-bottom:12px;letter-spacing:0.5px}
@@ -2980,7 +3017,11 @@ body.tracker-fs-lock{overflow:hidden}
           <div class="vol-range-label" id="durRangeLabel"></div>
           <div class="analytics-box">
             <div class="graph-container" id="durGraphBox">
-              <canvas id="workoutChart"></canvas>
+              <div class="graph-scroll-outer" id="durGraphScrollWrap">
+                <div class="graph-scroll-inner" id="durGraphScrollInner">
+                  <canvas id="workoutChart"></canvas>
+                </div>
+              </div>
               <div class="vol-graph-detail-box" id="durGraphDetailBox">
                 <div class="vol-graph-detail-hint" id="durGraphDetailHint">👆 Tap a bar</div>
                 <div id="durGraphDetailBody" style="display:none">
@@ -2990,6 +3031,9 @@ body.tracker-fs-lock{overflow:hidden}
                   <div class="dur-graph-detail-divider" id="durGraphDetailDuration"></div>
                 </div>
               </div>
+              <button type="button" class="graph-fullscreen-btn" id="durGraphFsBtn" onclick="toggleStatsGraphFullscreen('durGraphBox')" title="Fullscreen focus" aria-label="Fullscreen focus">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M16 3h3a2 2 0 0 1 2 2v3"/><path d="M8 21H5a2 2 0 0 1-2-2v-3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg>
+              </button>
             </div>
           </div>
           <!-- Nav arrows below graph box, not overlapping bars or dates -->
@@ -3062,15 +3106,21 @@ body.tracker-fs-lock{overflow:hidden}
 
             <div class="analytics-box">
               <div class="graph-container vol-graph-box" id="volGraphBox">
-                <canvas id="volumeChart"></canvas>
+                <div class="graph-scroll-outer" id="volGraphScrollWrap">
+                  <div class="graph-scroll-inner" id="volGraphScrollInner">
+                    <canvas id="volumeChart"></canvas>
+                  </div>
+                </div>
                 <div class="vol-graph-detail-box" id="volGraphDetailBox">
                   <div class="vol-graph-detail-hint" id="volGraphDetailHint">👆 Tap a point</div>
                   <div class="vol-graph-detail-date" id="volGraphDetailDate" style="display:none"></div>
                   <div class="vol-graph-detail-vol" id="volGraphDetailVol" style="display:none"></div>
                 </div>
+                <button type="button" class="graph-fullscreen-btn" id="volGraphFsBtn" onclick="toggleStatsGraphFullscreen('volGraphBox')" title="Fullscreen focus" aria-label="Fullscreen focus">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M16 3h3a2 2 0 0 1 2 2v3"/><path d="M8 21H5a2 2 0 0 1-2-2v-3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg>
+                </button>
               </div>
             </div>
-
             <!-- Nav arrows below graph (won't overlap bars or dates) -->
             <div class="dur-nav-pair" style="margin-top:8px">
               <button class="dur-nav-arrow" id="volNavLeft" onclick="volNavigate(-1)" title="Previous">&#8249;</button>
@@ -8177,6 +8227,8 @@ function openHamburgerMenu(){}
 function closeHamburgerMenu(){}
 
 async function switchMemberTab(id){
+  // Leaving the Stats page entirely — the 3-Month fullscreen focus view never persists across pages.
+  if(id!=='statsPage'&&statsGraphFsOpen)exitStatsGraphFullscreen();
   // Leaving the Stats/Compare page entirely — drop any active rotate-mode/notice before switching.
   if(id!=='statsPage')_cmpHandleTabLeave();
   document.querySelectorAll('.memberTab').forEach(t=>t.style.display='none');
@@ -9663,6 +9715,9 @@ function updateCmpPeriodLabel(side){
 
 /* ===================== STATS SUB-NAV SWITCHER ===================== */
 function switchStatsSubnav(tab){
+  // The 3-Month fullscreen focus view is tied to whichever graph box (Duration or Volume) opened it —
+  // switching subnav instantly ends it rather than leaving it pointed at a now-hidden graph.
+  if(statsGraphFsOpen)exitStatsGraphFullscreen();
   // Leaving Volume (and therefore Compare mode) — same scope guard as switchMemberTab.
   if(tab!=='volume')_cmpHandleTabLeave();
   document.getElementById('subnavDuration').classList.toggle('active',tab==='duration');
@@ -9820,7 +9875,9 @@ function _durHighlightLinePoint(selectedIdx){
   const base=getVolSolidColor();
   const ds=chart.data.datasets[0];
   const n=durDataCache.length;
-  const radii=new Array(n).fill(durDataCache.length>20?2.5:4);
+  // 3-Month: every point starts invisible (radius 0) — only the selected index below gets a marker,
+  // so exactly one marker shows at a time as the user taps/drags across the line.
+  const radii=new Array(n).fill(durRangeMode==='3month'?0:(durDataCache.length>20?2.5:4));
   const colors=new Array(n).fill(base);
   const borders=new Array(n).fill('#fff');
 
@@ -9847,7 +9904,9 @@ function _durHighlightLinePoint(selectedIdx){
   ds.pointBackgroundColor=colors;
   ds.pointBorderColor=borders;
   ds.pointRadius=radii;
-  ds.pointHoverRadius=radii.map((r,i)=>i===selectedIdx?11:r+2);
+  // 3-Month + no class filter: idle points stay at hover-radius 0 too, so hovering/dragging near an
+  // unselected point never flashes a second marker — only the actively selected index ever enlarges.
+  ds.pointHoverRadius=radii.map((r,i)=>i===selectedIdx?11:(durRangeMode==='3month'&&!durSelectedClass?0:r+2));
   // Hide the connecting line itself between any two points that aren't both the selected class —
   // matches Volume's line chart via the same shared helper (buildClassFilterSegmentColor).
   ds.segment={borderColor:buildClassFilterSegmentColor(durSelectedClass,durDataCache,d=>d.classes,base)};
@@ -9959,12 +10018,17 @@ function _updateDurGraphDetailBox(dayData,filterYear,filterMonth,dayNames){
    - 3month:  line graph for current month + preceding 2 months (sliding window), both dropdowns hidden,
               a range label ("Apr - Jun") is shown instead — same concept as the Volume graph */
 function setDurRangeMode(mode){
+  // Fullscreen focus only ever exists for the 3-Month graph — any mode change (including re-picking
+  // 3-Month itself) closes it instantly rather than carrying it over.
+  if(statsGraphFsOpen)exitStatsGraphFullscreen();
   durRangeMode=mode;
   const weekRow=document.getElementById('durWeekRow');
   const weekSelect=document.getElementById('statsTimeframe');
   const monthSelect=document.getElementById('statsMonth');
   const rangeLabel=document.getElementById('durRangeLabel');
   const hintText=document.getElementById('durHintText');
+  const fsBtn=document.getElementById('durGraphFsBtn');
+  if(fsBtn)fsBtn.classList.toggle('visible',mode==='3month');
 
   document.getElementById('durRangeBtnWeekly').classList.toggle('active',mode==='weekly');
   document.getElementById('durRangeBtnMonthly').classList.toggle('active',mode==='monthly');
@@ -10280,6 +10344,15 @@ async function updateDurationLineChart(){
   const durMaxVal=Math.max(0,...durations);
   const durSuggestedMax=durMaxVal>0?Math.ceil((durMaxVal*1.45)/10)*10:60;
 
+  // 3-Month: markers stay hidden by default — only the single tapped/dragged point shows a marker
+  // (drawn via _durHighlightLinePoint on selection). Weekly/Monthly keep their existing always-visible
+  // small dots since those views have far fewer, well-spaced points. The whole line always fits in a
+  // single frame at the card's native width (no horizontal scrolling) — a slightly thinner stroke on
+  // 3-Month keeps ~90 tightly-packed points reading as a clean, uncluttered line, same as a normal
+  // finance chart, instead of a thick line.
+  const durBaseRadius=durRangeMode==='3month'?0:(allDays.length>20?2.5:4);
+  const durLineWidth=durRangeMode==='3month'?1.5:2.5;
+
   const instance=new Chart(ctx,{
     type:'line',
     data:{
@@ -10292,9 +10365,9 @@ async function updateDurationLineChart(){
         pointBackgroundColor:allDays.map(()=>pointColor),
         pointBorderColor:'#fff',
         pointBorderWidth:1.5,
-        pointRadius:allDays.length>20?2.5:4,
+        pointRadius:durBaseRadius,
         pointHoverRadius:7,
-        borderWidth:2.5,
+        borderWidth:durLineWidth,
         fill:true,
         tension:0.25,
         cubicInterpolationMode:'monotone'
@@ -11000,12 +11073,17 @@ async function updateVolumeChart(side='main'){
    - 3month:  line graph for current month + preceding 2 months (sliding window), both dropdowns hidden,
               a range label ("Apr - Jun") is shown instead */
 function setVolRangeMode(mode){
+  // Fullscreen focus only ever exists for the 3-Month graph — any mode change (including re-picking
+  // 3-Month itself) closes it instantly rather than carrying it over.
+  if(statsGraphFsOpen)exitStatsGraphFullscreen();
   volRangeMode=mode;
   const weekRow=document.getElementById('volWeekRow');
   const weekSelect=document.getElementById('volTimeframe');
   const monthSelect=document.getElementById('volMonth');
   const rangeLabel=document.getElementById('volRangeLabel');
   const hintText=document.getElementById('volHintText');
+  const fsBtn=document.getElementById('volGraphFsBtn');
+  if(fsBtn)fsBtn.classList.toggle('visible',mode==='3month');
 
   document.getElementById('volRangeBtnWeekly').classList.toggle('active',mode==='weekly');
   document.getElementById('volRangeBtnMonthly').classList.toggle('active',mode==='monthly');
@@ -11156,6 +11234,15 @@ async function updateVolumeLineChart(){
   const pointColor=lineColor;
   const selectedColor=getVolSolidColor(); // selected marker uses the same live theme accent, per spec
 
+  // 3-Month: markers stay hidden by default — only the single tapped/dragged point shows a marker
+  // (drawn via _highlightVolPoint/_volHighlightLinePoint on selection). Weekly/Monthly keep their
+  // existing always-visible small dots since those views have far fewer, well-spaced points. The whole
+  // line always fits in a single frame at the card's native width (no horizontal scrolling) — a
+  // slightly thinner stroke on 3-Month keeps ~90 tightly-packed points reading as a clean line, same as
+  // a normal finance chart, instead of a thick one.
+  const volBaseRadius=volRangeMode==='3month'?0:(allDays.length>20?2.5:4);
+  const volLineWidth=volRangeMode==='3month'?1.5:2.5;
+
   const instance=new Chart(ctx,{
     type:'line',
     data:{
@@ -11168,9 +11255,9 @@ async function updateVolumeLineChart(){
         pointBackgroundColor:allDays.map(()=>pointColor),
         pointBorderColor:'#fff',
         pointBorderWidth:1.5,
-        pointRadius:allDays.length>20?2.5:4,
+        pointRadius:volBaseRadius,
         pointHoverRadius:7,
-        borderWidth:2.5,
+        borderWidth:volLineWidth,
         fill:true,
         tension:0.25, // gentle smoothing only — avoids the overshoot/loop artifacts steeper tension can cause
         cubicInterpolationMode:'monotone' // keeps the line monotonic between points so it never renders an "awkward" loop
@@ -11266,8 +11353,11 @@ async function updateVolumeLineChart(){
 function _highlightVolPoint(chartInstance,selectedIdx,selectedColor,baseColor){
   const ds=chartInstance.data.datasets[0];
   const n=ds.data.length;
+  // 3-Month: non-selected points stay at radius 0 (invisible) — only the tapped/dragged point ever
+  // shows a marker, so exactly one is visible at a time.
+  const idleRadius=volRangeMode==='3month'?0:(n>20?2.5:4);
   ds.pointBackgroundColor=Array.from({length:n},(_,i)=>i===selectedIdx?selectedColor:baseColor);
-  ds.pointRadius=Array.from({length:n},(_,i)=>i===selectedIdx?7:(n>20?2.5:4));
+  ds.pointRadius=Array.from({length:n},(_,i)=>i===selectedIdx?7:idleRadius);
   ds.pointBorderWidth=Array.from({length:n},(_,i)=>i===selectedIdx?2.5:1.5);
   chartInstance.update('none'); // 'none' = no animation, so the marker recolors instantly on drag
 }
@@ -11626,7 +11716,9 @@ function _volHighlightLinePoint(selectedIdx){
   const base=getVolSolidColor();
   const ds=chart.data.datasets[0];
   const n=volLineDataCache.length;
-  const radii=new Array(n).fill(volLineDataCache.length>20?2.5:4);
+  // 3-Month: every point starts invisible (radius 0) — only the selected index below gets a marker,
+  // so exactly one marker shows at a time as the user taps/drags across the line.
+  const radii=new Array(n).fill(volRangeMode==='3month'?0:(volLineDataCache.length>20?2.5:4));
   const colors=new Array(n).fill(base);
   const borders=new Array(n).fill('#fff');
   const selCls=volSelectedClass.main;
@@ -11651,7 +11743,9 @@ function _volHighlightLinePoint(selectedIdx){
   ds.pointBackgroundColor=colors;
   ds.pointBorderColor=borders;
   ds.pointRadius=radii;
-  ds.pointHoverRadius=radii.map((r,i)=>i===selectedIdx?11:r+2);
+  // 3-Month + no class filter: idle points stay at hover-radius 0 too, so hovering/dragging near an
+  // unselected point never flashes a second marker — only the actively selected index ever enlarges.
+  ds.pointHoverRadius=radii.map((r,i)=>i===selectedIdx?11:(volRangeMode==='3month'&&!selCls?0:r+2));
   // Hide the connecting line itself between any two points that aren't both the selected class —
   // matches Duration's line chart via the same shared helper (buildClassFilterSegmentColor).
   ds.segment={borderColor:buildClassFilterSegmentColor(selCls,volLineDataCache,d=>d.attendanceWorkouts,base)};
@@ -18979,8 +19073,117 @@ function exitTrackerFullscreen(){
   if(icon){icon.classList.remove('is-active');icon.title='Fullscreen focus';icon.setAttribute('aria-label','Fullscreen focus')}
   if(trackerAnalyticsChartInstance)requestAnimationFrame(()=>trackerAnalyticsChartInstance.resize());
 }
+
+/* ===================== DURATION / VOLUME — 3-MONTH GRAPH: SINGLE-FRAME + LANDSCAPE FULLSCREEN =====================
+   The 3-Month line always renders in a single frame at the card's native width (no horizontal
+   scrolling/panning — see updateDurationLineChart/updateVolumeLineChart, which size the canvas exactly
+   like Weekly/Monthly). The only extra piece here is the fullscreen-focus button:
+   toggleStatsGraphFullscreen/enterStatsGraphFullscreen/exitStatsGraphFullscreen physically relocate the
+   graph box (canvas + detail box + fullscreen button, all as one unit) into a fixed full-viewport
+   overlay AND attempt to lock the device into landscape orientation — the exact same Screen Orientation
+   + Fullscreen API technique already used by Compare Mode's "Rotate Screen" button (see
+   _cmpRotateScreen) — so the chart gets a genuinely wide landscape view of the full 3-month line rather
+   than a cramped portrait strip. Where orientation-lock isn't supported (notably iOS Safari) it falls
+   back to a plain taller portrait overlay plus a toast asking the person to rotate their device by hand.
+   Only ever wired up for 3-Month (see setDurRangeMode/setVolRangeMode, which show/hide the trigger icon
+   and force an instant exit on any mode/page/subnav change) — Weekly and Monthly never see this button
+   and can never end up inside the overlay. */
+let statsGraphFsOpen=false,statsGraphFsBoxId=null,statsGraphFsParent=null,statsGraphFsNext=null,statsGraphFsRotated=false;
+
+function toggleStatsGraphFullscreen(boxId){
+  if(statsGraphFsOpen){exitStatsGraphFullscreen();return}
+  enterStatsGraphFullscreen(boxId);
+}
+async function enterStatsGraphFullscreen(boxId){
+  const graphBox=document.getElementById(boxId);
+  const overlay=document.getElementById('statsGraphFullscreenOverlay');
+  const stage=document.getElementById('statsGraphFullscreenStage');
+  if(!graphBox||!overlay||!stage)return;
+  statsGraphFsBoxId=boxId;
+  statsGraphFsParent=graphBox.parentNode;statsGraphFsNext=graphBox.nextSibling;
+  stage.appendChild(graphBox);
+  overlay.classList.add('active');
+  document.body.classList.add('stats-graph-fs-lock');
+  statsGraphFsOpen=true;
+  const icon=document.getElementById(boxId==='durGraphBox'?'durGraphFsBtn':'volGraphFsBtn');
+  if(icon){icon.title='Exit fullscreen';icon.setAttribute('aria-label','Exit fullscreen')}
+  const hint=document.getElementById('statsGraphFullscreenHint');
+
+  // Try to lock the device into landscape for a genuinely wide view of the full 3-month line — same
+  // order-of-operations as _cmpRotateScreen: attempt orientation.lock() WITHOUT entering the Fullscreen
+  // API first (some browsers/WebViews allow that, which also avoids the OS's native fullscreen banner),
+  // only falling back to requestFullscreen()+lock() if the plain lock is rejected.
+  statsGraphFsRotated=false;
+  try{
+    if(screen.orientation&&screen.orientation.lock){
+      try{
+        await screen.orientation.lock('landscape');
+        statsGraphFsRotated=true;
+      }catch(lockErr){
+        if(document.documentElement.requestFullscreen&&!document.fullscreenElement){
+          try{await document.documentElement.requestFullscreen({navigationUI:'hide'});}
+          catch(fsErr){await document.documentElement.requestFullscreen();}
+        }
+        await screen.orientation.lock('landscape');
+        statsGraphFsRotated=true;
+      }
+    }
+  }catch(e){/* orientation lock unsupported/rejected — fall back to the portrait overlay below */}
+  if(hint)hint.textContent=statsGraphFsRotated?'Tap ✕ to exit · tap a point for details':'Rotate your device sideways for the full landscape view · tap a point for details';
+  if(!statsGraphFsRotated&&(!screen.orientation||!screen.orientation.lock)){
+    showToast("Rotate your device sideways for the full landscape view",3200);
+  }
+
+  // The box moved to a new container — force Chart.js to remeasure so the line/points redraw at the
+  // fullscreen stage's real (and, ideally, now-landscape) dimensions.
+  requestAnimationFrame(()=>{
+    const isDur=boxId==='durGraphBox';
+    const chart=isDur?userStatsInstanceChart:volChartInstance;
+    if(chart)chart.resize();
+  });
+}
+function exitStatsGraphFullscreen(){
+  if(!statsGraphFsOpen)return;
+  const boxId=statsGraphFsBoxId;
+  const graphBox=document.getElementById(boxId);
+  const overlay=document.getElementById('statsGraphFullscreenOverlay');
+  if(!graphBox||!overlay){statsGraphFsOpen=false;return}
+  if(statsGraphFsParent)statsGraphFsParent.insertBefore(graphBox,statsGraphFsNext);
+  overlay.classList.remove('active');
+  document.body.classList.remove('stats-graph-fs-lock');
+  statsGraphFsOpen=false;
+  const icon=document.getElementById(boxId==='durGraphBox'?'durGraphFsBtn':'volGraphFsBtn');
+  if(icon){icon.title='Fullscreen focus';icon.setAttribute('aria-label','Fullscreen focus')}
+  statsGraphFsBoxId=null;
+  // Undo the landscape lock / true fullscreen (if either engaged) the same way Compare Mode's
+  // "Rotate Screen" does — safe to call even when neither ever activated.
+  try{if(screen.orientation&&screen.orientation.unlock)screen.orientation.unlock()}catch(e){}
+  if(document.fullscreenElement&&document.exitFullscreen)document.exitFullscreen().catch(()=>{});
+  statsGraphFsRotated=false;
+  requestAnimationFrame(()=>{
+    const isDur=boxId==='durGraphBox';
+    const chart=isDur?userStatsInstanceChart:volChartInstance;
+    if(chart)chart.resize();
+  });
+}
+// Cleans up if the person exits true fullscreen some other way (back gesture, browser chrome, etc.)
+// while our overlay was the one that triggered it.
+document.addEventListener('fullscreenchange',()=>{
+  if(!document.fullscreenElement&&statsGraphFsOpen&&statsGraphFsRotated){
+    try{if(screen.orientation&&screen.orientation.unlock)screen.orientation.unlock()}catch(e){}
+    statsGraphFsRotated=false;
+  }
+});
+// Extra safety net for real browser/app tab switches (e.g. the person backgrounds the app while
+// rotated) — most browsers already drop fullscreen/orientation-lock on their own, but this catches
+// the rest, mirroring Compare Mode's own visibilitychange guard.
+document.addEventListener('visibilitychange',()=>{
+  if(document.hidden&&statsGraphFsOpen)exitStatsGraphFullscreen();
+});
+
 document.addEventListener('keydown',function(e){
   if(e.key==='Escape'&&trackerFullscreenOpen)exitTrackerFullscreen();
+  if(e.key==='Escape'&&statsGraphFsOpen)exitStatsGraphFullscreen();
   if(e.key==='Escape'&&document.getElementById('workoutEditOverlay')?.classList.contains('active'))confirmCloseWorkoutOverlay();
 });
 
@@ -19941,6 +20144,13 @@ function closeLearnVideo(){
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg>
   </button>
   <div class="tracker-fullscreen-stage" id="trackerFullscreenStage"></div>
+</div>
+<div class="stats-graph-fullscreen-overlay" id="statsGraphFullscreenOverlay">
+  <button type="button" class="stats-graph-fullscreen-close" id="statsGraphFullscreenCloseBtn" onclick="exitStatsGraphFullscreen()" title="Exit fullscreen" aria-label="Exit fullscreen">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg>
+  </button>
+  <div class="stats-graph-fullscreen-stage" id="statsGraphFullscreenStage"></div>
+  <div class="stats-graph-fullscreen-hint" id="statsGraphFullscreenHint">Rotate your device sideways for the full landscape view · tap a point for details</div>
 </div>
 <script>
 /* ===================== FLOATING MENU: LAUNCHER, TIMER & STOPWATCH ===================== */
