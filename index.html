@@ -19,7 +19,7 @@
   --btn-bg:linear-gradient(135deg,#2563eb,#1d4ed8);--btn-shadow:0 4px 18px rgba(37,99,235,0.35);
   --card-shadow:0 8px 32px rgba(31,38,135,0.07);
   --header-bg:linear-gradient(135deg,#1e3a8a 0%,#2563eb 100%);--header-text:#fff;
-  --muscle-idle:#cbd5e1;--rank-badge-bg:linear-gradient(135deg,#2563eb,#7c3aed);
+  --muscle-idle:#94a3b8;--rank-badge-bg:linear-gradient(135deg,#2563eb,#7c3aed);
   --xp-bar-fill:linear-gradient(90deg,#2563eb,#7c3aed);
   --stopwatch-bg:linear-gradient(135deg,#f0f7ff,#e0f2fe);--stopwatch-border:#2563eb;
   --toast-bg:linear-gradient(135deg,#1e3a8a,#2563eb);
@@ -41,7 +41,7 @@ body.theme-dark {
   --btn-bg:linear-gradient(135deg,#4f8cff,#2f63cc);--btn-shadow:0 4px 18px rgba(79,140,255,0.35);
   --card-shadow:0 8px 32px rgba(0,0,0,0.5);
   --header-bg:linear-gradient(135deg,#05060a 0%,#0d0f14 100%);--header-text:#fff;
-  --muscle-idle:#1b1d24;--rank-badge-bg:linear-gradient(135deg,#4f8cff,#7c3aed);
+  --muscle-idle:#454c59;--rank-badge-bg:linear-gradient(135deg,#4f8cff,#7c3aed);
   --xp-bar-fill:linear-gradient(90deg,#4f8cff,#7c3aed);
   --stopwatch-bg:linear-gradient(135deg,#14161c,#0e1014);--stopwatch-border:#4f8cff;
   --toast-bg:linear-gradient(135deg,#0a0b0f,#0d0f14);
@@ -65,7 +65,7 @@ body.theme-custom {
   --btn-bg:linear-gradient(135deg,#4f8cff,#2f63cc);--btn-shadow:0 4px 18px rgba(79,140,255,0.35);
   --card-shadow:0 8px 32px rgba(0,0,0,0.45);
   --header-bg:linear-gradient(135deg,#06070a 0%,#0d0f14 100%);--header-text:#4f8cff;
-  --muscle-idle:#1b1d24;--rank-badge-bg:linear-gradient(135deg,#4f8cff,#2f63cc);
+  --muscle-idle:#454c59;--rank-badge-bg:linear-gradient(135deg,#4f8cff,#2f63cc);
   --xp-bar-fill:linear-gradient(90deg,#4f8cff,#8cb4ff);
   --stopwatch-bg:linear-gradient(135deg,#14161c,#0e1014);--stopwatch-border:#4f8cff;
   --toast-bg:linear-gradient(135deg,#0a0b0f,#0d0f14);
@@ -1188,7 +1188,15 @@ body.wlc-dragging-active .workout-log-card:not(.wlc-drag-source){cursor:grabbing
 .wf-edit-toggle-btn{border:1px solid var(--border-col);background:var(--bg-panel);color:var(--text-secondary);font-family:var(--font-alt);font-size:10.5px;font-weight:700;padding:3px 9px;border-radius:14px;cursor:pointer;transition:all 0.2s ease}
 .wf-edit-toggle-btn.wf-editing{background:var(--accent);color:#fff;border-color:var(--accent)}
 .wf-modal-body-wrap{position:relative;display:flex;justify-content:center;align-items:flex-start;gap:6px;margin:4px 0 8px}
-.wf-modal-body-wrap svg{width:100%;max-width:86px;height:auto;max-height:135px;background:transparent;border:1px solid var(--border-col);border-radius:10px;padding:4px;transition:all 0.3s ease}
+.wf-modal-body-wrap svg{width:100%;max-width:86px;height:auto;max-height:135px;background:transparent;border:1px solid var(--border-col);border-radius:10px;padding:4px;transition:all 0.3s ease;
+  /* The global --border-col is intentionally very faint (it's tuned for card/panel edges), which made
+     this hand-drawn body practically disappear in both themes — near-invisible muscle outlines on top
+     of a muscle-idle fill that was too close to the modal's own background color. Scoping a punchier
+     outline color here (it cascades down into every path's stroke="var(--border-col)") — plus the
+     brighter --muscle-idle values above — makes the whole silhouette clearly readable in light AND
+     dark mode without touching --border-col anywhere else in the app. */
+  --border-col:var(--text-secondary);
+}
 .wf-modal-body-wrap .muscle-group{cursor:default}
 .wf-modal-body-wrap.wf-editing .muscle-group{cursor:pointer}
 /* Custom (non-native <select>) dropdown so it looks identical on every OS/browser — needed for
@@ -8269,8 +8277,11 @@ async function syncCoreDashboardMetrics(){
 
 /* ===================== MUSCLE HIGHLIGHT (used by the Workouts page Finish widget) =====================
    Simple, reliable id-based fill on a hand-drawn inline SVG body (no external image,
-   no canvas, nothing to fail to load). Reuses the app's existing CLASS_COLORS map. */
-const MUSCLE_CLASS_MAP={Chest:["Chest_Left","Chest_Right"],Biceps:["Biceps_Left","Biceps_Right"],Triceps:["Triceps_Left","Triceps_Right","Triceps_Front_Left","Triceps_Front_Right"],Shoulders:["Shoulders_Left","Shoulders_Right","Shoulders_Back_Left","Shoulders_Back_Right"],"Lat/Back":["Lats_Left","Lats_Right","Lower_Back"],Legs:["Legs_Front_L","Legs_Front_R","Legs_Back_L","Legs_Back_R","Glutes_Left","Glutes_Right","Calves_Left","Calves_Right"],Abs:["Abs"]};
+   no canvas, nothing to fail to load). Reuses the app's existing CLASS_COLORS map.
+   "Full Body" has no single dedicated shape of its own — it lights up EVERY region on both
+   diagrams (front + back) at once, since that's literally what training the whole body means. */
+const MUSCLE_CLASS_MAP={Chest:["Chest_Left","Chest_Right"],Biceps:["Biceps_Left","Biceps_Right"],Triceps:["Triceps_Left","Triceps_Right","Triceps_Front_Left","Triceps_Front_Right"],Shoulders:["Shoulders_Left","Shoulders_Right","Shoulders_Back_Left","Shoulders_Back_Right"],"Lat/Back":["Lats_Left","Lats_Right","Lower_Back"],Legs:["Legs_Front_L","Legs_Front_R","Legs_Back_L","Legs_Back_R","Glutes_Left","Glutes_Right","Calves_Left","Calves_Right"],Abs:["Abs"],Forearms:["Forearms_Front_Left","Forearms_Front_Right","Forearms_Back_Left","Forearms_Back_Right"]};
+MUSCLE_CLASS_MAP["Full Body"]=[].concat(...Object.values(MUSCLE_CLASS_MAP));
 
 /* ===================== CHECK-IN (PUNCH IN) =====================
    Rule: exactly ONE Punch In per user per calendar day (device's local 12:00 AM – 11:59:59 PM).
@@ -15462,8 +15473,8 @@ const WF_BODY_SVG_MARKUP=`
                     <path d="M167,145 C169,161 168,177 162,191" fill="none" stroke="var(--border-col)" stroke-width="0.6" opacity="0.35"/>
                     <path id="Triceps_Front_Left" class="muscle-group" onclick="wfToggleMuscle('Triceps_Front_Left')" fill="var(--muscle-idle)" opacity="0.85" stroke="var(--border-col)" stroke-width="1" d="M15,133 C9,141 7,155 10,173 C13,189 19,202 27,208 C31,210 35,208 34,201 C31,185 25,161 20,143 C19,137 17,133 15,133 Z"/>
                     <path id="Triceps_Front_Right" class="muscle-group" onclick="wfToggleMuscle('Triceps_Front_Right')" fill="var(--muscle-idle)" opacity="0.85" stroke="var(--border-col)" stroke-width="1" d="M185,133 C191,141 193,155 190,173 C187,189 181,202 173,208 C169,210 165,208 166,201 C169,185 175,161 180,143 C181,137 183,133 185,133 Z"/>
-                    <path fill="var(--muscle-idle)" opacity="0.4" stroke="var(--border-col)" stroke-width="0.9" d="M17,206 C13,221 13,239 19,254 L33,250 C29,235 28,219 30,204 Z"/>
-                    <path fill="var(--muscle-idle)" opacity="0.4" stroke="var(--border-col)" stroke-width="0.9" d="M183,206 C187,221 187,239 181,254 L167,250 C171,235 172,219 170,204 Z"/>
+                    <path id="Forearms_Front_Left" class="muscle-group" onclick="wfToggleMuscle('Forearms_Front_Left')" fill="var(--muscle-idle)" stroke="var(--border-col)" stroke-width="0.9" d="M17,206 C13,221 13,239 19,254 L33,250 C29,235 28,219 30,204 Z"/>
+                    <path id="Forearms_Front_Right" class="muscle-group" onclick="wfToggleMuscle('Forearms_Front_Right')" fill="var(--muscle-idle)" stroke="var(--border-col)" stroke-width="0.9" d="M183,206 C187,221 187,239 181,254 L167,250 C171,235 172,219 170,204 Z"/>
                     <ellipse cx="24" cy="263" rx="9" ry="13" fill="none" stroke="var(--border-col)" stroke-width="1.1"/>
                     <ellipse cx="176" cy="263" rx="9" ry="13" fill="none" stroke="var(--border-col)" stroke-width="1.1"/>
                     <path id="Abs" class="muscle-group" onclick="wfToggleMuscle('Abs')" fill="var(--muscle-idle)" stroke="var(--border-col)" stroke-width="1.1" d="M76,125 L124,125 C126,147 126,173 122,196 C120,212 114,227 106,235 C102,239 98,239 94,235 C86,227 80,212 78,196 C74,173 74,147 76,125 Z"/>
@@ -15501,8 +15512,8 @@ const WF_BODY_SVG_MARKUP=`
                     <path d="M25,155 C23,171 25,187 32,202" fill="none" stroke="var(--border-col)" stroke-width="0.7" opacity="0.4"/>
                     <path id="Triceps_Right" class="muscle-group" onclick="wfToggleMuscle('Triceps_Right')" fill="var(--muscle-idle)" stroke="var(--border-col)" stroke-width="1.1" d="M178,136 C186,142 188,155 186,174 C184,191 177,205 169,211 C162,216 155,212 155,201 C154,185 158,163 161,146 C163,138 171,132 178,136 Z"/>
                     <path d="M175,155 C177,171 175,187 168,202" fill="none" stroke="var(--border-col)" stroke-width="0.7" opacity="0.4"/>
-                    <path fill="var(--muscle-idle)" opacity="0.4" stroke="var(--border-col)" stroke-width="0.9" d="M14,213 C11,227 12,242 18,255 L31,252 C27,238 27,224 28,212 Z"/>
-                    <path fill="var(--muscle-idle)" opacity="0.4" stroke="var(--border-col)" stroke-width="0.9" d="M186,213 C189,227 188,242 182,255 L169,252 C173,238 173,224 172,212 Z"/>
+                    <path id="Forearms_Back_Left" class="muscle-group" onclick="wfToggleMuscle('Forearms_Back_Left')" fill="var(--muscle-idle)" stroke="var(--border-col)" stroke-width="0.9" d="M14,213 C11,227 12,242 18,255 L31,252 C27,238 27,224 28,212 Z"/>
+                    <path id="Forearms_Back_Right" class="muscle-group" onclick="wfToggleMuscle('Forearms_Back_Right')" fill="var(--muscle-idle)" stroke="var(--border-col)" stroke-width="0.9" d="M186,213 C189,227 188,242 182,255 L169,252 C173,238 173,224 172,212 Z"/>
                     <ellipse cx="24" cy="263" rx="9" ry="13" fill="none" stroke="var(--border-col)" stroke-width="1.1"/>
                     <ellipse cx="176" cy="263" rx="9" ry="13" fill="none" stroke="var(--border-col)" stroke-width="1.1"/>
                     <path fill="var(--muscle-idle)" opacity="0.65" stroke="var(--border-col)" stroke-width="0.7" d="M92,119 C90,140 90,163 93,180 L98,180 C97,159 96,138 97,117 Z"/>
@@ -15551,7 +15562,7 @@ function wfToggleMuscle(regionId){
   const idx=window._wfClasses.indexOf(targetClass);
   if(idx>=0)window._wfClasses.splice(idx,1);
   else{
-    if(window._wfClasses.length>=3){showToast("Maximum 3 classes at once.");return}
+    if(window._wfClasses.length>=5){showToast("Maximum 5 classes at once.");return}
     window._wfClasses.push(targetClass);
   }
   window._wfDirty=true;
@@ -15598,7 +15609,7 @@ function wfToggleClassFromDropdown(cls){
   const idx=window._wfClasses.indexOf(cls);
   if(idx>=0)window._wfClasses.splice(idx,1);
   else{
-    if(window._wfClasses.length>=3){showToast("Maximum 3 classes at once.");return}
+    if(window._wfClasses.length>=5){showToast("Maximum 5 classes at once.");return}
     window._wfClasses.push(cls);
   }
   window._wfDirty=true;
@@ -15773,7 +15784,7 @@ async function openWorkoutFinishModal(){
   const savedClasses=sessionParseClassField(row.class);
   const suggested=deriveDayClasses(data);
   window._wfClasses=savedClasses.slice();
-  suggested.forEach(c=>{if(window._wfClasses.length<3&&!window._wfClasses.includes(c))window._wfClasses.push(c)});
+  suggested.forEach(c=>{if(window._wfClasses.length<5&&!window._wfClasses.includes(c))window._wfClasses.push(c)});
   window._wfEditMode=false;
   window._wfDirty=false;
   window._wfHasSavedOnce=false;
@@ -20654,4 +20665,4 @@ function closeLearnVideo(){
 })();
 </script>
 </body>
-</html>
+</html> 
