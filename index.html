@@ -1424,8 +1424,9 @@ body:not(.theme-dark) .dur-graph-detail-divider strong{color:#1e3a8a}
    exitStatsGraphFullscreen and its call sites), so this view only ever exists for the 3-Month graph. */
 .stats-graph-fullscreen-overlay{display:none;position:fixed;inset:0;z-index:999850;background:rgba(5,8,14,0.94);backdrop-filter:blur(6px);padding:48px 12px 14px;flex-direction:column;align-items:stretch;justify-content:flex-start;box-sizing:border-box}
 .stats-graph-fullscreen-overlay.active{display:flex}
-.stats-graph-fullscreen-stage{flex:1;display:flex;min-height:0}
-.stats-graph-fullscreen-overlay .graph-container{background:var(--bg-card);border:1px solid var(--border-col);border-radius:16px;padding:12px;box-sizing:border-box;box-shadow:0 12px 32px rgba(0,0,0,0.35);height:100%;width:100%}
+.stats-graph-fullscreen-stage{flex:1;display:flex;flex-direction:column;min-height:0}
+.stats-graph-fullscreen-overlay .graph-container{background:var(--bg-card);border:1px solid var(--border-col);border-radius:16px;padding:12px;box-sizing:border-box;box-shadow:0 12px 32px rgba(0,0,0,0.35);flex:1;min-height:0;width:100%}
+.stats-graph-fullscreen-stage .dur-nav-pair{flex-shrink:0;margin-top:10px!important}
 .stats-graph-fullscreen-hint{text-align:center;font-size:11px;color:rgba(255,255,255,0.65);font-family:var(--font-alt);letter-spacing:0.3px;margin-top:8px;flex-shrink:0}
 .stats-graph-fullscreen-close{position:fixed;top:16px;right:16px;width:38px;height:38px;border-radius:50%;border:none;background:var(--btn-bg);color:var(--follow-btn-text);cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:var(--btn-shadow);z-index:2;transition:transform 0.2s ease,opacity 0.2s ease;padding:0}
 .stats-graph-fullscreen-close svg{width:16px;height:16px;display:block}
@@ -3037,7 +3038,7 @@ body.tracker-fs-lock{overflow:hidden}
             </div>
           </div>
           <!-- Nav arrows below graph box, not overlapping bars or dates -->
-          <div class="dur-nav-pair" style="position:relative;transform:none;left:auto;bottom:auto;justify-content:center;margin-top:8px">
+          <div class="dur-nav-pair" id="durNavPair" style="position:relative;transform:none;left:auto;bottom:auto;justify-content:center;margin-top:8px">
             <button class="dur-nav-arrow" id="durNavLeft" onclick="durNavigate(-1)" title="Previous">&#8249;</button>
             <button class="dur-nav-arrow" id="durNavRight" onclick="durNavigate(1)" title="Next">&#8250;</button>
           </div>
@@ -3122,7 +3123,7 @@ body.tracker-fs-lock{overflow:hidden}
               </div>
             </div>
             <!-- Nav arrows below graph (won't overlap bars or dates) -->
-            <div class="dur-nav-pair" style="margin-top:8px">
+            <div class="dur-nav-pair" id="volNavPair" style="margin-top:8px">
               <button class="dur-nav-arrow" id="volNavLeft" onclick="volNavigate(-1)" title="Previous">&#8249;</button>
               <button class="dur-nav-arrow" id="volNavRight" onclick="volNavigate(1)" title="Next">&#8250;</button>
             </div>
@@ -19089,6 +19090,7 @@ function exitTrackerFullscreen(){
    and force an instant exit on any mode/page/subnav change) — Weekly and Monthly never see this button
    and can never end up inside the overlay. */
 let statsGraphFsOpen=false,statsGraphFsBoxId=null,statsGraphFsParent=null,statsGraphFsNext=null,statsGraphFsRotated=false;
+let statsGraphFsNavEl=null,statsGraphFsNavParent=null,statsGraphFsNavNext=null;
 
 function toggleStatsGraphFullscreen(boxId){
   if(statsGraphFsOpen){exitStatsGraphFullscreen();return}
@@ -19102,6 +19104,16 @@ async function enterStatsGraphFullscreen(boxId){
   statsGraphFsBoxId=boxId;
   statsGraphFsParent=graphBox.parentNode;statsGraphFsNext=graphBox.nextSibling;
   stage.appendChild(graphBox);
+  // The "< >" nav-arrow row lives as a separate sibling below the graph box (not inside it), so it
+  // has to be relocated into the stage too, or it gets left behind on the page underneath the overlay.
+  const navEl=document.getElementById(boxId==='durGraphBox'?'durNavPair':'volNavPair');
+  if(navEl){
+    statsGraphFsNavEl=navEl;
+    statsGraphFsNavParent=navEl.parentNode;statsGraphFsNavNext=navEl.nextSibling;
+    stage.appendChild(navEl);
+  }else{
+    statsGraphFsNavEl=null;
+  }
   overlay.classList.add('active');
   document.body.classList.add('stats-graph-fs-lock');
   statsGraphFsOpen=true;
@@ -19149,6 +19161,8 @@ function exitStatsGraphFullscreen(){
   const overlay=document.getElementById('statsGraphFullscreenOverlay');
   if(!graphBox||!overlay){statsGraphFsOpen=false;return}
   if(statsGraphFsParent)statsGraphFsParent.insertBefore(graphBox,statsGraphFsNext);
+  if(statsGraphFsNavEl&&statsGraphFsNavParent)statsGraphFsNavParent.insertBefore(statsGraphFsNavEl,statsGraphFsNavNext);
+  statsGraphFsNavEl=null;statsGraphFsNavParent=null;statsGraphFsNavNext=null;
   overlay.classList.remove('active');
   document.body.classList.remove('stats-graph-fs-lock');
   statsGraphFsOpen=false;
@@ -20875,4 +20889,4 @@ function closeLearnVideo(){
 })();
 </script>
 </body>
-</html> 
+</html>
