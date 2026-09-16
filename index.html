@@ -2343,7 +2343,11 @@ body.workout-edit-lock{overflow:hidden}
 .tracker-fs-titlebar .tracker-analytics-title{color:#f4f6fa}
 .tracker-fs-titlebar .tracker-graph-mode-wrap label{color:rgba(255,255,255,0.6)}
 .tracker-fullscreen-stage{display:block}
-.tracker-fullscreen-stage .tracker-graph-box{background:var(--bg-card);border:1px solid var(--border-col);border-radius:16px;padding:14px;box-sizing:border-box;box-shadow:0 12px 32px rgba(0,0,0,0.35)}
+/* overflow:hidden is the belt-and-braces guarantee behind _trackerFsResizeChart: even if the canvas were
+   ever mis-sized again, the line — and the View Journey marker travelling along it — is physically
+   clipped to the card instead of being painted across the rest of the screen. */
+.tracker-fullscreen-stage .tracker-graph-box{background:var(--bg-card);border:1px solid var(--border-col);border-radius:16px;padding:14px;box-sizing:border-box;box-shadow:0 12px 32px rgba(0,0,0,0.35);overflow:hidden}
+.tracker-fullscreen-stage .tracker-graph-box canvas{display:block}
 /* The graph box is shorter in here than on the page, so the fixed detail box is trimmed to match (the
    chart's reserved top padding drops to TRACKER_GRAPH_FS_TOP_PAD at the same moment, so the line and its
    markers still can't reach it). */
@@ -19524,10 +19528,58 @@ function _trackerFsLayout(){
   // reserved top padding is reduced to match — the line still can't reach the box.
   if(trackerAnalyticsChartInstance){
     trackerAnalyticsChartInstance.options.layout.padding.top=TRACKER_GRAPH_FS_TOP_PAD;
-    requestAnimationFrame(()=>{trackerAnalyticsChartInstance.resize();trackerAnalyticsChartInstance.update('none')});
+    _trackerFsPatchChartResize();
+    requestAnimationFrame(()=>{
+      if(!trackerAnalyticsChartInstance)return;
+      _trackerFsResizeChart();
+      trackerAnalyticsChartInstance.update('none');
+    });
   }
 }
 function _trackerFsOnResize(){_trackerFsLayout()}
+/* ---- Rotation-proof canvas sizing ----------------------------------------------------------------
+   THE BUG THIS FIXES: Chart.js measures its container with getBoundingClientRect() (see
+   getContainerSize in chart.js). Inside the fullscreen view the graph box is a descendant of the 90°-
+   rotated #trackerFsRotator, so that rect comes back with its width and height SWAPPED — Chart.js then
+   sized the canvas roughly as tall as the box is wide, i.e. far taller than the box itself, and the
+   line (and the View Journey marker travelling along it) was drawn spilling out below the card.
+   Every size is therefore computed here from the box's LAYOUT metrics (clientWidth/clientHeight, which
+   a CSS transform never touches) and handed to Chart.js explicitly, which skips its own measurement
+   entirely. */
+function _trackerFsChartSize(){
+  const graphBox=document.getElementById('trackerGraphBox');
+  if(!graphBox)return null;
+  const cs=getComputedStyle(graphBox);
+  const w=graphBox.clientWidth-(parseFloat(cs.paddingLeft)||0)-(parseFloat(cs.paddingRight)||0);
+  const h=graphBox.clientHeight-(parseFloat(cs.paddingTop)||0)-(parseFloat(cs.paddingBottom)||0);
+  if(!(w>0&&h>0))return null;
+  return{w:w,h:h};
+}
+function _trackerFsResizeChart(){
+  const chart=trackerAnalyticsChartInstance;
+  if(!chart)return;
+  const size=trackerFullscreenOpen?_trackerFsChartSize():null;
+  if(size)chart.resize(size.w,size.h);else chart.resize();
+}
+// Chart.js calls chart.resize() with NO arguments from a few of its own internals (its attach handler,
+// and a follow-up inside its ResizeObserver) — exactly the argument-less path that falls back to the
+// rotated getBoundingClientRect. Rather than racing those calls, the instance's own resize method is
+// wrapped once so any argument-less resize made while the fullscreen view is open is answered with the
+// layout-measured size instead. Outside fullscreen the wrapper is a plain passthrough, and a fresh
+// chart instance (mode switch re-render) simply gets wrapped again.
+function _trackerFsPatchChartResize(){
+  const chart=trackerAnalyticsChartInstance;
+  if(!chart||chart.$trkResizePatched)return;
+  const orig=chart.resize.bind(chart);
+  chart.$trkResizePatched=true;
+  chart.resize=function(w,h){
+    if(trackerFullscreenOpen&&(w===undefined||h===undefined)){
+      const size=_trackerFsChartSize();
+      if(size)return orig(size.w,size.h);
+    }
+    return orig(w,h);
+  };
+}
 // Moves the element with elId into slotId (if both exist), recording where it came from so
 // exitTrackerFullscreen can put it back in exactly the right spot rather than assuming a fixed
 // page structure. Mirrors _statsGraphFsMoveIn.
@@ -19566,9 +19618,9 @@ function enterTrackerFullscreen(){
   _trackerFsLayout();
   window.addEventListener('resize',_trackerFsOnResize);
   window.addEventListener('orientationchange',_trackerFsOnResize);
-  // The graph box changed containers/size — force Chart.js to remeasure so the line/points redraw at the
-  // new stage size instead of holding onto stale canvas dimensions.
-  if(trackerAnalyticsChartInstance)requestAnimationFrame(()=>trackerAnalyticsChartInstance.resize());
+  // The graph box changed containers/size — hand Chart.js the new size explicitly (never a bare
+  // resize(), which would measure the rotated bounding box; see _trackerFsResizeChart).
+  if(trackerAnalyticsChartInstance)requestAnimationFrame(()=>_trackerFsResizeChart());
 }
 function exitTrackerFullscreen(){
   if(!trackerFullscreenOpen)return;
@@ -19596,7 +19648,12 @@ function exitTrackerFullscreen(){
   trackerFsRotated=false;
   const icon=document.getElementById('trackerFullscreenBtn');
   if(icon){icon.classList.remove('is-active');icon.title='Fullscreen focus';icon.setAttribute('aria-label','Fullscreen focus')}
-  if(trackerAnalyticsChartInstance)requestAnimationFrame(()=>{trackerAnalyticsChartInstance.resize();trackerAnalyticsChartInstance.update('none')});
+  if(trackerAnalyticsChartInstance)requestAnimationFrame(()=>{
+    if(!trackerAnalyticsChartInstance)return;
+    // Back on the normal page, nothing is rotated, so Chart.js can measure for itself again.
+    trackerAnalyticsChartInstance.resize();
+    trackerAnalyticsChartInstance.update('none');
+  });
 }
 // Converts a touch/mouse point (clientX/clientY) into the canvas-local pixel coordinates Chart.js expects.
 // Normally that's just clientX/Y minus the canvas's boundingClientRect — but while the fullscreen rotator
@@ -21475,4 +21532,4 @@ function closeLearnVideo(){
 })();
 </script>
 </body>
-</html>
+</html> 
