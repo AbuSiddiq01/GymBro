@@ -18942,8 +18942,10 @@ function renderTrackerChart(){
       if(cardioUnit==='Floors'||cardioUnit==='Steps')totalEl.innerHTML=`Total ${cardioUnit}: <strong>${Math.round(totalQty)} ${cardioUnit}</strong>`;
       else totalEl.innerHTML=`Total Distance: <strong>${totalQty.toFixed(2)}km</strong>`;
     }else{
+      // Exact figure, never abbreviated to "1.6k" — the detail box is precisely where the person wants
+      // the real number, not a rounded headline figure.
       const totalVol=parseFloat(formatTrimmedNum(dateMap[date].totalVol));
-      totalEl.innerHTML=`Total Volume: <strong>${totalVol>=1000?(totalVol/1000).toFixed(1)+'k':totalVol}</strong>`;
+      totalEl.innerHTML=`Total Volume: <strong>${totalVol}</strong>`;
     }
   }
 
@@ -18997,6 +18999,31 @@ function renderTrackerChart(){
     const trkMax=Math.max(...values),trkMin=Math.min(...values);
     if(trkMax!==trkMin){trkHighIdx=values.indexOf(trkMax);trkLowIdx=values.indexOf(trkMin)}
   }
+  // Compact unit tag ("Kg"/"Reps"/"Km"/"Time"/"Floors"/"Steps") so the numbers running up the Y-axis
+  // still say what they're measuring now that the old rotated axis title (which ate real plot width)
+  // is gone. Drawn top-left, INSIDE the chart's own reserved top padding rather than as a Chart.js axis
+  // title, so placement is fully our own to control:
+  // - it sits well clear of the topmost tick number (extra ~14px gap beyond the tick's own half-height)
+  //   so it can never overlap the Y-axis values on any screen size,
+  // - it never reaches the detail box (top-right) or the H/L markers (drawn just above the plotted line
+  //   itself, well below this padding on any real dataset),
+  // - its font shrinks a step on a narrow phone via the shared _axisTickFont sizing (same helper the
+  //   Duration/Volume graphs use), so it never clips at the left edge — auto-flexing the same way.
+  const trkYUnitLabel=mode==='reps'?'Reps':mode==='duration'?'Time':mode==='distance'?((cardioUnit==='Floors'||cardioUnit==='Steps')?cardioUnit:'Km'):'Kg';
+  const trkYUnitPlugin={
+    id:'trkYUnitLabel',
+    afterDraw(chart){
+      const{ctx,chartArea,scales}=chart;
+      if(!chartArea||!scales.y)return;
+      ctx.save();
+      const fs=_axisTickFont(chart.width).size;
+      ctx.font=`700 ${fs}px Rajdhani, sans-serif`;
+      ctx.fillStyle='#6b7280';
+      ctx.textAlign='left';ctx.textBaseline='bottom';
+      ctx.fillText(trkYUnitLabel,scales.y.left,chartArea.top-14);
+      ctx.restore();
+    }
+  };
   const trkHighLowPlugin={
     id:'trkHighLowMarkers',
     afterDatasetsDraw(chart){
@@ -19006,10 +19033,10 @@ function renderTrackerChart(){
       ctx.save();
       ctx.font='800 13px Rajdhani, sans-serif';
       ctx.textAlign='center';ctx.textBaseline='bottom';
+      // Plain fill, no white outline/halo — matches the flat, no-stroke text used everywhere else.
       const drawLabel=(idx,letter,color)=>{
         const pt=meta.data[idx];if(!pt)return;
         const x=pt.x,y=pt.y-14;
-        ctx.lineWidth=3;ctx.strokeStyle='#fff';ctx.strokeText(letter,x,y);
         ctx.fillStyle=color;ctx.fillText(letter,x,y);
       };
       if(trkHighIdx>=0)drawLabel(trkHighIdx,'H','#16a34a');
@@ -19019,7 +19046,7 @@ function renderTrackerChart(){
   };
 
   trackerAnalyticsChartInstance=new Chart(ctx,{
-    type:'line',plugins:[trkHighLowPlugin],data:{labels,datasets:[{label:yAxisTitle,data:values,borderColor:lineColor,backgroundColor:fillColor,pointBackgroundColor:[...basePointBg],pointBorderColor:[...basePointBorder],pointBorderWidth:[...basePointBorderW],pointRadius:[...basePointRadius],pointHoverRadius:[...baseHoverRadius],
+    type:'line',plugins:[trkHighLowPlugin,trkYUnitPlugin],data:{labels,datasets:[{label:yAxisTitle,data:values,borderColor:lineColor,backgroundColor:fillColor,pointBackgroundColor:[...basePointBg],pointBorderColor:[...basePointBorder],pointBorderWidth:[...basePointBorderW],pointRadius:[...basePointRadius],pointHoverRadius:[...baseHoverRadius],
       // SCRIPTABLE, same helper the Duration/Volume graphs use: re-measured on every render (including
       // Chart.js's own resize re-render), so the stroke thins automatically for a longer date range
       // packed into the same card, and thickens again once the full-width card gives it more room.
@@ -21305,4 +21332,4 @@ function closeLearnVideo(){
 })();
 </script>
 </body>
-</html>
+</html> 
