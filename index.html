@@ -1329,6 +1329,20 @@ body.wlc-dragging-active .workout-log-card:not(.wlc-drag-source){cursor:grabbing
 .vol-range-btn{flex:1;padding:9px 10px;border:1px solid var(--border-col);border-radius:12px;background:var(--bg-card);color:var(--text-secondary);font-family:var(--font-alt);font-size:12px;font-weight:700;letter-spacing:0.4px;cursor:pointer;transition:all 0.25s ease}
 .vol-range-btn:hover{background:var(--accent-soft);color:var(--accent);border-color:var(--accent)}
 .vol-range-btn.active{background:var(--tab-active-bg);color:var(--follow-btn-text);border-color:transparent;box-shadow:var(--btn-shadow)}
+
+/* ===================== IN-BOX RANGE TOGGLE (Weekly/Monthly/3-Month, relocated below the chart) =====
+   Same Weekly/Monthly/3-Month switcher, but living inside #durGraphBox/#volGraphBox itself, below the
+   chart, as a compact icon row (see markup — durRangeBtnWeekly/Monthly/3m & vol equivalents, same ids,
+   same onclick, just restyled + relocated so setDurRangeMode()/setVolRangeMode() need no changes).
+   flex:1 1 0 on each pill + clamp()-based font/padding/gap means the row auto-shrinks on a narrow phone
+   and stays a compact centered row (capped width) on a wider tablet/desktop viewport — no fixed pixel
+   sizing at any breakpoint. */
+.graph-range-icon-toggle{display:flex;flex-wrap:nowrap;justify-content:center;align-items:center;gap:clamp(4px,1.5vw,10px);flex:0 0 auto;padding-top:8px}
+.graph-range-icon-btn{flex:1 1 0;min-width:0;display:flex;align-items:center;justify-content:center;gap:4px;padding:7px 6px;border:1px solid var(--border-col);border-radius:10px;background:var(--bg-card);color:var(--text-secondary);font-family:var(--font-alt);font-size:clamp(9.5px,2.6vw,12px);font-weight:700;letter-spacing:0.3px;cursor:pointer;transition:all 0.25s ease;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.graph-range-icon-btn .gri-icon{font-size:clamp(11px,3vw,14px);line-height:1;flex-shrink:0}
+.graph-range-icon-btn:hover{background:var(--accent-soft);color:var(--accent);border-color:var(--accent)}
+.graph-range-icon-btn.active{background:var(--tab-active-bg);color:var(--follow-btn-text);border-color:transparent;box-shadow:var(--btn-shadow)}
+@media(min-width:700px){.graph-range-icon-toggle{max-width:320px;margin:0 auto;padding-top:10px}.graph-range-icon-btn{padding:8px 10px}}
 .vol-range-label{display:none;text-align:center;font-family:var(--font-alt);font-size:13px;font-weight:800;color:var(--accent);letter-spacing:0.6px;margin-top:10px;padding:8px;background:var(--accent-soft);border-radius:10px;border:1px solid var(--border-col)}
 .vol-range-label.visible{display:block}
 
@@ -1400,16 +1414,24 @@ body:not(.theme-dark) .dur-graph-detail-divider strong{color:#1e3a8a}
 
 /* Extra container height (Duration & Volume graphs): the plottable chart area keeps its
    original 320px, but the box itself is taller so the fixed detail box has dedicated headroom
-   that a tall bar/line point can never reach into or get hidden behind. */
-#durGraphBox,#volGraphBox{height:380px}
-/* Inside the fullscreen overlay this fixed 380px doesn't apply — the rotator now shows the graph
+   that a tall bar/line point can never reach into or get hidden behind, PLUS room at the bottom for
+   the in-box Weekly/Monthly/3-Month icon row (see .graph-range-icon-toggle). The box is now a column
+   flexbox — .graph-scroll-outer (the chart) takes all remaining space (flex:1) and the icon row sits
+   below it at its own natural height (flex:0 0 auto) — so the chart's own plotted area never shrinks
+   to make room for the row; the box simply grows instead. */
+#durGraphBox,#volGraphBox{height:428px;display:flex;flex-direction:column}
+/* Inside the fullscreen overlay this fixed height doesn't apply — the rotator now shows the graph
    PLUS the full stats/breakdown block underneath it (see .stats-graph-fs-summary), all in one
-   scrollable column, so the chart only needs a fixed, comfortable landscape-chart height rather than
-   filling all available space. min-height:0 lets it actually respect that height inside a flex column
-   instead of being pushed larger by its own old #id rule. An ID selector needs an equally-specific
-   (ID-level) override to win here rather than the 2-class ".stats-graph-fullscreen-overlay
-   .graph-container" rule, which loses to the plain #id selector above regardless of source order. */
-.stats-graph-fullscreen-overlay #durGraphBox,.stats-graph-fullscreen-overlay #volGraphBox{height:260px!important;min-height:0;flex-shrink:0}
+   scrollable column. The chart was previously squashed to a flat 260px here regardless of screen
+   size, which left almost no vertical room for the line once the icon row's height was subtracted —
+   clamp() instead scales the box with the viewport (the rotator's own un-rotated height tracks the
+   device's physical width in portrait mode — see _statsGraphFsLayout), same auto-flex idea as the
+   icon row above, while the 380px floor keeps even the narrowest phone comfortably taller than before.
+   min-height:0 lets it actually respect that height inside a flex column instead of being pushed
+   larger by its own old #id rule. An ID selector needs an equally-specific (ID-level) override to win
+   here rather than the 2-class ".stats-graph-fullscreen-overlay .graph-container" rule, which loses to
+   the plain #id selector above regardless of source order. */
+.stats-graph-fullscreen-overlay #durGraphBox,.stats-graph-fullscreen-overlay #volGraphBox{height:clamp(380px,70vw,620px)!important;min-height:0;flex-shrink:0}
 
 /* ===================== 3-MONTH GRAPH: SINGLE-FRAME LAYOUT ===================== */
 /* The canvas's real parent is this wrap, kept OUTSIDE the fixed detail box / fullscreen button so it
@@ -1417,7 +1439,7 @@ body:not(.theme-dark) .dur-graph-detail-divider strong{color:#1e3a8a}
    one frame at the card's native width (same as Weekly/Monthly), matching a normal finance-chart look.
    Panning/dragging a finger across the line still just moves the single selected marker (see
    selectPoint) — it never pans the chart itself. */
-.graph-scroll-outer{position:relative;width:100%;height:100%;overflow:hidden}
+.graph-scroll-outer{position:relative;width:100%;flex:1 1 auto;min-height:0;overflow:hidden}
 .graph-scroll-inner{position:relative;height:100%;width:100%}
 .graph-scroll-inner canvas{display:block}
 
@@ -3101,6 +3123,12 @@ body.tracker-fs-lock{overflow:hidden}
               <button type="button" class="graph-fullscreen-btn" id="durGraphFsBtn" onclick="toggleStatsGraphFullscreen('durGraphBox')" title="Fullscreen focus" aria-label="Fullscreen focus">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M16 3h3a2 2 0 0 1 2 2v3"/><path d="M8 21H5a2 2 0 0 1-2-2v-3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg>
               </button>
+              <!-- Weekly/Monthly/3-Month toggle — small icon row inside the graph box, below the chart -->
+              <div class="graph-range-icon-toggle" id="durGraphRangeToggle">
+                <button type="button" class="graph-range-icon-btn active" id="durRangeBtnWeekly" onclick="setDurRangeMode('weekly')" title="Weekly"><span class="gri-icon">📅</span><span>Wk</span></button>
+                <button type="button" class="graph-range-icon-btn" id="durRangeBtnMonthly" onclick="setDurRangeMode('monthly')" title="Monthly"><span class="gri-icon">🗓️</span><span>Mo</span></button>
+                <button type="button" class="graph-range-icon-btn" id="durRangeBtn3m" onclick="setDurRangeMode('3month')" title="3-Month"><span class="gri-icon">📈</span><span>3M</span></button>
+              </div>
             </div>
           </div>
           <!-- Nav arrows below graph box, not overlapping bars or dates -->
@@ -3110,13 +3138,6 @@ body.tracker-fs-lock{overflow:hidden}
           </div>
 
           <div id="statsChartLegend" class="hidden"></div>
-
-          <!-- Weekly/Monthly/3-Month toggle -->
-          <div class="vol-range-toggle" style="margin-top:10px">
-            <button class="vol-range-btn active" id="durRangeBtnWeekly" onclick="setDurRangeMode('weekly')">Weekly</button>
-            <button class="vol-range-btn" id="durRangeBtnMonthly" onclick="setDurRangeMode('monthly')">Monthly</button>
-            <button class="vol-range-btn" id="durRangeBtn3m" onclick="setDurRangeMode('3month')">3-Month</button>
-          </div>
 
           <!-- Detailed View on/off toggle below time period buttons -->
           <div style="display:flex;align-items:center;gap:8px;margin-top:10px" id="durDetailToggleRow">
@@ -3188,19 +3209,18 @@ body.tracker-fs-lock{overflow:hidden}
                 <button type="button" class="graph-fullscreen-btn" id="volGraphFsBtn" onclick="toggleStatsGraphFullscreen('volGraphBox')" title="Fullscreen focus" aria-label="Fullscreen focus">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M16 3h3a2 2 0 0 1 2 2v3"/><path d="M8 21H5a2 2 0 0 1-2-2v-3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg>
                 </button>
+                <!-- Weekly/Monthly/3-Month toggle — small icon row inside the graph box, below the chart -->
+                <div class="graph-range-icon-toggle" id="volGraphRangeToggle">
+                  <button type="button" class="graph-range-icon-btn active" id="volRangeBtnWeekly" onclick="setVolRangeMode('weekly')" title="Weekly"><span class="gri-icon">📅</span><span>Wk</span></button>
+                  <button type="button" class="graph-range-icon-btn" id="volRangeBtnMonthly" onclick="setVolRangeMode('monthly')" title="Monthly"><span class="gri-icon">🗓️</span><span>Mo</span></button>
+                  <button type="button" class="graph-range-icon-btn" id="volRangeBtn3m" onclick="setVolRangeMode('3month')" title="3-Month"><span class="gri-icon">📈</span><span>3M</span></button>
+                </div>
               </div>
             </div>
             <!-- Nav arrows below graph (won't overlap bars or dates) -->
             <div class="dur-nav-pair" id="volNavPair" style="margin-top:8px">
               <button class="dur-nav-arrow" id="volNavLeft" onclick="volNavigate(-1)" title="Previous">&#8249;</button>
               <button class="dur-nav-arrow" id="volNavRight" onclick="volNavigate(1)" title="Next">&#8250;</button>
-            </div>
-
-            <!-- Weekly / Monthly / 3-Month toggle -->
-            <div class="vol-range-toggle" style="margin-top:8px">
-              <button class="vol-range-btn active" id="volRangeBtnWeekly" onclick="setVolRangeMode('weekly')">Weekly</button>
-              <button class="vol-range-btn" id="volRangeBtnMonthly" onclick="setVolRangeMode('monthly')">Monthly</button>
-              <button class="vol-range-btn" id="volRangeBtn3m" onclick="setVolRangeMode('3month')">3-Month</button>
             </div>
 
             <!-- Class legend (shown in detailed view mode) -->
@@ -11376,7 +11396,7 @@ async function updateVolumeLineChart(){
     },
     options:{
       responsive:true,maintainAspectRatio:false,
-      // Layout safety: the graph container is now taller (#volGraphBox = 380px) specifically so this
+      // Layout safety: the graph container is now taller (#volGraphBox = 428px) specifically so this
       // reserved headroom is genuine EXTRA space, not squeezed plot area — the line can never run
       // underneath or touch the fixed top-right detail box, even on small/low-end mobile screens.
       // Bottom padding grows slightly when Week/Month axis labels are visible (Monthly/3-Month) so
