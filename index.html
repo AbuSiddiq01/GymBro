@@ -1402,18 +1402,14 @@ body:not(.theme-dark) .dur-graph-detail-divider strong{color:#1e3a8a}
    original 320px, but the box itself is taller so the fixed detail box has dedicated headroom
    that a tall bar/line point can never reach into or get hidden behind. */
 #durGraphBox,#volGraphBox{height:380px}
-/* BUG FIX: inside the fullscreen overlay this fixed 380px must NOT apply. The overlay's stage is a
-   flex column sharing height with the "‹ ›" nav row + hint text below it (see enterStatsGraphFullscreen/
-   .stats-graph-fs-navpair), so the space actually available to the chart shrinks and grows with the
-   viewport — narrow/short screens (e.g. landscape on a small phone) can end up with less than 380px to
-   work with. Forcing 380px anyway made the graph card overflow past the stage's real boundary and
-   visually spill on top of the nav arrows and hint underneath it, instead of them sitting in their own
-   space below the card. An ID selector needs an equally-specific (ID-level) override to win here rather
-   than the existing 2-class ".stats-graph-fullscreen-overlay .graph-container{height:100%}" rule, which
-   loses to the plain #id selector above regardless of source order. Letting height track the stage's
-   own flex-computed size (100%) instead of a fixed number is what makes this auto-adapt across narrow,
-   medium, and wide screens without ever overlapping the controls below it. */
-.stats-graph-fullscreen-overlay #durGraphBox,.stats-graph-fullscreen-overlay #volGraphBox{height:100%!important;min-height:0}
+/* Inside the fullscreen overlay this fixed 380px doesn't apply — the rotator now shows the graph
+   PLUS the full stats/breakdown block underneath it (see .stats-graph-fs-summary), all in one
+   scrollable column, so the chart only needs a fixed, comfortable landscape-chart height rather than
+   filling all available space. min-height:0 lets it actually respect that height inside a flex column
+   instead of being pushed larger by its own old #id rule. An ID selector needs an equally-specific
+   (ID-level) override to win here rather than the 2-class ".stats-graph-fullscreen-overlay
+   .graph-container" rule, which loses to the plain #id selector above regardless of source order. */
+.stats-graph-fullscreen-overlay #durGraphBox,.stats-graph-fullscreen-overlay #volGraphBox{height:260px!important;min-height:0;flex-shrink:0}
 
 /* ===================== 3-MONTH GRAPH: SINGLE-FRAME LAYOUT ===================== */
 /* The canvas's real parent is this wrap, kept OUTSIDE the fixed detail box / fullscreen button so it
@@ -1433,24 +1429,33 @@ body:not(.theme-dark) .dur-graph-detail-divider strong{color:#1e3a8a}
 .graph-fullscreen-btn:hover{background:var(--accent-soft);transform:scale(1.15) rotate(6deg)}
 @media (max-width:480px){.graph-fullscreen-btn{width:23px;height:23px}.graph-fullscreen-btn svg{width:11px;height:11px}}
 
-/* Fullscreen overlay stage: the 3-Month graph box gets physically relocated in here (see
-   enterStatsGraphFullscreen), which ALSO tries to lock the device into landscape orientation (same
-   Screen Orientation + Fullscreen API technique as Compare Mode's "Rotate Screen") so the chart gets a
-   genuinely wide landscape view of the full 3-month line, matching a rotated-phone chart app. Where
-   orientation-lock isn't supported (notably iOS Safari) it falls back to a plain taller portrait
-   overlay and a toast asking the person to rotate their device by hand. Switching Weekly/Monthly,
-   switching Duration↔Volume, or leaving the Stats page all force an instant exit (see
-   exitStatsGraphFullscreen and its call sites), so this view only ever exists for the 3-Month graph. */
-.stats-graph-fullscreen-overlay{display:none;position:fixed;inset:0;z-index:999850;background:rgba(5,8,14,0.94);backdrop-filter:blur(6px);padding:48px 12px 14px;flex-direction:column;align-items:stretch;justify-content:flex-start;box-sizing:border-box}
-.stats-graph-fullscreen-overlay.active{display:flex}
-.stats-graph-fullscreen-stage{flex:1;display:flex;min-height:0}
-.stats-graph-fullscreen-overlay .graph-container{background:var(--bg-card);border:1px solid var(--border-col);border-radius:16px;padding:12px;box-sizing:border-box;box-shadow:0 12px 32px rgba(0,0,0,0.35);height:100%;width:100%}
+/* Fullscreen overlay: shows the COMPLETE 3-Month page (graph, "‹ ›" nav, and the full stats/breakdown
+   block below it — see .stats-graph-fs-summary) rather than just the bare chart. Instead of asking the
+   OS to physically rotate the device (screen.orientation.lock — unreliable, unsupported on iOS Safari,
+   and asks for a permission the person never sees coming), the inner .stats-graph-fs-rotator is simply
+   rotated 90° with a plain CSS transform when the device is currently held in portrait — see
+   enterStatsGraphFullscreen/_statsGraphFsLayout, which measure the real viewport in JS and size + rotate
+   this element accordingly, re-running live on resize/orientationchange so it keeps adapting if the
+   person actually does turn their phone sideways mid-view. Nothing about the device's real orientation
+   or the browser chrome is touched — only this one element's own box is redrawn "sideways" on screen.
+   The overlay itself stays a plain, unrotated full-viewport backdrop; the rotator is what carries the
+   actual content and gets absolutely positioned + sized via inline style (JS) since vh/vw can misbehave
+   across mobile browsers once a transform is involved. */
+.stats-graph-fullscreen-overlay{display:none;position:fixed;inset:0;z-index:999850;background:rgba(5,8,14,0.94);backdrop-filter:blur(6px);overflow:hidden}
+.stats-graph-fullscreen-overlay.active{display:block}
+.stats-graph-fs-rotator{position:absolute;top:0;left:0;transform-origin:top left;display:flex;flex-direction:column;gap:10px;box-sizing:border-box;padding:14px 12px 16px;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.stats-graph-fullscreen-stage{flex-shrink:0;display:flex}
+.stats-graph-fullscreen-overlay .graph-container{background:var(--bg-card);border:1px solid var(--border-col);border-radius:16px;padding:12px;box-sizing:border-box;box-shadow:0 12px 32px rgba(0,0,0,0.35);width:100%}
 /* The "‹ ›" date-navigation arrows get relocated in here too (see enterStatsGraphFullscreen) so the
    person can still step between dates while focused on the fullscreen chart — without this they'd be
    stuck with whatever point was selected before entering fullscreen. */
-.stats-graph-fs-navpair{flex-shrink:0;margin-top:10px}
-.stats-graph-fullscreen-hint{text-align:center;font-size:11px;color:rgba(255,255,255,0.65);font-family:var(--font-alt);letter-spacing:0.3px;margin-top:8px;flex-shrink:0}
-.stats-graph-fullscreen-close{position:fixed;top:16px;right:16px;width:38px;height:38px;border-radius:50%;border:none;background:var(--btn-bg);color:var(--follow-btn-text);cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:var(--btn-shadow);z-index:2;transition:transform 0.2s ease,opacity 0.2s ease;padding:0;-webkit-tap-highlight-color:transparent}
+.stats-graph-fs-navpair{flex-shrink:0}
+.stats-graph-fullscreen-hint{text-align:center;font-size:11px;color:rgba(255,255,255,0.65);font-family:var(--font-alt);letter-spacing:0.3px;flex-shrink:0}
+/* Full stats + breakdown block (Duration: #durStatsSummaryBlock; Volume: #vspWrapper, tabs/swipe and
+   all) gets relocated in here — same content the person would otherwise have to exit fullscreen to see
+   below the graph on the normal page. */
+.stats-graph-fs-summary{flex-shrink:0;width:100%;background:var(--bg-card);border:1px solid var(--border-col);border-radius:16px;padding:14px;box-sizing:border-box}
+.stats-graph-fullscreen-close{position:sticky;top:0;align-self:flex-end;width:38px;height:38px;border-radius:50%;border:none;background:var(--btn-bg);color:var(--follow-btn-text);cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:var(--btn-shadow);z-index:2;transition:transform 0.2s ease,opacity 0.2s ease;padding:0;-webkit-tap-highlight-color:transparent}
 /* The overlay itself, and the canvas once relocated inside it, are big tap targets — without this reset
    mobile browsers paint their default translucent blue highlight rectangle on every tap here (most
    noticeably across the whole chart every time a point is selected), which the rest of the app's
@@ -1459,7 +1464,7 @@ body:not(.theme-dark) .dur-graph-detail-divider strong{color:#1e3a8a}
 .stats-graph-fullscreen-close svg{width:16px;height:16px;display:block}
 .stats-graph-fullscreen-close:hover{opacity:0.85;transform:scale(1.08) rotate(90deg)}
 body.stats-graph-fs-lock{overflow:hidden}
-@media (max-width:480px){.stats-graph-fullscreen-overlay{padding:44px 8px 10px}.stats-graph-fullscreen-close{width:34px;height:34px;top:12px;right:12px}}
+@media (max-width:480px){.stats-graph-fs-rotator{padding:10px 8px 12px}.stats-graph-fullscreen-close{width:34px;height:34px}}
 
 /* Drill-down report */
 .vol-drilldown{margin-top:14px;padding:16px;background:var(--bg-card);border-radius:16px;border:1px solid var(--border-col);animation:fadeIn 0.3s ease;min-height:80px}
@@ -3095,17 +3100,19 @@ body.tracker-fs-lock{overflow:hidden}
             💡 Hover or click a bar to see workout details &amp; duration
           </div>
           <div class="stats-block-heading" id="durStatsHeading">WEEKLY STATS</div>
-          <div class="stats-summary-row" id="mostTrainedRow">
-            <div>Most Trained: <strong id="mostTrainedLabel" style="color:var(--accent)">None</strong></div>
-          </div>
-          <div class="stats-summary-row" id="lessTrainedRow" style="margin-top:6px;background:rgba(225,29,72,0.07);border-color:rgba(225,29,72,0.18)">
-            <div style="color:#e11d48">Less Trained: <strong id="lessTrainedLabel">None</strong></div>
-          </div>
-          <div class="stats-summary-row" id="totalDurationRow" style="margin-top:6px;background:rgba(37,99,235,0.07);border-color:rgba(37,99,235,0.18)">
-            <div style="color:var(--accent)">Total Duration: <strong id="totalDurationLabel">0 Mins</strong></div>
-          </div>
-          <div class="stats-summary-row" style="margin-top:6px">
-            <div>Average Duration: <strong id="avgTimeLabel" style="color:var(--accent)">0 Mins</strong></div>
+          <div id="durStatsSummaryBlock">
+            <div class="stats-summary-row" id="mostTrainedRow">
+              <div>Most Trained: <strong id="mostTrainedLabel" style="color:var(--accent)">None</strong></div>
+            </div>
+            <div class="stats-summary-row" id="lessTrainedRow" style="margin-top:6px;background:rgba(225,29,72,0.07);border-color:rgba(225,29,72,0.18)">
+              <div style="color:#e11d48">Less Trained: <strong id="lessTrainedLabel">None</strong></div>
+            </div>
+            <div class="stats-summary-row" id="totalDurationRow" style="margin-top:6px;background:rgba(37,99,235,0.07);border-color:rgba(37,99,235,0.18)">
+              <div style="color:var(--accent)">Total Duration: <strong id="totalDurationLabel">0 Mins</strong></div>
+            </div>
+            <div class="stats-summary-row" id="avgDurationRow" style="margin-top:6px">
+              <div>Average Duration: <strong id="avgTimeLabel" style="color:var(--accent)">0 Mins</strong></div>
+            </div>
           </div>
         </div>
 
@@ -19122,31 +19129,62 @@ function exitTrackerFullscreen(){
   if(trackerAnalyticsChartInstance)requestAnimationFrame(()=>trackerAnalyticsChartInstance.resize());
 }
 
-/* ===================== DURATION / VOLUME — 3-MONTH GRAPH: SINGLE-FRAME + LANDSCAPE FULLSCREEN =====================
+/* ===================== DURATION / VOLUME — 3-MONTH GRAPH: SINGLE-FRAME + CSS-ROTATED FULLSCREEN =====================
    The 3-Month line always renders in a single frame at the card's native width (no horizontal
    scrolling/panning — see updateDurationLineChart/updateVolumeLineChart, which size the canvas exactly
-   like Weekly/Monthly). The only extra piece here is the fullscreen-focus button:
-   toggleStatsGraphFullscreen/enterStatsGraphFullscreen/exitStatsGraphFullscreen physically relocate the
-   graph box (canvas + detail box + fullscreen button, all as one unit) into a fixed full-viewport
-   overlay AND attempt to lock the device into landscape orientation — the exact same Screen Orientation
-   + Fullscreen API technique already used by Compare Mode's "Rotate Screen" button (see
-   _cmpRotateScreen) — so the chart gets a genuinely wide landscape view of the full 3-month line rather
-   than a cramped portrait strip. Where orientation-lock isn't supported (notably iOS Safari) it falls
-   back to a plain taller portrait overlay plus a toast asking the person to rotate their device by hand.
+   like Weekly/Monthly). The fullscreen-focus button opens a view of the COMPLETE 3-Month page — the
+   graph, the "‹ ›" date nav, and the full stats/breakdown block below it (Duration:
+   #durStatsSummaryBlock; Volume: #vspWrapper) — not just the bare chart, so nothing requires exiting
+   fullscreen to check.
+   toggleStatsGraphFullscreen/enterStatsGraphFullscreen/exitStatsGraphFullscreen physically relocate all
+   three pieces (graph box, nav pair, stats/breakdown block) into #statsGraphFsRotator.
+   Landscape here is simulated with a plain CSS transform on that rotator rather than the Screen
+   Orientation API (screen.orientation.lock): _statsGraphFsLayout measures the real viewport with JS and,
+   whenever the device is currently held in portrait, sizes the rotator to swap width/height and rotates
+   it 90° so its content lays out exactly as it would in landscape — without ever touching the device's
+   actual orientation, without the OS-level rotate lock that Screen Orientation API requires (and that
+   iOS Safari doesn't support at all), and without needing the Fullscreen API either. It re-runs on
+   resize/orientationchange while open, so physically turning the phone sideways still works, it just
+   stops rotating the content further once the device itself is already in landscape.
    Only ever wired up for 3-Month (see setDurRangeMode/setVolRangeMode, which show/hide the trigger icon
    and force an instant exit on any mode/page/subnav change) — Weekly and Monthly never see this button
    and can never end up inside the overlay. */
-let statsGraphFsOpen=false,statsGraphFsBoxId=null,statsGraphFsParent=null,statsGraphFsNext=null,statsGraphFsRotated=false;
+let statsGraphFsOpen=false,statsGraphFsBoxId=null,statsGraphFsParent=null,statsGraphFsNext=null;
 let statsGraphFsNavPair=null,statsGraphFsNavParent=null,statsGraphFsNavNext=null;
+let statsGraphFsSummaryEl=null,statsGraphFsSummaryParent=null,statsGraphFsSummaryNext=null;
 
 function toggleStatsGraphFullscreen(boxId){
   if(statsGraphFsOpen){exitStatsGraphFullscreen();return}
   enterStatsGraphFullscreen(boxId);
 }
-async function enterStatsGraphFullscreen(boxId){
+// Measures the real viewport (not vh/vw, which can misbehave once a transform is involved on mobile)
+// and sizes+rotates #statsGraphFsRotator to simulate landscape purely with CSS — see the block comment
+// above. Safe to call repeatedly (resize/orientationchange) while the overlay is open.
+function _statsGraphFsLayout(){
+  if(!statsGraphFsOpen)return;
+  const rotator=document.getElementById('statsGraphFsRotator');
+  if(!rotator)return;
+  const w=window.innerWidth,h=window.innerHeight;
+  const isPortrait=h>=w;
+  if(isPortrait){
+    rotator.style.width=h+'px';
+    rotator.style.height=w+'px';
+    rotator.style.transform='rotate(90deg) translateY(-100%)';
+  }else{
+    rotator.style.width=w+'px';
+    rotator.style.height=h+'px';
+    rotator.style.transform='none';
+  }
+  const boxId=statsGraphFsBoxId;
+  const chart=boxId==='durGraphBox'?userStatsInstanceChart:(boxId==='volGraphBox'?volChartInstance:null);
+  if(chart)requestAnimationFrame(()=>chart.resize());
+}
+function _statsGraphFsOnResize(){_statsGraphFsLayout()}
+function enterStatsGraphFullscreen(boxId){
   const graphBox=document.getElementById(boxId);
   const overlay=document.getElementById('statsGraphFullscreenOverlay');
   const stage=document.getElementById('statsGraphFullscreenStage');
+  const summarySlot=document.getElementById('statsGraphFsSummary');
   if(!graphBox||!overlay||!stage)return;
   statsGraphFsBoxId=boxId;
   statsGraphFsParent=graphBox.parentNode;statsGraphFsNext=graphBox.nextSibling;
@@ -19157,54 +19195,35 @@ async function enterStatsGraphFullscreen(boxId){
   statsGraphFsNavPair=document.getElementById(boxId==='durGraphBox'?'durNavPair':'volNavPair');
   if(statsGraphFsNavPair){
     statsGraphFsNavParent=statsGraphFsNavPair.parentNode;statsGraphFsNavNext=statsGraphFsNavPair.nextSibling;
-    overlay.insertBefore(statsGraphFsNavPair,stage.nextSibling);
+    stage.insertAdjacentElement('afterend',statsGraphFsNavPair);
     statsGraphFsNavPair.classList.add('stats-graph-fs-navpair');
+  }
+  // Also relocate the full stats/breakdown block so the fullscreen view is the COMPLETE page, not just
+  // the chart — Duration's summary rows (Most/Less Trained, Total/Avg Duration) or Volume's whole
+  // Stats↔Breakdown swipe panel (#vspWrapper), tabs and all.
+  statsGraphFsSummaryEl=document.getElementById(boxId==='durGraphBox'?'durStatsSummaryBlock':'vspWrapper');
+  if(statsGraphFsSummaryEl&&summarySlot){
+    statsGraphFsSummaryParent=statsGraphFsSummaryEl.parentNode;statsGraphFsSummaryNext=statsGraphFsSummaryEl.nextSibling;
+    summarySlot.appendChild(statsGraphFsSummaryEl);
   }
   overlay.classList.add('active');
   document.body.classList.add('stats-graph-fs-lock');
   statsGraphFsOpen=true;
   const icon=document.getElementById(boxId==='durGraphBox'?'durGraphFsBtn':'volGraphFsBtn');
   if(icon){icon.title='Exit fullscreen';icon.setAttribute('aria-label','Exit fullscreen')}
-  const hint=document.getElementById('statsGraphFullscreenHint');
 
-  // Try to lock the device into landscape for a genuinely wide view of the full 3-month line — same
-  // order-of-operations as _cmpRotateScreen: attempt orientation.lock() WITHOUT entering the Fullscreen
-  // API first (some browsers/WebViews allow that, which also avoids the OS's native fullscreen banner),
-  // only falling back to requestFullscreen()+lock() if the plain lock is rejected.
-  statsGraphFsRotated=false;
-  try{
-    if(screen.orientation&&screen.orientation.lock){
-      try{
-        await screen.orientation.lock('landscape');
-        statsGraphFsRotated=true;
-      }catch(lockErr){
-        if(document.documentElement.requestFullscreen&&!document.fullscreenElement){
-          try{await document.documentElement.requestFullscreen({navigationUI:'hide'});}
-          catch(fsErr){await document.documentElement.requestFullscreen();}
-        }
-        await screen.orientation.lock('landscape');
-        statsGraphFsRotated=true;
-      }
-    }
-  }catch(e){/* orientation lock unsupported/rejected — fall back to the portrait overlay below */}
-  if(hint)hint.textContent=statsGraphFsRotated?'Tap ✕ to exit · tap a point for details':'Rotate your device sideways for the full landscape view · tap a point for details';
-  if(!statsGraphFsRotated&&(!screen.orientation||!screen.orientation.lock)){
-    showToast("Rotate your device sideways for the full landscape view",3200);
-  }
-
-  // The box moved to a new container — force Chart.js to remeasure so the line/points redraw at the
-  // fullscreen stage's real (and, ideally, now-landscape) dimensions.
-  requestAnimationFrame(()=>{
-    const isDur=boxId==='durGraphBox';
-    const chart=isDur?userStatsInstanceChart:volChartInstance;
-    if(chart)chart.resize();
-  });
+  _statsGraphFsLayout();
+  window.addEventListener('resize',_statsGraphFsOnResize);
+  window.addEventListener('orientationchange',_statsGraphFsOnResize);
 }
 function exitStatsGraphFullscreen(){
   if(!statsGraphFsOpen)return;
   const boxId=statsGraphFsBoxId;
   const graphBox=document.getElementById(boxId);
   const overlay=document.getElementById('statsGraphFullscreenOverlay');
+  const rotator=document.getElementById('statsGraphFsRotator');
+  window.removeEventListener('resize',_statsGraphFsOnResize);
+  window.removeEventListener('orientationchange',_statsGraphFsOnResize);
   if(!graphBox||!overlay){statsGraphFsOpen=false;return}
   if(statsGraphFsParent)statsGraphFsParent.insertBefore(graphBox,statsGraphFsNext);
   if(statsGraphFsNavPair){
@@ -19212,34 +19231,25 @@ function exitStatsGraphFullscreen(){
     if(statsGraphFsNavParent)statsGraphFsNavParent.insertBefore(statsGraphFsNavPair,statsGraphFsNavNext);
     statsGraphFsNavPair=null;statsGraphFsNavParent=null;statsGraphFsNavNext=null;
   }
+  if(statsGraphFsSummaryEl){
+    if(statsGraphFsSummaryParent)statsGraphFsSummaryParent.insertBefore(statsGraphFsSummaryEl,statsGraphFsSummaryNext);
+    statsGraphFsSummaryEl=null;statsGraphFsSummaryParent=null;statsGraphFsSummaryNext=null;
+  }
   overlay.classList.remove('active');
+  if(rotator){rotator.style.width='';rotator.style.height='';rotator.style.transform='';rotator.scrollTop=0}
   document.body.classList.remove('stats-graph-fs-lock');
   statsGraphFsOpen=false;
   const icon=document.getElementById(boxId==='durGraphBox'?'durGraphFsBtn':'volGraphFsBtn');
   if(icon){icon.title='Fullscreen focus';icon.setAttribute('aria-label','Fullscreen focus')}
   statsGraphFsBoxId=null;
-  // Undo the landscape lock / true fullscreen (if either engaged) the same way Compare Mode's
-  // "Rotate Screen" does — safe to call even when neither ever activated.
-  try{if(screen.orientation&&screen.orientation.unlock)screen.orientation.unlock()}catch(e){}
-  if(document.fullscreenElement&&document.exitFullscreen)document.exitFullscreen().catch(()=>{});
-  statsGraphFsRotated=false;
   requestAnimationFrame(()=>{
     const isDur=boxId==='durGraphBox';
     const chart=isDur?userStatsInstanceChart:volChartInstance;
     if(chart)chart.resize();
   });
 }
-// Cleans up if the person exits true fullscreen some other way (back gesture, browser chrome, etc.)
-// while our overlay was the one that triggered it.
-document.addEventListener('fullscreenchange',()=>{
-  if(!document.fullscreenElement&&statsGraphFsOpen&&statsGraphFsRotated){
-    try{if(screen.orientation&&screen.orientation.unlock)screen.orientation.unlock()}catch(e){}
-    statsGraphFsRotated=false;
-  }
-});
-// Extra safety net for real browser/app tab switches (e.g. the person backgrounds the app while
-// rotated) — most browsers already drop fullscreen/orientation-lock on their own, but this catches
-// the rest, mirroring Compare Mode's own visibilitychange guard.
+// Extra safety net for real browser/app tab switches (e.g. the person backgrounds the app mid-view) —
+// mirrors Compare Mode's own visibilitychange guard.
 document.addEventListener('visibilitychange',()=>{
   if(document.hidden&&statsGraphFsOpen)exitStatsGraphFullscreen();
 });
@@ -20209,11 +20219,14 @@ function closeLearnVideo(){
   <div class="tracker-fullscreen-stage" id="trackerFullscreenStage"></div>
 </div>
 <div class="stats-graph-fullscreen-overlay" id="statsGraphFullscreenOverlay">
-  <button type="button" class="stats-graph-fullscreen-close" id="statsGraphFullscreenCloseBtn" onclick="exitStatsGraphFullscreen()" title="Exit fullscreen" aria-label="Exit fullscreen">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg>
-  </button>
-  <div class="stats-graph-fullscreen-stage" id="statsGraphFullscreenStage"></div>
-  <div class="stats-graph-fullscreen-hint" id="statsGraphFullscreenHint">Rotate your device sideways for the full landscape view · tap a point for details</div>
+  <div class="stats-graph-fs-rotator" id="statsGraphFsRotator">
+    <button type="button" class="stats-graph-fullscreen-close" id="statsGraphFullscreenCloseBtn" onclick="exitStatsGraphFullscreen()" title="Exit fullscreen" aria-label="Exit fullscreen">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg>
+    </button>
+    <div class="stats-graph-fullscreen-stage" id="statsGraphFullscreenStage"></div>
+    <div class="stats-graph-fullscreen-hint" id="statsGraphFullscreenHint">Tap a point for details</div>
+    <div class="stats-graph-fs-summary" id="statsGraphFsSummary"></div>
+  </div>
 </div>
 <script>
 /* ===================== FLOATING MENU: LAUNCHER, TIMER & STOPWATCH ===================== */
