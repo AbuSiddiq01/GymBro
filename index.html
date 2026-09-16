@@ -2309,46 +2309,75 @@ body.workout-edit-lock{overflow:hidden}
 .tracker-graph-detail-list li .tracker-set-num{color:var(--text-muted);font-weight:700;margin-right:3px}
 .tracker-graph-detail-total{margin-top:6px;padding-top:6px;border-top:1px solid var(--border-col);font-size:11px;color:var(--text-muted);font-weight:600;white-space:nowrap;text-align:right;flex-shrink:0}
 .tracker-graph-detail-total strong{color:var(--accent);font-family:var(--font-display);font-size:15px;letter-spacing:0.4px;margin-left:4px}
-/* Fullscreen-focus icon: hidden by default, revealed only once "View Journey" playback starts (see
-   startTrackerJourney/stopTrackerJourney). Sits directly above the fixed detail box — the box itself
-   drops down (.tracker-journey-live) to make room, so the two never overlap. The chart's own reserved
-   top padding is grown by the same amount at the same moment (setTrackerJourneyLiveLayout), so the
-   graph line/markers still can't reach either element. */
-.tracker-fullscreen-btn{position:absolute;top:8px;right:8px;z-index:6;width:26px;height:26px;border-radius:8px;border:1px solid var(--border-col);background:var(--bg-card);color:var(--accent);display:none;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.15);padding:0;transition:transform 0.2s ease,background 0.2s ease;-webkit-tap-highlight-color:transparent}
+/* Fullscreen-focus icon — ALWAYS visible on the Track Workout graph card (no longer tied to "View
+   Journey" playback, which used to be the only way to reveal it). Sits top-LEFT, exactly like the
+   Duration/Volume 3-Month icon (.graph-fullscreen-btn), so it can never collide with the fixed
+   top-RIGHT detail box — which means the box no longer has to drop down and the graph box no longer
+   has to grow when playback starts. */
+.tracker-fullscreen-btn{position:absolute;top:8px;left:8px;z-index:6;width:26px;height:26px;border-radius:8px;border:1px solid var(--border-col);background:var(--bg-card);color:var(--accent);display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.15);padding:0;transition:transform 0.2s ease,background 0.2s ease;-webkit-tap-highlight-color:transparent}
 .tracker-fullscreen-btn svg{width:13px;height:13px;display:block}
 .tracker-fullscreen-btn:hover{background:var(--accent-soft);transform:scale(1.15) rotate(6deg)}
 .tracker-fullscreen-btn.is-active{background:var(--accent);color:#fff}
-.tracker-graph-box.tracker-journey-live .tracker-graph-detail-box{top:40px}
-@media (max-width:480px){.tracker-fullscreen-btn{width:23px;height:23px}.tracker-fullscreen-btn svg{width:11px;height:11px}.tracker-graph-box.tracker-journey-live .tracker-graph-detail-box{top:35px}}
-/* Fullscreen-focus overlay: the graph box (canvas + detail box) and the Journey caption get physically
-   moved in here while active, leaving every other control behind — a deliberately minimal view of just
-   the line, the fixed detail box tucked in its corner, and the caption underneath. */
-.tracker-fullscreen-overlay{display:none;position:fixed;inset:0;z-index:999850;background:rgba(5,8,14,0.92);backdrop-filter:blur(6px);padding:56px 18px 24px;align-items:flex-start;justify-content:center;overflow-y:auto;box-sizing:border-box}
-.tracker-fullscreen-overlay.active{display:flex}
-.tracker-fullscreen-stage{width:100%;max-width:720px;display:flex;flex-direction:column;gap:16px}
+@media (max-width:480px){.tracker-fullscreen-btn{width:23px;height:23px}.tracker-fullscreen-btn svg{width:11px;height:11px}}
+/* Fullscreen-focus overlay — same CSS-rotated "simulated landscape" view the Stats 3-Month/6M/1Y graphs
+   use (.stats-graph-fullscreen-overlay). The graph box (canvas + its fixed detail box), the card title,
+   the "View" mode dropdown, the Journey caption and the whole "‹ › / View Journey" nav row are all
+   physically relocated into #trackerFsRotator while active, so the overlay is the COMPLETE Track Workout
+   graph page — including View Journey, which can be started, paused and stopped from right inside here.
+   Rather than asking the OS to rotate the device (screen.orientation.lock — unreliable, unsupported on
+   iOS Safari), _trackerFsLayout measures the real viewport in JS and, whenever the phone is currently
+   held in portrait, sizes the rotator to swap width/height and rotates it 90° so its content lays out
+   exactly as it would in landscape. It re-runs on resize/orientationchange, so physically turning the
+   phone sideways still works — it just stops rotating the content further once the device is already
+   landscape. The overlay itself stays a plain, unrotated full-viewport backdrop. */
+.tracker-fullscreen-overlay{display:none;position:fixed;inset:0;z-index:999850;background:rgba(5,8,14,0.92);backdrop-filter:blur(6px);overflow:hidden}
+.tracker-fullscreen-overlay.active{display:block}
+.tracker-fs-rotator{position:absolute;top:0;left:0;transform-origin:top left;display:flex;flex-direction:column;gap:10px;box-sizing:border-box;padding:14px 12px 16px;overflow-y:auto;-webkit-overflow-scrolling:touch}
+/* Every relocated piece is capped + centered to the same width so the whole stage reads as one column:
+   full-bleed on a narrow phone, comfortably centered once the rotator is as wide as a landscape tablet. */
+.tracker-fs-rotator>div{flex-shrink:0;width:100%;max-width:820px;margin:0 auto}
+.tracker-fs-titlebar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding-right:52px}
+.tracker-fs-titlebar:empty,.tracker-fs-caption-slot:empty,.tracker-fs-nav-slot:empty{display:none}
+/* The title/subtitle and the "View" dropdown label normally sit on the page's own card background;
+   in here they sit on a near-black backdrop, so they get their own always-readable colors. */
+.tracker-fs-titlebar .tracker-analytics-title{color:#f4f6fa}
+.tracker-fs-titlebar .tracker-graph-mode-wrap label{color:rgba(255,255,255,0.6)}
+.tracker-fullscreen-stage{display:block}
 .tracker-fullscreen-stage .tracker-graph-box{background:var(--bg-card);border:1px solid var(--border-col);border-radius:16px;padding:14px;box-sizing:border-box;box-shadow:0 12px 32px rgba(0,0,0,0.35)}
-.tracker-fullscreen-stage .tracker-journey-caption{margin-top:0}
+/* The graph box is shorter in here than on the page, so the fixed detail box is trimmed to match (the
+   chart's reserved top padding drops to TRACKER_GRAPH_FS_TOP_PAD at the same moment, so the line and its
+   markers still can't reach it). */
+.tracker-fullscreen-overlay .tracker-graph-detail-box{height:106px;max-width:min(38%,240px)}
+/* Height is set inline by _trackerFsLayout (measured against the real landscape viewport) so the graph,
+   caption and nav row fit on one screen instead of forcing a scroll — this is just the floor it uses. */
+.tracker-fullscreen-overlay #trackerGraphBox{min-height:240px}
+.tracker-fs-nav-slot .tracker-graph-nav-row{margin-top:0}
+.tracker-fs-caption-slot .tracker-journey-caption{margin-top:0}
 /* The caption's normal colors (--accent-soft background + --text-primary text) are tuned for sitting on
    the page's own light/dark card background. Inside the fullscreen overlay it instead sits on a near-black
    backdrop, where --accent-soft's low-opacity tint reads as almost-black and --text-primary can itself be
    a dark navy (default theme) — together nearly invisible. Fullscreen gets its own fixed, always-readable
    palette instead of inheriting the theme colors. */
-.tracker-fullscreen-stage .tracker-journey-caption{background:rgba(255,255,255,0.08);border-color:rgba(255,255,255,0.16)}
-.tracker-fullscreen-stage .tracker-journey-caption-date{color:rgba(255,255,255,0.68)}
-.tracker-fullscreen-stage .tracker-journey-caption-msg{color:#f4f6fa}
-.tracker-fullscreen-stage .tracker-journey-caption-msg strong{color:#ffffff}
-.tracker-fullscreen-stage .tracker-journey-caption-msg.tjc-up{color:#22c55e}
-.tracker-fullscreen-stage .tracker-journey-caption-msg.tjc-up strong{color:#22c55e}
-.tracker-fullscreen-stage .tracker-journey-caption-msg.tjc-down{color:#f87171}
-.tracker-fullscreen-stage .tracker-journey-caption-msg.tjc-down strong{color:#f87171}
-.tracker-fullscreen-close{position:fixed;top:16px;right:16px;width:38px;height:38px;border-radius:50%;border:none;background:var(--btn-bg);color:var(--follow-btn-text);cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:var(--btn-shadow);z-index:2;transition:transform 0.2s ease,opacity 0.2s ease;padding:0;-webkit-tap-highlight-color:transparent}
+.tracker-fullscreen-overlay .tracker-journey-caption{background:rgba(255,255,255,0.08);border-color:rgba(255,255,255,0.16)}
+.tracker-fullscreen-overlay .tracker-journey-caption-date{color:rgba(255,255,255,0.68)}
+.tracker-fullscreen-overlay .tracker-journey-caption-msg{color:#f4f6fa}
+.tracker-fullscreen-overlay .tracker-journey-caption-msg strong{color:#ffffff}
+.tracker-fullscreen-overlay .tracker-journey-caption-msg.tjc-up{color:#22c55e}
+.tracker-fullscreen-overlay .tracker-journey-caption-msg.tjc-up strong{color:#22c55e}
+.tracker-fullscreen-overlay .tracker-journey-caption-msg.tjc-down{color:#f87171}
+.tracker-fullscreen-overlay .tracker-journey-caption-msg.tjc-down strong{color:#f87171}
+/* Absolutely positioned INSIDE the rotator (which is itself position:absolute) rather than fixed to the
+   real viewport — a fixed button would stay anchored to the unrotated screen corner and drift away from
+   the content it belongs to. Taking it out of flow also means it costs the stage no vertical height,
+   which matters a lot on the short side of a simulated-landscape phone screen. */
+.tracker-fullscreen-close{position:absolute;top:10px;right:12px;width:38px;height:38px;border-radius:50%;border:none;background:var(--btn-bg);color:var(--follow-btn-text);cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:var(--btn-shadow);z-index:2;transition:transform 0.2s ease,opacity 0.2s ease;padding:0;-webkit-tap-highlight-color:transparent;flex-shrink:0}
 /* Same tap-highlight reset as the Stats fullscreen overlay — without it mobile browsers flash their
    default translucent blue rectangle across the chart on every tap while focused here. */
 .tracker-fullscreen-overlay,.tracker-fullscreen-overlay *{-webkit-tap-highlight-color:transparent}
 .tracker-fullscreen-close svg{width:16px;height:16px;display:block}
 .tracker-fullscreen-close:hover{opacity:0.85;transform:scale(1.08) rotate(90deg)}
 body.tracker-fs-lock{overflow:hidden}
-@media (max-width:480px){.tracker-fullscreen-overlay{padding:50px 10px 16px}.tracker-fullscreen-close{width:34px;height:34px;top:12px;right:12px}}
+@media (max-width:480px){.tracker-fs-rotator{padding:10px 8px 12px}.tracker-fullscreen-close{width:34px;height:34px}}
 /* Nav row: the arrows are taken out of normal flow and centered with absolute positioning, so they
    never claim any of the row's actual layout width. That leaves the Journey slot as the row's only
    in-flow child — margin-left:auto pushes it flush to the right corner and lets it use the *entire*
@@ -3812,7 +3841,7 @@ body.tracker-fs-lock{overflow:hidden}
          GRAPH CARD: FULL DEVICE WIDTH" in the stylesheet. -->
         <div class="tracker-analytics-panel" id="trackerAnalyticsPanel">
           <div class="tracker-analytics-header">
-            <div>
+            <div id="trackerAnalyticsTitleWrap">
               <div class="tracker-analytics-title" id="trackerAnalyticsTitle">📊 Volume Journey</div>
               <div style="font-size:11px;color:var(--text-muted);font-family:var(--font-alt);margin-top:2px" id="trackerAnalyticsSubtitle"></div>
             </div>
@@ -3832,7 +3861,7 @@ body.tracker-fs-lock{overflow:hidden}
           </div>
           <div class="analytics-box tracker-analytics-box">
             <div class="tracker-graph-box" id="trackerGraphBox">
-              <button type="button" class="tracker-fullscreen-btn" id="trackerFullscreenBtn" onclick="toggleTrackerFullscreen()" title="Fullscreen focus" aria-label="Fullscreen focus" style="display:none">
+              <button type="button" class="tracker-fullscreen-btn" id="trackerFullscreenBtn" onclick="toggleTrackerFullscreen()" title="Fullscreen focus" aria-label="Fullscreen focus">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M16 3h3a2 2 0 0 1 2 2v3"/><path d="M8 21H5a2 2 0 0 1-2-2v-3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg>
               </button>
               <div class="tracker-graph-detail-box" id="trackerGraphDetailBox">
@@ -8400,6 +8429,8 @@ function closeHamburgerMenu(){}
 async function switchMemberTab(id){
   // Leaving the Stats page entirely — the 3-Month fullscreen focus view never persists across pages.
   if(id!=='statsPage'&&statsGraphFsOpen)exitStatsGraphFullscreen();
+  // Same for the Track Workout graph's fullscreen focus view — it never persists across a page change.
+  if(typeof trackerFullscreenOpen!=='undefined'&&trackerFullscreenOpen)exitTrackerFullscreen();
   // Leaving the Stats/Compare page entirely — drop any active rotate-mode/notice before switching.
   if(id!=='statsPage')_cmpHandleTabLeave();
   document.querySelectorAll('.memberTab').forEach(t=>t.style.display='none');
@@ -18423,13 +18454,21 @@ let trackerGraphMode='volume',trackerGraphContext=null;
    without recomputing anything. trackerJourneyTimer is the pending setTimeout id for the next step, used
    to stop playback early (Close, new exercise, mode switch, or tapping the button again mid-play). */
 let trackerJourneyPlaying=false,trackerJourneyTimer=null,trackerJourneyValues=null;
-// Base (non-live) height for #trackerGraphBox, recorded every render so setTrackerJourneyLiveLayout can
-// grow it (and the chart's own reserved top padding) by exactly the amount the fullscreen icon adds above
-// the detail box while playing, then restore the exact original numbers once playback stops.
-let trackerGraphBaseHeight=0,trackerGraphBaseTopPad=155;
+// Reserved top padding inside the chart's plot area, sized for the fixed top-right detail box so the
+// line/markers can never run underneath it. The fullscreen-focus view uses a shorter detail box on a
+// shorter (landscape) graph box, so _trackerFsLayout swaps in TRACKER_GRAPH_FS_TOP_PAD while open and
+// puts this value back on exit.
+const TRACKER_GRAPH_TOP_PAD=162,TRACKER_GRAPH_FS_TOP_PAD=126;
 // Fullscreen-focus state: which node the graph box / caption normally live in, so exiting fullscreen can
 // put them back in exactly the right spot (rather than assuming a fixed structure).
-let trackerFullscreenOpen=false,trackerFsGraphParent=null,trackerFsGraphNext=null,trackerFsCaptionParent=null,trackerFsCaptionNext=null,trackerFsNavParent=null,trackerFsNavNext=null;
+let trackerFullscreenOpen=false,trackerFsGraphParent=null,trackerFsGraphNext=null;
+// Every other piece of the graph card that gets relocated into the overlay alongside the graph itself
+// (title, mode dropdown, Journey caption, nav row). Each entry remembers its own parent + next sibling,
+// so adding another piece to the fullscreen view later is one more _trackerFsMoveIn call, nothing else.
+let trackerFsPieces=[];
+// True only while the overlay's rotator is actually CSS-rotated 90° (i.e. the device is held in portrait),
+// so _trackerTouchXY knows when to undo that rotation for tap/drag coordinates.
+let trackerFsRotated=false;
 // Extra playback state for pause/resume: TRACKER_JOURNEY_STEP_MS is the fixed duration of every step
 // (kept in the 5-8s "readable caption" range the design calls for). trackerJourneyPaused, together with
 // the remaining-ms + pending-index pair, lets a paused step resume exactly where it left off instead of
@@ -18898,8 +18937,10 @@ function renderTrackerChart(){
   // hidden resting dots past 30 points — see trkBaseRadius below) instead of inflating the box.
   const graphBox=document.getElementById("trackerGraphBox");
   const pointCount=sortedDates.length;
-  graphBox.style.height='';
-  graphBox.classList.remove('tracker-journey-live');
+  // While the graph is relocated inside the rotated fullscreen view its height is owned by
+  // _trackerFsLayout (measured against the landscape viewport), so a re-render in there must not hand it
+  // back to the CSS clamp — _trackerFsLayout re-runs at the end of this render and re-applies it.
+  if(!trackerFullscreenOpen)graphBox.style.height='';
 
   // Reset the fixed detail box to its hint state every time the graph is (re)drawn
   const hintEl=document.getElementById("trackerGraphDetailHint");
@@ -19076,7 +19117,7 @@ function renderTrackerChart(){
       // (138px fixed box + clear gap). This carves that space out of the chart's own plot area, so the line and its point
       // markers are drawn entirely below the reserved zone — they can never run underneath or touch
       // the detail box, even when pointHoverRadius temporarily enlarges a marker on tap/hover.
-      layout:{padding:{top:162,right:6,left:2,bottom:2}},
+      layout:{padding:{top:TRACKER_GRAPH_TOP_PAD,right:6,left:2,bottom:2}},
       // Default Chart.js tooltip is disabled — the fixed top-right detail box replaces it with the full per-set breakdown
       plugins:{legend:{display:false},tooltip:{enabled:false}},
       scales:{
@@ -19113,7 +19154,15 @@ function renderTrackerChart(){
       // Fires on tap (mobile) and click (desktop) — selects the nearest point and updates the fixed detail box
       onClick(evt,elements,chart){
         if(trackerJourneyPlaying)return;
-        const points=chart.getElementsAtEventForMode(evt,'index',{intersect:false},true);
+        // Chart.js works out evt.x/evt.y from the canvas's bounding rect, which is wrong while the
+        // fullscreen rotator has the canvas visually rotated 90° — recompute through _trackerTouchXY,
+        // which undoes that rotation (and is a plain passthrough everywhere else).
+        let ev=evt;
+        if(evt.native&&typeof evt.native.clientX==='number'){
+          const pt=_trackerTouchXY(chart.canvas,evt.native.clientX,evt.native.clientY);
+          ev={x:pt.x,y:pt.y,native:evt.native};
+        }
+        const points=chart.getElementsAtEventForMode(ev,'index',{intersect:false},true);
         if(points.length)selectTrackerGraphPoint(points[0].index);
       }
     }
@@ -19172,8 +19221,10 @@ function renderTrackerChart(){
   canvasEl.ontouchmove=function(evt){
     if(!trackerAnalyticsChartInstance||trackerJourneyPlaying)return;
     const touch=evt.touches[0];if(!touch)return;
-    const rect=canvasEl.getBoundingClientRect();
-    const fakeEvt={x:touch.clientX-rect.left,y:touch.clientY-rect.top,native:evt};
+    // Rotation-aware coordinates — see _trackerTouchXY (identical to the old plain math outside the
+    // rotated fullscreen view).
+    const{x,y}=_trackerTouchXY(canvasEl,touch.clientX,touch.clientY);
+    const fakeEvt={x,y,native:evt};
     const points=trackerAnalyticsChartInstance.getElementsAtEventForMode(fakeEvt,'index',{intersect:false},true);
     if(points.length){evt.preventDefault();selectTrackerGraphPoint(points[0].index)}
   };
@@ -19194,6 +19245,9 @@ function renderTrackerChart(){
 
   // Auto-select the most recent day so the detail box isn't empty on first render
   if(sortedDates.length)selectTrackerGraphPoint(sortedDates.length-1);
+  // Re-render happened while the graph is inside the rotated fullscreen view (e.g. the "View" dropdown
+  // was changed in there) — re-apply the landscape sizing/padding to the brand-new chart instance.
+  if(trackerFullscreenOpen)_trackerFsLayout();
 }
 // Enables/disables the left/right arrow buttons based on how close the current selection is to either end
 // (both stay disabled while "View Journey" is auto-playing, so the person can't fight the animation)
@@ -19303,35 +19357,12 @@ function startTrackerJourney(){
   updateTrackerGraphNavButtons();
   const caption=document.getElementById('trackerJourneyCaption');
   if(caption)caption.style.display='block';
-  const fsBtn=document.getElementById('trackerFullscreenBtn');
-  if(fsBtn)fsBtn.style.display='flex';
-  setTrackerJourneyLiveLayout(true);
+  // The fullscreen-focus icon is permanently visible now (top-left, clear of the detail box), so nothing
+  // has to be revealed or re-laid-out when playback starts — it just plays, on the page or in fullscreen.
+  // Inside fullscreen the caption card does appear for the first time here, though, so the landscape
+  // sizing is re-measured to give it room without pushing the nav row off-screen.
+  if(trackerFullscreenOpen)_trackerFsLayout();
   trackerJourneyStep(0);
-}
-// Grows (live=true) or restores (live=false) the graph box height + the chart's own reserved top padding
-// by exactly the amount the fullscreen-focus icon adds above the detail box, so the box's new lower
-// position never gets any closer to the plotted line/markers than it normally is — same collision-avoidance
-// guarantee as the base layout, just re-measured for the icon's extra space.
-function setTrackerJourneyLiveLayout(live){
-  const graphBox=document.getElementById('trackerGraphBox');
-  if(!graphBox)return;
-  graphBox.classList.toggle('tracker-journey-live',live);
-  if(!trackerAnalyticsChartInstance)return;
-  if(live){
-    // Re-measure the box's CURRENT CSS-driven height (clamp(428px,34vw,520px)) fresh each time
-    // playback starts, so the +34px growth is always relative to whatever narrow/mid/wide renders
-    // right now rather than a number captured on a previous screen size.
-    trackerGraphBaseHeight=graphBox.getBoundingClientRect().height||trackerGraphBaseHeight||428;
-    graphBox.style.height=(trackerGraphBaseHeight+34)+'px';
-    trackerAnalyticsChartInstance.options.layout.padding.top=trackerGraphBaseTopPad+34;
-  }else{
-    // Hand height back to the CSS clamp (rather than re-pinning the old captured px value) so the box
-    // stays responsive to further narrow/mid/wide changes after playback ends.
-    graphBox.style.height='';
-    trackerAnalyticsChartInstance.options.layout.padding.top=trackerGraphBaseTopPad;
-  }
-  trackerAnalyticsChartInstance.resize();
-  trackerAnalyticsChartInstance.update('none');
 }
 // Plays one step of the journey: highlights the marker at `idx` (with a smooth animated transition),
 // updates the caption card with that step's improvement message, then schedules the next step. On the
@@ -19422,11 +19453,12 @@ function stopTrackerJourney(reset){
   const journeyControls=document.getElementById('trackerJourneyControls');
   if(journeyControls)journeyControls.classList.remove('visible');
   setTrackerJourneyPauseIcon(false);
-  const fsBtn=document.getElementById('trackerFullscreenBtn');
-  if(fsBtn)fsBtn.style.display='none';
-  if(trackerFullscreenOpen)exitTrackerFullscreen();
-  setTrackerJourneyLiveLayout(false);
+  // Fullscreen is no longer tied to playback — stopping the journey (early tap, natural finish, or a
+  // re-render) leaves the fullscreen view exactly as it is, so the person can simply play it again.
   if(reset){const caption=document.getElementById('trackerJourneyCaption');if(caption)caption.style.display='none'}
+  // The caption card just appeared/disappeared inside the landscape view — re-measure so the graph box
+  // takes back (or gives up) exactly that much height.
+  if(trackerFullscreenOpen)_trackerFsLayout();
   updateTrackerGraphNavButtons();
 }
 document.addEventListener('keydown',function(e){
@@ -19439,75 +19471,151 @@ document.addEventListener('keydown',function(e){
   e.preventDefault();
   navigateTrackerPoint(e.key==='ArrowLeft'?-1:1);
 });
-function closeTrackerAnalytics(){stopTrackerJourney(true);const panel=document.getElementById("trackerAnalyticsPanel");panel.classList.remove("visible");if(trackerAnalyticsChartInstance){trackerAnalyticsChartInstance.destroy();trackerAnalyticsChartInstance=null}const cv=document.getElementById("trackerAnalyticsChart");if(cv)cv.ontouchmove=null;trackerGraphPointCount=0;trackerGraphSelectedIdx=-1;trackerGraphSelectFn=null;trackerGraphPulseFn=null;trackerGraphContext=null;trackerJourneyValues=null;const navRow=document.getElementById('trackerGraphNavRow');if(navRow)navRow.classList.remove('visible')}
+function closeTrackerAnalytics(){stopTrackerJourney(true);if(trackerFullscreenOpen)exitTrackerFullscreen();const panel=document.getElementById("trackerAnalyticsPanel");panel.classList.remove("visible");if(trackerAnalyticsChartInstance){trackerAnalyticsChartInstance.destroy();trackerAnalyticsChartInstance=null}const cv=document.getElementById("trackerAnalyticsChart");if(cv)cv.ontouchmove=null;trackerGraphPointCount=0;trackerGraphSelectedIdx=-1;trackerGraphSelectFn=null;trackerGraphPulseFn=null;trackerGraphContext=null;trackerJourneyValues=null;const navRow=document.getElementById('trackerGraphNavRow');if(navRow)navRow.classList.remove('visible')}
 
-/* ===================== TRACK WORKOUT GRAPH — FULLSCREEN FOCUS ===================== */
-// Toggle handler for the fullscreen-focus icon (only visible while "View Journey" is playing).
+/* ===================== TRACK WORKOUT GRAPH — FULLSCREEN FOCUS =====================
+   Same CSS-rotated "simulated landscape" view the Stats 3-Month/6M/1Y graphs use
+   (enterStatsGraphFullscreen below). The icon sits permanently on the graph card — it is NO LONGER tied
+   to "View Journey" playback, which used to be the only way to reveal it. Because the whole nav row
+   (arrows + the View Journey button and its pause/stop controls) is relocated into the overlay too, the
+   journey can be played, paused and stopped from inside the fullscreen landscape view itself. */
+// Toggle handler for the always-visible fullscreen-focus icon on the Track Workout graph card.
 function toggleTrackerFullscreen(){
   if(trackerFullscreenOpen){exitTrackerFullscreen();return}
   enterTrackerFullscreen();
 }
-// Physically relocates the graph box (canvas + its fixed detail box), the Journey caption, and the
-// "‹ ›" prev/next nav row into the fullscreen overlay's stage — everything else (subnav, header, mode
-// select) stays behind on the page, out of view, so the overlay is a focused view of the chart plus the
-// controls needed to keep navigating it. Their original parent + next-sibling are remembered so
-// exitTrackerFullscreen can put them back in exactly the right spot rather than assuming a fixed page
-// structure.
+// Measures the real viewport (not vh/vw, which can misbehave once a transform is involved on mobile) and
+// sizes + rotates #trackerFsRotator to simulate landscape purely with CSS — identical approach to
+// _statsGraphFsLayout. Also sizes the graph box to whatever vertical room is actually left after the
+// title bar, caption and nav row, so the whole thing fits one landscape screen instead of scrolling.
+// Safe to call repeatedly (resize/orientationchange) while the overlay is open.
+function _trackerFsLayout(){
+  if(!trackerFullscreenOpen)return;
+  const rotator=document.getElementById('trackerFsRotator');
+  if(!rotator)return;
+  const w=window.innerWidth,h=window.innerHeight;
+  const isPortrait=h>=w;
+  // trackerFsRotated tells _trackerTouchXY whether finger/click coordinates need the 90° rotation undone
+  // before they're handed to Chart.js (see that helper).
+  trackerFsRotated=isPortrait;
+  if(isPortrait){
+    rotator.style.width=h+'px';
+    rotator.style.height=w+'px';
+    rotator.style.transform='rotate(90deg) translateY(-100%)';
+  }else{
+    rotator.style.width=w+'px';
+    rotator.style.height=h+'px';
+    rotator.style.transform='none';
+  }
+  const graphBox=document.getElementById('trackerGraphBox');
+  if(graphBox){
+    // Landscape height available to the rotator = the viewport's SHORT side when rotated.
+    const avail=isPortrait?w:h;
+    const titleBar=document.getElementById('trackerFsTitleBar');
+    const capSlot=document.getElementById('trackerFsCaptionSlot');
+    const navSlot=document.getElementById('trackerFsNavSlot');
+    // The close button is absolutely positioned, so it costs the stage no height and isn't counted here.
+    const used=[titleBar,capSlot,navSlot].reduce((t,el)=>t+(el&&el.offsetHeight?el.offsetHeight:0),0);
+    // 3 gaps of 10px + the rotator's own vertical padding + a little breathing room.
+    graphBox.style.height=Math.max(240,avail-used-62)+'px';
+  }
+  // Shorter graph box in here means the plot area can't afford the full on-page reserved strip, so the
+  // detail box is shrunk by CSS (.tracker-fullscreen-overlay .tracker-graph-detail-box) and the chart's
+  // reserved top padding is reduced to match — the line still can't reach the box.
+  if(trackerAnalyticsChartInstance){
+    trackerAnalyticsChartInstance.options.layout.padding.top=TRACKER_GRAPH_FS_TOP_PAD;
+    requestAnimationFrame(()=>{trackerAnalyticsChartInstance.resize();trackerAnalyticsChartInstance.update('none')});
+  }
+}
+function _trackerFsOnResize(){_trackerFsLayout()}
+// Moves the element with elId into slotId (if both exist), recording where it came from so
+// exitTrackerFullscreen can put it back in exactly the right spot rather than assuming a fixed
+// page structure. Mirrors _statsGraphFsMoveIn.
+function _trackerFsMoveIn(elId,slotId){
+  const el=document.getElementById(elId);
+  const slot=document.getElementById(slotId);
+  if(!el||!slot)return;
+  trackerFsPieces.push({el:el,parent:el.parentNode,next:el.nextSibling});
+  slot.appendChild(el);
+}
+// Physically relocates the COMPLETE Track Workout graph view into the rotated overlay: the card title +
+// subtitle, the "View" mode dropdown, the graph box (canvas + its fixed detail box), the Journey caption,
+// and the whole "‹ › / View Journey" nav row. Nothing about the graph has to be left behind, so there's
+// never a reason to exit fullscreen mid-look.
 function enterTrackerFullscreen(){
   const graphBox=document.getElementById('trackerGraphBox');
-  const caption=document.getElementById('trackerJourneyCaption');
   const overlay=document.getElementById('trackerFullscreenOverlay');
   const stage=document.getElementById('trackerFullscreenStage');
   if(!graphBox||!overlay||!stage)return;
+  trackerFsPieces=[];
   trackerFsGraphParent=graphBox.parentNode;trackerFsGraphNext=graphBox.nextSibling;
   stage.appendChild(graphBox);
-  if(caption){trackerFsCaptionParent=caption.parentNode;trackerFsCaptionNext=caption.nextSibling;stage.appendChild(caption)}
-  // Also relocate the "‹ ›" prev/next point arrows into the overlay — otherwise they're left behind
-  // on the page and there's no way to step between dates while focused on the fullscreen chart.
-  const navRow=document.getElementById('trackerGraphNavRow');
-  if(navRow){trackerFsNavParent=navRow.parentNode;trackerFsNavNext=navRow.nextSibling;stage.appendChild(navRow)}
+  // Title + subtitle ("📊 Volume Journey" / exercise name) and the "View" mode dropdown, so the person
+  // can still see WHAT they're looking at and switch Volume/Weight/Reps/Duration/Distance in here.
+  _trackerFsMoveIn('trackerAnalyticsTitleWrap','trackerFsTitleBar');
+  _trackerFsMoveIn('trackerGraphModeWrap','trackerFsTitleBar');
+  _trackerFsMoveIn('trackerJourneyCaption','trackerFsCaptionSlot');
+  // The nav row carries BOTH the "‹ ›" point arrows and the "View Journey" play button with its
+  // pause/stop controls — relocating it is what lets the whole journey run inside fullscreen.
+  _trackerFsMoveIn('trackerGraphNavRow','trackerFsNavSlot');
   overlay.classList.add('active');
   document.body.classList.add('tracker-fs-lock');
   trackerFullscreenOpen=true;
   const icon=document.getElementById('trackerFullscreenBtn');
   if(icon){icon.classList.add('is-active');icon.title='Exit fullscreen';icon.setAttribute('aria-label','Exit fullscreen')}
-  // The graph box changed containers/width — force Chart.js to remeasure so the line/points redraw at
-  // the new stage size instead of holding onto stale canvas dimensions. Once that's settled, if a
-  // "View Journey" playback is mid-flight, restart it from the very first marker: the focused fullscreen
-  // view is meant to be watched as a full run from day 1, not picked up wherever the background playback
-  // happened to be when the fullscreen icon was tapped.
-  if(trackerAnalyticsChartInstance){
-    requestAnimationFrame(()=>{
-      trackerAnalyticsChartInstance.resize();
-      if(trackerJourneyPlaying){
-        if(trackerJourneyTimer){clearTimeout(trackerJourneyTimer);trackerJourneyTimer=null}
-        trackerJourneyPaused=false;
-        setTrackerJourneyPauseIcon(false);
-        trackerJourneyTravelState=null;
-        trackerJourneySegmentColors=[];
-        trackerAnalyticsChartInstance.$trackerMovingMarker={active:false};
-        trackerAnalyticsChartInstance.update('none');
-        trackerJourneyStep(0);
-      }
-    });
-  }
-}
-function exitTrackerFullscreen(){
-  const graphBox=document.getElementById('trackerGraphBox');
-  const caption=document.getElementById('trackerJourneyCaption');
-  const overlay=document.getElementById('trackerFullscreenOverlay');
-  if(!graphBox||!overlay)return;
-  if(trackerFsGraphParent)trackerFsGraphParent.insertBefore(graphBox,trackerFsGraphNext);
-  if(caption&&trackerFsCaptionParent)trackerFsCaptionParent.insertBefore(caption,trackerFsCaptionNext);
-  const navRow=document.getElementById('trackerGraphNavRow');
-  if(navRow&&trackerFsNavParent){trackerFsNavParent.insertBefore(navRow,trackerFsNavNext);trackerFsNavParent=null;trackerFsNavNext=null}
-  overlay.classList.remove('active');
-  document.body.classList.remove('tracker-fs-lock');
-  trackerFullscreenOpen=false;
-  const icon=document.getElementById('trackerFullscreenBtn');
-  if(icon){icon.classList.remove('is-active');icon.title='Fullscreen focus';icon.setAttribute('aria-label','Fullscreen focus')}
+  _trackerFsLayout();
+  window.addEventListener('resize',_trackerFsOnResize);
+  window.addEventListener('orientationchange',_trackerFsOnResize);
+  // The graph box changed containers/size — force Chart.js to remeasure so the line/points redraw at the
+  // new stage size instead of holding onto stale canvas dimensions.
   if(trackerAnalyticsChartInstance)requestAnimationFrame(()=>trackerAnalyticsChartInstance.resize());
 }
+function exitTrackerFullscreen(){
+  if(!trackerFullscreenOpen)return;
+  const graphBox=document.getElementById('trackerGraphBox');
+  const overlay=document.getElementById('trackerFullscreenOverlay');
+  const rotator=document.getElementById('trackerFsRotator');
+  window.removeEventListener('resize',_trackerFsOnResize);
+  window.removeEventListener('orientationchange',_trackerFsOnResize);
+  if(!graphBox||!overlay){trackerFullscreenOpen=false;return}
+  if(trackerFsGraphParent)trackerFsGraphParent.insertBefore(graphBox,trackerFsGraphNext);
+  // Restore every relocated piece to exactly where it came from, most-recent-first.
+  for(let i=trackerFsPieces.length-1;i>=0;i--){
+    const pc=trackerFsPieces[i];
+    if(pc.parent)pc.parent.insertBefore(pc.el,pc.next);
+  }
+  trackerFsPieces=[];
+  overlay.classList.remove('active');
+  if(rotator){rotator.style.width='';rotator.style.height='';rotator.style.transform='';rotator.scrollTop=0}
+  // Hand the height back to the CSS clamp (#trackerGraphBox) so the on-page card stays responsive, and
+  // restore the full-size reserved strip for the full-size on-page detail box.
+  graphBox.style.height='';
+  if(trackerAnalyticsChartInstance)trackerAnalyticsChartInstance.options.layout.padding.top=TRACKER_GRAPH_TOP_PAD;
+  document.body.classList.remove('tracker-fs-lock');
+  trackerFullscreenOpen=false;
+  trackerFsRotated=false;
+  const icon=document.getElementById('trackerFullscreenBtn');
+  if(icon){icon.classList.remove('is-active');icon.title='Fullscreen focus';icon.setAttribute('aria-label','Fullscreen focus')}
+  if(trackerAnalyticsChartInstance)requestAnimationFrame(()=>{trackerAnalyticsChartInstance.resize();trackerAnalyticsChartInstance.update('none')});
+}
+// Converts a touch/mouse point (clientX/clientY) into the canvas-local pixel coordinates Chart.js expects.
+// Normally that's just clientX/Y minus the canvas's boundingClientRect — but while the fullscreen rotator
+// is rotated 90° to simulate landscape, getBoundingClientRect() returns the rotated (width/height swapped)
+// box, so the plain subtraction points at the wrong pixel and the highlighted marker stops tracking the
+// finger. This inverts that rotation; outside fullscreen it's identical to the original plain math.
+// Same helper the Stats graphs use (_chartTouchXY).
+function _trackerTouchXY(canvas,clientX,clientY){
+  const rect=canvas.getBoundingClientRect();
+  if(trackerFullscreenOpen&&trackerFsRotated){
+    return{x:clientY-rect.top,y:canvas.offsetHeight-(clientX-rect.left)};
+  }
+  return{x:clientX-rect.left,y:clientY-rect.top};
+}
+// Extra safety net for real browser/app tab switches (e.g. the person backgrounds the app mid-view) —
+// mirrors the Stats fullscreen view's own visibilitychange guard.
+document.addEventListener('visibilitychange',()=>{
+  if(document.hidden&&trackerFullscreenOpen)exitTrackerFullscreen();
+});
 
 /* ===================== DURATION / VOLUME — 3-MONTH GRAPH: SINGLE-FRAME + CSS-ROTATED FULLSCREEN =====================
    The 3-Month line always renders in a single frame at the card's native width (no horizontal
@@ -20603,10 +20711,12 @@ function closeLearnVideo(){
   learnYTPlayer=null;
 }
 </script>
-<!-- Track Workout graph "fullscreen focus" overlay: while active, the graph box (canvas + its fixed
-     detail box) and the Journey caption are physically relocated in here (see enterTrackerFullscreen /
-     exitTrackerFullscreen), leaving every other control (subnav, mode select, arrows, Journey button)
-     behind on the page — a deliberately stripped-down view of just those two pieces. -->
+<!-- Track Workout graph "fullscreen focus" overlay: while active, the card title, the "View" mode
+     dropdown, the graph box (canvas + its fixed detail box), the Journey caption and the whole
+     "‹ › / View Journey" nav row are physically relocated into #trackerFsRotator (see
+     enterTrackerFullscreen / exitTrackerFullscreen), which is sized + CSS-rotated to simulate landscape
+     exactly like the Stats 3-Month fullscreen view. Everything needed to read the graph AND play the
+     View Journey animation is therefore available without leaving fullscreen. -->
 <!-- Workout Edit Overlay: while editing a saved workout (live or non-live), #workoutFormStructure or
      #liveWorkoutForm is physically relocated in here (see openWorkoutEditOverlay / closeWorkoutEditOverlay)
      so the edit form always shows front-and-center instead of appearing above the on-page workout list.
@@ -20618,10 +20728,15 @@ function closeLearnVideo(){
   <div class="workout-edit-overlay-stage" id="workoutEditOverlayStage"></div>
 </div>
 <div class="tracker-fullscreen-overlay" id="trackerFullscreenOverlay">
-  <button type="button" class="tracker-fullscreen-close" id="trackerFullscreenCloseBtn" onclick="toggleTrackerFullscreen()" title="Exit fullscreen" aria-label="Exit fullscreen">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg>
-  </button>
-  <div class="tracker-fullscreen-stage" id="trackerFullscreenStage"></div>
+  <div class="tracker-fs-rotator" id="trackerFsRotator">
+    <button type="button" class="tracker-fullscreen-close" id="trackerFullscreenCloseBtn" onclick="exitTrackerFullscreen()" title="Exit fullscreen" aria-label="Exit fullscreen">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg>
+    </button>
+    <div class="tracker-fs-titlebar" id="trackerFsTitleBar"></div>
+    <div class="tracker-fullscreen-stage" id="trackerFullscreenStage"></div>
+    <div class="tracker-fs-caption-slot" id="trackerFsCaptionSlot"></div>
+    <div class="tracker-fs-nav-slot" id="trackerFsNavSlot"></div>
+  </div>
 </div>
 <div class="stats-graph-fullscreen-overlay" id="statsGraphFullscreenOverlay">
   <div class="stats-graph-fs-rotator" id="statsGraphFsRotator">
