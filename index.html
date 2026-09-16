@@ -1337,12 +1337,14 @@ body.wlc-dragging-active .workout-log-card:not(.wlc-drag-source){cursor:grabbing
    flex:1 1 0 on each pill + clamp()-based font/padding/gap means the row auto-shrinks on a narrow phone
    and stays a compact centered row (capped width) on a wider tablet/desktop viewport — no fixed pixel
    sizing at any breakpoint. */
-.graph-range-icon-toggle{display:flex;flex-wrap:nowrap;justify-content:center;align-items:center;gap:clamp(4px,1.5vw,10px);flex:0 0 auto;padding-top:8px}
-.graph-range-icon-btn{flex:1 1 0;min-width:0;display:flex;align-items:center;justify-content:center;gap:4px;padding:7px 6px;border:1px solid var(--border-col);border-radius:10px;background:var(--bg-card);color:var(--text-secondary);font-family:var(--font-alt);font-size:clamp(9.5px,2.6vw,12px);font-weight:700;letter-spacing:0.3px;cursor:pointer;transition:all 0.25s ease;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.graph-range-icon-btn .gri-icon{font-size:clamp(11px,3vw,14px);line-height:1;flex-shrink:0}
+/* Five compact SQUARE boxes — 1W / 1M / 3M / 6M / 1Y — no icons, just the label. aspect-ratio:1 plus a
+   clamp()-ed width keeps every box a true square that shrinks on a narrow phone and grows on a wider
+   tablet/desktop viewport without any fixed pixel sizing at a breakpoint. */
+.graph-range-icon-toggle{display:flex;flex-wrap:nowrap;justify-content:center;align-items:center;gap:clamp(5px,1.7vw,10px);flex:0 0 auto;padding-top:8px}
+.graph-range-icon-btn{flex:0 0 auto;width:clamp(33px,8.6vw,44px);aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;padding:0;border:1px solid var(--border-col);border-radius:9px;background:var(--bg-card);color:var(--text-secondary);font-family:var(--font-alt);font-size:clamp(10px,2.7vw,13px);font-weight:700;letter-spacing:0.2px;cursor:pointer;transition:all 0.25s ease;white-space:nowrap;line-height:1;-webkit-tap-highlight-color:transparent}
 .graph-range-icon-btn:hover{background:var(--accent-soft);color:var(--accent);border-color:var(--accent)}
 .graph-range-icon-btn.active{background:var(--tab-active-bg);color:var(--follow-btn-text);border-color:transparent;box-shadow:var(--btn-shadow)}
-@media(min-width:700px){.graph-range-icon-toggle{max-width:320px;margin:0 auto;padding-top:10px}.graph-range-icon-btn{padding:8px 10px}}
+@media(min-width:700px){.graph-range-icon-toggle{max-width:360px;margin:0 auto;padding-top:10px}.graph-range-icon-btn{width:44px}}
 .vol-range-label{display:none;text-align:center;font-family:var(--font-alt);font-size:13px;font-weight:800;color:var(--accent);letter-spacing:0.6px;margin-top:10px;padding:8px;background:var(--accent-soft);border-radius:10px;border:1px solid var(--border-col)}
 .vol-range-label.visible{display:block}
 
@@ -1420,6 +1422,12 @@ body:not(.theme-dark) .dur-graph-detail-divider strong{color:#1e3a8a}
    below it at its own natural height (flex:0 0 auto) — so the chart's own plotted area never shrinks
    to make room for the row; the box simply grows instead. */
 #durGraphBox,#volGraphBox{height:428px;display:flex;flex-direction:column}
+/* Long ranges (6-Month / 1-Year) pack far more points into the same width, so the box itself grows a
+   little — extra vertical room is what stops a dense line from reading as a flat, cramped smear. The
+   clamp() scales it with the viewport (narrow phone -> medium tablet -> wide desktop) instead of
+   jumping at a breakpoint, and id+class here out-specifies the plain #id rule above. The fullscreen
+   override below still wins via !important. */
+#durGraphBox.range-long,#volGraphBox.range-long{height:clamp(428px,58vw,540px)}
 /* Inside the fullscreen overlay this fixed height doesn't apply — the rotator now shows the graph
    PLUS the full stats/breakdown block underneath it (see .stats-graph-fs-summary), all in one
    scrollable column. The chart was previously squashed to a flat 260px here regardless of screen
@@ -3123,11 +3131,13 @@ body.tracker-fs-lock{overflow:hidden}
               <button type="button" class="graph-fullscreen-btn" id="durGraphFsBtn" onclick="toggleStatsGraphFullscreen('durGraphBox')" title="Fullscreen focus" aria-label="Fullscreen focus">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M16 3h3a2 2 0 0 1 2 2v3"/><path d="M8 21H5a2 2 0 0 1-2-2v-3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg>
               </button>
-              <!-- Weekly/Monthly/3-Month toggle — small icon row inside the graph box, below the chart -->
+              <!-- Range toggle — five small SQUARE boxes inside the graph box, below the chart -->
               <div class="graph-range-icon-toggle" id="durGraphRangeToggle">
-                <button type="button" class="graph-range-icon-btn active" id="durRangeBtnWeekly" onclick="setDurRangeMode('weekly')" title="Weekly"><span class="gri-icon">📅</span><span>Wk</span></button>
-                <button type="button" class="graph-range-icon-btn" id="durRangeBtnMonthly" onclick="setDurRangeMode('monthly')" title="Monthly"><span class="gri-icon">🗓️</span><span>Mo</span></button>
-                <button type="button" class="graph-range-icon-btn" id="durRangeBtn3m" onclick="setDurRangeMode('3month')" title="3-Month"><span class="gri-icon">📈</span><span>3M</span></button>
+                <button type="button" class="graph-range-icon-btn active" id="durRangeBtnWeekly" onclick="setDurRangeMode('weekly')" title="1 Week">1W</button>
+                <button type="button" class="graph-range-icon-btn" id="durRangeBtnMonthly" onclick="setDurRangeMode('monthly')" title="1 Month">1M</button>
+                <button type="button" class="graph-range-icon-btn" id="durRangeBtn3m" onclick="setDurRangeMode('3month')" title="3 Months">3M</button>
+                <button type="button" class="graph-range-icon-btn" id="durRangeBtn6m" onclick="setDurRangeMode('6month')" title="6 Months">6M</button>
+                <button type="button" class="graph-range-icon-btn" id="durRangeBtn1y" onclick="setDurRangeMode('1year')" title="1 Year">1Y</button>
               </div>
             </div>
           </div>
@@ -3209,11 +3219,13 @@ body.tracker-fs-lock{overflow:hidden}
                 <button type="button" class="graph-fullscreen-btn" id="volGraphFsBtn" onclick="toggleStatsGraphFullscreen('volGraphBox')" title="Fullscreen focus" aria-label="Fullscreen focus">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M16 3h3a2 2 0 0 1 2 2v3"/><path d="M8 21H5a2 2 0 0 1-2-2v-3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg>
                 </button>
-                <!-- Weekly/Monthly/3-Month toggle — small icon row inside the graph box, below the chart -->
+                <!-- Range toggle — five small SQUARE boxes inside the graph box, below the chart -->
                 <div class="graph-range-icon-toggle" id="volGraphRangeToggle">
-                  <button type="button" class="graph-range-icon-btn active" id="volRangeBtnWeekly" onclick="setVolRangeMode('weekly')" title="Weekly"><span class="gri-icon">📅</span><span>Wk</span></button>
-                  <button type="button" class="graph-range-icon-btn" id="volRangeBtnMonthly" onclick="setVolRangeMode('monthly')" title="Monthly"><span class="gri-icon">🗓️</span><span>Mo</span></button>
-                  <button type="button" class="graph-range-icon-btn" id="volRangeBtn3m" onclick="setVolRangeMode('3month')" title="3-Month"><span class="gri-icon">📈</span><span>3M</span></button>
+                  <button type="button" class="graph-range-icon-btn active" id="volRangeBtnWeekly" onclick="setVolRangeMode('weekly')" title="1 Week">1W</button>
+                  <button type="button" class="graph-range-icon-btn" id="volRangeBtnMonthly" onclick="setVolRangeMode('monthly')" title="1 Month">1M</button>
+                  <button type="button" class="graph-range-icon-btn" id="volRangeBtn3m" onclick="setVolRangeMode('3month')" title="3 Months">3M</button>
+                  <button type="button" class="graph-range-icon-btn" id="volRangeBtn6m" onclick="setVolRangeMode('6month')" title="6 Months">6M</button>
+                  <button type="button" class="graph-range-icon-btn" id="volRangeBtn1y" onclick="setVolRangeMode('1year')" title="1 Year">1Y</button>
                 </div>
               </div>
             </div>
@@ -10006,7 +10018,7 @@ function _durHighlightLinePoint(selectedIdx){
   const n=durDataCache.length;
   // 3-Month: every point starts invisible (radius 0) — only the selected index below gets a marker,
   // so exactly one marker shows at a time as the user taps/drags across the line.
-  const radii=new Array(n).fill(durRangeMode==='3month'?0:(durDataCache.length>20?2.5:4));
+  const radii=new Array(n).fill(_isMultiMonthRange(durRangeMode)?0:(durDataCache.length>20?2.5:4));
   const colors=new Array(n).fill(base);
   const borders=new Array(n).fill('#fff');
 
@@ -10035,7 +10047,7 @@ function _durHighlightLinePoint(selectedIdx){
   ds.pointRadius=radii;
   // 3-Month + no class filter: idle points stay at hover-radius 0 too, so hovering/dragging near an
   // unselected point never flashes a second marker — only the actively selected index ever enlarges.
-  ds.pointHoverRadius=radii.map((r,i)=>i===selectedIdx?11:(durRangeMode==='3month'&&!durSelectedClass?0:r+2));
+  ds.pointHoverRadius=radii.map((r,i)=>i===selectedIdx?11:(_isMultiMonthRange(durRangeMode)&&!durSelectedClass?0:r+2));
   // Hide the connecting line itself between any two points that aren't both the selected class —
   // matches Volume's line chart via the same shared helper (buildClassFilterSegmentColor).
   ds.segment={borderColor:buildClassFilterSegmentColor(durSelectedClass,durDataCache,d=>d.classes,base)};
@@ -10140,15 +10152,60 @@ function _updateDurGraphDetailBox(dayData,filterYear,filterMonth,dayNames){
 
   durEl.innerHTML=`⏱ <strong>${formatMinutesToDuration(dayData.duration||0)}</strong>`;
 }
-/* ===================== DURATION RANGE TOGGLE (Weekly / Monthly / 3-Month) ===================== */
+/* ===================== SHARED RANGE HELPERS (3M / 6M / 1Y) =====================
+   The Duration and Volume graphs both offer the same five ranges: 1W, 1M, 3M, 6M, 1Y. 3M/6M/1Y are
+   all the SAME multi-month line graph — only the number of months in the sliding window differs — so
+   everything downstream (chart build, fullscreen focus, Detailed View class filter, stats + breakdown
+   blocks, nav arrows) branches on _isMultiMonthRange() rather than naming a specific range. Adding a
+   further range later is one more entry in RANGE_MONTH_SPAN and one more square button. */
+const RANGE_MONTH_SPAN={'3month':3,'6month':6,'1year':12};
+function _isMultiMonthRange(mode){return Object.prototype.hasOwnProperty.call(RANGE_MONTH_SPAN,mode)}
+
+/* ---------- AUTO-FLEX LINE SIZING ----------
+   6M (~180 points) and 1Y (~365 points) squeeze far more data into the same card width than 3M (~90),
+   so a stroke/label density tuned for 3M reads as a tight, overlapping smear on the longer ranges —
+   and the same range looks completely different on a narrow phone vs a wide desktop. Rather than hard
+   sizing per range, both helpers below key off DENSITY: the chart's live pixel width divided by how
+   many points it has to draw. That single number already folds in range length AND the narrow /
+   medium / wide screen tiers the app uses elsewhere.
+   They are wired in as Chart.js SCRIPTABLE options (see updateDurationLineChart /
+   updateVolumeLineChart), so they re-evaluate on every render — including the automatic re-render
+   Chart.js does on resize, orientation change, and on entering/leaving the fullscreen-focus view,
+   where the chart suddenly gets much wider. No resize listener of our own is needed. */
+function _lineWidthForDensity(chartW,pointCount){
+  if(!pointCount||!chartW)return 2.5;
+  const perPoint=chartW/pointCount;         // px of horizontal room each point gets
+  if(perPoint>=8)return 2.5;                // 1W / 1M — roomy, keep the original thick stroke
+  if(perPoint>=5)return 2;
+  if(perPoint>=3)return 1.5;                // ~3M on a phone (matches the previous hard-coded 1.5)
+  if(perPoint>=1.8)return 1.25;             // ~6M on a phone
+  return 1;                                 // ~1Y on a phone — hairline, so the line stays readable
+}
+/* How many MONTH anchor labels the X-axis can show before they collide, given the live chart width.
+   Returns a stride: 1 = label every month, 2 = every other month, etc. On 1Y this is what stops the
+   twelve month names from overlapping into an unreadable band on a narrow screen, while a wide
+   desktop/fullscreen view still gets all twelve. */
+function _monthLabelStride(chartW,anchorCount){
+  if(!anchorCount||anchorCount<=1||!chartW)return 1;
+  const perLabel=chartW<420?42:(chartW<760?46:52); // narrow / medium / wide
+  const fits=Math.max(1,Math.floor(chartW/perLabel));
+  return Math.max(1,Math.ceil(anchorCount/fits));
+}
+/* Tick font shrinks a step on a narrow viewport so the sparse labels never clip each other. */
+function _axisTickFont(chartW){return{family:'Rajdhani',size:chartW<420?9:(chartW<760?10:11),weight:'600'}}
+
+/* ===================== DURATION RANGE TOGGLE (1W / 1M / 3M / 6M / 1Y) ===================== */
 /* Switches the Duration graph between:
-   - weekly:  original bar chart, Week + Month dropdowns both shown (untouched behavior)
-   - monthly: line graph for the selected month, Month dropdown stays active, Week dropdown hidden
-   - 3month:  line graph for current month + preceding 2 months (sliding window), both dropdowns hidden,
-              a range label ("Apr - Jun") is shown instead — same concept as the Volume graph */
+   - weekly  (1W): original bar chart, Week + Month dropdowns both shown (untouched behavior)
+   - monthly (1M): line graph for the selected month, Month dropdown stays active, Week dropdown hidden
+   - 3month/6month/1year (3M/6M/1Y): the SAME line graph over a sliding window of the current month
+     plus the preceding 2 / 5 / 11 months. Both dropdowns hidden, a range label ("Apr – Jun 2026") is
+     shown instead. All three are one code path (_isMultiMonthRange + RANGE_MONTH_SPAN), so Detailed
+     View, the class legend/filter, the stats + breakdown block and the fullscreen-focus view behave
+     identically on 6M and 1Y as they already did on 3M — same concept as the Volume graph. */
 function setDurRangeMode(mode){
-  // Fullscreen focus only ever exists for the 3-Month graph — any mode change (including re-picking
-  // 3-Month itself) closes it instantly rather than carrying it over.
+  // Fullscreen focus only ever exists for a multi-month graph — any mode change (including re-picking
+  // the same range) closes it instantly rather than carrying it over.
   if(statsGraphFsOpen)exitStatsGraphFullscreen();
   durRangeMode=mode;
   const weekRow=document.getElementById('durWeekRow');
@@ -10157,11 +10214,14 @@ function setDurRangeMode(mode){
   const rangeLabel=document.getElementById('durRangeLabel');
   const hintText=document.getElementById('durHintText');
   const fsBtn=document.getElementById('durGraphFsBtn');
-  if(fsBtn)fsBtn.classList.toggle('visible',mode==='3month');
+  // Fullscreen focus is offered on every multi-month range (3M/6M/1Y) — the overlay reuses the exact
+  // same relocation code, so the complete Detailed-View page comes with it on all three.
+  if(fsBtn)fsBtn.classList.toggle('visible',_isMultiMonthRange(mode));
 
-  document.getElementById('durRangeBtnWeekly').classList.toggle('active',mode==='weekly');
-  document.getElementById('durRangeBtnMonthly').classList.toggle('active',mode==='monthly');
-  document.getElementById('durRangeBtn3m').classList.toggle('active',mode==='3month');
+  const durBtnIds={weekly:'durRangeBtnWeekly',monthly:'durRangeBtnMonthly','3month':'durRangeBtn3m','6month':'durRangeBtn6m','1year':'durRangeBtn1y'};
+  Object.keys(durBtnIds).forEach(k=>{document.getElementById(durBtnIds[k])?.classList.toggle('active',mode===k)});
+  // 6M/1Y get the taller box (see .range-long) so the denser line isn't squashed flat.
+  document.getElementById('durGraphBox')?.classList.toggle('range-long',mode==='6month'||mode==='1year');
 
   if(mode==='weekly'){
     weekRow.style.display='flex';
@@ -10193,11 +10253,13 @@ function _durResolveMonths(){
 
   if(durRangeMode==='monthly')return[{year:baseYear,month:baseMonth}];
 
-  // 3-Month sliding window: always anchored to the CURRENT real-world month (auto-advances over time),
-  // showing it plus the two preceding months — identical concept to the Volume graph's window.
+  // Sliding window: always anchored to the CURRENT real-world month (auto-advances over time), showing
+  // it plus the preceding months — 3 for 3M, 6 for 6M, 12 for 1Y (RANGE_MONTH_SPAN). Identical concept
+  // to the Volume graph's window; only the span differs, so 6M/1Y reuse this path untouched.
+  const span=RANGE_MONTH_SPAN[durRangeMode]||3;
   const now=new Date();
   const months=[];
-  for(let i=2;i>=0;i--){
+  for(let i=span-1;i>=0;i--){
     const d=new Date(now.getFullYear(),now.getMonth()-i,1);
     months.push({year:d.getFullYear(),month:d.getMonth()});
   }
@@ -10211,7 +10273,13 @@ function _durResolveMonths(){
      with ties fully supported on both ends. */
 /* Maps internal range-mode strings to the compact period tag shown beside each stat label,
    e.g. "Most Trained · WEEKLY", so it's always clear which duration the numbers reflect. */
-function _periodTag(mode){return mode==='monthly'?'Monthly':mode==='3month'?'3-Month':'Weekly';}
+function _periodTag(mode){
+  if(mode==='monthly')return'Monthly';
+  if(mode==='3month')return'3-Month';
+  if(mode==='6month')return'6-Month';
+  if(mode==='1year')return'1-Year';
+  return'Weekly';
+}
 function _computeTrainedExtremes(countMap,mode){
   if(mode==='weekly')return{most:[],less:[]}; // Weekly: neither row ever shows
   const entries=Object.entries(countMap);
@@ -10385,7 +10453,7 @@ async function updateDurationLineChart(){
   const months=_durResolveMonths();
 
   // Update the sliding range label for 3-Month mode (e.g. "Apr - Jun 2026") — identical concept to Volume graph
-  if(durRangeMode==='3month'){
+  if(_isMultiMonthRange(durRangeMode)){
     const monNames=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
     const first=months[0],last=months[months.length-1];
     const label=first.year===last.year
@@ -10399,14 +10467,14 @@ async function updateDurationLineChart(){
   // across all months in the window.
   const dayNames=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
   const monNamesShort=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  let allDays=[];
-
-  for(const{year,month}of months){
+  // Every month in the window is fetched in PARALLEL rather than one-after-another — on 1-Year that's
+  // twelve round trips, which sequentially would leave the graph visibly stalled.
+  const monthChunks=await Promise.all(months.map(async({year,month})=>{
     const monthStr=`${year}-${String(month+1).padStart(2,'0')}`;
     const lastDay=new Date(year,month+1,0).getDate();
     const{data,error}=await db.from(SESSION_TABLE).select('date,duration,class').eq('user_id',uid)
       .gte('date',`${monthStr}-01`).lte('date',`${monthStr}-${String(lastDay).padStart(2,'0')}`);
-    if(error){console.error(error);continue}
+    if(error){console.error(error);return[]}
 
     let dm={};
     for(let i=1;i<=lastDay;i++){
@@ -10426,8 +10494,10 @@ async function updateDurationLineChart(){
       });
     }
     Object.values(dm).forEach(d=>{if(d.workout){d.classes=[...new Set(d.workout.split(',').map(s=>s.trim()).filter(Boolean))].slice(0,3)}});
-    allDays=allDays.concat(Object.values(dm));
-  }
+    return Object.values(dm);
+  }));
+  // Promise.all preserves input order, so the line still reads oldest -> newest left to right.
+  let allDays=[];monthChunks.forEach(c=>{allDays=allDays.concat(c)});
 
   statsChartDayData=allDays;
 
@@ -10444,20 +10514,26 @@ async function updateDurationLineChart(){
 
   const durations=allDays.map(d=>{if(d.duration===0&&d.classes.length>0)return 30;return d.duration||0});
 
-  // X-axis anchor labels: Monthly mode shows "Week 1".."Week 4"; 3-Month mode shows each month's short
-  // name at its first day — identical concept/behavior to the Volume graph's X-axis.
+  // X-axis anchor labels: Monthly mode shows "Week 1".."Week 4"; 3M/6M/1Y show each month's short name
+  // at that month's first day — identical concept/behavior to the Volume graph's X-axis.
+  // durMonthAnchorRank records WHICH month anchor each index is (0,1,2,...) so the tick callback below
+  // can thin them out with _monthLabelStride once the live chart width is known. The year key (not just
+  // d.month) matters on 1Y, where the window wraps past January into the previous year.
   const monNamesAxis=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  let seenWeek=null,seenMonth=null;
-  const xAxisLabels=allDays.map(d=>{
+  let seenWeek=null,seenMonthKey=null,durMonthAnchorCount=0;
+  const durMonthAnchorRank=new Array(allDays.length).fill(-1);
+  const xAxisLabels=allDays.map((d,i)=>{
     if(durRangeMode==='monthly'){
       if(d.weekOfMonth!==seenWeek){seenWeek=d.weekOfMonth;return`Week ${d.weekOfMonth}`}
       return'';
-    } else if(durRangeMode==='3month'){
-      if(d.month!==seenMonth){seenMonth=d.month;return monNamesAxis[d.month]}
+    } else if(_isMultiMonthRange(durRangeMode)){
+      const key=d.year+'-'+d.month;
+      if(key!==seenMonthKey){seenMonthKey=key;durMonthAnchorRank[i]=durMonthAnchorCount++;return monNamesAxis[d.month]}
       return'';
     }
     return d.label;
   });
+  const durPointCount=allDays.length;
 
   if(userStatsInstanceChart){userStatsInstanceChart.destroy();userStatsInstanceChart=null}
   const canvas=document.getElementById('workoutChart');if(!canvas)return;
@@ -10479,8 +10555,7 @@ async function updateDurationLineChart(){
   // single frame at the card's native width (no horizontal scrolling) — a slightly thinner stroke on
   // 3-Month keeps ~90 tightly-packed points reading as a clean, uncluttered line, same as a normal
   // finance chart, instead of a thick line.
-  const durBaseRadius=durRangeMode==='3month'?0:(allDays.length>20?2.5:4);
-  const durLineWidth=durRangeMode==='3month'?1.5:2.5;
+  const durBaseRadius=_isMultiMonthRange(durRangeMode)?0:(allDays.length>20?2.5:4);
 
   const instance=new Chart(ctx,{
     type:'line',
@@ -10496,7 +10571,10 @@ async function updateDurationLineChart(){
         pointBorderWidth:1.5,
         pointRadius:durBaseRadius,
         pointHoverRadius:7,
-        borderWidth:durLineWidth,
+        // SCRIPTABLE: re-measured on every render (including Chart.js's own resize re-render), so the
+        // stroke thins automatically as 3M -> 6M -> 1Y packs more points into the card, and thickens
+        // again on a wider screen or inside the fullscreen-focus view.
+        borderWidth:c=>_lineWidthForDensity(c.chart&&c.chart.width,durPointCount),
         fill:true,
         tension:0.25,
         cubicInterpolationMode:'monotone'
@@ -10504,6 +10582,9 @@ async function updateDurationLineChart(){
     },
     options:{
       responsive:true,maintainAspectRatio:false,
+      // Dense ranges (6M ~180 points, 1Y ~365) skip the entry animation — tweening that many points
+      // is what makes a long-range redraw feel sluggish on a low-end phone. 1W/1M keep it.
+      animation:durPointCount>120?false:undefined,
       // Layout safety: same reserved-headroom approach as the bar chart — the line and its markers
       // can never reach the fixed top-right detail box, even on small/low-end mobile screens.
       layout:{padding:{top:78,right:6,left:2,bottom:durRangeMode==='weekly'?2:18}},
@@ -10511,7 +10592,19 @@ async function updateDurationLineChart(){
       plugins:{legend:{display:false},tooltip:{enabled:false}},
       scales:{
         y:{beginAtZero:true,suggestedMax:durSuggestedMax,grid:{color:'rgba(128,128,128,0.08)'},ticks:{color:'#6b7280',font:{family:'Rajdhani',size:12},callback(v){return v+'m'}}},
-        x:{display:true,grid:{display:false},ticks:{color:'#6b7280',font:{family:'Rajdhani',size:10,weight:'600'},autoSkip:false,maxRotation:0,minRotation:0,callback(val,idx){const l=xAxisLabels[idx];return l?l:null}}}
+        // Month anchors are thinned to whatever the live width can actually fit — see _monthLabelStride.
+        x:{display:true,grid:{display:false},ticks:{color:'#6b7280',font:c=>_axisTickFont(c.chart&&c.chart.width),autoSkip:false,maxRotation:0,minRotation:0,callback(val,idx){
+          const l=xAxisLabels[idx];
+          if(!l)return null;
+          const rank=durMonthAnchorRank[idx];
+          if(rank>=0){
+            // `this` is the scale (Chart.js binds it); the ||0 fallback just means "show every
+            // anchor" if the width isn't measurable yet, which is the safe direction.
+            const stride=_monthLabelStride((this&&this.chart&&this.chart.width)||0,durMonthAnchorCount);
+            if(rank%stride!==0)return null;
+          }
+          return l;
+        }}}
       },
       onHover(evt,els){canvas.style.cursor=els.length?'pointer':'default'}
     }
@@ -11197,15 +11290,18 @@ async function updateVolumeChart(side='main'){
   }
 }
 
-/* ===================== VOLUME RANGE TOGGLE (Weekly / Monthly / 3-Month) ===================== */
+/* ===================== VOLUME RANGE TOGGLE (1W / 1M / 3M / 6M / 1Y) ===================== */
 /* Switches the MAIN single-view volume graph between:
-   - weekly:  original bar chart, Week + Month dropdowns both shown (untouched behavior)
-   - monthly: line graph for the selected month, Month dropdown stays active, Week dropdown hidden
-   - 3month:  line graph for current month + preceding 2 months (sliding window), both dropdowns hidden,
-              a range label ("Apr - Jun") is shown instead */
+   - weekly  (1W): original bar chart, Week + Month dropdowns both shown (untouched behavior)
+   - monthly (1M): line graph for the selected month, Month dropdown stays active, Week dropdown hidden
+   - 3month/6month/1year (3M/6M/1Y): the SAME line graph over a sliding window of the current month
+     plus the preceding 2 / 5 / 11 months. Both dropdowns hidden, a range label ("Apr – Jun 2026") is
+     shown instead. All three are one code path (_isMultiMonthRange + RANGE_MONTH_SPAN), so Detailed
+     View, the class legend/filter, the Stats <-> Breakdown panel and the fullscreen-focus view behave
+     identically on 6M and 1Y as they already did on 3M. */
 function setVolRangeMode(mode){
-  // Fullscreen focus only ever exists for the 3-Month graph — any mode change (including re-picking
-  // 3-Month itself) closes it instantly rather than carrying it over.
+  // Fullscreen focus only ever exists for a multi-month graph — any mode change (including re-picking
+  // the same range) closes it instantly rather than carrying it over.
   if(statsGraphFsOpen)exitStatsGraphFullscreen();
   volRangeMode=mode;
   const weekRow=document.getElementById('volWeekRow');
@@ -11214,11 +11310,14 @@ function setVolRangeMode(mode){
   const rangeLabel=document.getElementById('volRangeLabel');
   const hintText=document.getElementById('volHintText');
   const fsBtn=document.getElementById('volGraphFsBtn');
-  if(fsBtn)fsBtn.classList.toggle('visible',mode==='3month');
+  // Fullscreen focus is offered on every multi-month range (3M/6M/1Y) — same overlay, same relocated
+  // Stats <-> Breakdown panel, on all three.
+  if(fsBtn)fsBtn.classList.toggle('visible',_isMultiMonthRange(mode));
 
-  document.getElementById('volRangeBtnWeekly').classList.toggle('active',mode==='weekly');
-  document.getElementById('volRangeBtnMonthly').classList.toggle('active',mode==='monthly');
-  document.getElementById('volRangeBtn3m').classList.toggle('active',mode==='3month');
+  const volBtnIds={weekly:'volRangeBtnWeekly',monthly:'volRangeBtnMonthly','3month':'volRangeBtn3m','6month':'volRangeBtn6m','1year':'volRangeBtn1y'};
+  Object.keys(volBtnIds).forEach(k=>{document.getElementById(volBtnIds[k])?.classList.toggle('active',mode===k)});
+  // 6M/1Y get the taller box (see .range-long) so the denser line isn't squashed flat.
+  document.getElementById('volGraphBox')?.classList.toggle('range-long',mode==='6month'||mode==='1year');
 
   if(mode==='weekly'){
     // Restore both dropdowns exactly as before
@@ -11235,7 +11334,7 @@ function setVolRangeMode(mode){
     rangeLabel.classList.remove('visible');
     hintText.textContent='💡 Tap or drag across the line to see each day\'s breakdown below';
   } else {
-    // 3-Month: hide both dropdowns, show sliding range label instead
+    // 3M / 6M / 1Y: hide both dropdowns, show the sliding range label instead
     weekRow.style.display='none';
     rangeLabel.classList.add('visible');
     hintText.textContent='💡 Tap or drag across the line to see each day\'s breakdown below';
@@ -11253,11 +11352,13 @@ function _volResolveMonths(){
 
   if(volRangeMode==='monthly')return[{year:baseYear,month:baseMonth}];
 
-  // 3-Month sliding window: always anchored to the CURRENT real-world month (auto-advances over time),
-  // showing it plus the two preceding months — independent of the (hidden) month dropdown.
+  // Sliding window: always anchored to the CURRENT real-world month (auto-advances over time), showing
+  // it plus the preceding months — 3 for 3M, 6 for 6M, 12 for 1Y (RANGE_MONTH_SPAN). Independent of
+  // the (hidden) month dropdown.
+  const span=RANGE_MONTH_SPAN[volRangeMode]||3;
   const now=new Date();
   const months=[];
-  for(let i=2;i>=0;i--){
+  for(let i=span-1;i>=0;i--){
     const d=new Date(now.getFullYear(),now.getMonth()-i,1);
     months.push({year:d.getFullYear(),month:d.getMonth()});
   }
@@ -11270,7 +11371,7 @@ async function updateVolumeLineChart(){
   const months=_volResolveMonths();
 
   // Update the sliding range label for 3-Month mode (e.g. "Apr - Jun 2026")
-  if(volRangeMode==='3month'){
+  if(_isMultiMonthRange(volRangeMode)){
     const monNames=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
     const first=months[0],last=months[months.length-1];
     const label=first.year===last.year
@@ -11283,13 +11384,13 @@ async function updateVolumeLineChart(){
   // Fetch + flatten day-by-day volume data across all months in the window
   const dayNames=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
   const monNamesShort=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  let allDays=[];
-
-  for(const{year,month}of months){
+  // Every month in the window is fetched in PARALLEL rather than one-after-another — on 1-Year that's
+  // twelve round trips (plus their attendance lookups), which sequentially would visibly stall.
+  const monthChunks=await Promise.all(months.map(async({year,month})=>{
     const monthStr=`${year}-${String(month+1).padStart(2,'0')}`;
     const lastDay=new Date(year,month+1,0).getDate();
     const{data,error}=await db.from(SESSION_TABLE).select('date,workouts').eq('user_id',uid).gte('date',`${monthStr}-01`).lte('date',`${monthStr}-${String(lastDay).padStart(2,'0')}`);
-    if(error){console.error(error);continue}
+    if(error){console.error(error);return[]}
     const attWorkouts=await fetchAttendanceWorkouts(uid,monthStr);
 
     let dm={};
@@ -11304,8 +11405,10 @@ async function updateVolumeLineChart(){
         _accumulateSessionRowVolume(dm[day],row);
       });
     }
-    allDays=allDays.concat(Object.values(dm));
-  }
+    return Object.values(dm);
+  }));
+  // Promise.all preserves input order, so the line still reads oldest -> newest left to right.
+  let allDays=[];monthChunks.forEach(c=>{allDays=allDays.concat(c)});
 
   volLineDataCache=allDays;
   volDayDataCache=allDays; // keep main cache in sync so renderVolDrilldown's "panel" plumbing keeps working
@@ -11344,17 +11447,24 @@ async function updateVolumeLineChart(){
   // Every other point gets an empty label so the axis stays clean/uncluttered on small mobile screens
   // while still placing each labeled point at the correct day position along the line.
   const monNamesAxis=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  let seenWeek=null,seenMonth=null;
-  const xAxisLabels=allDays.map(d=>{
+  // volMonthAnchorRank records WHICH month anchor each index is (0,1,2,...) so the tick callback below
+  // can thin them out with _monthLabelStride once the live chart width is known — that's what keeps 1Y's
+  // twelve month names from colliding on a narrow phone. The year key (not just d.month) matters on 1Y,
+  // where the window wraps past January into the previous year.
+  let seenWeek=null,seenMonthKey=null,volMonthAnchorCount=0;
+  const volMonthAnchorRank=new Array(allDays.length).fill(-1);
+  const xAxisLabels=allDays.map((d,i)=>{
     if(volRangeMode==='monthly'){
       if(d.weekOfMonth!==seenWeek){seenWeek=d.weekOfMonth;return`Week ${d.weekOfMonth}`}
       return'';
-    } else if(volRangeMode==='3month'){
-      if(d.month!==seenMonth){seenMonth=d.month;return monNamesAxis[d.month]}
+    } else if(_isMultiMonthRange(volRangeMode)){
+      const key=d.year+'-'+d.month;
+      if(key!==seenMonthKey){seenMonthKey=key;volMonthAnchorRank[i]=volMonthAnchorCount++;return monNamesAxis[d.month]}
       return'';
     }
     return d.label;
   });
+  const volPointCount=allDays.length;
 
   if(volChartInstance){volChartInstance.destroy();volChartInstance=null}
   const canvas=document.getElementById('volumeChart');if(!canvas)return;
@@ -11371,8 +11481,7 @@ async function updateVolumeLineChart(){
   // line always fits in a single frame at the card's native width (no horizontal scrolling) — a
   // slightly thinner stroke on 3-Month keeps ~90 tightly-packed points reading as a clean line, same as
   // a normal finance chart, instead of a thick one.
-  const volBaseRadius=volRangeMode==='3month'?0:(allDays.length>20?2.5:4);
-  const volLineWidth=volRangeMode==='3month'?1.5:2.5;
+  const volBaseRadius=_isMultiMonthRange(volRangeMode)?0:(allDays.length>20?2.5:4);
 
   const instance=new Chart(ctx,{
     type:'line',
@@ -11388,7 +11497,10 @@ async function updateVolumeLineChart(){
         pointBorderWidth:1.5,
         pointRadius:volBaseRadius,
         pointHoverRadius:7,
-        borderWidth:volLineWidth,
+        // SCRIPTABLE: re-measured on every render (including Chart.js's own resize re-render), so the
+        // stroke thins automatically as 3M -> 6M -> 1Y packs more points into the card, and thickens
+        // again on a wider screen or inside the fullscreen-focus view.
+        borderWidth:c=>_lineWidthForDensity(c.chart&&c.chart.width,volPointCount),
         fill:true,
         tension:0.25, // gentle smoothing only — avoids the overshoot/loop artifacts steeper tension can cause
         cubicInterpolationMode:'monotone' // keeps the line monotonic between points so it never renders an "awkward" loop
@@ -11396,6 +11508,9 @@ async function updateVolumeLineChart(){
     },
     options:{
       responsive:true,maintainAspectRatio:false,
+      // Dense ranges (6M ~180 points, 1Y ~365) skip the entry animation — tweening that many points
+      // is what makes a long-range redraw feel sluggish on a low-end phone. 1W/1M keep it.
+      animation:volPointCount>120?false:undefined,
       // Layout safety: the graph container is now taller (#volGraphBox = 428px) specifically so this
       // reserved headroom is genuine EXTRA space, not squeezed plot area — the line can never run
       // underneath or touch the fixed top-right detail box, even on small/low-end mobile screens.
@@ -11411,7 +11526,18 @@ async function updateVolumeLineChart(){
         // Chart.js automatically so the axis never looks cluttered, even on narrow mobile screens.
         x:volRangeMode==='weekly'
           ?{display:false,grid:{display:false},ticks:{display:false}}
-          :{display:true,grid:{display:false},ticks:{color:'#6b7280',font:{family:'Rajdhani',size:10,weight:'600'},autoSkip:false,maxRotation:0,minRotation:0,callback(val,idx){const l=xAxisLabels[idx];return l?l:null}}}
+          :{display:true,grid:{display:false},ticks:{color:'#6b7280',font:c=>_axisTickFont(c.chart&&c.chart.width),autoSkip:false,maxRotation:0,minRotation:0,callback(val,idx){
+              const l=xAxisLabels[idx];
+              if(!l)return null;
+              const rank=volMonthAnchorRank[idx];
+              if(rank>=0){
+                // `this` is the scale (Chart.js binds it); the ||0 fallback just means "show every
+                // anchor" if the width isn't measurable yet, which is the safe direction.
+                const stride=_monthLabelStride((this&&this.chart&&this.chart.width)||0,volMonthAnchorCount);
+                if(rank%stride!==0)return null;
+              }
+              return l;
+            }}}
       },
       onHover(evt,els){canvas.style.cursor=els.length?'pointer':'default'}
     }
@@ -11488,7 +11614,7 @@ function _highlightVolPoint(chartInstance,selectedIdx,selectedColor,baseColor){
   const n=ds.data.length;
   // 3-Month: non-selected points stay at radius 0 (invisible) — only the tapped/dragged point ever
   // shows a marker, so exactly one is visible at a time.
-  const idleRadius=volRangeMode==='3month'?0:(n>20?2.5:4);
+  const idleRadius=_isMultiMonthRange(volRangeMode)?0:(n>20?2.5:4);
   ds.pointBackgroundColor=Array.from({length:n},(_,i)=>i===selectedIdx?selectedColor:baseColor);
   ds.pointRadius=Array.from({length:n},(_,i)=>i===selectedIdx?7:idleRadius);
   ds.pointBorderWidth=Array.from({length:n},(_,i)=>i===selectedIdx?2.5:1.5);
@@ -11501,7 +11627,7 @@ function _highlightVolPoint(chartInstance,selectedIdx,selectedColor,baseColor){
   // _durHighlightLinePoint's approach — zeroing hover radius on every idle 3-Month point, and only
   // letting the truly selected index enlarge on hover — keeps exactly one marker visible at a time,
   // matching Duration's already-correct behavior.
-  ds.pointHoverRadius=Array.from({length:n},(_,i)=>i===selectedIdx?9:(volRangeMode==='3month'?0:idleRadius+2));
+  ds.pointHoverRadius=Array.from({length:n},(_,i)=>i===selectedIdx?9:(_isMultiMonthRange(volRangeMode)?0:idleRadius+2));
   chartInstance.update('none'); // 'none' = no animation, so the marker recolors instantly on drag
 }
 
@@ -11590,7 +11716,7 @@ function _updateVolGraphDetailBox(day,side){
     const dayClassVolRaw=cv[selCls]||0;
     const dayClassVol=formatVolNum(dayClassVolRaw);
     const weekTotalVol=formatVolNum((volClassVolumeMap[side]||{})[selCls]||0);
-    const periodLabel=side==='main'?(volRangeMode==='weekly'?'Weekly':volRangeMode==='monthly'?'Monthly':'3-Month'):'Weekly';
+    const periodLabel=side==='main'?_periodTag(volRangeMode):'Weekly';
     const col=CLASS_COLORS[selCls]||'var(--accent)';
     const line2=dayClassVolRaw>0
       ?`<div style="display:flex;align-items:center;font-size:10px;font-weight:700;color:${col};margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${dot(col)}<span style="overflow:hidden;text-overflow:ellipsis">${selCls}: ${dayClassVol} Kg-Reps</span></div>`
@@ -11861,7 +11987,7 @@ function _volHighlightLinePoint(selectedIdx){
   const n=volLineDataCache.length;
   // 3-Month: every point starts invisible (radius 0) — only the selected index below gets a marker,
   // so exactly one marker shows at a time as the user taps/drags across the line.
-  const radii=new Array(n).fill(volRangeMode==='3month'?0:(volLineDataCache.length>20?2.5:4));
+  const radii=new Array(n).fill(_isMultiMonthRange(volRangeMode)?0:(volLineDataCache.length>20?2.5:4));
   const colors=new Array(n).fill(base);
   const borders=new Array(n).fill('#fff');
   const selCls=volSelectedClass.main;
@@ -11888,7 +12014,7 @@ function _volHighlightLinePoint(selectedIdx){
   ds.pointRadius=radii;
   // 3-Month + no class filter: idle points stay at hover-radius 0 too, so hovering/dragging near an
   // unselected point never flashes a second marker — only the actively selected index ever enlarges.
-  ds.pointHoverRadius=radii.map((r,i)=>i===selectedIdx?11:(volRangeMode==='3month'&&!selCls?0:r+2));
+  ds.pointHoverRadius=radii.map((r,i)=>i===selectedIdx?11:(_isMultiMonthRange(volRangeMode)&&!selCls?0:r+2));
   // Hide the connecting line itself between any two points that aren't both the selected class —
   // matches Duration's line chart via the same shared helper (buildClassFilterSegmentColor).
   ds.segment={borderColor:buildClassFilterSegmentColor(selCls,volLineDataCache,d=>d.attendanceWorkouts,base)};
@@ -19241,9 +19367,11 @@ function exitTrackerFullscreen(){
    iOS Safari doesn't support at all), and without needing the Fullscreen API either. It re-runs on
    resize/orientationchange while open, so physically turning the phone sideways still works, it just
    stops rotating the content further once the device itself is already in landscape.
-   Only ever wired up for 3-Month (see setDurRangeMode/setVolRangeMode, which show/hide the trigger icon
-   and force an instant exit on any mode/page/subnav change) — Weekly and Monthly never see this button
-   and can never end up inside the overlay. */
+   Only ever wired up for the multi-month ranges — 3M, 6M and 1Y alike (see setDurRangeMode/
+   setVolRangeMode, which show/hide the trigger icon via _isMultiMonthRange and force an instant exit
+   on any mode/page/subnav change) — 1W and 1M never see this button and can never end up inside the
+   overlay. Nothing in here is range-specific, so 6M/1Y get the identical complete-page overlay (graph,
+   range label, nav arrows, class legend, Detailed View toggle, stats + breakdown) that 3M already had. */
 let statsGraphFsOpen=false,statsGraphFsBoxId=null,statsGraphFsParent=null,statsGraphFsNext=null;
 // Every other piece of the page that gets physically relocated into the overlay alongside the graph
 // itself, so the fullscreen view really is the complete 3-Month page and not just the bare chart.
