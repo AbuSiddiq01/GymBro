@@ -1961,6 +1961,39 @@ input:checked+.privacy-toggle-slider:before{transform:translateX(20px)}
   #workPage .section.glass{padding-left:10px;padding-right:10px}
   .workout-form-wrapper{padding-left:10px;padding-right:10px}
 }
+
+/* ===================== WORKOUT TRACKER GRAPH CARD: FULL DEVICE WIDTH =====================
+   Widens only the graph card itself (#trackerAnalyticsPanel), not the Workout Tracker section around
+   it — an earlier attempt widened #workoutTrackerSection as a whole, which also stretched the date
+   pickers/search/results list and left it mismatched against the Workout Log Manager card above it.
+   That only works cleanly because #trackerAnalyticsPanel is now a SIBLING of #workoutTrackerSection
+   in the markup (moved there — see the HTML), not a card nested inside it: a nested card widened past
+   its narrower parent is what visually cuts across the parent's edge. As a standalone top-level card
+   it can widen freely with nothing behind it to overlap, exactly like the Stats page's graph card
+   (see "STATS ANALYTICS CARD: FULL DEVICE WIDTH" further up) — same formula, same behavior.
+   --wt-card-w scales continuously with the viewport (narrow phone -> small gutter, wide desktop ->
+   a generous one), capped at 1280px, and the margin re-centres the card on the VIEWPORT. */
+#trackerAnalyticsPanel{
+  --wt-card-w:min(calc(100vw - clamp(8px,3vw,40px)),1280px);
+  width:var(--wt-card-w);
+  margin-left:calc(50% - var(--wt-card-w) / 2);
+  margin-right:0;
+  padding-left:clamp(8px,2.4vw,22px);
+  padding-right:clamp(8px,2.4vw,22px);
+  box-sizing:border-box;
+}
+@media(max-width:480px){#trackerAnalyticsPanel{padding-left:clamp(6px,2vw,10px);padding-right:clamp(6px,2vw,10px)}}
+/* The floating detail box is sized as a % of its card — fine on a phone, but it would become a huge
+   slab once the card spans a desktop viewport, so it gets an absolute ceiling, same as the Stats
+   graphs' detail box. */
+#trackerGraphDetailBox{max-width:min(46%,260px)}
+/* Same fixed, screen-driven height as the Duration/Volume graph boxes (#durGraphBox/#volGraphBox) —
+   a phone keeps a comfortable 428px, a wide desktop card gains a little depth to match its extra
+   width. No longer scaled by point/marker count (see renderTrackerChart) — line/point DENSITY is what
+   now adapts to a large marker count (see _lineWidthForDensity + the radius cutoff below), not the
+   box's own height, matching how 3M/6M/1Y work on Duration/Volume. ID selector so it wins over the
+   base .tracker-graph-box{height:300px} rule regardless of source order. */
+#trackerGraphBox{height:clamp(428px,34vw,520px)}
 /* ===== Edit Workout Overlay (edit-only; the "add new" flow is never routed through this) =====
    Same relocate-into-overlay pattern as .tracker-fullscreen-overlay: the live/non-live edit form
    is physically moved into #workoutEditOverlayStage while editing, and moved back to its original
@@ -3771,6 +3804,12 @@ body.tracker-fs-lock{overflow:hidden}
           </div>
         </div>
         <div id="trackerResultsArea"></div>
+      </div>
+
+    <!-- Workout Tracker's analytics/graph card — kept as its OWN top-level card (sibling of
+         #workoutTrackerSection, not nested inside it) so it can go full device width on its own
+         without stretching the date pickers/search/results list above it. See "WORKOUT TRACKER
+         GRAPH CARD: FULL DEVICE WIDTH" in the stylesheet. -->
         <div class="tracker-analytics-panel" id="trackerAnalyticsPanel">
           <div class="tracker-analytics-header">
             <div>
@@ -3829,7 +3868,6 @@ body.tracker-fs-lock{overflow:hidden}
             </div>
           </div>
         </div>
-      </div>
     </div>
 
     <!-- LEARN TAB -->
@@ -18853,16 +18891,15 @@ function renderTrackerChart(){
   document.getElementById("trackerAnalyticsSubtitle").textContent=subtitleByMode[mode];
   if(trackerAnalyticsChartInstance){trackerAnalyticsChartInstance.destroy();trackerAnalyticsChartInstance=null}
 
-  // Graph box grows with the data so markers never feel cramped, especially on small/low-end mobile screens.
-  // The extra +155px is dedicated, non-plottable headroom reserved specifically for the fixed
-  // top-right detail box (box: 8px top offset + 130px fixed height = 138px, plus a clear 17px gap)
-  // so the box's own height never has to borrow space from the plot area.
+  // The box now takes the SAME fixed, screen-driven height as the Duration/Volume graph boxes (see
+  // #trackerGraphBox in the stylesheet) instead of growing with the marker count — a phone always
+  // gets a comfortable 428px, a wide desktop card a little more, auto-adapting narrow/mid/wide the
+  // same way Duration/Volume do. A large marker count now affects LINE DENSITY (thinner stroke,
+  // hidden resting dots past 30 points — see trkBaseRadius below) instead of inflating the box.
   const graphBox=document.getElementById("trackerGraphBox");
   const pointCount=sortedDates.length;
-  const dynamicHeight=Math.max(260,Math.min(560,140+pointCount*26))+155;
-  graphBox.style.height=dynamicHeight+'px';
+  graphBox.style.height='';
   graphBox.classList.remove('tracker-journey-live');
-  trackerGraphBaseHeight=dynamicHeight;
 
   // Reset the fixed detail box to its hint state every time the graph is (re)drawn
   const hintEl=document.getElementById("trackerGraphDetailHint");
@@ -18913,7 +18950,11 @@ function renderTrackerChart(){
   const ctx=document.getElementById("trackerAnalyticsChart").getContext("2d");
   const _accentNow=getComputedStyle(document.body).getPropertyValue('--accent').trim()||'#2563eb';
   const _accent2Now=getComputedStyle(document.body).getPropertyValue('--accent2').trim()||'#1d4ed8';
-  const lineColor=_accentNow,pointColor=_accent2Now,fillColor=ctmRgba(_accentNow,0.1);
+  // fillColor opacity (0.12) and the tension/interpolation/point-sizing below all match the Duration/
+  // Volume graphs' Monthly line format — same clean single-line look, applied here without touching
+  // the Kg/Reps/Km/Time/Floor-Steps value formatting, the Y-axis, or View Journey's own segment
+  // coloring/pulse animation below, all of which are untouched.
+  const lineColor=_accentNow,pointColor=_accent2Now,fillColor=ctmRgba(_accentNow,0.12);
   // Highlight color for the currently-selected marker (click / finger-drag / arrow-nav) — a warm amber
   // reads clearly as "selected" against every theme's line/point color without needing a theme lookup.
   const highlightColor="#f59e0b";
@@ -18928,7 +18969,19 @@ function renderTrackerChart(){
   // Hover radius is deliberately a bigger jump from the resting radius (6 -> 12) than before, paired with
   // the "active" transition below, so hovering a point reads as a clear little pop/zoom rather than a
   // subtle size tick.
-  const basePointRadius=sortedDates.map(()=>6),baseHoverRadius=sortedDates.map(()=>12);
+  // Resting dot size follows the same count-based rule as the Monthly line graph (small dataset -> 4,
+  // larger -> 2.5) instead of a flat 6, so a long custom date range doesn't read as a row of solid
+  // dots crowding the line. Hover radius matches Monthly's 7. The selection/pulse escalation below
+  // (11/13/16/18, the amber highlight ring) is untouched — it's driven off these arrays but adds its
+  // own fixed sizes on top, so nothing about tapping or "View Journey" changes.
+  // Same tiering as Duration/Volume's ranges: <=20 markers keeps Monthly's bigger dots (4), 21-30
+  // steps down to 2.5 (matching Monthly's own ">20" rule), and past 30 markers the resting dots hide
+  // entirely (0) — only the tapped/highlighted point shows a marker — exactly like 3-Month, 6-Month
+  // and 1-Year do once their point count crosses the same threshold. The line itself keeps thinning
+  // continuously past that via _lineWidthForDensity below, covering the 90 -> 180 -> 365 range without
+  // needing further hard cutoffs.
+  const trkBaseRadius=pointCount>30?0:(pointCount>20?2.5:4);
+  const basePointRadius=sortedDates.map(()=>trkBaseRadius),baseHoverRadius=sortedDates.map(()=>7);
   const basePointBg=sortedDates.map(()=>pointColor),basePointBorder=sortedDates.map(()=>'#fff'),basePointBorderW=sortedDates.map(()=>2);
 
   const yAxisTitle=mode==='weight'?'Weight (kg)':mode==='reps'?'Reps':mode==='duration'?'Duration (min)':mode==='distance'?((cardioUnit==='Floors'||cardioUnit==='Steps')?cardioUnit:'Distance (Km)'):'Volume (kg × reps)';
@@ -18966,7 +19019,12 @@ function renderTrackerChart(){
   };
 
   trackerAnalyticsChartInstance=new Chart(ctx,{
-    type:'line',plugins:[trkHighLowPlugin],data:{labels,datasets:[{label:yAxisTitle,data:values,borderColor:lineColor,backgroundColor:fillColor,pointBackgroundColor:[...basePointBg],pointBorderColor:[...basePointBorder],pointBorderWidth:[...basePointBorderW],pointRadius:[...basePointRadius],pointHoverRadius:[...baseHoverRadius],borderWidth:2.5,fill:true,tension:0.35,
+    type:'line',plugins:[trkHighLowPlugin],data:{labels,datasets:[{label:yAxisTitle,data:values,borderColor:lineColor,backgroundColor:fillColor,pointBackgroundColor:[...basePointBg],pointBorderColor:[...basePointBorder],pointBorderWidth:[...basePointBorderW],pointRadius:[...basePointRadius],pointHoverRadius:[...baseHoverRadius],
+      // SCRIPTABLE, same helper the Duration/Volume graphs use: re-measured on every render (including
+      // Chart.js's own resize re-render), so the stroke thins automatically for a longer date range
+      // packed into the same card, and thickens again once the full-width card gives it more room.
+      borderWidth:c=>_lineWidthForDensity(c.chart&&c.chart.width,pointCount),
+      fill:true,tension:0.25,cubicInterpolationMode:'monotone',
       // Colors each line segment once "View Journey" has walked across it: green for an upgrade, red for
       // a downgrade, amber for holding steady. Segments not yet walked (or outside any journey) fall back
       // to the normal theme line color (undefined = "use dataset default").
@@ -18978,18 +19036,22 @@ function renderTrackerChart(){
       // Slower, eased line/point transitions (rather than Chart.js's terser default) so moving between
       // markers — via click, arrow nav, or "View Journey" — reads as a clear animated motion rather than
       // an instant snap. The "active" transition governs the quick hover pop on point radius/color.
-      animation:{duration:650,easing:'easeInOutQuart'},
+      // Dense point counts skip the entry animation — tweening that many points is what makes a long
+      // range redraw feel sluggish on a low-end phone — same threshold as the Duration/Volume graphs.
+      animation:pointCount>120?false:{duration:650,easing:'easeInOutQuart'},
       transitions:{active:{animation:{duration:280,easing:'easeOutBack'}}},
-      // Layout safety: the graph box now reserves +155px of genuine extra height (see dynamicHeight
-      // above) specifically for the fixed top-right detail box (138px fixed box + clear gap). This top
-      // padding carves that same amount out of the chart's own plot area, so the line and its point
+      // Layout safety: 155px of the box's own fixed height (clamp(428px,34vw,520px), see
+      // #trackerGraphBox) is reserved as top padding, specifically for the fixed top-right detail box
+      // (138px fixed box + clear gap). This carves that space out of the chart's own plot area, so the line and its point
       // markers are drawn entirely below the reserved zone — they can never run underneath or touch
       // the detail box, even when pointHoverRadius temporarily enlarges a marker on tap/hover.
       layout:{padding:{top:155,right:6,left:2,bottom:2}},
       // Default Chart.js tooltip is disabled — the fixed top-right detail box replaces it with the full per-set breakdown
       plugins:{legend:{display:false},tooltip:{enabled:false}},
       scales:{
-        y:{beginAtZero:true,suggestedMax:trkSuggestedMax,grid:{color:'rgba(128,128,128,0.08)'},ticks:{color:'#6b7280',font:{family:'Rajdhani',size:12},callback(v){if(mode==='reps')return v;if(mode==='duration')return v+'m';if(mode==='distance')return(cardioUnit==='Floors'||cardioUnit==='Steps')?v:v+'km';return v+'kg'}},title:{display:true,text:yAxisTitle,color:'#6b7280',font:{family:'Rajdhani',size:11}}},
+        y:{beginAtZero:true,suggestedMax:trkSuggestedMax,grid:{color:'rgba(128,128,128,0.08)'},// No axis title (matches Duration/Volume) — it was eating a chunk of horizontal room for a label
+        // the header title + detail box already make clear; the value-suffixed ticks alone are unchanged.
+        ticks:{color:'#6b7280',font:{family:'Rajdhani',size:12},callback(v){if(mode==='reps')return v;if(mode==='duration')return v+'m';if(mode==='distance')return(cardioUnit==='Floors'||cardioUnit==='Steps')?v:v+'km';return v+'kg'}}},
         // X axis: no date labels and no gridlines, per spec — dates only ever appear inside the detail box
         x:{display:false,grid:{display:false},ticks:{display:false}}
       },
@@ -19199,10 +19261,20 @@ function setTrackerJourneyLiveLayout(live){
   const graphBox=document.getElementById('trackerGraphBox');
   if(!graphBox)return;
   graphBox.classList.toggle('tracker-journey-live',live);
-  if(!trackerAnalyticsChartInstance||!trackerGraphBaseHeight)return;
-  const extra=live?34:0;
-  graphBox.style.height=(trackerGraphBaseHeight+extra)+'px';
-  trackerAnalyticsChartInstance.options.layout.padding.top=trackerGraphBaseTopPad+extra;
+  if(!trackerAnalyticsChartInstance)return;
+  if(live){
+    // Re-measure the box's CURRENT CSS-driven height (clamp(428px,34vw,520px)) fresh each time
+    // playback starts, so the +34px growth is always relative to whatever narrow/mid/wide renders
+    // right now rather than a number captured on a previous screen size.
+    trackerGraphBaseHeight=graphBox.getBoundingClientRect().height||trackerGraphBaseHeight||428;
+    graphBox.style.height=(trackerGraphBaseHeight+34)+'px';
+    trackerAnalyticsChartInstance.options.layout.padding.top=trackerGraphBaseTopPad+34;
+  }else{
+    // Hand height back to the CSS clamp (rather than re-pinning the old captured px value) so the box
+    // stays responsive to further narrow/mid/wide changes after playback ends.
+    graphBox.style.height='';
+    trackerAnalyticsChartInstance.options.layout.padding.top=trackerGraphBaseTopPad;
+  }
   trackerAnalyticsChartInstance.resize();
   trackerAnalyticsChartInstance.update('none');
 }
