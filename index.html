@@ -1428,6 +1428,38 @@ body:not(.theme-dark) .dur-graph-detail-divider strong{color:#1e3a8a}
    jumping at a breakpoint, and id+class here out-specifies the plain #id rule above. The fullscreen
    override below still wins via !important. */
 #durGraphBox.range-long,#volGraphBox.range-long{height:clamp(428px,58vw,540px)}
+
+/* ===================== FULL-BLEED GRAPH CARD (6M / 1Y) =====================
+   On 6M (~180 points) and 1Y (~365) the limiting factor is horizontal room, and the graph normally
+   sits at the bottom of a stack of nested padding: .container (95% wide + 15px), .section (22px) and
+   .analytics-box (14px) each take a bite out of both sides, so on a ~390px phone the line only ever
+   gets ~250px to draw in — which is exactly why the 6M/1Y line reads as a tight, unreadable smear.
+   On those two ranges the analytics box therefore breaks OUT of that whole padding chain and spans
+   the device width instead, leaving only a small gutter.
+   How: --gw is the target width — the full viewport minus a gutter that itself scales with the screen
+   (narrow phone -> tiny gutter so almost nothing is wasted; wide desktop -> a generous one), capped at
+   1280px so an ultrawide monitor gets a sensibly proportioned card rather than a mile-wide one. The
+   negative-looking margin-left (50% of the parent minus half that width) re-centres the box on the
+   VIEWPORT rather than on its padded parent, which works because every ancestor is itself centred.
+   Nothing here is a fixed pixel size at a breakpoint — it flexes continuously across narrow, medium
+   and wide screens, and the chart, being width:100%, simply follows. 1W/1M/3M are untouched, and so
+   is the fullscreen-focus view (which relocates #durGraphBox/#volGraphBox, never this wrapper). */
+.analytics-box.range-wide{
+  --gw:min(calc(100vw - clamp(6px,3vw,40px)),1280px);
+  width:var(--gw);
+  margin-left:calc(50% - var(--gw) / 2);
+  margin-right:0;
+  padding:clamp(4px,1.4vw,12px);
+  border-radius:clamp(10px,3vw,18px);
+}
+/* The floating detail box is sized as a % of its card — harmless at normal width, but it would become
+   a huge slab once that card spans a desktop viewport, so it gets an absolute ceiling here. */
+.analytics-box.range-wide .vol-graph-detail-box{max-width:min(46%,260px)}
+/* .glass clips its children to its rounded corners, which would crop the full-bleed card straight off
+   at the section edge. The class is only ever present while a 6M/1Y range is actually selected, so
+   normal rounding is restored the moment the person switches back. body already has overflow-x:hidden,
+   so this can never introduce a sideways page scroll. */
+#statsPage.stats-range-wide .section.glass{overflow:visible}
 /* Inside the fullscreen overlay this fixed height doesn't apply — the rotator now shows the graph
    PLUS the full stats/breakdown block underneath it (see .stats-graph-fs-summary), all in one
    scrollable column. The chart was previously squashed to a flat 260px here regardless of screen
@@ -3112,7 +3144,7 @@ body.tracker-fs-lock{overflow:hidden}
             <select id="statsMonth" onchange="statsMonthChanged()"></select>
           </div>
           <div class="vol-range-label" id="durRangeLabel"></div>
-          <div class="analytics-box">
+          <div class="analytics-box" id="durAnalyticsBox">
             <div class="graph-container" id="durGraphBox">
               <div class="graph-scroll-outer" id="durGraphScrollWrap">
                 <div class="graph-scroll-inner" id="durGraphScrollInner">
@@ -3204,7 +3236,7 @@ body.tracker-fs-lock{overflow:hidden}
             </div>
             <div class="vol-range-label" id="volRangeLabel"></div>
 
-            <div class="analytics-box">
+            <div class="analytics-box" id="volAnalyticsBox">
               <div class="graph-container vol-graph-box" id="volGraphBox">
                 <div class="graph-scroll-outer" id="volGraphScrollWrap">
                   <div class="graph-scroll-inner" id="volGraphScrollInner">
@@ -10191,6 +10223,13 @@ function _monthLabelStride(chartW,anchorCount){
   const fits=Math.max(1,Math.floor(chartW/perLabel));
   return Math.max(1,Math.ceil(anchorCount/fits));
 }
+/* True for the two ranges dense enough to need the full-bleed card (see .analytics-box.range-wide). */
+function _isWideRange(mode){return mode==='6month'||mode==='1year'}
+/* The Duration and Volume views live inside the SAME .section.glass, which clips to its rounded
+   corners — so the clip has to be lifted whenever either view is currently on a full-bleed range. */
+function _syncStatsWideOverflow(){
+  document.getElementById('statsPage')?.classList.toggle('stats-range-wide',_isWideRange(durRangeMode)||_isWideRange(volRangeMode));
+}
 /* Tick font shrinks a step on a narrow viewport so the sparse labels never clip each other. */
 function _axisTickFont(chartW){return{family:'Rajdhani',size:chartW<420?9:(chartW<760?10:11),weight:'600'}}
 
@@ -10220,8 +10259,12 @@ function setDurRangeMode(mode){
 
   const durBtnIds={weekly:'durRangeBtnWeekly',monthly:'durRangeBtnMonthly','3month':'durRangeBtn3m','6month':'durRangeBtn6m','1year':'durRangeBtn1y'};
   Object.keys(durBtnIds).forEach(k=>{document.getElementById(durBtnIds[k])?.classList.toggle('active',mode===k)});
-  // 6M/1Y get the taller box (see .range-long) so the denser line isn't squashed flat.
-  document.getElementById('durGraphBox')?.classList.toggle('range-long',mode==='6month'||mode==='1year');
+  // 6M/1Y get the taller box (.range-long) AND the full-bleed, device-width card (.range-wide) — the
+  // dense line needs room in both directions, and width is the one that actually decides legibility.
+  const durWide=_isWideRange(mode);
+  document.getElementById('durGraphBox')?.classList.toggle('range-long',durWide);
+  document.getElementById('durAnalyticsBox')?.classList.toggle('range-wide',durWide);
+  _syncStatsWideOverflow();
 
   if(mode==='weekly'){
     weekRow.style.display='flex';
@@ -11316,8 +11359,12 @@ function setVolRangeMode(mode){
 
   const volBtnIds={weekly:'volRangeBtnWeekly',monthly:'volRangeBtnMonthly','3month':'volRangeBtn3m','6month':'volRangeBtn6m','1year':'volRangeBtn1y'};
   Object.keys(volBtnIds).forEach(k=>{document.getElementById(volBtnIds[k])?.classList.toggle('active',mode===k)});
-  // 6M/1Y get the taller box (see .range-long) so the denser line isn't squashed flat.
-  document.getElementById('volGraphBox')?.classList.toggle('range-long',mode==='6month'||mode==='1year');
+  // 6M/1Y get the taller box (.range-long) AND the full-bleed, device-width card (.range-wide) — the
+  // dense line needs room in both directions, and width is the one that actually decides legibility.
+  const volWide=_isWideRange(mode);
+  document.getElementById('volGraphBox')?.classList.toggle('range-long',volWide);
+  document.getElementById('volAnalyticsBox')?.classList.toggle('range-wide',volWide);
+  _syncStatsWideOverflow();
 
   if(mode==='weekly'){
     // Restore both dropdowns exactly as before
