@@ -9215,6 +9215,30 @@ function initStatsMonthDropdowns(){
     return typeof statsGraphFsOpen!=='undefined'&&statsGraphFsOpen&&statsGraphFsBoxId==='volGraphBox';
   }
 
+  // True while the given graph box ('durGraphBox' or 'volGraphBox') is the one currently relocated
+  // into the 3-Month fullscreen-focus overlay. Used by _chartTouchXY below to know when the graph
+  // canvas itself is sitting inside the rotated view.
+  window._statsGraphFsActive=function(boxId){
+    return typeof statsGraphFsOpen!=='undefined'&&statsGraphFsOpen&&statsGraphFsBoxId===boxId;
+  };
+
+  // Converts a touch/mouse point (clientX/clientY) into the canvas-local pixel coordinates Chart.js
+  // expects (the same space as canvas.offsetWidth/offsetHeight). Normally that's just
+  // clientX/Y minus the canvas's boundingClientRect — but inside the Stats 3-Month fullscreen-focus
+  // overlay the whole panel (canvas included) is visually rotated 90° to simulate landscape on a
+  // portrait phone (see _statsGraphFsLayout). getBoundingClientRect() there returns the rotated
+  // (width/height swapped) box, so the plain subtraction points at the wrong pixel and the highlighted
+  // marker stops tracking the finger. This inverts that 90° rotation so the marker chases the finger
+  // exactly like it does on the normal (non-fullscreen) screen; outside fullscreen it's identical to
+  // the original plain math.
+  window._chartTouchXY=function(canvas,clientX,clientY,boxId){
+    const rect=canvas.getBoundingClientRect();
+    if(window._statsGraphFsActive(boxId)){
+      return{x:clientY-rect.top,y:canvas.offsetHeight-(clientX-rect.left)};
+    }
+    return{x:clientX-rect.left,y:clientY-rect.top};
+  };
+
   // Touch/Pointer swipe handling
   function initSwipe(){
     const outer=document.getElementById('vspWrapper');
@@ -9232,24 +9256,23 @@ function initStatsMonthDropdowns(){
       const t=e.touches?e.touches[0]:e;
       dx=t.clientX-startX;
       dy=t.clientY-startY;
-      // only hijack horizontal-dominant gesture
-      if(!moved&&Math.abs(dy)>Math.abs(dx)+4){dragging=false;return}
-      // Fullscreen-only hardening: the 3-Month fullscreen-focus view visually rotates this whole
-      // panel sideways to simulate landscape on a portrait device (see _statsGraphFsLayout), which
-      // made a physical up/down drag prone to being picked up as this horizontal swipe. Re-check
-      // dominance on every move while fullscreen is open — not just once, before "moved" flips — so
-      // a drag that is, or turns, vertical-dominant can never start or continue the panel switch
-      // there; it always still works normally (left/right) outside fullscreen.
-      if(_vspInFullscreen()&&Math.abs(dy)>Math.abs(dx)){
-        if(moved){track.style.transition='';vspApply(_vspIdx,true);}
-        moved=false;dragging=false;return;
-      }
-      if(Math.abs(dx)>6){
+      // The 3-Month fullscreen-focus view visually rotates this whole panel 90° to simulate landscape
+      // on a portrait phone (see _statsGraphFsLayout), which swaps what each physical drag direction
+      // means: physical vertical drag now does what horizontal drag does on the normal screen (switch
+      // Stats/Breakdown), and physical horizontal drag now does what vertical drag does normally
+      // (scroll the panel's own content). "primary" is whichever physical axis drives the panel switch
+      // in the current mode; "cross" is the one that should fall through to native scrolling instead.
+      const fs=_vspInFullscreen();
+      const primary=fs?dy:dx;
+      const cross=fs?dx:dy;
+      // only hijack primary-dominant gesture
+      if(!moved&&Math.abs(cross)>Math.abs(primary)+4){dragging=false;return}
+      if(Math.abs(primary)>6){
         moved=true;
         if(e.cancelable)e.preventDefault();
         // live drag feedback
         const base=_vspIdx*50;
-        const pct=(-dx/outer.offsetWidth)*100;
+        const pct=(-primary/outer.offsetWidth)*100;
         const clamped=Math.max(0,Math.min(50,base+pct));
         track.style.transition='none';
         track.style.transform=`translateX(-${clamped}%)`;
@@ -9259,10 +9282,11 @@ function initStatsMonthDropdowns(){
       if(!dragging)return;
       dragging=false;
       if(!moved){return}
+      const primary=_vspInFullscreen()?dy:dx;
       const threshold=outer.offsetWidth*0.2;
       let next=_vspIdx;
-      if(dx<-threshold&&_vspIdx<PANELS-1)next=_vspIdx+1;
-      else if(dx>threshold&&_vspIdx>0)next=_vspIdx-1;
+      if(primary<-threshold&&_vspIdx<PANELS-1)next=_vspIdx+1;
+      else if(primary>threshold&&_vspIdx>0)next=_vspIdx-1;
       vspApply(next,true);
     }
 
@@ -10484,24 +10508,26 @@ async function updateDurationLineChart(){
   }
 
   canvas.onclick=function(evt){
-    const pts=instance.getElementsAtEventForMode(evt,'index',{intersect:false},true);
+    const{x,y}=_chartTouchXY(canvas,evt.clientX,evt.clientY,'durGraphBox');
+    const pts=instance.getElementsAtEventForMode({x,y,native:evt},'index',{intersect:false},true);
     if(pts.length)selectPoint(pts[0].index);
   };
   canvas.onmousemove=function(evt){
-    const pts=instance.getElementsAtEventForMode(evt,'index',{intersect:false},true);
+    const{x,y}=_chartTouchXY(canvas,evt.clientX,evt.clientY,'durGraphBox');
+    const pts=instance.getElementsAtEventForMode({x,y,native:evt},'index',{intersect:false},true);
     if(pts.length)selectPoint(pts[0].index);
   };
   canvas.ontouchstart=function(evt){
     const touch=evt.touches[0];if(!touch)return;
-    const rect=canvas.getBoundingClientRect();
-    const fakeEvt={x:touch.clientX-rect.left,y:touch.clientY-rect.top,native:evt};
+    const{x,y}=_chartTouchXY(canvas,touch.clientX,touch.clientY,'durGraphBox');
+    const fakeEvt={x,y,native:evt};
     const pts=instance.getElementsAtEventForMode(fakeEvt,'index',{intersect:false},true);
     if(pts.length)selectPoint(pts[0].index);
   };
   canvas.ontouchmove=function(evt){
     const touch=evt.touches[0];if(!touch)return;
-    const rect=canvas.getBoundingClientRect();
-    const fakeEvt={x:touch.clientX-rect.left,y:touch.clientY-rect.top,native:evt};
+    const{x,y}=_chartTouchXY(canvas,touch.clientX,touch.clientY,'durGraphBox');
+    const fakeEvt={x,y,native:evt};
     const pts=instance.getElementsAtEventForMode(fakeEvt,'index',{intersect:false},true);
     if(pts.length){evt.preventDefault();selectPoint(pts[0].index)}
   };
@@ -11393,25 +11419,27 @@ async function updateVolumeLineChart(){
   }
 
   canvas.onclick=function(evt){
-    const pts=instance.getElementsAtEventForMode(evt,'index',{intersect:false},true);
+    const{x,y}=_chartTouchXY(canvas,evt.clientX,evt.clientY,'volGraphBox');
+    const pts=instance.getElementsAtEventForMode({x,y,native:evt},'index',{intersect:false},true);
     if(pts.length)selectPoint(pts[0].index);
   };
   canvas.onmousemove=function(evt){
-    const pts=instance.getElementsAtEventForMode(evt,'index',{intersect:false},true);
+    const{x,y}=_chartTouchXY(canvas,evt.clientX,evt.clientY,'volGraphBox');
+    const pts=instance.getElementsAtEventForMode({x,y,native:evt},'index',{intersect:false},true);
     if(pts.length)selectPoint(pts[0].index);
   };
   // Touch-drag: as a finger moves across the line without lifting, keep both boxes live-updating in real time
   canvas.ontouchstart=function(evt){
     const touch=evt.touches[0];if(!touch)return;
-    const rect=canvas.getBoundingClientRect();
-    const fakeEvt={x:touch.clientX-rect.left,y:touch.clientY-rect.top,native:evt};
+    const{x,y}=_chartTouchXY(canvas,touch.clientX,touch.clientY,'volGraphBox');
+    const fakeEvt={x,y,native:evt};
     const pts=instance.getElementsAtEventForMode(fakeEvt,'index',{intersect:false},true);
     if(pts.length)selectPoint(pts[0].index);
   };
   canvas.ontouchmove=function(evt){
     const touch=evt.touches[0];if(!touch)return;
-    const rect=canvas.getBoundingClientRect();
-    const fakeEvt={x:touch.clientX-rect.left,y:touch.clientY-rect.top,native:evt};
+    const{x,y}=_chartTouchXY(canvas,touch.clientX,touch.clientY,'volGraphBox');
+    const fakeEvt={x,y,native:evt};
     const pts=instance.getElementsAtEventForMode(fakeEvt,'index',{intersect:false},true);
     if(pts.length){evt.preventDefault();selectPoint(pts[0].index)}
   };
