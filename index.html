@@ -19003,11 +19003,14 @@ function renderTrackerChart(){
   // still say what they're measuring now that the old rotated axis title (which ate real plot width)
   // is gone. Drawn top-left, INSIDE the chart's own reserved top padding rather than as a Chart.js axis
   // title, so placement is fully our own to control:
-  // - it sits well clear of the topmost tick number (extra ~14px gap beyond the tick's own half-height)
-  //   so it can never overlap the Y-axis values on any screen size,
-  // - it never reaches the detail box (top-right) or the H/L markers (drawn just above the plotted line
-  //   itself, well below this padding on any real dataset),
-  // - its font shrinks a step on a narrow phone via the shared _axisTickFont sizing (same helper the
+  // - Bold + theme accent blue (same live --accent the line/point colors already track) instead of the
+  //   old dim gray, so it reads clearly as a header rather than blending into the tick numbers below it.
+  // - A generous, screen-size-scaled gap (base 22px + a slice of the header's own font size) separates
+  //   it from the topmost tick number, well beyond the tick's own half-height, so there's real breathing
+  //   room between the header and the Y-axis values on any device rather than the two crowding together.
+  // - It never reaches the detail box (top-right) or the H/L markers (drawn just above the plotted line
+  //   itself, well below this padding on any real dataset).
+  // - Its font shrinks a step on a narrow phone via the shared _axisTickFont sizing (same helper the
   //   Duration/Volume graphs use), so it never clips at the left edge — auto-flexing the same way.
   const trkYUnitLabel=mode==='reps'?'Reps':mode==='duration'?'Time':mode==='distance'?((cardioUnit==='Floors'||cardioUnit==='Steps')?cardioUnit:'Km'):'Kg';
   const trkYUnitPlugin={
@@ -19016,11 +19019,12 @@ function renderTrackerChart(){
       const{ctx,chartArea,scales}=chart;
       if(!chartArea||!scales.y)return;
       ctx.save();
-      const fs=_axisTickFont(chart.width).size;
+      const fs=_axisTickFont(chart.width).size+1;
       ctx.font=`700 ${fs}px Rajdhani, sans-serif`;
-      ctx.fillStyle='#6b7280';
+      ctx.fillStyle=_accentNow;
       ctx.textAlign='left';ctx.textBaseline='bottom';
-      ctx.fillText(trkYUnitLabel,scales.y.left,chartArea.top-14);
+      const gap=22+fs*0.7;
+      ctx.fillText(trkYUnitLabel,scales.y.left,chartArea.top-gap);
       ctx.restore();
     }
   };
@@ -19072,13 +19076,37 @@ function renderTrackerChart(){
       // (138px fixed box + clear gap). This carves that space out of the chart's own plot area, so the line and its point
       // markers are drawn entirely below the reserved zone — they can never run underneath or touch
       // the detail box, even when pointHoverRadius temporarily enlarges a marker on tap/hover.
-      layout:{padding:{top:155,right:6,left:2,bottom:2}},
+      layout:{padding:{top:162,right:6,left:2,bottom:2}},
       // Default Chart.js tooltip is disabled — the fixed top-right detail box replaces it with the full per-set breakdown
       plugins:{legend:{display:false},tooltip:{enabled:false}},
       scales:{
         y:{beginAtZero:true,suggestedMax:trkSuggestedMax,grid:{color:'rgba(128,128,128,0.08)'},// No axis title (matches Duration/Volume) — it was eating a chunk of horizontal room for a label
-        // the header title + detail box already make clear; the value-suffixed ticks alone are unchanged.
-        ticks:{color:'#6b7280',font:{family:'Rajdhani',size:12},callback(v){if(mode==='reps')return v;if(mode==='duration')return v+'m';if(mode==='distance')return(cardioUnit==='Floors'||cardioUnit==='Steps')?v:v+'km';return v+'kg'}}},
+        // the header title + detail box already make clear.
+        // Ticks are now bare numbers — the bold header above already states the unit (Kg/Reps/Time/
+        // Km/Floors/Steps), so repeating "kg"/"m"/"km" on every single tick was just extra width with
+        // no added clarity. Font uses the same shared _axisTickFont sizing the header and the Duration/
+        // Volume graphs use, so it shrinks a step on narrow phones instead of staying a fixed size.
+        ticks:{color:'#6b7280',font:c=>_axisTickFont(c.chart&&c.chart.width),callback(v){return v}},
+        // Chart.js pads its own reserved axis width well beyond what the tick text actually needs.
+        // Rather than guessing at a percentage cut (which can clip digits off numbers it didn't
+        // account for), this MEASURES the actual pixel width of every tick value at the current
+        // responsive font (same _axisTickFont size the ticks themselves use, so it's exactly in sync
+        // on narrow/mid/wide screens) and sizes the axis to fit the widest one, plus a small buffer.
+        // Every digit of every value is always fully rendered — this only removes Chart.js's excess
+        // leftover padding around them, handing that freed-up width to the plotted line.
+        afterFit(scale){
+          const ctx=scale.ctx,font=_axisTickFont(scale.chart.width);
+          ctx.save();
+          ctx.font=`${font.weight||'600'} ${font.size}px ${font.family}`;
+          let maxW=0;
+          (scale.ticks||[]).forEach(t=>{
+            const w=ctx.measureText(String(t.value)).width;
+            if(w>maxW)maxW=w;
+          });
+          ctx.restore();
+          // +12px buffer covers Chart.js's own tick-to-label gap plus a hair of anti-aliasing slack.
+          scale.width=Math.max(24,Math.ceil(maxW)+12);
+        }},
         // X axis: no date labels and no gridlines, per spec — dates only ever appear inside the detail box
         x:{display:false,grid:{display:false},ticks:{display:false}}
       },
@@ -21332,4 +21360,4 @@ function closeLearnVideo(){
 })();
 </script>
 </body>
-</html> 
+</html>
