@@ -2309,7 +2309,11 @@ body.workout-edit-lock{overflow:hidden}
 .tgm-dd-trigger.tgm-dd-disabled{opacity:0.55;cursor:not-allowed}
 .tgm-dd-caret{font-size:8px;transition:transform 0.15s ease}
 .tgm-dd-trigger.open .tgm-dd-caret{transform:rotate(180deg)}
-.tgm-dd-menu{position:absolute;top:calc(100% + 4px);right:0;min-width:120px;max-height:220px;overflow-y:auto;background:var(--bg-card);border:1px solid var(--border-col);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,0.25);padding:4px;z-index:40;display:none;-webkit-tap-highlight-color:transparent}
+/* left/right/max-width are NOT fixed here — they're set inline by _tgmPositionMenu every time the
+   menu opens, using LOCAL (pre-rotation) layout math, so the same menu works whether the trigger sits
+   near the left edge (normal page) or the right edge (fullscreen title bar) of its container. This
+   plain "left:0" is only the very first paint's fallback, before JS has measured anything. */
+.tgm-dd-menu{position:absolute;top:calc(100% + 4px);left:0;min-width:120px;max-height:220px;overflow-y:auto;background:var(--bg-card);border:1px solid var(--border-col);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,0.25);padding:4px;z-index:40;display:none;-webkit-tap-highlight-color:transparent;box-sizing:border-box}
 .tgm-dd-menu.open{display:block}
 .tgm-dd-option{padding:7px 10px;border-radius:7px;font-size:11.5px;font-weight:700;font-family:var(--font-alt);color:var(--text-secondary);cursor:pointer;white-space:nowrap}
 .tgm-dd-option:hover{background:var(--bg-panel)}
@@ -19912,16 +19916,50 @@ function _tgmEnhanceModeSelect(){
       menu.appendChild(item);
     });
   }
+  // Decides which side the menu opens on and clamps its width, using ONLY layout properties that CSS
+  // transforms never touch (offsetLeft/offsetWidth/offsetParent, clientWidth) — never
+  // getBoundingClientRect(), which would report real, ROTATED screen coordinates inside the fullscreen
+  // view and get left/right backwards there. This is what makes one dropdown implementation correct on
+  // the normal page (trigger near the left edge) AND in the fullscreen title bar (trigger near the
+  // right edge), instead of a fixed anchor that only happens to work for one of the two.
+  function positionMenu(){
+    menu.style.left='0';menu.style.right='auto';menu.style.maxWidth='';
+    const menuWidth=menu.offsetWidth;
+    // Walk the offsetParent chain to find wrap's cumulative left offset within the nearest container
+    // whose width actually bounds it (the fullscreen title bar, or the analytics panel on the normal
+    // page) — every step here uses pre-transform layout numbers, so it's correct even inside the
+    // rotated stage.
+    const bound=wrap.closest('.tracker-fs-titlebar,.tracker-analytics-panel')||document.body;
+    let node=wrap,left=0;
+    while(node&&node!==bound){left+=node.offsetLeft||0;node=node.offsetParent}
+    const containerWidth=bound.clientWidth||window.innerWidth;
+    const spaceRight=containerWidth-left-wrap.offsetWidth;
+    if(menuWidth>spaceRight&&left>=menuWidth){
+      // Not enough room opening rightward, but enough opening leftward — flip, same as a normal
+      // OS/app dropdown does when it would otherwise run off the edge.
+      menu.style.left='auto';menu.style.right='0';
+    }else{
+      // Stay left-aligned to the trigger; clamp so a long option list (e.g. "Distance") can never
+      // itself force the card wider than its container.
+      menu.style.maxWidth=Math.max(120,containerWidth-left-4)+'px';
+    }
+  }
+  function _onMenuReflow(){if(menu.classList.contains('open'))positionMenu()}
   function openMenu(){
     if(selectEl.disabled)return;
     document.querySelectorAll('.tgm-dd-menu.open').forEach(m=>{if(m!==menu)m.classList.remove('open')});
     buildMenu();
     menu.classList.add('open');trigger.classList.add('open');
+    positionMenu();
     document.addEventListener('click',onOutsideClick,true);
+    window.addEventListener('resize',_onMenuReflow);
+    window.addEventListener('orientationchange',_onMenuReflow);
   }
   function closeMenu(){
     menu.classList.remove('open');trigger.classList.remove('open');
     document.removeEventListener('click',onOutsideClick,true);
+    window.removeEventListener('resize',_onMenuReflow);
+    window.removeEventListener('orientationchange',_onMenuReflow);
   }
   function onOutsideClick(e){if(!wrap.contains(e.target))closeMenu()}
   trigger.addEventListener('click',()=>{
@@ -21656,4 +21694,4 @@ function closeLearnVideo(){
 })();
 </script>
 </body>
-</html>  
+</html> 
