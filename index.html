@@ -2288,7 +2288,7 @@ body.workout-edit-lock{overflow:hidden}
 .tracker-analytics-close:hover{background:var(--accent);color:#fff}
 /* Right-side header cluster (mode dropdown + close button) — wraps as one unit under the title on narrow screens */
 .tracker-analytics-header-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.tracker-graph-mode-wrap{display:flex;align-items:center;gap:6px}
+.tracker-graph-mode-wrap{position:relative;display:flex;align-items:center;gap:6px}
 .tracker-graph-mode-wrap label{font-size:10px;font-weight:700;color:var(--text-muted);font-family:var(--font-alt);letter-spacing:0.4px;text-transform:uppercase;white-space:nowrap}
 .tracker-graph-mode-select{margin-top:0;width:auto;padding:7px 26px 7px 12px;border-radius:9px;border:1px solid var(--accent);background:var(--accent-soft);color:var(--accent);font-size:11.5px;font-weight:700;font-family:var(--font-alt);cursor:pointer;letter-spacing:0.3px;-webkit-appearance:none;appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--accent) 50%),linear-gradient(135deg,var(--accent) 50%,transparent 50%);background-position:calc(100% - 14px) center,calc(100% - 9px) center;background-size:5px 5px,5px 5px;background-repeat:no-repeat}
 .tracker-graph-mode-select:focus{outline:none;border-color:var(--accent)}
@@ -2296,6 +2296,25 @@ body.workout-edit-lock{overflow:hidden}
   .tracker-graph-mode-wrap label{display:none}
   .tracker-graph-mode-select{font-size:10.5px;padding:6px 22px 6px 10px}
 }
+/* ===== "View" metric dropdown — app-themed replacement for the native <select> (see
+   _tgmEnhanceModeSelect) =====
+   BUG THIS FIXES: a native <select>'s OS picker (and any menu positioned against the real, unrotated
+   screen — position:fixed computed from getBoundingClientRect) opens sideways/disconnected from its
+   trigger inside the Track Workout fullscreen-focus view, because that whole stage is visually rotated
+   90° with a CSS transform to simulate landscape. This dropdown is instead a plain, LOCAL child of its
+   own wrapper (.tracker-graph-mode-wrap, made position:relative for it) — a normal descendant of the
+   same rotated subtree as the trigger, so it rotates right along with it and opens exactly where it
+   visually belongs, in fullscreen or not, with zero screen-geometry math needed. */
+.tgm-dd-trigger{display:flex;align-items:center;gap:6px;padding:7px 12px;border-radius:9px;border:1px solid var(--accent);background:var(--accent-soft);color:var(--accent);font-size:11.5px;font-weight:700;font-family:var(--font-alt);cursor:pointer;letter-spacing:0.3px;user-select:none;-webkit-tap-highlight-color:transparent}
+.tgm-dd-trigger.tgm-dd-disabled{opacity:0.55;cursor:not-allowed}
+.tgm-dd-caret{font-size:8px;transition:transform 0.15s ease}
+.tgm-dd-trigger.open .tgm-dd-caret{transform:rotate(180deg)}
+.tgm-dd-menu{position:absolute;top:calc(100% + 4px);right:0;min-width:120px;max-height:220px;overflow-y:auto;background:var(--bg-card);border:1px solid var(--border-col);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,0.25);padding:4px;z-index:40;display:none;-webkit-tap-highlight-color:transparent}
+.tgm-dd-menu.open{display:block}
+.tgm-dd-option{padding:7px 10px;border-radius:7px;font-size:11.5px;font-weight:700;font-family:var(--font-alt);color:var(--text-secondary);cursor:pointer;white-space:nowrap}
+.tgm-dd-option:hover{background:var(--bg-panel)}
+.tgm-dd-option.selected{background:var(--accent-soft);color:var(--accent)}
+@media (max-width:480px){.tgm-dd-trigger{font-size:10.5px;padding:6px 10px}}
 /* Wraps the tracker graph + its fixed detail box in the same tinted card used by the Duration/Volume
    graphs (.analytics-box), so the detail box reads as sitting inside the graph's own card corner
    instead of floating in open space above it. */
@@ -19838,6 +19857,111 @@ document.addEventListener('click',function(e){
   const now=new Date(),y=now.getFullYear(),m=String(now.getMonth()+1).padStart(2,'0');
   document.getElementById("trackerFromDate").value=`${y}-${m}-01`;document.getElementById("trackerToDate").value=getLocalDateStringFor(now);
 })();
+/* ===================== TRACK WORKOUT GRAPH — "VIEW" METRIC DROPDOWN (APP-THEMED) =====================
+   Replaces the native OS <select> popover for the Volume/Weight/Reps/Duration/Distance picker with our
+   own themed dropdown, built as a LOCAL, in-flow child of its own wrapper — unlike the Muscle/Equipment
+   filter dropdowns' ctmEnhanceSelectAsAppDropdown, which appends its menu to <body> and positions it
+   with `position:fixed` computed from the trigger's real, on-screen bounding box. That distinction
+   matters here specifically because of the Track Workout fullscreen-focus view: its whole stage is
+   visually rotated 90° with a CSS transform to simulate landscape (see enterTrackerFullscreen), and a
+   native <select>'s OS picker — or any menu positioned against the real, UNROTATED screen — pops up
+   sideways/disconnected from the rotated trigger it belongs to. A plain CSS dropdown that's a normal
+   descendant of the wrapper has no such problem: it's part of the same rotated subtree as its trigger,
+   so it rotates right along with it and opens exactly where it visually belongs, in fullscreen or not.
+   The original <select> stays in the DOM (display:none, not removed) as the single source of truth —
+   every existing `.value` read/write, `.disabled` toggle, and per-exercise option show/hide/relabel
+   elsewhere in the app (see showTrackerAnalytics) keeps working completely unchanged. */
+function _tgmEnhanceModeSelect(){
+  const selectEl=document.getElementById('trackerGraphModeSelect');
+  const wrap=document.getElementById('trackerGraphModeWrap');
+  if(!selectEl||!wrap||selectEl._tgmEnhanced)return;
+  selectEl._tgmEnhanced=true;
+  selectEl.style.display='none';
+  selectEl.tabIndex=-1;
+
+  const trigger=document.createElement('div');
+  trigger.className='tgm-dd-trigger';
+  trigger.setAttribute('role','button');
+  trigger.setAttribute('tabindex','0');
+  trigger.innerHTML='<span class="tgm-dd-label"></span><span class="tgm-dd-caret">▼</span>';
+  wrap.appendChild(trigger);
+  const labelEl=trigger.querySelector('.tgm-dd-label');
+
+  const menu=document.createElement('div');
+  menu.className='tgm-dd-menu';
+  wrap.appendChild(menu);
+
+  function visibleOptions(){return Array.from(selectEl.options).filter(o=>o.style.display!=='none')}
+  function syncLabel(){
+    const opt=Array.from(selectEl.options).find(o=>o.value===selectEl.value);
+    labelEl.textContent=opt?opt.textContent:(visibleOptions()[0]?visibleOptions()[0].textContent:'');
+  }
+  function buildMenu(){
+    menu.innerHTML='';
+    visibleOptions().forEach(o=>{
+      const item=document.createElement('div');
+      item.className='tgm-dd-option'+(o.value===selectEl.value?' selected':'');
+      item.textContent=o.textContent;
+      item.addEventListener('click',()=>{
+        if(selectEl.value!==o.value){
+          selectEl.value=o.value; // through the intercepted setter below → syncs label, doesn't fire change
+          selectEl.dispatchEvent(new Event('change',{bubbles:true})); // fires the app's existing onchange
+        }
+        closeMenu();
+      });
+      menu.appendChild(item);
+    });
+  }
+  function openMenu(){
+    if(selectEl.disabled)return;
+    document.querySelectorAll('.tgm-dd-menu.open').forEach(m=>{if(m!==menu)m.classList.remove('open')});
+    buildMenu();
+    menu.classList.add('open');trigger.classList.add('open');
+    document.addEventListener('click',onOutsideClick,true);
+  }
+  function closeMenu(){
+    menu.classList.remove('open');trigger.classList.remove('open');
+    document.removeEventListener('click',onOutsideClick,true);
+  }
+  function onOutsideClick(e){if(!wrap.contains(e.target))closeMenu()}
+  trigger.addEventListener('click',()=>{
+    if(trigger.classList.contains('tgm-dd-disabled'))return;
+    menu.classList.contains('open')?closeMenu():openMenu();
+  });
+  trigger.addEventListener('keydown',e=>{
+    if(trigger.classList.contains('tgm-dd-disabled'))return;
+    if(e.key==='Enter'||e.key===' '){e.preventDefault();menu.classList.contains('open')?closeMenu():openMenu()}
+    else if(e.key==='Escape')closeMenu();
+  });
+
+  // Reflect selectEl.disabled (toggled while "View Journey" plays — see startTrackerJourney/
+  // stopTrackerJourney) onto the trigger, since a display:none control has no visual disabled state
+  // of its own to show.
+  new MutationObserver(()=>{
+    trigger.classList.toggle('tgm-dd-disabled',selectEl.disabled);
+    if(selectEl.disabled)closeMenu();
+  }).observe(selectEl,{attributes:true,attributeFilter:['disabled']});
+
+  // The option list itself changes per exercise — shown/hidden by class, relabelled Distance→Floors/
+  // Steps (see showTrackerAnalytics) — so re-sync whenever it changes, keeping the trigger label and
+  // an already-open menu from ever going stale.
+  new MutationObserver(()=>{syncLabel();if(menu.classList.contains('open'))buildMenu()})
+    .observe(selectEl,{childList:true,subtree:true,characterData:true,attributes:true,attributeFilter:['style']});
+
+  // Intercept .value so any existing code path that does `modeSelect.value="X"` (showTrackerAnalytics'
+  // per-exercise default, mode restores, etc.) keeps the custom label in sync automatically — matching
+  // native <select> semantics, a programmatic set does NOT itself fire 'change' (only the click handler
+  // above does that, and only when the value actually differs).
+  const nativeValueDesc=Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype,'value');
+  Object.defineProperty(selectEl,'value',{
+    get(){return nativeValueDesc.get.call(selectEl)},
+    set(v){nativeValueDesc.set.call(selectEl,v);syncLabel();if(menu.classList.contains('open'))buildMenu()},
+    configurable:true
+  });
+
+  syncLabel();
+}
+_tgmEnhanceModeSelect();
 </script>
 
 <!-- ===================== LEARN PAGE ENGINE ===================== -->
@@ -21532,4 +21656,4 @@ function closeLearnVideo(){
 })();
 </script>
 </body>
-</html> 
+</html>  
