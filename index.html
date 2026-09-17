@@ -8493,7 +8493,7 @@ async function switchMemberTab(id){
     }
   }
   else if(id==='attPage')await loadAttendanceHistoryRecords();
-  else if(id==='workPage')await loadWorkoutsForDate();
+  else if(id==='workPage'){await loadWorkoutsForDate();await _trackerRestoreState();}
   else if(id==='learnPage')initLearnPage();
   else if(id==='socialPage')loadSocialPage();
   else if(id==='settingsPage')initSettingsPage();
@@ -18462,12 +18462,81 @@ function changeTrackerPageSize(val){
   trackerPageSize=parseInt(val)||5;
   trackerCurrentPage=1;
   renderTrackerTable();
+  _trackerPersistState();
 }
 /* When set (via the "Track Workout" button on the Add/Edit form), the tracker stays "focused" on this one
    exercise: re-running Track Workouts after changing the date range keeps showing only this exercise
    (table row + graph), instead of snapping back to the full list. A manual/normal Track Workouts run
    (never used Track Workout, or after Close) leaves this null and behaves exactly as before — all exercises. */
 let trackerFocusedExerciseName=null;
+// Name of the exercise whose analytics panel is CURRENTLY OPEN, regardless of how it got opened
+// (search + click, table row, or the "focus" flow above) — used only for surviving a page refresh, see
+// _trackerPersistState/_trackerRestoreState.
+let trackerOpenExerciseName=null;
+/* ===================== TRACK WORKOUT — SURVIVE-REFRESH STATE (sessionStorage) =====================
+   Before this, refreshing the browser while on the Workout tab reset the From/To dates back to their
+   "1st of this month → today" default, dropped the Muscle/Equipment filters and search text, and closed
+   whatever exercise's graph was open — because every one of those lives only in the DOM/JS state that a
+   real page reload throws away and rebuilds from scratch. Persisting them to sessionStorage (same
+   convention already used for the last-active tab and the Stats subnav — see gymbro_last_tab) and
+   replaying them once, the first time the Workout tab is opened after a reload, fixes that: same
+   convention means this also behaves the same way those already do — a refresh in the same tab restores
+   it, but a genuinely new tab/browser session starts fresh, matching "only show clean defaults on a
+   fresh open". */
+function _trackerPersistState(){
+  try{
+    const state={
+      fromDate:document.getElementById('trackerFromDate')?.value||'',
+      toDate:document.getElementById('trackerToDate')?.value||'',
+      muscle:document.getElementById('trackerMuscleFilter')?.value||'',
+      equipment:document.getElementById('trackerEquipmentFilter')?.value||'',
+      search:document.getElementById('trackerSearchInput')?.value||'',
+      focusedExercise:trackerFocusedExerciseName||null,
+      openExercise:trackerOpenExerciseName||null,
+      pageSize:trackerPageSize,
+      currentPage:trackerCurrentPage
+    };
+    sessionStorage.setItem('gymbro_tracker_state',JSON.stringify(state));
+  }catch(e){}
+}
+// Guards _trackerRestoreState so it only ever replays ONCE per page load — the Workout tab can be
+// opened, left, and reopened many times within the same session without re-fetching/re-jumping back to
+// whatever was open right after the refresh (that in-memory state is already intact by then; only an
+// actual reload needs this).
+let _trackerStateRestoreAttempted=false;
+async function _trackerRestoreState(){
+  if(_trackerStateRestoreAttempted)return;
+  _trackerStateRestoreAttempted=true;
+  let state=null;
+  try{state=JSON.parse(sessionStorage.getItem('gymbro_tracker_state')||'null')}catch(e){state=null}
+  if(!state||!state.fromDate||!state.toDate)return;
+  ctmInitMuscleEquipmentDropdowns(); // make sure the Muscle/Equipment <option> lists exist before setting their value
+  const fromEl=document.getElementById('trackerFromDate'),toEl=document.getElementById('trackerToDate');
+  const muscleSel=document.getElementById('trackerMuscleFilter'),equipSel=document.getElementById('trackerEquipmentFilter');
+  const searchInput=document.getElementById('trackerSearchInput');
+  if(fromEl)fromEl.value=state.fromDate;
+  if(toEl)toEl.value=state.toDate;
+  // Muscle/Equipment are populated asynchronously by ctmInitMuscleEquipmentDropdowns() — wait for their
+  // <option> lists to actually exist before setting a value, or the assignment silently no-ops.
+  if(muscleSel&&muscleSel.options.length)muscleSel.value=state.muscle||'';
+  if(equipSel&&equipSel.options.length)equipSel.value=state.equipment||'';
+  if(searchInput)searchInput.value=state.search||'';
+  updateNameClearIconVisibility('trackerSearchInput','trackerSearchClearIcon');
+  trackerPageSize=state.pageSize||5;
+  trackerCurrentPage=state.currentPage||1;
+  trackerFocusedExerciseName=state.focusedExercise||null;
+  await runWorkoutTracker();
+  // runWorkoutTracker() already reopens the graph on its own when trackerFocusedExerciseName is set
+  // (via applyTrackerFocus, called at its end). Otherwise, if an exercise's graph was open by itself
+  // (search + click, or a plain table-row click — not the "focus" flow), reselect that row and reopen
+  // it here so the graph genuinely survives the refresh either way.
+  if(!trackerFocusedExerciseName&&state.openExercise&&trackerAllData[state.openExercise]){
+    const rows=[...document.querySelectorAll('#trackerResultsArea .tracker-row')];
+    const rowEl=rows.find(r=>{const span=r.querySelector('.tracker-exercise-name');return span&&span.textContent===state.openExercise});
+    if(rowEl)selectTrackerRow(rowEl,state.openExercise);
+    showTrackerAnalytics(state.openExercise);
+  }
+}
 let trackerAnalyticsChartInstance=null;
 /* Graph marker navigation/highlight state — module-level so the arrow buttons & keyboard handler
    (outside the showTrackerAnalytics closure) can drive the currently-selected point. */
@@ -18690,6 +18759,7 @@ async function runWorkoutTracker(){
   });
   trackerAllData=exerciseMap;
   if(trackerFocusedExerciseName){applyTrackerFocus();}else{trackerCurrentPage=1;renderTrackerTable();}
+  _trackerPersistState();
 }
 function renderTrackerTable(filterName){
   const area=document.getElementById("trackerResultsArea");
@@ -18816,6 +18886,7 @@ function handleTrackerSearch(){
   // Live filter the table
   trackerCurrentPage=1;
   renderTrackerTable(val||undefined);
+  _trackerPersistState();
 
   // Suggestions dropdown
   if(val.length<1){sugBox.style.display='none';return}
@@ -18832,6 +18903,7 @@ function pickTrackerSuggestion(name){
   updateNameClearIconVisibility('trackerSearchInput','trackerSearchClearIcon');
   trackerCurrentPage=1;
   renderTrackerTable(name);
+  _trackerPersistState();
 }
 
 // Close the tracker results + search bar
@@ -18853,8 +18925,12 @@ function closeTrackerResults(){
   closeTrackerAnalytics();
   trackerSortedList=[];trackerAllData={};trackerCurrentPage=1;_selectedTrackerRow=null;
   trackerFocusedExerciseName=null;
+  trackerOpenExerciseName=null;
+  // An explicit reset — nothing left to restore after this, so drop the saved state entirely rather
+  // than persisting the freshly-cleared defaults (which would just re-save an equivalent blank state).
+  try{sessionStorage.removeItem('gymbro_tracker_state')}catch(e){}
 }
-function goTrackerPage(page){trackerCurrentPage=page;renderTrackerTable();document.getElementById("workoutTrackerSection").scrollIntoView({behavior:"smooth",block:"start"})}
+function goTrackerPage(page){trackerCurrentPage=page;renderTrackerTable();_trackerPersistState();document.getElementById("workoutTrackerSection").scrollIntoView({behavior:"smooth",block:"start"})}
 function showTrackerAnalytics(exName){
   const decoded=exName.replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&#039;/g,"'");
   const exData=trackerAllData[decoded];if(!exData||!exData.sets.length){alert("No set data available for this exercise.");return}
@@ -18925,6 +19001,8 @@ function showTrackerAnalytics(exName){
   trackerGraphContext={decoded,isBodyweightOnly,isCardio,isTimeOnly,isTimeBased,isKgKm,cardioUnit,dateMap,sortedDates,labels};
 
   const panel=document.getElementById("trackerAnalyticsPanel");panel.classList.add("visible");
+  trackerOpenExerciseName=decoded;
+  _trackerPersistState();
   renderTrackerChart();
   panel.scrollIntoView({behavior:"smooth",block:"start"});
 }
@@ -19498,7 +19576,7 @@ document.addEventListener('keydown',function(e){
   e.preventDefault();
   navigateTrackerPoint(e.key==='ArrowLeft'?-1:1);
 });
-function closeTrackerAnalytics(){stopTrackerJourney(true);if(trackerFullscreenOpen)exitTrackerFullscreen();const panel=document.getElementById("trackerAnalyticsPanel");panel.classList.remove("visible");if(trackerAnalyticsChartInstance){trackerAnalyticsChartInstance.destroy();trackerAnalyticsChartInstance=null}const cv=document.getElementById("trackerAnalyticsChart");if(cv)cv.ontouchmove=null;trackerGraphPointCount=0;trackerGraphSelectedIdx=-1;trackerGraphSelectFn=null;trackerGraphPulseFn=null;trackerGraphContext=null;trackerJourneyValues=null;const navRow=document.getElementById('trackerGraphNavRow');if(navRow)navRow.classList.remove('visible')}
+function closeTrackerAnalytics(){stopTrackerJourney(true);if(trackerFullscreenOpen)exitTrackerFullscreen();const panel=document.getElementById("trackerAnalyticsPanel");panel.classList.remove("visible");if(trackerAnalyticsChartInstance){trackerAnalyticsChartInstance.destroy();trackerAnalyticsChartInstance=null}const cv=document.getElementById("trackerAnalyticsChart");if(cv)cv.ontouchmove=null;trackerGraphPointCount=0;trackerGraphSelectedIdx=-1;trackerGraphSelectFn=null;trackerGraphPulseFn=null;trackerGraphContext=null;trackerJourneyValues=null;const navRow=document.getElementById('trackerGraphNavRow');if(navRow)navRow.classList.remove('visible');trackerOpenExerciseName=null;_trackerPersistState()}
 
 /* ===================== TRACK WORKOUT GRAPH — FULLSCREEN FOCUS =====================
    Same CSS-rotated "simulated landscape" view the Stats 3-Month/6M/1Y graphs use
@@ -21694,4 +21772,4 @@ function closeLearnVideo(){
 })();
 </script>
 </body>
-</html> 
+</html>
