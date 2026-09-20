@@ -34,23 +34,41 @@
 
 /* ===================== DARK MODE ===================== */
 body.theme-dark {
-  --bg-base:#000000;--bg-card:rgba(20,22,28,0.95);--bg-panel:rgba(14,16,20,0.92);
-  --border-col:rgba(120,170,255,0.18);--text-primary:#e7e9ec;--text-secondary:rgba(231,233,236,0.72);
-  --text-muted:rgba(231,233,236,0.45);--accent:#4f8cff;--accent2:#2f63cc;
-  --accent-glow:rgba(79,140,255,0.35);--accent-soft:rgba(79,140,255,0.08);
+  --bg-base:#050b18;--bg-card:rgba(22,33,58,0.55);--bg-panel:rgba(18,27,48,0.55);
+  --border-col:rgba(110,160,255,0.22);--text-primary:#e7ecf6;--text-secondary:rgba(225,232,246,0.72);
+  --text-muted:rgba(225,232,246,0.45);--accent:#4f8cff;--accent2:#2f63cc;
+  --accent-glow:rgba(79,140,255,0.35);--accent-soft:rgba(79,140,255,0.1);
   --btn-bg:linear-gradient(135deg,#4f8cff,#2f63cc);--btn-shadow:0 4px 18px rgba(79,140,255,0.35);
-  --card-shadow:0 8px 32px rgba(0,0,0,0.5);
-  --header-bg:linear-gradient(135deg,#05060a 0%,#0d0f14 100%);--header-text:#fff;
+  --card-shadow:0 8px 32px rgba(2,6,20,0.55);
+  --header-bg:linear-gradient(135deg,#0b1730 0%,#132a52 55%,#1d3f78 100%);--header-text:#fff;
   --muscle-idle:#454c59;--rank-badge-bg:linear-gradient(135deg,#4f8cff,#7c3aed);
   --xp-bar-fill:linear-gradient(90deg,#4f8cff,#7c3aed);
-  --stopwatch-bg:linear-gradient(135deg,#14161c,#0e1014);--stopwatch-border:#4f8cff;
-  --toast-bg:linear-gradient(135deg,#0a0b0f,#0d0f14);
-  --input-bg:#14161c;--input-border:rgba(79,140,255,0.22);
-  --tab-active-bg:linear-gradient(135deg,#4f8cff,#2f63cc);--tab-text:rgba(231,233,236,0.65);
-  --checkin-right-bg:#121319;--workout-tag-bg:rgba(79,140,255,0.12);--workout-tag-col:#8cb4ff;
-  --set-row-bg:#14161c;--social-grid-bg:#121319;
+  --stopwatch-bg:linear-gradient(135deg,#16233f,#0f1b33);--stopwatch-border:#4f8cff;
+  --toast-bg:linear-gradient(135deg,#0b1730,#132a52);
+  --input-bg:rgba(20,30,54,0.75);--input-border:rgba(79,140,255,0.25);
+  --tab-active-bg:linear-gradient(135deg,#4f8cff,#2f63cc);--tab-text:rgba(225,232,246,0.65);
+  --checkin-right-bg:rgba(18,27,48,0.6);--workout-tag-bg:rgba(79,140,255,0.14);--workout-tag-col:#8cb4ff;
+  --set-row-bg:rgba(20,30,54,0.7);--social-grid-bg:rgba(18,27,48,0.6);
   --follow-btn-bg:linear-gradient(135deg,#4f8cff,#2f63cc);--follow-btn-text:#fff;
   --feed-like-col:#fb7185;--section-title-col:#8cb4ff;
+}
+/* Ambient navy-blue glow behind everything in dark mode — this is what the translucent,
+   blurred cards pick up to actually read as "glass" instead of flat panels on flat black. */
+body.theme-dark{
+  background:
+    radial-gradient(circle at 15% -8%, rgba(79,140,255,0.22), transparent 45%),
+    radial-gradient(circle at 100% 0%, rgba(124,58,237,0.16), transparent 42%),
+    radial-gradient(circle at 50% 100%, rgba(37,99,235,0.10), transparent 55%),
+    var(--bg-base);
+  background-attachment:fixed;
+}
+/* Same idea, much softer, for Light mode — a faint blue-tinted ambient instead of flat white. */
+body:not(.theme-dark):not(.theme-custom){
+  background:
+    radial-gradient(circle at 15% -8%, rgba(37,99,235,0.07), transparent 45%),
+    radial-gradient(circle at 100% 0%, rgba(124,58,237,0.05), transparent 42%),
+    var(--bg-base);
+  background-attachment:fixed;
 }
 
 /* ===================== CUSTOM THEME (user-defined) ===================== */
@@ -3053,6 +3071,191 @@ body.tracker-fs-lock{overflow:hidden}
 .fm-close-zone.fm-cz-visible{opacity:1;transform:translateX(-50%) scale(1)}
 .fm-close-zone.fm-cz-armed{transform:translateX(-50%) scale(1.28);background:linear-gradient(135deg,#ef4444,#991b1b);box-shadow:0 10px 32px rgba(239,68,68,.65)}
 </style>
+<style>
+/* ===================== HOME / DASHBOARD REDESIGN ===================== */
+/* Scoped entirely to #dashPage -- reuses the app's existing theme tokens (--bg-card, --accent,
+   --font-display etc.) so it still respects Light / Dark / Custom theme switching; it just uses
+   them with more contrast and bolder type for a modern fitness-app hero layout. */
+
+#dashPage.dash-home{padding-bottom:4px}
+
+/* Single orchestrated reveal for the four dashboard blocks on load — staggered, one time,
+   not a per-card hover gimmick. */
+@keyframes dashRise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.dash-greet-row,.dash-hero-card,.dash-stat-strip,.dash-today-card{animation:dashRise .55s cubic-bezier(0.22,1,0.36,1) both}
+.dash-greet-row{animation-delay:0s}
+.dash-hero-card{animation-delay:.08s}
+.dash-stat-strip{animation-delay:.16s}
+.dash-today-card{animation-delay:.24s}
+@media (prefers-reduced-motion: reduce){
+  .dash-greet-row,.dash-hero-card,.dash-stat-strip,.dash-today-card{animation:none}
+}
+
+.dash-greet-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:2px 2px 2px 4px;margin-bottom:14px}
+.dash-greet-eyebrow{font-family:var(--font-alt);font-size:12.5px;font-weight:600;color:var(--text-muted);letter-spacing:.3px}
+.dash-greet-name{font-family:var(--font-display);font-size:25px;color:var(--text-primary);letter-spacing:.5px;margin-top:2px;line-height:1.05}
+.dash-greet-avatar{width:44px;height:44px;border-radius:50%;background:var(--rank-badge-bg);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px var(--accent-glow);flex-shrink:0}
+.dash-greet-avatar svg{width:20px;height:20px}
+
+/* ---- Hero card: streak + rank + xp, the big-number focal point ---- */
+.dash-hero-card{position:relative;overflow:hidden;background:linear-gradient(150deg,rgba(37,99,235,0.30),rgba(29,58,138,0.20));backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);border:1px solid var(--border-col);border-radius:22px;padding:22px 22px 18px;box-shadow:0 10px 34px rgba(2,6,20,0.28);margin-bottom:14px}
+.dash-hero-card::after{content:'';position:absolute;top:-60%;right:-20%;width:65%;height:180%;background:radial-gradient(circle,var(--accent-glow) 0%,transparent 70%);pointer-events:none}
+.dash-hero-top{display:flex;align-items:center;justify-content:space-between;position:relative;z-index:1}
+.dash-hero-label{font-family:var(--font-alt);font-size:12.5px;font-weight:700;color:var(--text-secondary);letter-spacing:.4px}
+.dash-hero-card .rank-badge{font-size:13px;padding:7px 12px}
+.dash-hero-number{display:flex;align-items:baseline;gap:8px;margin-top:10px;position:relative;z-index:1}
+.dash-hero-number span:first-child{font-family:var(--font-display);font-size:56px;line-height:1;color:var(--text-primary);letter-spacing:1px}
+.dash-hero-unit{font-family:var(--font-alt);font-size:14px;font-weight:600;color:var(--text-muted);text-transform:lowercase}
+.dash-hero-xp-track{margin-top:16px;background:rgba(127,150,200,0.18);border:none;position:relative;z-index:1}
+.dash-hero-foot{display:flex;align-items:center;justify-content:space-between;margin-top:8px;position:relative;z-index:1}
+.dash-hero-foot .xp-value{font-size:13px;color:var(--text-secondary)}
+.dash-hero-card .xp-next-label{color:var(--text-muted);position:relative;z-index:1}
+.dash-xp-info-btn{position:static;background:var(--accent-soft);color:var(--accent);border-color:transparent}
+.dash-xp-info-btn:hover{background:var(--accent-glow)}
+
+/* ---- Weekly attendance card: current week as one row of status rings. Each ring shows its date plus
+   a tiny status mark INSIDE the ring (tick = present, cross = absent) -- the mark is sized in em from
+   the ring, and the ring itself is sized from the card's own width (container units), so ring, date and
+   mark all scale together from narrow phones up to wide screens and never overflow the ring.
+   Tapping the chevron flies the very same 7 rings out of the horizontal strip into a vertical list of
+   rows that carry each day's class details (FLIP animation, see toggleDashWeekDetail). ---- */
+.dash-week-card{--dw-gap:2px;--dw-padx:6px;--dw-pady:8px;--dw-ring:34px;container-type:inline-size;container-name:dashweek;position:relative;background:var(--bg-card);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid var(--border-col);border-radius:clamp(16px,4.6vw,22px);padding:14px clamp(8px,2.6vw,16px) 12px;margin-bottom:14px;box-shadow:var(--card-shadow)}
+@supports (width:1cqw){
+  .dash-week-card{--dw-ring:clamp(26px,calc((100cqw - 6 * var(--dw-gap)) / 7 - 5px),50px)}
+}
+.dash-week-card.is-animating{overflow:hidden}
+.dash-week-head{display:flex;align-items:center;justify-content:space-between;padding:0 4px 10px}
+.dash-week-title{font-family:var(--font-alt);font-size:12px;font-weight:700;color:var(--text-muted);letter-spacing:.4px}
+.dash-week-toggle{width:26px;height:26px;border-radius:50%;border:1px solid var(--border-col);background:var(--accent-soft);color:var(--text-secondary);display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;transition:background .2s ease,transform .2s ease}
+.dash-week-toggle:hover{background:var(--accent-glow);color:var(--accent)}
+.dwt-chevron{transition:transform .3s cubic-bezier(0.34,1.56,0.64,1)}
+.dash-week-card.is-open .dwt-chevron{transform:rotate(180deg)}
+.dash-week-card.is-open .dash-week-toggle{background:var(--accent-glow);color:var(--accent)}
+
+/* Body holds the two layers (strip / list). Only one is in the layout flow at a time; the other is
+   parked absolutely, hidden, and clipped so it can never add scroll height. Padding gives the ring
+   glows room so the clip never shaves them; the negative margin cancels it out again. */
+.dash-week-body{position:relative;padding:var(--dw-pady) var(--dw-padx);margin:calc(-1 * var(--dw-pady)) calc(-1 * var(--dw-padx));overflow:hidden;overflow:clip}
+.dash-week-card.is-animating .dash-week-body{overflow:visible}
+
+/* Layer 1 -- horizontal strip (closed) */
+.dash-week-strip{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));column-gap:var(--dw-gap)}
+.dash-week-day{display:flex;flex-direction:column;align-items:center;gap:6px;min-width:0}
+.dwd-label{font-family:var(--font-alt);font-size:clamp(9px,3.2cqw,11.5px);font-weight:700;line-height:1;color:var(--text-muted);letter-spacing:.3px}
+.dash-week-day.is-today .dwd-label{color:var(--text-primary);font-weight:800}
+/* Fixed-size socket for a ring: keeps the layout stable whether the ring is home or in flight */
+.dwd-slot{display:block;flex:none;width:var(--dw-ring);height:var(--dw-ring)}
+
+/* Layer 2 -- vertical list (open) */
+.dash-week-detail{position:absolute;left:var(--dw-padx);right:var(--dw-padx);top:var(--dw-pady);visibility:hidden;pointer-events:none;padding:4px 0}
+.dash-week-card.is-open .dash-week-strip{position:absolute;left:var(--dw-padx);right:var(--dw-padx);top:var(--dw-pady);visibility:hidden;pointer-events:none}
+.dash-week-card.is-open .dash-week-detail{position:relative;left:auto;right:auto;top:auto;visibility:visible;pointer-events:auto}
+.dwd-bg{position:absolute;inset:0;border:1px solid var(--border-col);border-radius:clamp(12px,3.6vw,16px);background:rgba(127,150,200,0.07);pointer-events:none}
+.dwd-row{position:relative;display:flex;align-items:center;gap:clamp(9px,3.2cqw,14px);padding:6px clamp(8px,3cqw,14px) 6px clamp(8px,2.6cqw,12px)}
+.dwd-info{position:relative;z-index:1;flex:1;min-width:0;align-self:stretch;display:flex;flex-direction:column;justify-content:center;margin:-6px 0;padding:6px 0;border-top:1px solid var(--border-col)}
+.dwd-bg + .dwd-row .dwd-info{border-top-color:transparent}
+.dwd-title{font-family:var(--font-alt);font-size:clamp(12.5px,3.9cqw,15px);font-weight:700;line-height:1.2;color:var(--text-primary);overflow-wrap:anywhere}
+.dwd-title.tone-absent{color:#f87171}
+.dwd-title.tone-rest{color:#60a5fa}
+.dwd-title.tone-future{color:var(--text-muted);font-weight:600}
+.dwd-title.tone-today{color:var(--text-secondary)}
+.dwd-sub{font-family:var(--font-alt);font-size:clamp(10.5px,3.2cqw,12.5px);line-height:1.2;color:var(--text-muted);margin-top:2px}
+
+/* The ring itself. Sized entirely from --dw-ring; number and mark are em-based so they scale with it. */
+.dwd-num{position:relative;z-index:2;box-sizing:border-box;flex:none;width:var(--dw-ring);height:var(--dw-ring);border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.1em;font-family:var(--font-alt);font-weight:700;font-size:calc(var(--dw-ring) * .34);line-height:1;color:var(--text-secondary);border:1.5px solid transparent;overflow:hidden;transition:color .3s ease,background .3s ease,border-color .3s ease,box-shadow .3s ease}
+.dwd-date{display:block}
+/* Status mark -- lives inside the ring, in the flow under the date, so it can never poke out */
+.dwd-mark{display:block;flex:none;width:.66em;height:.66em}
+.dwd-mark svg{display:block;width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:3.6;stroke-linecap:round;stroke-linejoin:round}
+
+/* Present -- teal ring, soft fill, tick inside */
+.dwd-num.is-present{border-color:rgba(45,212,191,0.65);color:#2dd4bf;background:rgba(45,212,191,0.12);box-shadow:0 0 10px rgba(45,212,191,0.28)}
+/* Rest -- blue outline ring, calmer than present/absent */
+.dwd-num.is-rest{border-color:rgba(59,130,246,0.65);color:#60a5fa;box-shadow:0 0 8px rgba(59,130,246,0.22)}
+/* Absent -- red ring with a cross inside, light breathing glow */
+.dwd-num.is-absent{border-color:rgba(248,113,113,0.7);color:#f87171;animation:dwdAbsentGlow 2.8s ease-in-out infinite}
+@keyframes dwdAbsentGlow{0%,100%{box-shadow:0 0 0 0 rgba(248,113,113,0.25)}50%{box-shadow:0 0 6px 2px rgba(248,113,113,0.22)}}
+/* Today -- violet-to-blue with a slow pulse; wins over rest/absent since the day isn't closed yet, and
+   still shows the tick (in white) if already checked in. */
+.dwd-num.is-today{background:linear-gradient(135deg,#8b5cf6,#4f8cff)!important;color:#fff!important;border-color:transparent!important;box-shadow:0 0 0 0 rgba(139,92,246,0.5);animation:dwdPulse 2.4s ease-in-out infinite}
+@keyframes dwdPulse{0%,100%{box-shadow:0 0 0 0 rgba(139,92,246,0.45)}50%{box-shadow:0 0 0 6px rgba(139,92,246,0)}}
+/* Future days stay quiet */
+.dwd-num.is-future{color:var(--text-muted);opacity:.5}
+
+@media (prefers-reduced-motion: reduce){
+  .dwd-num.is-today,.dwd-num.is-absent{animation:none}
+}
+
+/* ---- Stat strip: compact glass chips, each carrying its own accent color for a mixed palette
+   instead of one blue used everywhere ---- */
+.dash-stat-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+.dash-stat-chip{position:relative;overflow:hidden;background:var(--bg-card);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid var(--border-col);border-radius:16px;padding:14px 10px;text-align:center;box-shadow:var(--card-shadow);transition:transform .25s ease}
+.dash-stat-chip::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.dash-stat-chip:active{transform:scale(0.96)}
+.dash-stat-icon{font-size:15px;line-height:1;margin-bottom:6px}
+.dash-stat-chip h3{font-family:var(--font-display);font-size:22px;color:var(--text-primary);letter-spacing:.5px}
+.dash-stat-chip span{display:block;font-family:var(--font-alt);font-size:10.5px;color:var(--text-muted);margin-top:2px;letter-spacing:.2px}
+.dash-stat-chip:nth-child(1)::before{background:linear-gradient(90deg,#2dd4bf,#22d3ee)}
+.dash-stat-chip:nth-child(1) .dash-stat-icon{color:#2dd4bf}
+.dash-stat-chip:nth-child(2)::before{background:linear-gradient(90deg,#fbbf24,#f97316)}
+.dash-stat-chip:nth-child(2) .dash-stat-icon{color:#fbbf24}
+.dash-stat-chip:nth-child(3)::before{background:linear-gradient(90deg,#fb7185,#ec4899)}
+.dash-stat-chip:nth-child(3) .dash-stat-icon{color:#fb7185}
+
+/* ---- Today card: check-in / workout hero ---- */
+.dash-today-card{position:relative;overflow:hidden;background:var(--bg-card);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);border:1px solid var(--border-col);border-radius:22px;padding:20px;box-shadow:var(--card-shadow)}
+.dash-today-glow{position:absolute;top:-40%;left:-10%;width:55%;height:140%;background:radial-gradient(circle,rgba(45,212,191,0.16) 0%,transparent 72%);pointer-events:none}
+.dash-today-head{position:relative;z-index:1;margin-bottom:2px}
+.dash-today-eyebrow{font-family:var(--font-alt);font-size:12px;font-weight:700;color:var(--text-muted);letter-spacing:.4px}
+.dash-today-card .checkin-flow-step{position:relative;z-index:1}
+.dash-punch-btn{font-size:16px;padding:16px;border-radius:16px;letter-spacing:.6px}
+
+
+/* ===================== HOME: NARROW -> MEDIUM -> WIDE ADAPTATION =====================
+   One rule for every home card: sizes come from clamp() and container units (the card's own width),
+   never from fixed pixel breakpoints alone, so type, padding, radii, chips and rings flex smoothly
+   between a 320px phone and a wide desktop window.
+   Layout: phones = one column; from 768px the four cards split into two columns (streak + week on the
+   left, stats + today on the right), so no card ever stretches into a wide, sparse bar. */
+.dash-grid{display:block}
+.dash-col{min-width:0}
+.dash-hero-card,.dash-stat-strip,.dash-today-card{container-type:inline-size}
+
+@media (min-width:768px){
+  #dashPage.dash-home{max-width:1120px;margin-left:auto;margin-right:auto}
+  .dash-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:clamp(14px,2.4vw,24px);align-items:start}
+}
+
+/* Greeting */
+.dash-greet-row{gap:clamp(8px,3vw,16px)}
+.dash-greet-row>div:first-child{min-width:0}
+.dash-greet-eyebrow{font-size:clamp(11px,2.4vw + 4px,13.5px)}
+.dash-greet-name{font-size:clamp(21px,4.6vw + 7px,32px);overflow-wrap:anywhere}
+.dash-greet-avatar{width:clamp(38px,11vw,48px);height:clamp(38px,11vw,48px)}
+
+/* Streak / rank / XP hero */
+.dash-hero-card{padding:clamp(16px,4.6vw,24px) clamp(16px,5vw,26px) clamp(14px,4vw,20px);border-radius:clamp(18px,5.2vw,24px)}
+.dash-hero-top{flex-wrap:wrap;gap:8px 10px}
+.dash-hero-label{font-size:clamp(11.5px,3.9cqw,14px)}
+.dash-hero-card .rank-badge{font-size:clamp(11px,3.7cqw,14px);padding:clamp(5px,1.9cqw,8px) clamp(9px,3.4cqw,13px)}
+.dash-hero-number{gap:clamp(6px,2.4cqw,10px)}
+.dash-hero-number span:first-child{font-size:clamp(40px,19cqw,66px)}
+.dash-hero-unit{font-size:clamp(12px,4.4cqw,15px)}
+.dash-hero-foot .xp-value{font-size:clamp(12px,4cqw,14px)}
+.dash-hero-card .xp-next-label{font-size:clamp(10.5px,3.6cqw,13px);line-height:1.35}
+
+/* Stat chips */
+.dash-stat-strip{grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(6px,2.4vw,12px)}
+.dash-stat-chip{padding:clamp(10px,3.6cqw,16px) clamp(4px,2cqw,10px);border-radius:clamp(13px,4.2cqw,18px)}
+.dash-stat-icon{font-size:clamp(13px,5cqw,18px);margin-bottom:clamp(4px,1.6cqw,7px)}
+.dash-stat-chip h3{font-size:clamp(15px,6.2cqw,26px);white-space:nowrap}
+.dash-stat-chip span{font-size:clamp(9px,3.2cqw,12px);line-height:1.25;overflow-wrap:anywhere}
+
+/* Today card */
+.dash-today-card{padding:clamp(14px,4.6vw,22px);border-radius:clamp(18px,5.2vw,24px)}
+.dash-today-eyebrow{font-size:clamp(11px,3.5cqw,13px)}
+.dash-punch-btn{font-size:clamp(14px,4.4cqw,17px);padding:clamp(13px,4.2cqw,18px);border-radius:clamp(13px,4cqw,17px)}
+</style>
 </head>
 <body>
 
@@ -3140,11 +3343,15 @@ body.tracker-fs-lock{overflow:hidden}
     </div>
 
     <!-- DASHBOARD TAB -->
-    <div id="dashPage" class="memberTab">
-      <div class="welcomeBox glass">
-        <h2 id="memberWelcome">Welcome Back, GymBro</h2>
-        <p>Your training metrics for this month — keep grinding.</p>
+    <div id="dashPage" class="memberTab dash-home">
+      <div class="dash-greet-row">
+        <div>
+          <div class="dash-greet-eyebrow" id="dashGreetingTime">Welcome back</div>
+          <h2 id="memberWelcome" class="dash-greet-name">Welcome Back, GymBro</h2>
+        </div>
+        <div class="dash-greet-avatar" id="rankEmoji"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg></div>
       </div>
+
       <div class="receiptBanner" id="receiptBanner" style="display:none">
         <div class="receiptBannerHead" onclick="handleBillingBoxClick()">
           <div class="receiptBannerIco" id="receiptBannerIco"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="m9 15 2 2 4-4"/></svg></div>
@@ -3157,32 +3364,51 @@ body.tracker-fs-lock{overflow:hidden}
           <div class="receiptBannerSub" id="receiptBannerSub">Tap to view your receipt</div>
         </div>
       </div>
-      <div class="cards">
-        <div class="card"><div class="card-label">🔥 Streak</div><h3 id="streak">0</h3><div class="card-sub">Days Continuous</div></div>
-        <div class="card"><div class="card-label">⏱ Min Tracked</div><h3 id="weekMinutes">0</h3><div class="card-sub">This week</div></div>
-        <div class="card"><div class="card-label">💪 Workouts</div><h3 id="totalWorkout">0</h3><div class="card-sub">This month</div></div>
-        <div class="card"><div class="card-label">📅 Check-ins</div><h3 id="checkinsMonth">0</h3><div class="card-sub">This month</div></div>
-      </div>
-      <div class="xp-panel glass">
-        <button type="button" class="xp-info-icon-btn" onclick="showXPInfoModal()" aria-label="How XP and Ranks work" title="How XP and Ranks work">
-          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="11" x2="12" y2="16.5"/><circle cx="12" cy="7.7" r="0.9" fill="currentColor" stroke="none"/></svg>
-        </button>
-        <div class="xp-top" style="padding-right:26px">
+
+      <div class="dash-grid">
+      <div class="dash-col">
+      <div class="dash-hero-card">
+        <div class="dash-hero-top">
+          <span class="dash-hero-label">🔥 Current streak</span>
           <div class="rank-badge" id="rankBadge">BEGINNER</div>
-          <div class="xp-info">
-            <div class="xp-label">TOTAL XP EARNED</div>
-            <div class="xp-value" id="xpValue">0 XP</div>
-          </div>
-          <div class="rank-badge" id="rankEmoji" style="font-size:24px;background:transparent;box-shadow:none;padding:6px 8px"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg></div>
         </div>
-        <div class="xp-bar-track"><div class="xp-bar-fill" id="xpBarFill" style="width:0%"></div></div>
+        <div class="dash-hero-number"><span id="streak">0</span><span class="dash-hero-unit">days</span></div>
+        <div class="xp-bar-track dash-hero-xp-track"><div class="xp-bar-fill" id="xpBarFill" style="width:0%"></div></div>
+        <div class="dash-hero-foot">
+          <span class="xp-value" id="xpValue">0 XP</span>
+          <button type="button" class="xp-info-icon-btn dash-xp-info-btn" onclick="showXPInfoModal()" aria-label="How XP and Ranks work" title="How XP and Ranks work">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="11" x2="12" y2="16.5"/><circle cx="12" cy="7.7" r="0.9" fill="currentColor" stroke="none"/></svg>
+          </button>
+        </div>
         <div class="xp-next-label" id="xpNextLabel">Next rank: Intermediate at 501 XP</div>
       </div>
 
-      <div class="section glass" style="margin-top:18px">
-        <div class="section-title">🏟 Gym Check-In</div>
+      <div class="dash-week-card" id="dashWeekCard">
+        <div class="dash-week-head">
+          <span class="dash-week-title">This Week</span>
+          <button type="button" class="dash-week-toggle" id="dashWeekToggleBtn" onclick="toggleDashWeekDetail()" aria-label="Show this week's logged workouts" aria-expanded="false">
+            <svg class="dwt-chevron" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+        </div>
+        <div class="dash-week-body" id="dashWeekBody">
+          <div class="dash-week-strip" id="dashWeekStrip"></div>
+          <div class="dash-week-detail" id="dashWeekDetail"></div>
+        </div>
+      </div>
+
+      </div><!-- /dash-col (streak + week) -->
+      <div class="dash-col">
+      <div class="dash-stat-strip">
+        <div class="dash-stat-chip"><div class="dash-stat-icon">⏱</div><h3 id="weekMinutes">0</h3><span>Min this week</span></div>
+        <div class="dash-stat-chip"><div class="dash-stat-icon">💪</div><h3 id="totalWorkout">0</h3><span>Workouts</span></div>
+        <div class="dash-stat-chip"><div class="dash-stat-icon">📅</div><h3 id="checkinsMonth">0</h3><span>Check-ins</span></div>
+      </div>
+
+      <div class="dash-today-card">
+        <div class="dash-today-glow"></div>
+        <div class="dash-today-head"><span class="dash-today-eyebrow">🏟 Today</span></div>
         <div class="checkin-flow-step" id="checkinStep1">
-          <button class="btn" id="submitCheckinBtn" onclick="processCheckIn()">⚡ PUNCH IN</button>
+          <button class="btn dash-punch-btn" id="submitCheckinBtn" onclick="processCheckIn()">⚡ Punch In</button>
           <button class="btn" id="cancelPunchInBtn" style="display:none;background:var(--accent-soft);color:var(--text-secondary);margin-top:8px" onclick="cancelPunchIn()">✕ Cancel Punch In</button>
           <!-- Today's scheduled workout banner -->
           <div id="todayWorkoutBanner" style="display:none;position:relative" class="today-workout-banner">
@@ -3209,6 +3435,8 @@ body.tracker-fs-lock{overflow:hidden}
           <button class="btn" style="background:linear-gradient(135deg,#dc2626,#b91c1c);margin-top:14px;padding:10px" onclick="processCheckOut()">🏁 PUNCH OUT &amp; SAVE</button>
         </div>
       </div>
+      </div><!-- /dash-col (stats + today) -->
+      </div><!-- /dash-grid -->
     </div>
 
     <!-- STATS TAB -->
@@ -8500,12 +8728,156 @@ async function switchMemberTab(id){
 }
 
 /* ===================== STREAK ALGORITHM ===================== */
+/* Builds the "current week" attendance card on the dashboard. The same 7 ring elements are used in two
+   layouts: a horizontal strip (M..S) when the card is closed, and a vertical list of day rows with class
+   details when it is open. Rings are moved between the two by toggleDashWeekDetail() with a FLIP
+   animation, so they visibly travel from the strip into the list (and back).
+   Reuses the exact Present/Rest/Absent classification already used on the Attendance History page
+   (_resolveDayStatus + rest-day settings/overrides), so the two views never disagree. `attData` is the
+   same attendance rows syncCoreDashboardMetrics already fetched — this issues no network call. */
+let _dwAnims=[];   // running Web Animations of the week card, so a new toggle/render can interrupt them
+let _dwToken=0;    // identifies the latest toggle so an interrupted one doesn't run its cleanup
+function _dwCancelAnims(){_dwAnims.forEach(a=>{try{a.cancel()}catch(e){}});_dwAnims=[]}
+function _dwEsc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+
+function renderDashWeekStrip(attData){
+  const stripEl=document.getElementById('dashWeekStrip');
+  const detailEl=document.getElementById('dashWeekDetail');
+  const card=document.getElementById('dashWeekCard');
+  if(!stripEl)return;
+  // A data refresh replaces the rings, so drop any in-flight animation first
+  _dwCancelAnims();_dwToken++;
+  if(card)card.classList.remove('is-animating');
+  const isOpen=!!(card&&card.classList.contains('is-open'));
+  const rows=attData||[];
+  const presentSet=new Set(rows.map(r=>r.date));
+  const uid=settingsUid();
+  const overrides=_getRestOverrides(uid);
+  const restSettings=_getRestSettings(uid);
+  const dayLetters=['M','T','W','T','F','S','S'];
+  const localToday=getLocalDateString();
+  const mon=getMonday(new Date());
+  const tickSVG='<svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>';
+  const crossSVG='<svg viewBox="0 0 24 24" aria-hidden="true"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg>';
+
+  let stripHtml='',rowsHtml='';
+  for(let i=0;i<7;i++){
+    const d=addDays(mon,i);
+    const ds=_fmtISODate(d);
+    const isToday=ds===localToday;
+    const isFuture=d>new Date(new Date().toDateString());
+    const status=isFuture?'future':_resolveDayStatus(d,presentSet,overrides,restSettings);
+    const fullDay=d.toLocaleDateString(undefined,{weekday:'long'});
+
+    // Mark inside the ring: tick when present, cross when absent. Today isn't "closed" yet, so an
+    // unpunched today gets no cross (it keeps the violet ring); rest/future days carry no mark.
+    const mark=status==='present'?tickSVG:(status==='absent'&&!isToday?crossSVG:'');
+    const ringState=isToday?'is-today':`is-${status}`;
+
+    // Row copy (class details) for the open list
+    let title,tone;
+    if(status==='present'){
+      const row=rows.find(r=>r.date===ds);
+      const classes=row&&row.class?sessionParseClassField(row.class):[];
+      title=classes.length?classes.join(' · '):'Checked in';tone='present';
+    }else if(isToday){title='Not punched in yet';tone='today'}
+    else if(status==='rest'){title='Rest day';tone='rest'}
+    else if(status==='future'){title='Upcoming';tone='future'}
+    else{title='Absent';tone='absent'}
+    const sub=isToday?'Today':fullDay;
+
+    const stateWord=status==='present'?'present':(isToday?'today':status);
+    const ring=`<span class="dwd-num ${ringState}" role="img" aria-label="${_dwEsc(fullDay)} ${d.getDate()}, ${stateWord}"><span class="dwd-date">${d.getDate()}</span>${mark?`<span class="dwd-mark">${mark}</span>`:''}</span>`;
+
+    stripHtml+=`<div class="dash-week-day${isToday?' is-today':''}"><span class="dwd-label">${dayLetters[i]}</span><span class="dwd-slot">${isOpen?'':ring}</span></div>`;
+    rowsHtml+=`<div class="dwd-row"><span class="dwd-slot">${isOpen?ring:''}</span><div class="dwd-info"><div class="dwd-title tone-${tone}">${_dwEsc(title)}</div><div class="dwd-sub">${_dwEsc(sub)}</div></div></div>`;
+  }
+  stripEl.innerHTML=stripHtml;
+  if(detailEl)detailEl.innerHTML='<div class="dwd-bg" aria-hidden="true"></div>'+rowsHtml;
+}
+
+/* Opens/closes the week card. The 7 rings are physically moved between their strip sockets and their
+   list-row sockets, and animated from where they were to where they now are (FLIP), so each ring is seen
+   travelling into its row on open and back into the M..S line on close. The strip's day letters fade out
+   as the rings leave; the row details fade in behind them; the card height eases between the two sizes.
+   Interruptible: tapping mid-flight starts from wherever the rings currently are. */
+function toggleDashWeekDetail(){
+  const card=document.getElementById('dashWeekCard');
+  const btn=document.getElementById('dashWeekToggleBtn');
+  const stripEl=document.getElementById('dashWeekStrip');
+  const listEl=document.getElementById('dashWeekDetail');
+  if(!card||!stripEl||!listEl)return;
+  const opening=!card.classList.contains('is-open');
+  const canAnimate=typeof card.animate==='function'&&!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+
+  const rings=Array.from(card.querySelectorAll('.dwd-num'));
+  const stripSlots=Array.from(stripEl.querySelectorAll('.dwd-slot'));
+  const rowSlots=Array.from(listEl.querySelectorAll('.dwd-slot'));
+
+  // FIRST: where everything visually is right now (includes any in-flight transform)
+  const first=rings.map(r=>r.getBoundingClientRect());
+  const h0=card.getBoundingClientRect().height;
+  _dwCancelAnims();
+  const token=++_dwToken;
+
+  if(canAnimate)card.classList.add('is-animating');   // clips the reveal to the card while it resizes
+  card.classList.toggle('is-open',opening);
+  if(btn)btn.setAttribute('aria-expanded',opening?'true':'false');
+  const targets=opening?rowSlots:stripSlots;
+  rings.forEach((r,i)=>{if(targets[i])targets[i].appendChild(r)});
+  if(!canAnimate)return;
+
+  // LAST: final layout
+  const last=rings.map(r=>r.getBoundingClientRect());
+  const h1=card.getBoundingClientRect().height;
+
+  /* Same easing curve drives the card height and each ring's vertical travel. Opening: rings lag the
+     card (delayed/longer), closing: rings lead it (shorter) -- so a ring is never below the card's
+     moving bottom edge. Horizontal travel gets its own softer curve so the path arcs instead of
+     running in a straight line. */
+  const EASE='cubic-bezier(0.22,1,0.36,1)',EASE_X='cubic-bezier(0.65,0,0.35,1)';
+  const cardDur=opening?520:470,cardDelay=opening?0:100,ringDur=opening?580:420;
+  const anims=[];
+  anims.push(card.animate([{height:h0+'px'},{height:h1+'px'}],{duration:cardDur,delay:cardDelay,easing:EASE,fill:'backwards'}));
+
+  rings.forEach((r,i)=>{
+    const dx=first[i].left-last[i].left,dy=first[i].top-last[i].top;
+    // Opening cascades Monday -> Sunday; closing sweeps back Sunday -> Monday (the lowest row leaves first,
+    // which keeps it ahead of the shrinking card edge)
+    const delay=opening?i*26:(6-i)*14;
+    if(dy)anims.push(r.animate([{translate:`0 ${dy}px`},{translate:'0 0'}],{duration:ringDur,delay,easing:EASE,fill:'backwards'}));
+    if(dx)anims.push(r.animate([{transform:`translateX(${dx}px)`},{transform:'translateX(0)'}],{duration:ringDur,delay,easing:opening?EASE_X:EASE,fill:'backwards'}));
+  });
+
+  const labels=Array.from(stripEl.querySelectorAll('.dwd-label'));
+  if(opening){
+    // Strip is parked/hidden now: keep the day letters visible just long enough to fade them out
+    labels.forEach(l=>anims.push(l.animate([{opacity:1,visibility:'visible'},{opacity:0,visibility:'visible'}],{duration:170,easing:'ease-out'})));
+    const bg=listEl.querySelector('.dwd-bg');
+    if(bg)anims.push(bg.animate([{opacity:0},{opacity:1}],{duration:320,delay:60,easing:'ease-out',fill:'backwards'}));
+    listEl.querySelectorAll('.dwd-info').forEach((el,i)=>anims.push(el.animate([{opacity:0,transform:'translateX(-8px)'},{opacity:1,transform:'translateX(0)'}],{duration:300,delay:230+i*30,easing:'ease-out',fill:'backwards'})));
+  }else{
+    // List is parked/hidden now: keep it visible briefly so the rows fade while the rings leave them
+    anims.push(listEl.animate([{opacity:1,visibility:'visible'},{opacity:0,visibility:'visible'}],{duration:200,easing:'ease-out'}));
+    labels.forEach((l,i)=>anims.push(l.animate([{opacity:0},{opacity:1}],{duration:260,delay:150+i*22,easing:'ease-out',fill:'backwards'})));
+  }
+
+  _dwAnims=anims;
+  Promise.all(anims.map(a=>a.finished.catch(()=>{}))).then(()=>{
+    if(token!==_dwToken)return;
+    card.classList.remove('is-animating');
+    _dwAnims=[];
+  });
+}
+
 async function syncCoreDashboardMetrics(){
   let uid=localStorage.getItem("user_id");if(!uid)return;
   const{data:attData,error}=await sessionFetchAllForUser(uid,false);
   if(error){console.error(error);return}
   let presentDates=new Set();
   if(attData)attData.forEach(r=>presentDates.add(r.date));
+
+  renderDashWeekStrip(attData||[]);
 
   // Streak logic: count consecutive days.
   // Rule: streak counts completed days up through yesterday, plus today if checked in.
@@ -21771,5 +22143,21 @@ function closeLearnVideo(){
   document.addEventListener('touchcancel',onTouchEnd,{passive:true});
 })();
 </script>
+<script>
+/* ===================== DASHBOARD GREETING (time-of-day) ===================== */
+(function(){
+  function setDashGreeting(){
+    const el=document.getElementById('dashGreetingTime');
+    if(!el)return;
+    const h=new Date().getHours();
+    el.textContent = h<12 ? 'Good morning' : h<17 ? 'Good afternoon' : 'Good evening';
+  }
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded',setDashGreeting);
+  }else{
+    setDashGreeting();
+  }
+})();
+</script>
 </body>
-</html>
+</html> 
