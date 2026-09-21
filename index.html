@@ -34,14 +34,14 @@
 
 /* ===================== DARK MODE ===================== */
 body.theme-dark {
-  /* Dark = BLACK + BLUE: true-black glossy page, glossy black glass cards, blue-glow banners, blue accent. */
-  --bg-base:#000000;--bg-card:rgba(14,16,22,0.82);--bg-panel:rgba(9,11,16,0.86);
+  /* Dark = BLACK + BLUE: pure-black page, blue-tinted near-black cards (#14161c), soft blue borders, blue accent. */
+  --bg-base:#000000;--bg-card:rgba(20,22,28,0.95);--bg-panel:rgba(14,16,20,0.92);
   --border-col:rgba(120,170,255,0.18);--text-primary:#e7e9ec;--text-secondary:rgba(231,233,236,0.72);
   --text-muted:rgba(231,233,236,0.45);--accent:#4f8cff;--accent2:#2f63cc;
   --accent-glow:rgba(79,140,255,0.35);--accent-soft:rgba(79,140,255,0.08);
   --btn-bg:linear-gradient(135deg,#4f8cff,#2f63cc);--btn-shadow:0 4px 18px rgba(79,140,255,0.35);
-  --card-shadow:0 6px 20px rgba(0,0,0,0.65),0 0 7px rgba(79,140,255,0.28),inset 0 1px 0 rgba(255,255,255,0.14);
-  --header-bg:linear-gradient(135deg,#0b0d14 0%,#000000 100%);--header-text:#fff;
+  --card-shadow:0 8px 32px rgba(0,0,0,0.5);
+  --header-bg:linear-gradient(135deg,#05060a 0%,#0d0f14 100%);--header-text:#fff;
   --muscle-idle:#454c59;--rank-badge-bg:linear-gradient(135deg,#4f8cff,#7c3aed);
   --xp-bar-fill:linear-gradient(90deg,#4f8cff,#7c3aed);
   --stopwatch-bg:linear-gradient(135deg,#14161c,#0e1014);--stopwatch-border:#4f8cff;
@@ -53,19 +53,8 @@ body.theme-dark {
   --follow-btn-bg:linear-gradient(135deg,#4f8cff,#2f63cc);--follow-btn-text:#fff;
   --feed-like-col:#fb7185;--section-title-col:#8cb4ff;
 }
-/* Metallic dark BLACK page: the base stays true black (#000); the 'shine' is only thin glossy reflections —
-   diagonal light streaks, a soft top reflection and a faint blue edge glow — like polished black glass. Fixed layer, so it never shifts on scroll. */
-body.theme-dark{background:#000000}
-body.theme-dark::before{
-  content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;
-  background:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.05 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"),
-    linear-gradient(115deg,transparent 0%,transparent 24%,rgba(255,255,255,0.055) 30%,rgba(255,255,255,0.02) 34%,transparent 40%,transparent 60%,rgba(255,255,255,0.04) 66%,transparent 72%,transparent 100%),
-    radial-gradient(ellipse 100% 34% at 22% -4%,rgba(255,255,255,0.09),transparent 60%),
-    radial-gradient(circle at 105% 6%,rgba(79,140,255,0.10),transparent 40%),
-    radial-gradient(circle at -5% 104%,rgba(79,140,255,0.07),transparent 44%),
-    linear-gradient(160deg,#07080b 0%,#000000 38%,#050608 62%,#000000 100%);
-}
+/* Dark mode page background is flat pure black; the blue comes from the cards, borders and accent. */
+body.theme-dark{background:var(--bg-base)}
 /* Same idea, much softer, for Light mode — a faint blue-tinted ambient instead of flat white. */
 body:not(.theme-dark):not(.theme-custom){
   background:
@@ -3200,32 +3189,6 @@ body.tracker-fs-lock{overflow:hidden}
 @media (prefers-reduced-motion: reduce){
   .dwd-num.is-today,.dwd-num.is-absent{animation:none}
 }
-
-/* ===================== DARK THEME: GLOSSY BLACK + BLUE GLOW (Dark only) =====================
-   Cards: black glass with a diagonal gloss reflection + bright top-edge highlight (via --card-shadow).
-   Every box + banner: a thin blue spark along the border (1px line + a tight ~8px glow), nothing bigger. */
-body.theme-dark .card,body.theme-dark .section,body.theme-dark .glass,body.theme-dark .xp-panel,body.theme-dark .welcomeBox,
-body.theme-dark .profile-header,body.theme-dark .tracker-analytics-panel,body.theme-dark .vol-drilldown,body.theme-dark .wlc-box,
-body.theme-dark .room-box,body.theme-dark .ups-card,body.theme-dark .dash-week-card,body.theme-dark .dash-stat-chip,body.theme-dark .dash-today-card{
-  background-image:linear-gradient(145deg,rgba(255,255,255,0.10) 0%,rgba(255,255,255,0.035) 30%,rgba(255,255,255,0) 56%);
-}
-body.theme-dark .gymbroTop,body.theme-dark .heroBanner,body.theme-dark .learn-page-header{
-  background-image:linear-gradient(120deg,rgba(255,255,255,0.12) 0%,rgba(255,255,255,0.03) 34%,rgba(255,255,255,0) 58%),var(--header-bg);
-  border:1px solid rgba(79,140,255,0.55);
-  box-shadow:0 8px 22px rgba(0,0,0,0.6),0 0 8px rgba(79,140,255,0.32),inset 0 1px 0 rgba(255,255,255,0.16);
-}
-body.theme-dark .gymbroTopSolo{border-color:rgba(79,140,255,0.55)}
-body.theme-dark .card,body.theme-dark .section,body.theme-dark .glass,body.theme-dark .xp-panel,body.theme-dark .welcomeBox,
-body.theme-dark .profile-header,body.theme-dark .tracker-analytics-panel,body.theme-dark .vol-drilldown,body.theme-dark .ups-card,
-body.theme-dark .dash-week-card,body.theme-dark .dash-stat-chip,body.theme-dark .dash-today-card{border-color:rgba(79,140,255,0.45)}
-/* Streak (hero) card: glossy blue glass, same thin blue spark border */
-body.theme-dark .dash-hero-card{
-  background-image:linear-gradient(145deg,rgba(255,255,255,0.10) 0%,rgba(255,255,255,0.035) 30%,rgba(255,255,255,0) 56%),linear-gradient(150deg,rgba(37,99,235,0.30),rgba(29,58,138,0.20));
-  border:1px solid rgba(79,140,255,0.55);
-  box-shadow:0 10px 26px rgba(0,0,0,0.55),0 0 8px rgba(79,140,255,0.32),inset 0 1px 0 rgba(255,255,255,0.16);
-}
-/* Sticky headings in the exercise dropdown must stay opaque, or scrolled rows show through them */
-body.theme-dark .yw-header,body.theme-dark .default-ex-header{background:#0b0c10}
 
 /* ---- Stat strip: compact glass chips, each carrying its own accent color for a mixed palette
    instead of one blue used everywhere ---- */
