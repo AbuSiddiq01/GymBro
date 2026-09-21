@@ -34,34 +34,27 @@
 
 /* ===================== DARK MODE ===================== */
 body.theme-dark {
-  --bg-base:#050b18;--bg-card:rgba(22,33,58,0.55);--bg-panel:rgba(18,27,48,0.55);
-  --border-col:rgba(110,160,255,0.22);--text-primary:#e7ecf6;--text-secondary:rgba(225,232,246,0.72);
-  --text-muted:rgba(225,232,246,0.45);--accent:#4f8cff;--accent2:#2f63cc;
-  --accent-glow:rgba(79,140,255,0.35);--accent-soft:rgba(79,140,255,0.1);
+  /* Dark = BLACK + BLUE: pure-black page, blue-tinted near-black cards (#14161c), soft blue borders, blue accent. */
+  --bg-base:#000000;--bg-card:rgba(20,22,28,0.95);--bg-panel:rgba(14,16,20,0.92);
+  --border-col:rgba(120,170,255,0.18);--text-primary:#e7e9ec;--text-secondary:rgba(231,233,236,0.72);
+  --text-muted:rgba(231,233,236,0.45);--accent:#4f8cff;--accent2:#2f63cc;
+  --accent-glow:rgba(79,140,255,0.35);--accent-soft:rgba(79,140,255,0.08);
   --btn-bg:linear-gradient(135deg,#4f8cff,#2f63cc);--btn-shadow:0 4px 18px rgba(79,140,255,0.35);
-  --card-shadow:0 8px 32px rgba(2,6,20,0.55);
-  --header-bg:linear-gradient(135deg,#0b1730 0%,#132a52 55%,#1d3f78 100%);--header-text:#fff;
+  --card-shadow:0 8px 32px rgba(0,0,0,0.5);
+  --header-bg:linear-gradient(135deg,#05060a 0%,#0d0f14 100%);--header-text:#fff;
   --muscle-idle:#454c59;--rank-badge-bg:linear-gradient(135deg,#4f8cff,#7c3aed);
   --xp-bar-fill:linear-gradient(90deg,#4f8cff,#7c3aed);
-  --stopwatch-bg:linear-gradient(135deg,#16233f,#0f1b33);--stopwatch-border:#4f8cff;
-  --toast-bg:linear-gradient(135deg,#0b1730,#132a52);
-  --input-bg:rgba(20,30,54,0.75);--input-border:rgba(79,140,255,0.25);
-  --tab-active-bg:linear-gradient(135deg,#4f8cff,#2f63cc);--tab-text:rgba(225,232,246,0.65);
-  --checkin-right-bg:rgba(18,27,48,0.6);--workout-tag-bg:rgba(79,140,255,0.14);--workout-tag-col:#8cb4ff;
-  --set-row-bg:rgba(20,30,54,0.7);--social-grid-bg:rgba(18,27,48,0.6);
+  --stopwatch-bg:linear-gradient(135deg,#14161c,#0e1014);--stopwatch-border:#4f8cff;
+  --toast-bg:linear-gradient(135deg,#0a0b0f,#0d0f14);
+  --input-bg:#14161c;--input-border:rgba(79,140,255,0.22);
+  --tab-active-bg:linear-gradient(135deg,#4f8cff,#2f63cc);--tab-text:rgba(231,233,236,0.65);
+  --checkin-right-bg:#121319;--workout-tag-bg:rgba(79,140,255,0.12);--workout-tag-col:#8cb4ff;
+  --set-row-bg:#14161c;--social-grid-bg:#121319;
   --follow-btn-bg:linear-gradient(135deg,#4f8cff,#2f63cc);--follow-btn-text:#fff;
   --feed-like-col:#fb7185;--section-title-col:#8cb4ff;
 }
-/* Ambient navy-blue glow behind everything in dark mode — this is what the translucent,
-   blurred cards pick up to actually read as "glass" instead of flat panels on flat black. */
-body.theme-dark{
-  background:
-    radial-gradient(circle at 15% -8%, rgba(79,140,255,0.22), transparent 45%),
-    radial-gradient(circle at 100% 0%, rgba(124,58,237,0.16), transparent 42%),
-    radial-gradient(circle at 50% 100%, rgba(37,99,235,0.10), transparent 55%),
-    var(--bg-base);
-  background-attachment:fixed;
-}
+/* Dark mode page background is flat pure black; the blue comes from the cards, borders and accent. */
+body.theme-dark{background:var(--bg-base)}
 /* Same idea, much softer, for Light mode — a faint blue-tinted ambient instead of flat white. */
 body:not(.theme-dark):not(.theme-custom){
   background:
@@ -22171,4 +22164,4 @@ function closeLearnVideo(){
 })();
 </script>
 </body>
-</html> 
+</html>
