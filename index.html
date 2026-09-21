@@ -3119,9 +3119,9 @@ body.tracker-fs-lock{overflow:hidden}
    mark all scale together from narrow phones up to wide screens and never overflow the ring.
    Tapping the chevron flies the very same 7 rings out of the horizontal strip into a vertical list of
    rows that carry each day's class details (FLIP animation, see toggleDashWeekDetail). ---- */
-.dash-week-card{--dw-gap:2px;--dw-padx:6px;--dw-pady:8px;--dw-ring:34px;--dw-row-padl:10px;--dw-row-padr:12px;--dw-row-gap:12px;container-type:inline-size;container-name:dashweek;position:relative;background:var(--bg-card);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid var(--border-col);border-radius:clamp(16px,4.6vw,22px);padding:14px clamp(8px,2.6vw,16px) 12px;margin-bottom:14px;box-shadow:var(--card-shadow)}
+.dash-week-card{--dw-gap:2px;--dw-padx:6px;--dw-pady:8px;--dw-ring:34px;container-type:inline-size;container-name:dashweek;position:relative;background:var(--bg-card);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid var(--border-col);border-radius:clamp(16px,4.6vw,22px);padding:14px clamp(8px,2.6vw,16px) 12px;margin-bottom:14px;box-shadow:var(--card-shadow)}
 @supports (width:1cqw){
-  .dash-week-card{--dw-ring:clamp(26px,calc((100cqw - 6 * var(--dw-gap)) / 7 - 5px),50px);--dw-row-padl:clamp(8px,2.6cqw,12px);--dw-row-padr:clamp(8px,3cqw,14px);--dw-row-gap:clamp(9px,3.2cqw,14px)}
+  .dash-week-card{--dw-ring:clamp(26px,calc((100cqw - 6 * var(--dw-gap)) / 7 - 5px),50px)}
 }
 .dash-week-card.is-animating{overflow:hidden}
 .dash-week-head{display:flex;align-items:center;justify-content:space-between;padding:0 4px 10px}
@@ -3141,23 +3141,19 @@ body.tracker-fs-lock{overflow:hidden}
 /* Layer 1 -- horizontal strip (closed) */
 .dash-week-strip{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));column-gap:var(--dw-gap)}
 .dash-week-day{display:flex;flex-direction:column;align-items:center;gap:6px;min-width:0}
-.dwd-label{transform-origin:50% 0;font-family:var(--font-alt);font-size:clamp(9px,3.2cqw,11.5px);font-weight:700;line-height:1;color:var(--text-muted);letter-spacing:.3px}
+.dwd-label{font-family:var(--font-alt);font-size:clamp(9px,3.2cqw,11.5px);font-weight:700;line-height:1;color:var(--text-muted);letter-spacing:.3px}
 .dash-week-day.is-today .dwd-label{color:var(--text-primary);font-weight:800}
 /* Fixed-size socket for a ring: keeps the layout stable whether the ring is home or in flight */
-.dwd-slot{display:block;flex:none;width:var(--dw-ring);height:var(--dw-ring);border-radius:50%}
+.dwd-slot{display:block;flex:none;width:var(--dw-ring);height:var(--dw-ring)}
 
 /* Layer 2 -- vertical list (open) */
 .dash-week-detail{position:absolute;left:var(--dw-padx);right:var(--dw-padx);top:var(--dw-pady);visibility:hidden;pointer-events:none;padding:4px 0}
 .dash-week-card.is-open .dash-week-strip{position:absolute;left:var(--dw-padx);right:var(--dw-padx);top:var(--dw-pady);visibility:hidden;pointer-events:none}
 .dash-week-card.is-open .dash-week-detail{position:relative;left:auto;right:auto;top:auto;visibility:visible;pointer-events:auto}
 .dwd-bg{position:absolute;inset:0;border:1px solid var(--border-col);border-radius:clamp(12px,3.6vw,16px);background:rgba(127,150,200,0.07);pointer-events:none}
-.dwd-row{position:relative;display:flex;align-items:center;gap:var(--dw-row-gap);padding:6px var(--dw-row-padr) 6px var(--dw-row-padl)}
-.dwd-info{position:relative;z-index:1;flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center}
-/* Divider between rows: its own element (not a border) so it can draw in from the left. Starts under the text. */
-.dwd-rule{position:absolute;top:0;right:var(--dw-row-padr);left:calc(var(--dw-row-padl) + var(--dw-ring) + var(--dw-row-gap));height:1px;background:var(--border-col);transform-origin:left center;pointer-events:none}
-.dwd-bg + .dwd-row .dwd-rule{display:none}
-/* Shimmer that sweeps a row when its ring lands (only visible while animated) */
-.dwd-sweep{position:absolute;z-index:0;left:4px;right:4px;top:3px;bottom:3px;border-radius:12px;pointer-events:none;opacity:0;background:linear-gradient(100deg,transparent 40%,var(--accent-soft) 46%,var(--accent-glow) 50%,var(--accent-soft) 54%,transparent 60%) no-repeat;background-size:250% 100%;background-position:120% 0}
+.dwd-row{position:relative;display:flex;align-items:center;gap:clamp(9px,3.2cqw,14px);padding:6px clamp(8px,3cqw,14px) 6px clamp(8px,2.6cqw,12px)}
+.dwd-info{position:relative;z-index:1;flex:1;min-width:0;align-self:stretch;display:flex;flex-direction:column;justify-content:center;margin:-6px 0;padding:6px 0;border-top:1px solid var(--border-col)}
+.dwd-bg + .dwd-row .dwd-info{border-top-color:transparent}
 .dwd-title{font-family:var(--font-alt);font-size:clamp(12.5px,3.9cqw,15px);font-weight:700;line-height:1.2;color:var(--text-primary);overflow-wrap:anywhere}
 .dwd-title.tone-absent{color:#f87171}
 .dwd-title.tone-rest{color:#60a5fa}
@@ -8741,9 +8737,7 @@ async function switchMemberTab(id){
    same attendance rows syncCoreDashboardMetrics already fetched — this issues no network call. */
 let _dwAnims=[];   // running Web Animations of the week card, so a new toggle/render can interrupt them
 let _dwToken=0;    // identifies the latest toggle so an interrupted one doesn't run its cleanup
-function _dwCancelAnims(){
-  _dwAnims.forEach(a=>{try{a.cancel()}catch(e){}});_dwAnims=[];
-}
+function _dwCancelAnims(){_dwAnims.forEach(a=>{try{a.cancel()}catch(e){}});_dwAnims=[]}
 function _dwEsc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 
 function renderDashWeekStrip(attData){
@@ -8763,8 +8757,8 @@ function renderDashWeekStrip(attData){
   const dayLetters=['M','T','W','T','F','S','S'];
   const localToday=getLocalDateString();
   const mon=getMonday(new Date());
-  const tickSVG='<svg viewBox="0 0 24 24" aria-hidden="true"><polyline pathLength="1" points="20 6 9 17 4 12"/></svg>';
-  const crossSVG='<svg viewBox="0 0 24 24" aria-hidden="true"><line pathLength="1" x1="6" y1="6" x2="18" y2="18"/><line pathLength="1" x1="18" y1="6" x2="6" y2="18"/></svg>';
+  const tickSVG='<svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>';
+  const crossSVG='<svg viewBox="0 0 24 24" aria-hidden="true"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg>';
 
   let stripHtml='',rowsHtml='';
   for(let i=0;i<7;i++){
@@ -8796,24 +8790,17 @@ function renderDashWeekStrip(attData){
     const ring=`<span class="dwd-num ${ringState}" role="img" aria-label="${_dwEsc(fullDay)} ${d.getDate()}, ${stateWord}"><span class="dwd-date">${d.getDate()}</span>${mark?`<span class="dwd-mark">${mark}</span>`:''}</span>`;
 
     stripHtml+=`<div class="dash-week-day${isToday?' is-today':''}"><span class="dwd-label">${dayLetters[i]}</span><span class="dwd-slot">${isOpen?'':ring}</span></div>`;
-    rowsHtml+=`<div class="dwd-row"><span class="dwd-slot">${isOpen?ring:''}</span><div class="dwd-info"><div class="dwd-title tone-${tone}">${_dwEsc(title)}</div><div class="dwd-sub">${_dwEsc(sub)}</div></div><i class="dwd-rule"></i><i class="dwd-sweep"></i></div>`;
+    rowsHtml+=`<div class="dwd-row"><span class="dwd-slot">${isOpen?ring:''}</span><div class="dwd-info"><div class="dwd-title tone-${tone}">${_dwEsc(title)}</div><div class="dwd-sub">${_dwEsc(sub)}</div></div></div>`;
   }
   stripEl.innerHTML=stripHtml;
   if(detailEl)detailEl.innerHTML='<div class="dwd-bg" aria-hidden="true"></div>'+rowsHtml;
 }
 
-/* Opens/closes the week card as a ring-by-ring sequence (Web Animations API):
-
-   OPEN  — for each day in turn (Mon→Sun): its ring lifts off the M–S line and dives, in a soft arc, into
-           its row of the list box; its day letter flips up and folds away and an empty socket shrinks
-           where the ring was. The list box grows ONE ROW PER RING, so it visibly builds up as rings land.
-           On landing a ring pops and sends out a pulse, its tick/cross draws itself, a shimmer sweeps the
-           row, the row text blurs in and its divider draws across.
-   CLOSE — the same thing in reverse, bottom row first: the ring leaves, its row folds away, the box
-           shrinks a row at a time, and the ring docks back on the M–S line whose letter unfolds.
-
-   All distances come from the live layout and every offset scales from the ring size, so it adapts to any
-   screen width. Interruptible: a tap mid-sequence restarts from wherever the rings currently are. */
+/* Opens/closes the week card. The 7 rings are physically moved between their strip sockets and their
+   list-row sockets, and animated from where they were to where they now are (FLIP), so each ring is seen
+   travelling into its row on open and back into the M..S line on close. The strip's day letters fade out
+   as the rings leave; the row details fade in behind them; the card height eases between the two sizes.
+   Interruptible: tapping mid-flight starts from wherever the rings currently are. */
 function toggleDashWeekDetail(){
   const card=document.getElementById('dashWeekCard');
   const btn=document.getElementById('dashWeekToggleBtn');
@@ -8826,127 +8813,58 @@ function toggleDashWeekDetail(){
   const rings=Array.from(card.querySelectorAll('.dwd-num'));
   const stripSlots=Array.from(stripEl.querySelectorAll('.dwd-slot'));
   const rowSlots=Array.from(listEl.querySelectorAll('.dwd-slot'));
-  const centre=r=>({x:r.left+r.width/2,y:r.top+r.height/2});
 
-  // FIRST: where the rings visually are right now (centres, so a mid-flight scale can't skew the maths)
-  const first=rings.map(r=>centre(r.getBoundingClientRect()));
+  // FIRST: where everything visually is right now (includes any in-flight transform)
+  const first=rings.map(r=>r.getBoundingClientRect());
   const h0=card.getBoundingClientRect().height;
   _dwCancelAnims();
   const token=++_dwToken;
 
-  if(!canAnimate){
-    card.classList.toggle('is-open',opening);
-    if(btn)btn.setAttribute('aria-expanded',opening?'true':'false');
-    rings.forEach((r,i)=>{const t=(opening?rowSlots:stripSlots)[i];if(t)t.appendChild(r)});
-    return;
-  }
-
-  const hBefore=card.getBoundingClientRect().height;    // natural height of the state we're leaving
-  card.classList.add('is-animating');                   // clips the reveal to the card while it resizes
+  if(canAnimate)card.classList.add('is-animating');   // clips the reveal to the card while it resizes
   card.classList.toggle('is-open',opening);
   if(btn)btn.setAttribute('aria-expanded',opening?'true':'false');
-  // Opening: rings move into their rows now. Closing: they stay in the (parked) list while they fly and
-  // are docked into the strip once the sequence ends.
-  if(opening)rings.forEach((r,i)=>{if(rowSlots[i])rowSlots[i].appendChild(r)});
+  const targets=opening?rowSlots:stripSlots;
+  rings.forEach((r,i)=>{if(targets[i])targets[i].appendChild(r)});
+  if(!canAnimate)return;
 
-  // LAST: the new layout
-  const hAfter=card.getBoundingClientRect().height;
-  const hOpen=opening?hAfter:hBefore,hClosed=opening?hBefore:hAfter;
-  const nat=rings.map(r=>centre(r.getBoundingClientRect()));                       // where each ring sits in the DOM
-  const dest=rings.map((r,i)=>opening?nat[i]:centre(stripSlots[i].getBoundingClientRect()));  // where it ends up
-  const rs=rings[0]?rings[0].getBoundingClientRect().width:36;                     // ring size scales every offset
-  const rows=Array.from(listEl.querySelectorAll('.dwd-row'));
-  const labels=Array.from(stripEl.querySelectorAll('.dwd-label'));
-  const bg=listEl.querySelector('.dwd-bg');
-  const listR=listEl.getBoundingClientRect(),rowR=rows.map(r=>r.getBoundingClientRect());
-  // px of the list box hidden below the last visible row when k rows are showing
-  const cut=k=>k<=0?Math.max(0,listR.height-8):(k>=rows.length?0:listR.bottom-rowR[k-1].bottom);
+  // LAST: final layout
+  const last=rings.map(r=>r.getBoundingClientRect());
+  const h1=card.getBoundingClientRect().height;
 
-  const EASE='cubic-bezier(0.22,1,0.36,1)',EASE_X='cubic-bezier(0.65,0,0.35,1)',EASE_IO='cubic-bezier(0.45,0,0.2,1)',EASE_STEP='cubic-bezier(0.25,0.9,0.3,1)';
-  const S=opening?70:58,F=opening?340:330;   // stagger between rings, flight time of one ring
+  /* Same easing curve drives the card height and each ring's vertical travel. Opening: rings lag the
+     card (delayed/longer), closing: rings lead it (shorter) -- so a ring is never below the card's
+     moving bottom edge. Horizontal travel gets its own softer curve so the path arcs instead of
+     running in a straight line. */
+  const EASE='cubic-bezier(0.22,1,0.36,1)',EASE_X='cubic-bezier(0.65,0,0.35,1)';
+  const cardDur=opening?520:470,cardDelay=opening?0:100,ringDur=opening?580:420;
   const anims=[];
-  const add=(el,kf,opt)=>{const a=el.animate(kf,opt);anims.push(a);return a};
-  const tx=rs*.45;                                             // text slide distance scales with the ring
-  const N=rings.length;
+  anims.push(card.animate([{height:h0+'px'},{height:h1+'px'}],{duration:cardDur,delay:cardDelay,easing:EASE,fill:'backwards'}));
 
-  /* ---- Box growth: one row per ring. Keyframes step the card height and the panel's bottom edge to the
-     height of "k rows visible", timed to the moment ring k is nearly home (open) / has just left (close).
-     Rings lag the box on open and lead it on close, so a ring is never below the box's moving edge. ---- */
-  const tStep=opening?(k=>(k-1)*S+F*.28):(m=>(N-1-m)*S+F*.5);   // opening: k=1..N rows visible; closing: m rows remain
-  const stepsK=[];for(let j=1;j<=N;j++)stepsK.push(opening?j:N-j);
-  const D=tStep(opening?N:0)||1;
-  const hKF=[{height:h0+'px',offset:0,easing:EASE_STEP}],bKF=[{bottom:(opening?cut(1):0)+'px',opacity:opening?0:1,offset:0,easing:EASE_STEP}];
-  stepsK.forEach((k,idx)=>{
-    const off=Math.min(1,tStep(k)/D),h=Math.max(hOpen-cut(k),hClosed);
-    const last=idx===stepsK.length-1;
-    hKF.push({height:(last?(opening?hOpen:hClosed):h)+'px',offset:off,easing:EASE_STEP});
-    bKF.push({bottom:cut(k)+'px',opacity:(!opening&&last)?0:1,offset:off,easing:EASE_STEP});
-  });
-  add(card,hKF,{duration:D,fill:'both'});
-  if(bg)add(bg,bKF,{duration:D,fill:'both'});
-  if(!opening)add(listEl,[{visibility:'visible'},{visibility:'visible'}],{duration:(N-1)*S+F+80});   // keep parked list visible while it folds
-
-  // ---- Per ring ----
   rings.forEach((r,i)=>{
-    const order=opening?i:N-1-i,delay=order*S;
-    const from={x:first[i].x-nat[i].x,y:first[i].y-nat[i].y},to={x:dest[i].x-nat[i].x,y:dest[i].y-nat[i].y};
-    const fillMove=opening?'backwards':'both';
-    const moving=Math.abs(from.x-to.x)>.5||Math.abs(from.y-to.y)>.5;
-    if(moving){
-      add(r,[{translate:`0 ${from.y}px`},{translate:`0 ${to.y}px`}],{duration:F,delay,easing:EASE,fill:fillMove});
-      add(r,[{transform:`translateX(${from.x}px)`},{transform:`translateX(${to.x}px)`}],{duration:F,delay,easing:opening?EASE_X:EASE,fill:fillMove});
-      // lifts (small anticipation), dips in flight, pops on landing
-      add(r,[{scale:1},{scale:1.14,offset:.1,easing:EASE_IO},{scale:.9,offset:.45,easing:EASE_IO},{scale:.96,offset:.7,easing:EASE_IO},{scale:1.16,offset:.84,easing:EASE_IO},{scale:1}],{duration:F,delay,easing:'linear',fill:'backwards'});
-      const g0='brightness(1) drop-shadow(0 0 0px currentColor)';
-      add(r,[{filter:g0},{filter:`brightness(1.3) drop-shadow(0 0 ${Math.round(rs*.3)}px currentColor)`,offset:.3},{filter:g0}],{duration:F,delay,easing:'ease-out',fill:'backwards'});
-    }
-    // thin pulse ring sent out on landing
-    add(r,[{outline:'1.5px solid currentColor',outlineOffset:'0px'},{outline:'1.5px solid transparent',outlineOffset:`${Math.round(rs*.32)}px`}],{duration:380,delay:delay+F*.8,easing:'ease-out'});
-    // tick / cross draws itself as the ring lands (cross: second stroke follows the first)
-    r.querySelectorAll('.dwd-mark svg > *').forEach((sh,k)=>{
-      add(sh,[{strokeDasharray:'1 2',strokeDashoffset:1.15},{strokeDasharray:'1 2',strokeDashoffset:0}],{duration:320,delay:delay+F*.62+k*80,easing:'ease-out',fill:'backwards'});
-    });
-
-    // The empty socket in the M–S line + its day letter
-    const slot=stripSlots[i],lab=labels[i];
-    const G='inset 0 0 0 1.5px rgba(127,150,200,0.45)';
-    if(opening){
-      if(slot)add(slot,[{opacity:0,transform:'scale(1)',visibility:'visible',boxShadow:G},{opacity:.9,transform:'scale(1)',visibility:'visible',boxShadow:G,offset:.2},{opacity:0,transform:'scale(.5)',visibility:'visible',boxShadow:G}],{duration:420,delay,easing:'ease-out',fill:'backwards'});
-      // letter flips up and folds away as its ring leaves
-      if(lab)add(lab,[{opacity:1,visibility:'visible',transform:'perspective(260px) rotateX(0deg)'},{opacity:0,visibility:'visible',transform:'perspective(260px) rotateX(-90deg)'}],{duration:300,delay:delay+20,easing:'ease-in',fill:'backwards'});
-    }else{
-      if(slot)add(slot,[{opacity:0,transform:'scale(.5)',boxShadow:G},{opacity:.9,transform:'scale(1)',boxShadow:G,offset:.75},{opacity:0,transform:'scale(1)',boxShadow:G}],{duration:F*.9,delay:delay+F*.1,easing:'ease-out',fill:'backwards'});
-      // letter unfolds as its ring docks
-      if(lab)add(lab,[{opacity:0,transform:'perspective(260px) rotateX(-90deg)'},{opacity:1,transform:'perspective(260px) rotateX(0deg)'}],{duration:320,delay:delay+F*.55,easing:EASE,fill:'backwards'});
-    }
-
-    // The row this ring belongs to
-    const row=rows[i];
-    if(!row)return;
-    const t=row.querySelector('.dwd-title'),s=row.querySelector('.dwd-sub'),ru=row.querySelector('.dwd-rule'),sw=row.querySelector('.dwd-sweep');
-    if(opening){
-      const d=delay+F*.6;
-      const inKf=[{opacity:0,transform:`translateX(${-tx}px)`,filter:'blur(5px)'},{opacity:1,transform:'translateX(0)',filter:'blur(0px)'}];
-      if(t)add(t,inKf,{duration:380,delay:d,easing:EASE,fill:'backwards'});
-      if(s)add(s,inKf,{duration:380,delay:d+60,easing:EASE,fill:'backwards'});
-      if(ru)add(ru,[{transform:'scaleX(0)'},{transform:'scaleX(1)'}],{duration:480,delay:d-30,easing:EASE,fill:'backwards'});
-      if(sw)add(sw,[{opacity:0,backgroundPosition:'120% 0'},{opacity:1,offset:.3},{opacity:0,backgroundPosition:'-20% 0'}],{duration:520,delay:delay+F*.7,easing:'ease-out'});
-    }else{
-      const outKf=[{opacity:1,transform:'translateX(0)',filter:'blur(0px)'},{opacity:0,transform:`translateX(${-tx*.5}px)`,filter:'blur(3px)'}];
-      if(t)add(t,outKf,{duration:170,delay,easing:'ease-in',fill:'forwards'});
-      if(s)add(s,outKf,{duration:170,delay:delay+15,easing:'ease-in',fill:'forwards'});
-      if(ru)add(ru,[{transform:'scaleX(1)'},{transform:'scaleX(0)'}],{duration:220,delay,easing:'ease-in',fill:'forwards'});
-    }
+    const dx=first[i].left-last[i].left,dy=first[i].top-last[i].top;
+    // Opening cascades Monday -> Sunday; closing sweeps back Sunday -> Monday (the lowest row leaves first,
+    // which keeps it ahead of the shrinking card edge)
+    const delay=opening?i*26:(6-i)*14;
+    if(dy)anims.push(r.animate([{translate:`0 ${dy}px`},{translate:'0 0'}],{duration:ringDur,delay,easing:EASE,fill:'backwards'}));
+    if(dx)anims.push(r.animate([{transform:`translateX(${dx}px)`},{transform:'translateX(0)'}],{duration:ringDur,delay,easing:opening?EASE_X:EASE,fill:'backwards'}));
   });
 
-  // Springy press on the chevron button
-  if(btn)add(btn,[{scale:1},{scale:.82,offset:.22},{scale:1.08,offset:.6},{scale:1}],{duration:440,easing:'ease-out'});
+  const labels=Array.from(stripEl.querySelectorAll('.dwd-label'));
+  if(opening){
+    // Strip is parked/hidden now: keep the day letters visible just long enough to fade them out
+    labels.forEach(l=>anims.push(l.animate([{opacity:1,visibility:'visible'},{opacity:0,visibility:'visible'}],{duration:170,easing:'ease-out'})));
+    const bg=listEl.querySelector('.dwd-bg');
+    if(bg)anims.push(bg.animate([{opacity:0},{opacity:1}],{duration:320,delay:60,easing:'ease-out',fill:'backwards'}));
+    listEl.querySelectorAll('.dwd-info').forEach((el,i)=>anims.push(el.animate([{opacity:0,transform:'translateX(-8px)'},{opacity:1,transform:'translateX(0)'}],{duration:300,delay:230+i*30,easing:'ease-out',fill:'backwards'})));
+  }else{
+    // List is parked/hidden now: keep it visible briefly so the rows fade while the rings leave them
+    anims.push(listEl.animate([{opacity:1,visibility:'visible'},{opacity:0,visibility:'visible'}],{duration:200,easing:'ease-out'}));
+    labels.forEach((l,i)=>anims.push(l.animate([{opacity:0},{opacity:1}],{duration:260,delay:150+i*22,easing:'ease-out',fill:'backwards'})));
+  }
 
   _dwAnims=anims;
   Promise.all(anims.map(a=>a.finished.catch(()=>{}))).then(()=>{
     if(token!==_dwToken)return;
-    if(!opening)rings.forEach((r,i)=>{if(stripSlots[i])stripSlots[i].appendChild(r)});   // dock, then drop the 'forwards' fills
-    anims.forEach(a=>{try{a.cancel()}catch(e){}});
     card.classList.remove('is-animating');
     _dwAnims=[];
   });
@@ -22242,4 +22160,4 @@ function closeLearnVideo(){
 })();
 </script>
 </body>
-</html>
+</html> 
