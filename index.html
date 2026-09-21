@@ -153,10 +153,21 @@ body.theme-custom.has-bg-image .vol-drilldown,
 body.theme-custom.has-bg-image .heroBanner,
 body.theme-custom.has-bg-image .gymbroTop,
 body.theme-custom.has-bg-image .gymbroTopSolo,
+body.theme-custom.has-bg-image .dash-hero-card,
+body.theme-custom.has-bg-image .dash-week-card,
+body.theme-custom.has-bg-image .dash-stat-chip,
+body.theme-custom.has-bg-image .dash-today-card,
 body.theme-custom.has-bg-image .custom-theme-modal{
   backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
   border:1px solid var(--border-col);
 }
+
+/* Home page cards in CUSTOM theme only (Light/Dark untouched). The week / stat / Today cards already use
+   var(--bg-card); the blur-removal above lets the Background Image show through them like on Stats & other pages.
+   The streak (hero) card had its own hard-coded blue gradient + accent glow, which ignored the user's Box colour and
+   Box Opacity — so it now uses the same Box/Card background and shadow as every other box. */
+body.theme-custom .dash-hero-card{background:var(--bg-card);box-shadow:var(--card-shadow)}
+body.theme-custom.has-bg-image .dash-hero-card::after{display:none}
 
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
 /* overscroll-behavior-y:none on both html and body disables the browser's native "pull-to-refresh"
@@ -3204,11 +3215,12 @@ body.tracker-fs-lock{overflow:hidden}
 
 /* ---- Today card: check-in / workout hero ---- */
 .dash-today-card{position:relative;overflow:hidden;background:var(--bg-card);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);border:1px solid var(--border-col);border-radius:22px;padding:20px;box-shadow:var(--card-shadow)}
-.dash-today-glow{position:absolute;top:-40%;left:-10%;width:55%;height:140%;background:radial-gradient(circle,rgba(45,212,191,0.16) 0%,transparent 72%);pointer-events:none}
 .dash-today-head{position:relative;z-index:1;margin-bottom:2px}
 .dash-today-eyebrow{font-family:var(--font-alt);font-size:12px;font-weight:700;color:var(--text-muted);letter-spacing:.4px}
 .dash-today-card .checkin-flow-step{position:relative;z-index:1}
-.dash-punch-btn{font-size:16px;padding:16px;border-radius:16px;letter-spacing:.6px}
+/* Punch In: ONE solid theme colour (var(--accent) → blue in Light/Dark, the user's Heading colour in Custom).
+   No gradient and no extra hard-coded teal glow behind it, so the card never shows two competing colours. */
+.dash-punch-btn{font-size:16px;padding:16px;border-radius:16px;letter-spacing:.6px;background:var(--accent)}
 
 
 /* ===================== HOME: NARROW -> MEDIUM -> WIDE ADAPTATION =====================
@@ -3405,7 +3417,6 @@ body.tracker-fs-lock{overflow:hidden}
       </div>
 
       <div class="dash-today-card">
-        <div class="dash-today-glow"></div>
         <div class="dash-today-head"><span class="dash-today-eyebrow">🏟 Today</span></div>
         <div class="checkin-flow-step" id="checkinStep1">
           <button class="btn dash-punch-btn" id="submitCheckinBtn" onclick="processCheckIn()">⚡ Punch In</button>
