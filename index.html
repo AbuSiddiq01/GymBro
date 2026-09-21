@@ -34,7 +34,7 @@
 
 /* ===================== DARK MODE ===================== */
 body.theme-dark {
-  /* Dark = BLACK + BLUE: pure-black page, blue-tinted near-black cards (#14161c), soft blue borders, blue accent. */
+  /* Dark = BLACK + BLUE: blue-tinted near-black cards (#14161c), soft blue borders, blue accent, on a glossy metallic-black page. */
   --bg-base:#000000;--bg-card:rgba(20,22,28,0.95);--bg-panel:rgba(14,16,20,0.92);
   --border-col:rgba(120,170,255,0.18);--text-primary:#e7e9ec;--text-secondary:rgba(231,233,236,0.72);
   --text-muted:rgba(231,233,236,0.45);--accent:#4f8cff;--accent2:#2f63cc;
@@ -53,8 +53,19 @@ body.theme-dark {
   --follow-btn-bg:linear-gradient(135deg,#4f8cff,#2f63cc);--follow-btn-text:#fff;
   --feed-like-col:#fb7185;--section-title-col:#8cb4ff;
 }
-/* Dark mode page background is flat pure black; the blue comes from the cards, borders and accent. */
+/* Glossy metallic BLACK page (generated in CSS): near-black gunmetal base, soft diagonal light sheens, a faint top
+   reflection, a subtle blue edge glow and a fine grain — on a fixed layer so it never shifts while scrolling. */
 body.theme-dark{background:var(--bg-base)}
+body.theme-dark::before{
+  content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.10 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"),
+    linear-gradient(115deg,transparent 0%,transparent 20%,rgba(255,255,255,0.038) 29%,transparent 38%,transparent 54%,rgba(255,255,255,0.028) 62%,transparent 71%,transparent 100%),
+    radial-gradient(ellipse 95% 42% at 25% -6%,rgba(255,255,255,0.075),transparent 62%),
+    radial-gradient(circle at 100% 10%,rgba(79,140,255,0.11),transparent 42%),
+    radial-gradient(circle at 0% 100%,rgba(79,140,255,0.08),transparent 46%),
+    linear-gradient(160deg,#16181d 0%,#08090b 36%,#101115 60%,#020203 100%);
+}
 /* Same idea, much softer, for Light mode — a faint blue-tinted ambient instead of flat white. */
 body:not(.theme-dark):not(.theme-custom){
   background:
@@ -22164,4 +22175,4 @@ function closeLearnVideo(){
 })();
 </script>
 </body>
-</html>
+</html> 
