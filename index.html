@@ -2640,6 +2640,17 @@ body.tracker-fs-lock{overflow:hidden}
 .learn-gif-fallback .gif-emoji{font-size:clamp(46px,14vw,72px);display:block;margin-bottom:10px;animation:gifBounce 1.5s ease-in-out infinite}
 @keyframes gifBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
 .learn-gif-fallback .gif-label{font-family:var(--font-alt);font-size:clamp(12.5px,3.4vw,14px);font-weight:700;color:var(--accent);letter-spacing:0.5px}
+/* ===== Learn demo box: real paused video-frame thumbnail instead of the emoji, for any
+   exercise that has a local clip. The frame is grabbed from the same cached blob that
+   playback uses, so tapping it plays instantly with no extra fetch. ===== */
+.learn-gif-thumb-wrap{width:100%;height:100%;position:relative;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.learn-gif-thumb-wrap video{width:100%;height:100%;object-fit:cover;border-radius:20px;opacity:0;transition:opacity 0.25s ease}
+.learn-gif-thumb-wrap.loaded video{opacity:1}
+.learn-gif-thumb-spinner{width:34px;height:34px;border-radius:50%;border:3px solid var(--border-col);border-top-color:var(--accent);animation:learnThumbSpin 0.8s linear infinite}
+@keyframes learnThumbSpin{to{transform:rotate(360deg)}}
+.learn-gif-thumb-play{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:52px;height:52px;border-radius:50%;background:rgba(0,0,0,0.55);color:#fff;display:flex;align-items:center;justify-content:center;pointer-events:none;box-shadow:0 4px 14px rgba(0,0,0,0.35);transition:transform 0.15s ease}
+.learn-gif-thumb-play svg{width:22px;height:22px;margin-left:2px}
+.learn-gif-thumb-wrap:active .learn-gif-thumb-play{transform:translate(-50%,-50%) scale(0.92)}
 /* width:100% + box-sizing:border-box keeps this within its parent, but <button> elements default to
    not wrapping their text (min-content = full unwrapped label width) — without explicitly forcing
    white-space:normal + a shrinkable flex child, a long label like "Bench Press (Barbell) — Watch
@@ -21234,23 +21245,85 @@ function selectLearnExercise(name){
   renderLearnCard(name,data,LEARN_VIDEO_URLS[name]);
 }
 async function renderLearnCard(name,data,videoUrlOverride){
+  // Re-selecting the exact exercise whose clip is already open & playing inline shouldn't
+  // interrupt it — leave the card exactly as it is (just re-confirm it's in view).
+  const already=document.getElementById("learnGifContainer");
+  if(already&&already.classList.contains('video-active')&&already.dataset.exerciseName===name){
+    document.getElementById("learnInfoCard").scrollIntoView({behavior:"smooth",block:"start"});
+    return;
+  }
   await loadWorkoutVideoMap(); // no-op after the first call — map is cached in memory
   const videoUrl=videoUrlOverride||data.youtubeUrl;
   const localVideoPath=getLocalVideoPath(name);
+  // Fetch the clip THE MOMENT the exercise is selected (not on tap) so it's already sitting in
+  // memory as an object URL by the time the person looks at the thumbnail or hits play — this
+  // same promise/cache is what both the thumbnail frame and the Play button read from below.
   if(localVideoPath)getWorkoutVideoBlobUrl(localVideoPath).catch(()=>{/* Play button falls back to direct streaming if this fails */});
   const videoLabel=localVideoPath?`${name} — Watch Tutorial`:(videoUrlOverride?`${name} — Watch Tutorial`:data.youtubeLabel);
   const stepsHtml=data.steps.map((s,i)=>`<li><span class="learn-step-num">${i+1}</span><span>${s}</span></li>`).join("");
   const mistakesHtml=data.mistakes.map(m=>`<li><span>❌</span><span>${m}</span></li>`).join("");
   const secondaryHtml=data.secondaryMuscles.map(m=>`<span class="learn-muscle-chip secondary">${m}</span>`).join("");
-  const html=`<div class="learn-info-card glass"><div class="learn-info-card-header"><div class="learn-exercise-title">${name}</div><span class="learn-muscle-badge">${data.class}</span></div><div class="learn-main-grid"><div class="learn-gif-col"><div class="learn-gif-container" id="learnGifContainer"><div class="learn-gif-fallback"><span class="gif-emoji">${data.gifEmoji}</span><div class="gif-label">${name}</div><div style="font-size:11px;color:var(--text-muted);font-family:var(--font-alt);margin-top:6px;letter-spacing:0.3px">3D DEMONSTRATION</div></div></div><button type="button" class="learn-yt-link" id="learnYtBtn"><span class="learn-yt-icon">▶</span><span class="learn-yt-label">${videoLabel}</span></button><div class="learn-section-block" style="margin-top:12px"><div class="learn-block-title">🎯 Target Muscles</div><div style="margin-bottom:10px"><div style="font-size:11px;font-weight:700;color:var(--text-muted);font-family:var(--font-alt);letter-spacing:0.5px;margin-bottom:6px;text-transform:uppercase">PRIMARY</div><span class="learn-muscle-chip primary">${data.primaryMuscle}</span></div><div><div style="font-size:11px;font-weight:700;color:var(--text-muted);font-family:var(--font-alt);letter-spacing:0.5px;margin-bottom:6px;text-transform:uppercase">SECONDARY</div><div class="learn-muscles-row">${secondaryHtml}</div></div></div></div><div class="learn-details-col"><div class="learn-section-block"><div class="learn-block-title">📋 How To Perform</div><ul class="learn-steps-list">${stepsHtml}</ul></div><div class="learn-section-block"><div class="learn-block-title">⚠️ Common Mistakes</div><ul class="learn-mistakes-list">${mistakesHtml}</ul></div></div></div></div>`;
+  // Demo box: for any exercise with a local clip, show a paused real video-frame thumbnail
+  // (filled in by setupLearnThumbnail below) instead of the emoji placeholder. Exercises with
+  // no local clip keep the old emoji/"3D DEMONSTRATION" fallback since there's no frame to grab.
+  const demoBoxHtml=localVideoPath
+    ?`<div class="learn-gif-thumb-wrap" id="learnGifThumbWrap"><div class="learn-gif-thumb-spinner"></div><div class="learn-gif-thumb-play"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></div></div>`
+    :`<div class="learn-gif-fallback"><span class="gif-emoji">${data.gifEmoji}</span><div class="gif-label">${name}</div><div style="font-size:11px;color:var(--text-muted);font-family:var(--font-alt);margin-top:6px;letter-spacing:0.3px">3D DEMONSTRATION</div></div>`;
+  const html=`<div class="learn-info-card glass"><div class="learn-info-card-header"><div class="learn-exercise-title">${name}</div><span class="learn-muscle-badge">${data.class}</span></div><div class="learn-main-grid"><div class="learn-gif-col"><div class="learn-gif-container" id="learnGifContainer">${demoBoxHtml}</div><button type="button" class="learn-yt-link" id="learnYtBtn"><span class="learn-yt-icon">▶</span><span class="learn-yt-label">${videoLabel}</span></button><div class="learn-section-block" style="margin-top:12px"><div class="learn-block-title">🎯 Target Muscles</div><div style="margin-bottom:10px"><div style="font-size:11px;font-weight:700;color:var(--text-muted);font-family:var(--font-alt);letter-spacing:0.5px;margin-bottom:6px;text-transform:uppercase">PRIMARY</div><span class="learn-muscle-chip primary">${data.primaryMuscle}</span></div><div><div style="font-size:11px;font-weight:700;color:var(--text-muted);font-family:var(--font-alt);letter-spacing:0.5px;margin-bottom:6px;text-transform:uppercase">SECONDARY</div><div class="learn-muscles-row">${secondaryHtml}</div></div></div></div><div class="learn-details-col"><div class="learn-section-block"><div class="learn-block-title">📋 How To Perform</div><ul class="learn-steps-list">${stepsHtml}</ul></div><div class="learn-section-block"><div class="learn-block-title">⚠️ Common Mistakes</div><ul class="learn-mistakes-list">${mistakesHtml}</ul></div></div></div></div>`;
   document.getElementById("learnInfoCard").innerHTML=html;document.getElementById("learnInfoCard").style.display="block";document.getElementById("learnEmptyState").style.display="none";
+  const container=document.getElementById("learnGifContainer");
+  container.dataset.exerciseName=name;
+  if(localVideoPath){
+    container.dataset.videoPath=localVideoPath;
+    // Tapping anywhere on the thumbnail plays the clip instantly (already fetched above).
+    container.onclick=()=>playLearnVideoInline(name,localVideoPath);
+    setupLearnThumbnail(name,localVideoPath);
+  }
   const ytBtn=document.getElementById("learnYtBtn");
   // Same clip, same autoplay+loop/no-controls playback as the Workout page's ▶ Video action —
-  // just played INLINE, in place of the "3D DEMONSTRATION" box, instead of opening it in an
+  // just played INLINE, in place of the demo box's thumbnail, instead of opening it in an
   // overlay frame on top of the page. Exercises without a local clip still fall back to the
   // YouTube search link (a different source, no in-place player available for it).
   if(ytBtn)ytBtn.onclick=()=>{ if(localVideoPath)playLearnVideoInline(name,localVideoPath); else openLearnVideo(videoUrl,videoLabel); };
   document.getElementById("learnInfoCard").scrollIntoView({behavior:"smooth",block:"start"});
+}
+/* Fills the demo box with a real paused frame grabbed from the exercise's own clip, in place of
+   the old bouncing emoji. Reads from the exact same blob cache that playback uses (workoutVideoBlobCache
+   via getWorkoutVideoBlobUrl), which renderLearnCard already kicked off the instant the exercise was
+   selected — so on a repeat view, or once that prefetch lands, the frame appears immediately with no
+   extra network round trip. A muted <video> is used (rather than drawing to a <canvas>) so the exact
+   same element can simply be handed to playback later with no re-fetch: the frame paused a hair past
+   0s (onseeked) is shown as a static thumbnail with a play icon on top until it's tapped. */
+function setupLearnThumbnail(name,filePath){
+  const render=(url)=>{
+    const wrap=document.getElementById("learnGifThumbWrap");
+    // Card may have moved on to a different exercise (or into playback) while this was loading.
+    if(!wrap||document.getElementById("learnGifContainer")?.dataset.videoPath!==filePath)return;
+    wrap.innerHTML="";
+    const vid=document.createElement('video');
+    vid.muted=true;vid.playsInline=true;vid.setAttribute('webkit-playsinline','');vid.preload='auto';
+    vid.setAttribute('disablepictureinpicture','');vid.setAttribute('disableremoteplayback','');
+    vid.oncontextmenu=()=>false;
+    vid.onloadeddata=()=>{
+      // Nudge a touch past frame 0 — many encoders leave the very first frame black/blank, so a
+      // small seek gives a real representative frame while still reading as "start of the clip".
+      try{vid.currentTime=Math.min(0.15,(vid.duration||0.6)/4)}catch(e){}
+    };
+    vid.onseeked=()=>{wrap.classList.add('loaded')};
+    vid.src=url;
+    wrap.appendChild(vid);
+    const playIcon=document.createElement('div');
+    playIcon.className='learn-gif-thumb-play';
+    playIcon.innerHTML='<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>';
+    wrap.appendChild(playIcon);
+  };
+  if(workoutVideoBlobCache.has(filePath)){render(workoutVideoBlobCache.get(filePath));return;}
+  getWorkoutVideoBlobUrl(filePath).then(render).catch(()=>{
+    // Couldn't fetch a frame — drop back to a plain centered play icon rather than spinning
+    // forever; tapping still falls back to direct streaming inside playLearnVideoInline.
+    const wrap=document.getElementById("learnGifThumbWrap");
+    if(wrap)wrap.innerHTML='<div class="learn-gif-thumb-play" style="position:static;transform:none"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></div>';
+  });
 }
 /* Plays the exercise's demo clip INLINE, replacing the "3D DEMONSTRATION" placeholder box's own
    content — same clip, same autoplay+loop/muted/no-controls playback as the Workout page's video
@@ -21260,14 +21333,18 @@ async function renderLearnCard(name,data,videoUrlOverride){
 function playLearnVideoInline(name,filePath){
   const container=document.getElementById("learnGifContainer");
   if(!container)return;
-  // Remember the static demo box's own markup (emoji/label/"3D DEMONSTRATION") so the ✕ close
+  // Already playing this exact exercise's clip — leave it exactly as it is, no restart/flicker
+  // (guards against the click bubbling up from the thumbnail/close button while it's active).
+  if(container.classList.contains('video-active')&&container.dataset.exerciseName===name)return;
+  // Remember the demo box's own markup (thumbnail frame or emoji fallback) so the ✕ close
   // button can restore it exactly as it was, without needing to re-render the whole card.
   if(!container.dataset.fallbackHtml)container.dataset.fallbackHtml=container.innerHTML;
+  container.dataset.exerciseName=name;
   container.classList.add('video-active');
   const safeTitle=(name||"Exercise Video").replace(/</g,"&lt;").replace(/>/g,"&gt;");
   // Header bar + close button (never overlapping the video itself) above the frame — same
   // layout as the Workout page's video modal.
-  container.innerHTML=`<div class="learn-video-inline-header">${safeTitle}</div><button type="button" class="learn-inline-video-close" onclick="closeLearnInlineVideo()" title="Close video" aria-label="Close video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg></button><div class="learn-video-inline-frame"><video id="learnInlineVideoEl" autoplay loop muted playsinline webkit-playsinline disablepictureinpicture disableremoteplayback oncontextmenu="return false"></video></div>`;
+  container.innerHTML=`<div class="learn-video-inline-header">${safeTitle}</div><button type="button" class="learn-inline-video-close" onclick="closeLearnInlineVideo(event)" title="Close video" aria-label="Close video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg></button><div class="learn-video-inline-frame"><video id="learnInlineVideoEl" autoplay loop muted playsinline webkit-playsinline disablepictureinpicture disableremoteplayback oncontextmenu="return false"></video></div>`;
   const videoEl=document.getElementById("learnInlineVideoEl");
   // The clip now loops forever right in the demo box — no further action needed from the button.
   const ytBtn=document.getElementById("learnYtBtn");
@@ -21293,7 +21370,10 @@ function playLearnVideoInline(name,filePath){
 /* Closes just the inline video, restoring the "3D DEMONSTRATION" fallback box underneath (and
    the Watch Tutorial button) — mirrors closeWorkoutRowVideo's "only touch the video, leave
    everything else exactly where it was" behavior. */
-function closeLearnInlineVideo(){
+function closeLearnInlineVideo(evt){
+  // Stop the click here — the close button sits inside the same container that plays the clip
+  // on click, so without this the event would bubble straight back up and re-open it.
+  if(evt)evt.stopPropagation();
   const container=document.getElementById("learnGifContainer");
   if(!container)return;
   const videoEl=document.getElementById("learnInlineVideoEl");
@@ -22407,4 +22487,4 @@ function closeLearnVideo(){
 })();
 </script>
 </body>
-</html>
+</html> 
