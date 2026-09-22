@@ -3931,7 +3931,7 @@ body.theme-custom .dash-week-card{border-color:var(--border-col)}
             <button type="button" class="hist-filter-clear-btn" onclick="histClearSelectedStatus()">✕ Clear</button>
           </div>
           <table class="table">
-            <thead><tr><th>Date</th><th>Status</th><th>Check-in</th><th>Muscles</th><th>Duration</th></tr></thead>
+            <thead><tr><th>Date</th><th>Status</th><th>Muscles</th><th>Check-in</th><th>Check-out</th><th>Duration</th></tr></thead>
             <tbody id="historyTable"></tbody>
           </table>
         </div>
@@ -6040,6 +6040,26 @@ function sessionDisplayDurationText(row){
   if(d==='In Progress'||d.startsWith('In Progress|'))return'In Progress ⏱';
   const idx=d.indexOf('|');
   return idx===-1?d:d.substring(0,idx);
+}
+/* Check-out instant for a Session row — auto-derived, never stored: real check-in instant
+   (sessionDisplayCheckInISO) + the row's Duration in minutes, exact same calculation the
+   "Checked out at <time>" chip on another user's profile already uses (see the non-private
+   profile status chip: checkoutISO = created_at + parseDurationToMinutes(duration)). Returns
+   null when there's no real check-in yet or the session is still In Progress (nothing to
+   derive a check-out from), so the UI shows "-" instead of a bogus time. */
+function sessionDisplayCheckOutISO(row){
+  const ciISO=sessionDisplayCheckInISO(row);
+  if(!ciISO)return null;
+  const durText=sessionDisplayDurationText(row);
+  if(!durText||durText==='-'||durText==='In Progress ⏱')return null;
+  const mins=parseDurationToMinutes(durText);
+  if(!mins)return null;
+  return new Date(new Date(ciISO).getTime()+mins*60000).toISOString();
+}
+/* Human-readable Check-out text for a Session row, formatted the same way Check-in already is. */
+function sessionDisplayCheckOutText(row){
+  const iso=sessionDisplayCheckOutISO(row);
+  return iso?formatCheckInTime(iso):'-';
 }
 
 /* Build the "class" text field (comma-joined CODES) from an array of selected class/muscle names. */
@@ -9544,7 +9564,7 @@ function renderHistoryFilteredTable(status){
   const{list}=_monthDayList(status);
   let tbody=document.getElementById("historyTable");tbody.innerHTML="";
   if(list.length===0){
-    tbody.innerHTML=`<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:20px;font-family:var(--font-alt)">No ${status==='present'?'present':status==='rest'?'rest':'absent'} days recorded yet for this month.</td></tr>`;
+    tbody.innerHTML=`<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:20px;font-family:var(--font-alt)">No ${status==='present'?'present':status==='rest'?'rest':'absent'} days recorded yet for this month.</td></tr>`;
     return;
   }
   list.forEach(item=>{
@@ -9554,14 +9574,15 @@ function renderHistoryFilteredTable(status){
       if(item.rows.length){
         item.rows.forEach(row=>{
           const checkInTime=formatCheckInTime(sessionDisplayCheckInISO(row));
+          const checkOutTime=sessionDisplayCheckOutText(row);
           const displayDuration=sessionDisplayDurationText(row);
           const tr=document.createElement('tr');
-          tr.innerHTML=`<td>${ds}, ${dn}</td><td><span class="badge present">Present</span></td><td style="font-size:12px">${checkInTime}</td><td style="font-size:11px;max-width:120px">${sessionParseClassField(row.class).join(', ')||'-'}</td><td style="font-size:12px">${displayDuration}</td>`;
+          tr.innerHTML=`<td>${ds}, ${dn}</td><td><span class="badge present">Present</span></td><td style="font-size:11px;max-width:120px">${sessionParseClassField(row.class).join(', ')||'-'}</td><td style="font-size:12px">${checkInTime}</td><td style="font-size:12px">${checkOutTime}</td><td style="font-size:12px">${displayDuration}</td>`;
           tbody.appendChild(tr);
         });
       } else {
         const tr=document.createElement('tr');
-        tr.innerHTML=`<td>${ds}, ${dn}</td><td><span class="badge present">Present</span></td><td style="font-size:12px">-</td><td style="font-size:11px;max-width:120px">-</td><td style="font-size:12px">-</td>`;
+        tr.innerHTML=`<td>${ds}, ${dn}</td><td><span class="badge present">Present</span></td><td style="font-size:11px;max-width:120px">-</td><td style="font-size:12px">-</td><td style="font-size:12px">-</td><td style="font-size:12px">-</td>`;
         tbody.appendChild(tr);
       }
       return;
@@ -9570,7 +9591,7 @@ function renderHistoryFilteredTable(status){
     const editTitle=status==='rest'?'Change to Absent':'Change to Rest Day';
     const dateKey=_fmtISODate(dt);
     const tr=document.createElement('tr');
-    tr.innerHTML=`<td>${ds}, ${dn}</td><td><span class="badge ${badgeCls}" style="cursor:pointer" onclick="this.nextElementSibling.style.display=(this.nextElementSibling.style.display==='inline-block'?'none':'inline-block')" title="Tap to edit">${badgeTxt}</span> <button class="hist-edit-btn" style="display:none" onclick="toggleRestDayForDate('${dateKey}')" title="${editTitle}">✏️</button></td><td style="font-size:12px">-</td><td style="font-size:11px;max-width:120px">-</td><td style="font-size:12px">-</td>`;
+    tr.innerHTML=`<td>${ds}, ${dn}</td><td><span class="badge ${badgeCls}" style="cursor:pointer" onclick="this.nextElementSibling.style.display=(this.nextElementSibling.style.display==='inline-block'?'none':'inline-block')" title="Tap to edit">${badgeTxt}</span> <button class="hist-edit-btn" style="display:none" onclick="toggleRestDayForDate('${dateKey}')" title="${editTitle}">✏️</button></td><td style="font-size:11px;max-width:120px">-</td><td style="font-size:12px">-</td><td style="font-size:12px">-</td><td style="font-size:12px">-</td>`;
     tbody.appendChild(tr);
   });
 }
@@ -9635,24 +9656,25 @@ function renderAttendanceHistory(){
     let tr=document.createElement("tr");
     if(row._placeholderStatus){
       if(row._pending){
-        tr.innerHTML=`<td>${ds}, ${dn}</td><td><span class="badge pending">Not Checked In</span></td><td style="font-size:12px">-</td><td style="font-size:11px;max-width:120px">-</td><td style="font-size:12px">-</td>`;
+        tr.innerHTML=`<td>${ds}, ${dn}</td><td><span class="badge pending">Not Checked In</span></td><td style="font-size:11px;max-width:120px">-</td><td style="font-size:12px">-</td><td style="font-size:12px">-</td><td style="font-size:12px">-</td>`;
         tbody.appendChild(tr);
         return;
       }
       const isRest=row._placeholderStatus==='rest';
       const badgeCls=isRest?'rest':'absent',badgeTxt=isRest?'Rest Day':'Absent';
       const editTitle=isRest?'Change to Absent':'Change to Rest Day';
-      tr.innerHTML=`<td>${ds}, ${dn}</td><td><span class="badge ${badgeCls}" style="cursor:pointer" onclick="this.nextElementSibling.style.display=(this.nextElementSibling.style.display==='inline-block'?'none':'inline-block')" title="Tap to edit">${badgeTxt}</span> <button class="hist-edit-btn" style="display:none" onclick="toggleRestDayForDate('${row.date}')" title="${editTitle}">✏️</button></td><td style="font-size:12px">-</td><td style="font-size:11px;max-width:120px">-</td><td style="font-size:12px">-</td>`;
+      tr.innerHTML=`<td>${ds}, ${dn}</td><td><span class="badge ${badgeCls}" style="cursor:pointer" onclick="this.nextElementSibling.style.display=(this.nextElementSibling.style.display==='inline-block'?'none':'inline-block')" title="Tap to edit">${badgeTxt}</span> <button class="hist-edit-btn" style="display:none" onclick="toggleRestDayForDate('${row.date}')" title="${editTitle}">✏️</button></td><td style="font-size:11px;max-width:120px">-</td><td style="font-size:12px">-</td><td style="font-size:12px">-</td><td style="font-size:12px">-</td>`;
       tbody.appendChild(tr);
       return;
     }
     let sc="present";
     let displayDuration=sessionDisplayDurationText(row);
     let checkInTime=formatCheckInTime(sessionDisplayCheckInISO(row));
-    tr.innerHTML=`<td>${ds}, ${dn}</td><td><span class="badge ${sc}">Present</span></td><td style="font-size:12px">${checkInTime}</td><td style="font-size:11px;max-width:120px">${sessionParseClassField(row.class).join(', ')||'-'}</td><td style="font-size:12px">${displayDuration}</td>`;
+    let checkOutTime=sessionDisplayCheckOutText(row);
+    tr.innerHTML=`<td>${ds}, ${dn}</td><td><span class="badge ${sc}">Present</span></td><td style="font-size:11px;max-width:120px">${sessionParseClassField(row.class).join(', ')||'-'}</td><td style="font-size:12px">${checkInTime}</td><td style="font-size:12px">${checkOutTime}</td><td style="font-size:12px">${displayDuration}</td>`;
     tbody.appendChild(tr);
   });
-  if(tbody.children.length===0)tbody.innerHTML=`<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:20px;font-family:var(--font-alt)">No records for this filter.</td></tr>`;
+  if(tbody.children.length===0)tbody.innerHTML=`<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:20px;font-family:var(--font-alt)">No records for this filter.</td></tr>`;
 
   // Refresh the "Week N: <range>" label + show/hide the "<" / ">" nav buttons
   const{min:_hMin,max:_hMax}=_monthWeekBounds(filterYear,filterMonth);
