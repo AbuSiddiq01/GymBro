@@ -2613,9 +2613,18 @@ body.tracker-fs-lock{overflow:hidden}
 .learn-info-card-header{display:flex;align-items:center;flex-wrap:wrap;gap:clamp(8px,3vw,14px);margin-bottom:clamp(14px,4.5vw,20px);padding-bottom:clamp(10px,3vw,16px);border-bottom:1px solid var(--border-col)}
 .learn-exercise-title{font-family:var(--font-display);font-size:clamp(19px,5.8vw,28px);color:var(--section-title-col);letter-spacing:1.5px;overflow-wrap:break-word;min-width:0;flex:1 1 auto}
 .learn-muscle-badge{background:var(--btn-bg);color:var(--follow-btn-text);padding:clamp(5px,1.5vw,6px) clamp(10px,3vw,14px);border-radius:10px;font-family:var(--font-alt);font-size:clamp(11.5px,3vw,13px);font-weight:700;letter-spacing:0.5px;white-space:nowrap;flex-shrink:0}
-.learn-main-grid{display:grid;grid-template-columns:340px 1fr;gap:clamp(14px,4.5vw,20px);align-items:start;max-width:100%}
+/* Demo/video column width now scales fluidly with the viewport (clamp) instead of a hard 340px
+   pixel value, so there's no sudden jump right at the stacking breakpoint below — a "medium" width
+   (tablet-ish) screen just above that breakpoint used to force the 2nd (details) column into a
+   cramped sliver next to a fixed-width demo box; now the demo column itself shrinks smoothly first. */
+.learn-main-grid{display:grid;grid-template-columns:clamp(220px,32vw,340px) 1fr;gap:clamp(14px,4.5vw,20px);align-items:start;max-width:100%}
 .learn-gif-col,.learn-details-col{min-width:0}
-.learn-gif-container{background:var(--accent-soft);border:1px solid var(--border-col);border-radius:20px;overflow:hidden;aspect-ratio:16/9;min-height:clamp(230px,62vw,400px);width:100%;max-width:100%;display:flex;align-items:center;justify-content:center;position:relative;box-sizing:border-box}
+/* Below this, the details column has too little room to sit beside even the shrunk demo column
+   without crowding/overlapping its own text — stack to a single, full-card-width column instead,
+   which also lets the demo/video box grow to the FULL card width (matching the reference screenshot)
+   on narrow and medium screens alike, rather than only ever being ~1/3 of the card. */
+@media(max-width:1080px){.learn-main-grid{grid-template-columns:1fr}}
+.learn-gif-container{background:var(--accent-soft);border:1px solid var(--border-col);border-radius:20px;overflow:hidden;aspect-ratio:16/9;min-height:clamp(230px,62vw,460px);width:100%;max-width:100%;display:flex;align-items:center;justify-content:center;position:relative;box-sizing:border-box}
 .learn-gif-container img,.learn-gif-container video{width:100%;height:100%;object-fit:cover;border-radius:20px}
 /* While a clip is playing inline, the box stacks a title header + video frame — same structure
    as the Workout page's video modal (.wf-video-modal-box: header bar, then .wf-video-frame-wrap
@@ -2627,7 +2636,7 @@ body.tracker-fs-lock{overflow:hidden}
    column's own width via clamp() rather than being capped by it, so the video reads as a proper
    demonstration frame instead of a short strip, from narrow phones up through the fixed-width
    desktop column. */
-.learn-video-inline-frame{position:relative;width:100%;aspect-ratio:16/9;min-height:clamp(230px,62vw,400px);background:#000}
+.learn-video-inline-frame{position:relative;width:100%;aspect-ratio:16/9;min-height:clamp(230px,62vw,460px);background:#000}
 .learn-video-inline-frame video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:0}
 /* Same round red ✕ close button as the Workout page's video player (.wf-video-close-btn),
    pinned to the top-right corner of the header bar — never over the video itself — closing just
@@ -2770,7 +2779,6 @@ body.tracker-fs-lock{overflow:hidden}
 .session-resumed-banner{background:linear-gradient(135deg,rgba(22,163,74,0.18),rgba(22,163,74,0.08));border:1px solid #16a34a;border-radius:14px;padding:12px 16px;margin-top:12px;display:flex;align-items:center;gap:10px;font-family:var(--font-alt);font-size:13px;font-weight:700;color:#16a34a;animation:fadeIn 0.4s ease}
 .session-resumed-banner .resume-dot{width:10px;height:10px;border-radius:50%;background:#16a34a;animation:livePulse 1.2s ease-in-out infinite;flex-shrink:0}
 
-@media(max-width:900px){.learn-main-grid{grid-template-columns:1fr}}
 @media(max-width:600px){.learn-info-card-header{flex-wrap:wrap}}
 @media(max-width:768px){
   .compact-checkin-wrapper{flex-direction:column}
@@ -21094,6 +21102,12 @@ function initLearnPage(){
     document.getElementById("learnClassFilter").innerHTML=ctmBuildMuscleOptionsHTML();
     document.getElementById("learnEquipmentFilter").innerHTML=ctmBuildEquipmentOptionsHTML();
     document.getElementById("learnClassFilter").dataset.built="1";
+    // Same custom app-themed dropdown used for the Workout page's exercise-selection Muscle/Equipment
+    // filters (ctmEnhanceSelectAsAppDropdown) — swaps the OS-native <select> picker for our own
+    // in-app styled menu, positioned/sized identically, instead of Learn's filters looking/behaving
+    // differently from every other Muscle/Equipment filter in the app.
+    ctmEnhanceSelectAsAppDropdown(document.getElementById("learnClassFilter"));
+    ctmEnhanceSelectAsAppDropdown(document.getElementById("learnEquipmentFilter"));
   }
   document.getElementById("learnSearchInput").value="";document.getElementById("learnClassFilter").value="";document.getElementById("learnEquipmentFilter").value="";
   document.getElementById("learnInfoCard").style.display="none";
