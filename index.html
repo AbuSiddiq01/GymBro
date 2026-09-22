@@ -450,22 +450,52 @@ body.ptr-dragging,body.ptr-dragging *{transition:none!important}
 .gymbroTopSolo .gymbroBrandWrap{grid-column:2;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px}
 .gymbroTopSolo .gymbroBrandWrap h2{display:flex;align-items:center;gap:8px}
 .gymbroAccentBar{display:block;width:38px;height:3px;border-radius:3px;margin-top:4px;background:linear-gradient(90deg,var(--accent),var(--accent2));box-shadow:0 0 8px var(--accent-glow)}
-/* Dark theme only: the banner was a flat/plain box, so give it a thin, light, glowing
-   "blue spark" border and tint its heading/subtitle text blue instead of plain white,
-   so it matches the black/blue Dark palette rather than standing out as generic white-on-dark. */
+/* Compact Light/Dark quick-switch pill, tucked in the banner's bottom-right corner.
+   It's absolutely positioned so it never adds to the banner's height/width — it just sits in
+   the empty space the grid already leaves to the right of the centered brand text. Sized with clamp()/em so
+   it scales smoothly from narrow phones to wide screens, and its colors use theme variables
+   (plus a translucent dark track) so it reads correctly on Light, Dark and Custom alike. */
+.gymbroQuickToggle{
+  position:absolute;right:clamp(18px,6vw,24px);bottom:clamp(10px,3vw,14px);z-index:2;
+  font-size:clamp(9px,2.6vw,11px);width:3.6em;height:1.9em;padding:0.15em;
+  display:flex;align-items:center;border-radius:999px;box-sizing:border-box;
+  border:1px solid rgba(255,255,255,0.22);background:rgba(0,0,0,0.3);
+  cursor:pointer;transition:background 0.3s,border-color 0.3s;
+}
+.gymbroQuickToggle:hover{border-color:rgba(255,255,255,0.4)}
+.gymbroQuickToggle .gqt-knob{
+  width:1.6em;height:1.6em;border-radius:50%;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--accent);color:#fff;box-shadow:0 2px 6px rgba(0,0,0,0.35);
+  transform:translateX(0);transition:transform 0.3s ease,background 0.3s;
+}
+.gymbroQuickToggle .gqt-knob svg{width:1em;height:1em}
+.gymbroQuickToggle .gqt-knob .gqt-moon{display:none}
+body.theme-dark .gymbroQuickToggle .gqt-knob,
+body.theme-custom .gymbroQuickToggle .gqt-knob{transform:translateX(1.7em)}
+body.theme-dark .gymbroQuickToggle .gqt-knob .gqt-sun,
+body.theme-custom .gymbroQuickToggle .gqt-knob .gqt-sun{display:none}
+body.theme-dark .gymbroQuickToggle .gqt-knob .gqt-moon,
+body.theme-custom .gymbroQuickToggle .gqt-knob .gqt-moon{display:flex}
+/* Dark theme only: previously the banner was a flat near-black box that sat on top of the
+   equally-black page background, so it read as a separate, mismatched panel instead of part of
+   the app. It now gets the same blue-glass gradient treatment as the "Current streak" hero card
+   (soft blue gradient, glass blur, blue-tinted border) so it visually belongs with the rest of
+   the Dark theme, with the GYMBRO wordmark back to white like other headings and blue reserved
+   for the subtitle/accent bar, matching how blue is used as an accent everywhere else. */
 body.theme-dark .gymbroTop,
 body.theme-dark .gymbroTopSolo{
-  border:1px solid rgba(79,140,255,0.45);
-  box-shadow:0 10px 30px rgba(0,0,0,0.15),inset 0 1px 0 rgba(255,255,255,0.06),0 0 14px rgba(79,140,255,0.2);
-  animation:gymbroBannerSpark 3.6s ease-in-out infinite;
+  background:linear-gradient(150deg,rgba(37,99,235,0.22) 0%,rgba(13,15,20,0.95) 65%);
+  backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);
+  border:1px solid rgba(79,140,255,0.28);
+  box-shadow:0 10px 30px rgba(0,0,0,0.25),inset 0 1px 0 rgba(255,255,255,0.06),0 0 20px rgba(79,140,255,0.1);
 }
-@keyframes gymbroBannerSpark{
-  0%,100%{border-color:rgba(79,140,255,0.35);box-shadow:0 10px 30px rgba(0,0,0,0.15),inset 0 1px 0 rgba(255,255,255,0.06),0 0 10px rgba(79,140,255,0.16)}
-  50%{border-color:rgba(120,170,255,0.75);box-shadow:0 10px 30px rgba(0,0,0,0.15),inset 0 1px 0 rgba(255,255,255,0.06),0 0 18px rgba(79,140,255,0.34)}
+body.theme-dark .gymbroTop h2{
+  color:var(--text-primary);
 }
-body.theme-dark .gymbroTop h2,
 body.theme-dark .gymbroTop p{
   color:var(--accent);
+  opacity:0.95;
 }
 /* Theme toggle + logout reused inside the Settings page Appearance row */
 .settings-row-ctrl .themeToggle{background:rgba(0,0,0,0.2)}
@@ -3354,6 +3384,12 @@ body.tracker-fs-lock{overflow:hidden}
         <p>TRACK · TRAIN · DOMINATE</p>
         <span class="gymbroAccentBar"></span>
       </div>
+      <button type="button" class="gymbroQuickToggle" id="gymbroQuickToggle" onclick="toggleQuickTheme()" aria-label="Switch between light and dark theme" title="Switch theme">
+        <span class="gqt-knob">
+          <svg class="gqt-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+          <svg class="gqt-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"/></svg>
+        </span>
+      </button>
     </div>
 
     <div id="menuBackdrop" onclick="closeHamburgerMenu()"></div>
@@ -4804,6 +4840,12 @@ function showLoginPage(){
 }
 
 /* ===================== THEME ENGINE ===================== */
+// Quick Light/Dark pill in the banner: a simple two-way flip. From Custom theme it
+// defaults to Light on tap (Custom itself is still only chosen from Settings > Appearance).
+function toggleQuickTheme(){
+  const current=localStorage.getItem('gymbro_theme')||'light';
+  setTheme(current==='light'?'dark':'light');
+}
 function syncThemeButtonsActive(t){
   if(!t)t=document.body.classList.contains('theme-dark')?'dark':document.body.classList.contains('theme-custom')?'custom':'light';
   document.querySelectorAll('.themeBtn').forEach(b=>b.classList.remove('active'));
@@ -22181,4 +22223,4 @@ function closeLearnVideo(){
 })();
 </script>
 </body>
-</html> 
+</html>
