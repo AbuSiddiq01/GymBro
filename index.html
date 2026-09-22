@@ -446,7 +446,7 @@ body.ptr-dragging,body.ptr-dragging *{transition:none!important}
   box-shadow:0 10px 30px rgba(0,0,0,0.15),inset 0 1px 0 rgba(255,255,255,0.08);
   transition:border-color 0.4s ease,box-shadow 0.4s ease;
 }
-.gymbroTopSolo .hamburger-btn{grid-column:1;justify-self:start}
+.gymbroTopSolo .gymbroTopSpacer{grid-column:1;justify-self:start;width:34px;height:34px}
 .gymbroTopSolo .gymbroBrandWrap{grid-column:2;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px}
 .gymbroTopSolo .gymbroBrandWrap h2{display:flex;align-items:center;gap:8px}
 .gymbroAccentBar{display:block;width:38px;height:3px;border-radius:3px;margin-top:4px;background:linear-gradient(90deg,var(--accent),var(--accent2));box-shadow:0 0 8px var(--accent-glow)}
@@ -1847,7 +1847,7 @@ body.stats-graph-fs-lock{overflow:hidden}
 .heroBanner p{opacity:.8;font-size:13px;font-family:var(--font-alt)}
 
 /* ===================== SOCIAL ===================== */
-.profile-header{background:var(--bg-card);border:1px solid var(--border-col);border-radius:20px;padding:24px;box-shadow:var(--card-shadow);overflow:visible;position:relative}
+.profile-header{background:var(--bg-card);border:1px solid var(--border-col);border-radius:20px;padding:24px;padding-top:clamp(58px,10vw,68px);box-shadow:var(--card-shadow);overflow:visible;position:relative}
 .profile-joined-chip{position:absolute;top:18px;right:18px;display:inline-flex;align-items:center;gap:5px;padding:5px 14px;background:var(--accent-soft);border:1px solid var(--border-col);border-radius:99px;font-size:11px;color:var(--text-secondary);font-family:var(--font-alt);letter-spacing:0.3px;white-space:nowrap;z-index:1}
 .profile-avatar-row{display:flex;align-items:flex-start;gap:20px}
 .avatar-ring{width:110px;height:110px;border-radius:50%;background:var(--btn-bg);padding:3px;box-shadow:0 0 0 2px var(--accent),0 6px 20px var(--accent-glow);flex-shrink:0;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:transform 0.2s,box-shadow 0.2s;position:relative}
@@ -1930,6 +1930,29 @@ body.stats-graph-fs-lock{overflow:hidden}
 .suggested-name{font-size:12px;font-weight:700;color:var(--text-primary);font-family:var(--font-alt);margin-bottom:8px}
 /* Edit Profile Panel */
 .edit-profile-btn{display:inline-flex;align-items:center;gap:6px;margin-top:10px;padding:7px 16px;background:var(--bg-panel);border:1px solid var(--border-col);border-radius:10px;font-size:12px;font-weight:700;font-family:var(--font-alt);color:var(--text-primary);cursor:pointer;letter-spacing:0.3px;transition:background 0.2s}
+/* Small pill link buttons that jump to another page — used to relocate the Learn button onto the
+   Workouts page and the Settings button onto the Profile page, now that the hamburger menu is gone. */
+.page-link-btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;background:var(--accent-soft);border:1px solid var(--border-col);border-radius:10px;font-size:12px;font-weight:700;font-family:var(--font-alt);color:var(--accent);cursor:pointer;letter-spacing:0.3px;flex-shrink:0;transition:background 0.2s ease,transform 0.15s ease}
+.page-link-btn:hover{background:var(--accent-glow);transform:translateY(-1px)}
+.page-link-btn svg{width:15px;height:15px;flex-shrink:0}
+/* Icon-only variant — used for the Learn shortcut on the Workouts page */
+.page-link-btn.icon-only{padding:0;width:34px;height:34px;justify-content:center;border-radius:50%}
+.page-link-btn.icon-only svg{width:16px;height:16px}
+/* Small circular close (X) buttons that return from a nested page (Learn → Workouts,
+   Settings → Profile) back to its parent tab. Styled like the app's other themed icon-boxes
+   (card background + border, blue accent icon) so it reads as part of the box, not a floating pill. */
+.page-close-btn{display:flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:11px;border:1px solid var(--border-col);background:var(--bg-panel);color:var(--accent);cursor:pointer;flex-shrink:0;box-shadow:var(--card-shadow);transition:background .2s ease,transform .15s ease}
+.page-close-btn:hover{background:var(--accent-soft);transform:scale(1.06)}
+.page-close-btn svg{width:15px;height:15px}
+/* Learn header sits on its own colored banner. The button keeps the same themed box look but pinned
+   fully inside the banner's own padding — never overlapping the title — with a soft shadow for
+   contrast against whichever banner color the theme uses. */
+.learn-page-close{box-shadow:0 3px 12px rgba(0,0,0,0.35);flex-shrink:0}
+.learn-page-close:hover{box-shadow:0 3px 12px rgba(0,0,0,0.4)}
+/* Profile page: small hamburger icon, top-left corner, mirrors the joined-since chip in the top-right — opens Settings. Same themed-box look as the close buttons. */
+.profile-menu-btn{position:absolute;top:clamp(12px,3vw,18px);left:clamp(12px,3vw,18px);display:flex;align-items:center;justify-content:center;width:clamp(28px,8vw,34px);height:clamp(28px,8vw,34px);border-radius:10px;border:1px solid var(--border-col);background:var(--bg-panel);color:var(--accent);cursor:pointer;z-index:2;box-shadow:var(--card-shadow);transition:background .2s ease,transform .15s ease}
+.profile-menu-btn:hover{background:var(--accent-soft);transform:scale(1.05)}
+.profile-menu-btn svg{width:16px;height:16px}
 .edit-profile-btn:hover{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
 .edit-profile-sheet{position:fixed;inset:0;z-index:999990;display:flex;align-items:flex-end;justify-content:center;background:rgba(0,0,0,0.6);backdrop-filter:blur(6px);animation:fadeIn 0.18s ease}
 .edit-profile-box{background:var(--bg-card);border:1px solid var(--border-col);border-radius:24px 24px 0 0;padding:24px 20px 36px;width:100%;max-width:480px;box-shadow:0 -20px 60px rgba(0,0,0,0.4)}
@@ -2552,9 +2575,10 @@ body.tracker-fs-lock{overflow:hidden}
 .tracker-set-list-compact li{font-size:10.5px;color:var(--text-primary);font-family:var(--font-alt);line-height:1.5;white-space:nowrap}
 .tracker-set-list-compact .tracker-set-num{color:var(--text-muted);font-weight:700;margin-right:4px}
 
-.learn-page-header{background:var(--header-bg);border-radius:20px;padding:28px 24px;margin-bottom:20px;box-shadow:0 10px 30px rgba(0,0,0,0.15);position:relative;overflow:hidden}
+.learn-page-header{background:var(--header-bg);border-radius:20px;padding:24px;margin-bottom:20px;box-shadow:0 10px 30px rgba(0,0,0,0.15);position:relative;overflow:hidden}
 .learn-page-header::before{content:'';position:absolute;top:-40%;right:-5%;width:220px;height:220px;border-radius:50%;background:rgba(255,255,255,0.04);pointer-events:none}
-.learn-page-header h1{font-family:var(--font-display);font-size:32px;color:var(--header-text);letter-spacing:2px;margin-bottom:6px}
+.learn-page-header-top{display:flex;align-items:center;justify-content:space-between;gap:12px;position:relative;z-index:2;margin-bottom:6px}
+.learn-page-header h1{font-family:var(--font-display);font-size:clamp(15px,5.2vw,32px);color:var(--header-text);letter-spacing:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:0;min-width:0;flex:1 1 auto}
 .learn-page-header p{font-size:13px;color:rgba(255,255,255,0.75);font-family:var(--font-alt);letter-spacing:0.5px;line-height:1.5;max-width:600px}
 .learn-search-row{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:14px;margin-bottom:18px}
 .learn-search-box{position:relative}
@@ -2687,48 +2711,7 @@ body.tracker-fs-lock{overflow:hidden}
 .learn-empty-state .empty-icon{font-size:64px;display:block;margin-bottom:16px;opacity:0.5}
 .learn-empty-state p{font-size:15px;letter-spacing:0.5px}
 
-/* ===================== HAMBURGER MENU ===================== */
-.hamburger-btn{
-  background:rgba(255,255,255,0.12);border:1.5px solid rgba(255,255,255,0.25);
-  border-radius:8px;cursor:pointer;display:flex;flex-direction:column;
-  justify-content:center;align-items:center;gap:4px;transition:background 0.2s ease;flex-shrink:0;
-  width:34px;height:34px;padding:0;
-}
-.hamburger-btn:hover{background:rgba(255,255,255,0.22)}
-.hamburger-btn span{
-  display:block;width:16px;height:2px;background:var(--header-text);
-  border-radius:2px;transition:all 0.25s ease;transform-origin:center;
-}
-.hamburger-btn.open span:nth-child(1){transform:translateY(6px) rotate(45deg)}
-.hamburger-btn.open span:nth-child(2){opacity:0;transform:scaleX(0)}
-.hamburger-btn.open span:nth-child(3){transform:translateY(-6px) rotate(-45deg)}
-
-/* Menu hidden by default; shown in exact same in-page position as original */
-#memberMenuNav{
-  display:none;
-  overflow-x:auto;
-  gap:12px;
-  margin-bottom:18px;
-  padding-bottom:8px;
-  scrollbar-width:none;
-  -ms-overflow-style:none;
-  -webkit-overflow-scrolling:touch;
-}
-#memberMenuNav::-webkit-scrollbar{display:none}
-#memberMenuNav.menu-open{
-  display:flex;
-  animation:menuDrop 0.28s ease forwards;
-}
-@keyframes menuDrop{
-  from{opacity:0;transform:translateY(-10px)}
-  to{opacity:1;transform:translateY(0)}
-}
-#memberMenuNav button{
-  flex:0 0 auto;
-  white-space:nowrap;
-  min-width:100px;
-}
-#menuBackdrop{display:none}
+/* ===================== HAMBURGER MENU (removed — see bottom nav + in-page Learn/Settings buttons) ===================== */
 
 /* ===================== SESSION RESUMED BANNER ===================== */
 .session-resumed-banner{background:linear-gradient(135deg,rgba(22,163,74,0.18),rgba(22,163,74,0.08));border:1px solid #16a34a;border-radius:14px;padding:12px 16px;margin-top:12px;display:flex;align-items:center;gap:10px;font-family:var(--font-alt);font-size:13px;font-weight:700;color:#16a34a;animation:fadeIn 0.4s ease}
@@ -2744,7 +2727,7 @@ body.tracker-fs-lock{overflow:hidden}
   #frontBody,#backBody{max-width:46%;max-height:200px}
   .cards{grid-template-columns:repeat(2,1fr)}
   .rankup-card{padding:30px 20px}
-  .profile-avatar-row{flex-direction:column;align-items:center;margin-top:34px}
+  .profile-avatar-row{flex-direction:column;align-items:center}
   .profile-info{text-align:center;width:100%}
   .profile-joined-chip{top:12px;right:12px;padding:4px 10px;font-size:10px}
   .bio-edit-trigger{margin:7px auto 0}
@@ -2756,43 +2739,52 @@ body.tracker-fs-lock{overflow:hidden}
   .tracker-track-btn{width:100%}
 }
 
-/* ===================== BOTTOM NAVIGATION BAR ===================== */
+/* ===================== BOTTOM NAVIGATION BAR =====================
+   5 items (Home, History, Workouts, Stats, Profile) with fixed small SVG icons — sized with clamp()
+   so the bar scales smoothly from a narrow phone up through medium and wide/desktop screens instead
+   of jumping at fixed breakpoints. */
 #bottomNavBar{
   position:fixed;bottom:0;left:0;right:0;z-index:9999;
   display:none; /* shown after login */
   background:var(--bg-card);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
   border-top:1px solid var(--border-col);
   box-shadow:0 -4px 24px rgba(31,38,135,0.10);
-  padding:0;height:62px;
+  padding:0;height:clamp(58px,9vw,68px);
 }
 #bottomNavBar .bnav-inner{
-  display:flex;align-items:stretch;justify-content:space-around;height:100%;max-width:480px;margin:0 auto;
+  display:flex;align-items:stretch;justify-content:space-around;height:100%;
+  max-width:clamp(360px,94vw,620px);margin:0 auto;
+  padding:0 clamp(4px,2vw,20px);
 }
 .bnav-btn{
-  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
-  background:none;border:none;cursor:pointer;padding:0 6px;
-  color:var(--text-muted);font-family:var(--font-alt);font-size:10px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(2px,0.6vw,4px);
+  background:none;border:none;cursor:pointer;padding:0 clamp(2px,1vw,8px);
+  color:var(--text-muted);font-family:var(--font-alt);font-size:clamp(9px,2.1vw,11px);font-weight:700;letter-spacing:0.4px;text-transform:uppercase;
   transition:color 0.2s ease;
   -webkit-tap-highlight-color:transparent;
 }
-.bnav-btn .bnav-icon{font-size:22px;line-height:1;transition:transform 0.2s ease}
+.bnav-btn .bnav-icon{width:clamp(19px,4.6vw,23px);height:clamp(19px,4.6vw,23px);display:flex;align-items:center;justify-content:center;line-height:1;transition:transform 0.2s ease}
+.bnav-btn .bnav-icon svg{width:100%;height:100%}
 .bnav-btn:hover,.bnav-btn.active{color:var(--accent)}
-.bnav-btn:hover .bnav-icon,.bnav-btn.active .bnav-icon{transform:scale(1.18)}
+.bnav-btn:hover .bnav-icon,.bnav-btn.active .bnav-icon{transform:scale(1.15)}
 .bnav-btn.bnav-center .bnav-icon{
-  font-size:26px;
+  width:clamp(44px,10vw,56px);height:clamp(44px,10vw,56px);
   background:var(--btn-bg);
   border-radius:50%;
-  width:46px;height:46px;
-  display:flex;align-items:center;justify-content:center;
   box-shadow:var(--btn-shadow);
   color:#fff;
   transform:translateY(-8px);
   transition:transform 0.2s ease,box-shadow 0.2s ease;
 }
-.bnav-btn.bnav-center:hover .bnav-icon{transform:translateY(-12px) scale(1.08)}
-.bnav-btn.bnav-center.active .bnav-icon{transform:translateY(-12px) scale(1.08)}
+.bnav-btn.bnav-center .bnav-icon svg{width:46%;height:46%}
+.bnav-btn.bnav-center:hover .bnav-icon,.bnav-btn.bnav-center.active .bnav-icon{transform:translateY(-12px) scale(1.06)}
+/* Profile icon: swaps to the user's uploaded DP (Instagram-style circular photo) once one exists —
+   renderAvatarImage()/clearAvatarImage() keep #bnavProfileIcon in sync with the Profile page avatar. */
+.bnav-avatar.has-avatar{border-radius:50%;overflow:hidden;box-shadow:0 0 0 1.5px var(--border-col)}
+.bnav-btn.active .bnav-avatar.has-avatar{box-shadow:0 0 0 2px var(--accent)}
+.bnav-avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%;display:block}
 /* Push content up so bottom nav doesn't hide it */
-.dashboard.member-visible{padding-bottom:70px}
+.dashboard.member-visible{padding-bottom:clamp(64px,10vw,76px)}
 
 /* ===================== TODAY'S WORKOUT BANNER ===================== */
 .today-workout-banner{
@@ -3170,13 +3162,15 @@ body.tracker-fs-lock{overflow:hidden}
    mark all scale together from narrow phones up to wide screens and never overflow the ring.
    Tapping the chevron flies the very same 7 rings out of the horizontal strip into a vertical list of
    rows that carry each day's class details (FLIP animation, see toggleDashWeekDetail). ---- */
-.dash-week-card{--dw-gap:2px;--dw-padx:6px;--dw-pady:8px;--dw-ring:34px;container-type:inline-size;container-name:dashweek;position:relative;background:var(--bg-card);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid var(--border-col);border-radius:clamp(16px,4.6vw,22px);padding:14px clamp(8px,2.6vw,16px) 12px;margin-bottom:14px;box-shadow:var(--card-shadow)}
+.dash-week-card{--dw-gap:2px;--dw-padx:6px;--dw-pady:8px;--dw-ring:34px;container-type:inline-size;container-name:dashweek;position:relative;background:var(--bg-card);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid rgba(79,140,255,0.28);border-radius:clamp(16px,4.6vw,22px);padding:14px clamp(8px,2.6vw,16px) 12px;margin-bottom:14px;box-shadow:var(--card-shadow)}
+/* Custom theme keeps the user's own Border colour (no hard-coded blue tint). */
+body.theme-custom .dash-week-card{border-color:var(--border-col)}
 @supports (width:1cqw){
   .dash-week-card{--dw-ring:clamp(26px,calc((100cqw - 6 * var(--dw-gap)) / 7 - 5px),50px)}
 }
 .dash-week-card.is-animating{overflow:hidden}
 .dash-week-head{display:flex;align-items:center;justify-content:space-between;padding:0 4px 10px}
-.dash-week-title{font-family:var(--font-alt);font-size:12px;font-weight:700;color:var(--text-muted);letter-spacing:.4px}
+.dash-week-title{font-family:var(--font-alt);font-size:12px;font-weight:700;color:var(--accent);letter-spacing:.4px}
 .dash-week-toggle{width:26px;height:26px;border-radius:50%;border:1px solid var(--border-col);background:var(--accent-soft);color:var(--text-secondary);display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;transition:background .2s ease,transform .2s ease}
 .dash-week-toggle:hover{background:var(--accent-glow);color:var(--accent)}
 .dwt-chevron{transition:transform .3s cubic-bezier(0.34,1.56,0.64,1)}
@@ -3267,8 +3261,8 @@ body.tracker-fs-lock{overflow:hidden}
    One rule for every home card: sizes come from clamp() and container units (the card's own width),
    never from fixed pixel breakpoints alone, so type, padding, radii, chips and rings flex smoothly
    between a 320px phone and a wide desktop window.
-   Layout: phones = one column; from 768px the four cards split into two columns (streak + week on the
-   left, stats + today on the right), so no card ever stretches into a wide, sparse bar. */
+   Layout: phones = one column; from 768px the four cards split into two columns (streak + stats on the
+   left, week + today on the right), so no card ever stretches into a wide, sparse bar. */
 .dash-grid{display:block}
 .dash-col{min-width:0}
 .dash-hero-card,.dash-stat-strip,.dash-today-card{container-type:inline-size}
@@ -3376,9 +3370,7 @@ body.tracker-fs-lock{overflow:hidden}
   <!-- ===================== MEMBER DASHBOARD ===================== -->
   <div id="memberDashboard" class="dashboard">
     <div class="gymbroTop gymbroTopSolo">
-      <button class="hamburger-btn" id="hamburgerBtn" onclick="toggleHamburgerMenu()" aria-label="Open menu">
-        <span></span><span></span><span></span>
-      </button>
+      <span class="gymbroTopSpacer" aria-hidden="true"></span>
       <div class="gymbroBrandWrap">
         <h2>GYMBRO</h2>
         <p>TRACK · TRAIN · DOMINATE</p>
@@ -3392,13 +3384,7 @@ body.tracker-fs-lock{overflow:hidden}
       </button>
     </div>
 
-    <div id="menuBackdrop" onclick="closeHamburgerMenu()"></div>
-    <div class="memberMenu" id="memberMenuNav">
-      <button id="menu-statsPage" onclick="switchMemberTab('statsPage')">📊 Stats</button>
-      <button id="menu-workPage" onclick="switchMemberTab('workPage')">🏋 Workouts</button>
-      <button id="menu-learnPage" onclick="switchMemberTab('learnPage')">📚 Learn</button>
-      <button id="menu-settingsPage" onclick="switchMemberTab('settingsPage')">⚙️ Settings</button>
-    </div>
+
 
     <!-- DASHBOARD TAB -->
     <div id="dashPage" class="memberTab dash-home">
@@ -3441,14 +3427,14 @@ body.tracker-fs-lock{overflow:hidden}
         <div class="xp-next-label" id="xpNextLabel">Next rank: Intermediate at 501 XP</div>
       </div>
 
-      </div><!-- /dash-col (streak) -->
-      <div class="dash-col">
       <div class="dash-stat-strip">
         <div class="dash-stat-chip"><div class="dash-stat-icon">⏱</div><h3 id="weekMinutes">0</h3><span>Min this week</span></div>
         <div class="dash-stat-chip"><div class="dash-stat-icon">💪</div><h3 id="totalWorkout">0</h3><span>Workouts</span></div>
         <div class="dash-stat-chip"><div class="dash-stat-icon">📅</div><h3 id="checkinsMonth">0</h3><span>Check-ins</span></div>
       </div>
 
+      </div><!-- /dash-col (streak + stats) -->
+      <div class="dash-col">
       <div class="dash-week-card" id="dashWeekCard">
         <div class="dash-week-head">
           <span class="dash-week-title">This Week</span>
@@ -3492,7 +3478,7 @@ body.tracker-fs-lock{overflow:hidden}
           <button class="btn" style="background:linear-gradient(135deg,#dc2626,#b91c1c);margin-top:14px;padding:10px" onclick="processCheckOut()">🏁 PUNCH OUT &amp; SAVE</button>
         </div>
       </div>
-      </div><!-- /dash-col (stats + today) -->
+      </div><!-- /dash-col (week + today) -->
       </div><!-- /dash-grid -->
     </div>
 
@@ -3910,8 +3896,11 @@ body.tracker-fs-lock{overflow:hidden}
     <!-- WORKOUTS TAB -->
     <div id="workPage" class="memberTab" style="display:none">
       <div class="section glass">
-        <div class="section-title">
-          <span>🏋 Workout Log Manager</span>
+        <div class="section-title" style="justify-content:space-between">
+          <span>Workout Log Manager</span>
+          <button type="button" class="page-link-btn icon-only" onclick="switchMemberTab('learnPage')" aria-label="Learn" title="Learn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+          </button>
         </div>
 
         <!-- ===== WORKOUT ROOM STRIP ===== -->
@@ -4214,7 +4203,12 @@ body.tracker-fs-lock{overflow:hidden}
     <!-- LEARN TAB -->
     <div id="learnPage" class="memberTab" style="display:none">
       <div class="learn-page-header">
-        <h1>📚 Learn Workouts</h1>
+        <div class="learn-page-header-top">
+          <h1>📚 Learn Workouts</h1>
+          <button type="button" class="page-close-btn learn-page-close" onclick="switchMemberTab('workPage')" aria-label="Close" title="Back to Workouts">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
         <p>Learn every exercise using realistic workout demonstrations, detailed step-by-step instructions, and curated video tutorials.</p>
       </div>
       <div class="section glass" style="margin-top:0;padding:20px">
@@ -4261,6 +4255,9 @@ body.tracker-fs-lock{overflow:hidden}
     <!-- SOCIAL TAB -->
     <div id="socialPage" class="memberTab" style="display:none">
       <div class="profile-header glass">
+        <button type="button" class="profile-menu-btn" onclick="switchMemberTab('settingsPage')" aria-label="Settings" title="Settings">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
         <div class="profile-joined-chip" id="profileJoinedChip" style="display:none"></div>
         <div class="profile-avatar-row">
           <!-- Avatar -->
@@ -4293,7 +4290,12 @@ body.tracker-fs-lock{overflow:hidden}
     <!-- SETTINGS TAB -->
     <div id="settingsPage" class="memberTab" style="display:none">
       <div class="section glass" style="margin-top:0">
-        <div class="section-title">⚙️ Settings</div>
+        <div class="section-title" style="justify-content:space-between">
+          <span>⚙️ Settings</span>
+          <button type="button" class="page-close-btn" onclick="switchMemberTab('socialPage')" aria-label="Close" title="Back to Profile">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
         <p style="font-size:12px;color:var(--text-muted);font-family:var(--font-alt);margin-bottom:6px;letter-spacing:0.3px">Tap any option below to configure it.</p>
 
         <!-- Appearance & Account Accordion -->
@@ -4796,16 +4798,24 @@ body.tracker-fs-lock{overflow:hidden}
 <!-- ===================== BOTTOM NAVIGATION BAR ===================== -->
 <nav id="bottomNavBar">
   <div class="bnav-inner">
-    <button class="bnav-btn" id="bnav-history" onclick="bnavGo('attPage')" aria-label="History">
-      <span class="bnav-icon">📋</span>
-      <span>History</span>
-    </button>
-    <button class="bnav-btn bnav-center" id="bnav-home" onclick="bnavGo('dashPage')" aria-label="Home">
-      <span class="bnav-icon">🏠</span>
+    <button class="bnav-btn" id="bnav-home" onclick="bnavGo('dashPage')" aria-label="Home">
+      <span class="bnav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></span>
       <span>Home</span>
     </button>
+    <button class="bnav-btn" id="bnav-history" onclick="bnavGo('attPage')" aria-label="History">
+      <span class="bnav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>
+      <span>History</span>
+    </button>
+    <button class="bnav-btn bnav-center" id="bnav-work" onclick="bnavGo('workPage')" aria-label="Workouts">
+      <span class="bnav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="8" width="4" height="8" rx="1"/><rect x="19" y="8" width="4" height="8" rx="1"/><line x1="5" y1="12" x2="19" y2="12"/><line x1="8" y1="9" x2="8" y2="15"/><line x1="16" y1="9" x2="16" y2="15"/></svg></span>
+      <span>Workouts</span>
+    </button>
+    <button class="bnav-btn" id="bnav-stats" onclick="bnavGo('statsPage')" aria-label="Stats">
+      <span class="bnav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span>
+      <span>Stats</span>
+    </button>
     <button class="bnav-btn" id="bnav-profile" onclick="bnavGo('socialPage')" aria-label="Profile">
-      <span class="bnav-icon">👤</span>
+      <span class="bnav-icon bnav-avatar" id="bnavProfileIcon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
       <span>Profile</span>
     </button>
   </div>
@@ -7981,7 +7991,7 @@ function showBottomNav(){document.getElementById('bottomNavBar').style.display='
 function hideBottomNav(){document.getElementById('bottomNavBar').style.display='none';document.getElementById('memberDashboard').classList.remove('member-visible')}
 function bnavGo(tabId){switchMemberTab(tabId)}
 function syncBottomNav(activeTabId){
-  const map={'attPage':'bnav-history','dashPage':'bnav-home','socialPage':'bnav-profile'};
+  const map={'attPage':'bnav-history','dashPage':'bnav-home','socialPage':'bnav-profile','settingsPage':'bnav-profile','workPage':'bnav-work','learnPage':'bnav-work','statsPage':'bnav-stats'};
   document.querySelectorAll('.bnav-btn').forEach(b=>b.classList.remove('active'));
   const bid=map[activeTabId];if(bid){const el=document.getElementById(bid);if(el)el.classList.add('active')}
 }
@@ -8728,21 +8738,8 @@ function logoutUser(){
   document.getElementById("stopwatch").innerText="00:00:00";
 }
 
-/* ===================== HAMBURGER MENU TOGGLE ===================== */
-function toggleHamburgerMenu(){
-  const nav=document.getElementById('memberMenuNav');
-  const btn=document.getElementById('hamburgerBtn');
-  const isOpen=nav.classList.contains('menu-open');
-  if(isOpen){
-    nav.classList.remove('menu-open');
-    btn.classList.remove('open');
-  } else {
-    nav.classList.add('menu-open');
-    btn.classList.add('open');
-  }
-}
-function openHamburgerMenu(){}
-function closeHamburgerMenu(){}
+/* Hamburger menu removed — Learn now lives on the Workouts page, Settings on the Profile page,
+   and Stats/Workouts moved to the bottom nav bar. */
 
 async function switchMemberTab(id){
   // Leaving the Stats page entirely — the 3-Month fullscreen focus view never persists across pages.
@@ -18097,10 +18094,28 @@ function renderAvatarImage(url){
   const inner=document.getElementById("profileAvatar");
   const bust=base+"?t="+Date.now();
   inner.innerHTML=`<img src="${bust}" alt="Avatar" style="width:100%;height:100%;object-fit:cover;border-radius:50%" onerror="this.parentElement.textContent='🏋'">`;
+  updateBnavProfileIcon(bust);
 }
 
 function clearAvatarImage(){
   document.getElementById("profileAvatar").textContent="🏋";
+  updateBnavProfileIcon(null);
+}
+
+/* Keeps the bottom nav's Profile icon in sync with the Profile page avatar — Instagram-style: shows
+   the user's own uploaded DP as a small circular photo once one exists, otherwise the default
+   outline user icon. Called from renderAvatarImage()/clearAvatarImage() so every path that sets or
+   removes the avatar (login restore, upload, removal, logout) updates the nav automatically. */
+function updateBnavProfileIcon(url){
+  const el=document.getElementById('bnavProfileIcon');
+  if(!el)return;
+  if(url){
+    el.innerHTML=`<img src="${url}" alt="" onerror="updateBnavProfileIcon(null)">`;
+    el.classList.add('has-avatar');
+  }else{
+    el.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
+    el.classList.remove('has-avatar');
+  }
 }
 
 /* =====================================================================
