@@ -747,8 +747,10 @@ body.theme-dark .hist-cal-cell:not(.empty)::before{background:linear-gradient(14
    left and can be long, so they take the flexible remaining width (ellipsizing rather than
    wrapping/pushing Duration around); Duration is pinned to the right corner via
    justify-content:space-between and never shrinks itself — its own font-size instead scales
-   with clamp() so it always fits. */
-.hist-cal-popup-bottom-row{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-top:7px;padding-top:7px;border-top:1px dashed var(--border-col)}
+   with clamp() so it always fits. A small clamp()-based left/right inset keeps both readouts
+   from sitting flush against the box's own edges (nudged slightly inward on every screen size)
+   without touching the gap between them, so there's still zero risk of the two ever overlapping. */
+.hist-cal-popup-bottom-row{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-top:7px;padding:7px clamp(4px,1.8vw,8px) 0;border-top:1px dashed var(--border-col)}
 .hist-cal-popup-bottom-row.hidden{display:none}
 /* Duration readout on that shared line — auto-derived total time trained for the selected day
    (e.g. "1 Hr 45 Min"), shown only for Present days. Fixed app-blue (#2563eb) in both Light and
