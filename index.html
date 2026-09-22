@@ -2615,7 +2615,7 @@ body.tracker-fs-lock{overflow:hidden}
 .learn-muscle-badge{background:var(--btn-bg);color:var(--follow-btn-text);padding:clamp(5px,1.5vw,6px) clamp(10px,3vw,14px);border-radius:10px;font-family:var(--font-alt);font-size:clamp(11.5px,3vw,13px);font-weight:700;letter-spacing:0.5px;white-space:nowrap;flex-shrink:0}
 .learn-main-grid{display:grid;grid-template-columns:340px 1fr;gap:clamp(14px,4.5vw,20px);align-items:start;max-width:100%}
 .learn-gif-col,.learn-details-col{min-width:0}
-.learn-gif-container{background:var(--accent-soft);border:1px solid var(--border-col);border-radius:20px;overflow:hidden;aspect-ratio:1/1;width:100%;max-width:100%;display:flex;align-items:center;justify-content:center;position:relative;box-sizing:border-box}
+.learn-gif-container{background:var(--accent-soft);border:1px solid var(--border-col);border-radius:20px;overflow:hidden;aspect-ratio:16/9;min-height:clamp(230px,62vw,400px);width:100%;max-width:100%;display:flex;align-items:center;justify-content:center;position:relative;box-sizing:border-box}
 .learn-gif-container img,.learn-gif-container video{width:100%;height:100%;object-fit:cover;border-radius:20px}
 /* While a clip is playing inline, the box stacks a title header + video frame — same structure
    as the Workout page's video modal (.wf-video-modal-box: header bar, then .wf-video-frame-wrap
@@ -2648,9 +2648,6 @@ body.tracker-fs-lock{overflow:hidden}
 .learn-gif-thumb-wrap.loaded video{opacity:1}
 .learn-gif-thumb-spinner{width:34px;height:34px;border-radius:50%;border:3px solid var(--border-col);border-top-color:var(--accent);animation:learnThumbSpin 0.8s linear infinite}
 @keyframes learnThumbSpin{to{transform:rotate(360deg)}}
-.learn-gif-thumb-play{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:52px;height:52px;border-radius:50%;background:rgba(0,0,0,0.55);color:#fff;display:flex;align-items:center;justify-content:center;pointer-events:none;box-shadow:0 4px 14px rgba(0,0,0,0.35);transition:transform 0.15s ease}
-.learn-gif-thumb-play svg{width:22px;height:22px;margin-left:2px}
-.learn-gif-thumb-wrap:active .learn-gif-thumb-play{transform:translate(-50%,-50%) scale(0.92)}
 /* width:100% + box-sizing:border-box keeps this within its parent, but <button> elements default to
    not wrapping their text (min-content = full unwrapped label width) — without explicitly forcing
    white-space:normal + a shrinkable flex child, a long label like "Bench Press (Barbell) — Watch
@@ -2773,7 +2770,7 @@ body.tracker-fs-lock{overflow:hidden}
 .session-resumed-banner{background:linear-gradient(135deg,rgba(22,163,74,0.18),rgba(22,163,74,0.08));border:1px solid #16a34a;border-radius:14px;padding:12px 16px;margin-top:12px;display:flex;align-items:center;gap:10px;font-family:var(--font-alt);font-size:13px;font-weight:700;color:#16a34a;animation:fadeIn 0.4s ease}
 .session-resumed-banner .resume-dot{width:10px;height:10px;border-radius:50%;background:#16a34a;animation:livePulse 1.2s ease-in-out infinite;flex-shrink:0}
 
-@media(max-width:900px){.learn-main-grid{grid-template-columns:1fr}.learn-gif-container{aspect-ratio:16/9;max-height:340px}}
+@media(max-width:900px){.learn-main-grid{grid-template-columns:1fr}}
 @media(max-width:600px){.learn-info-card-header{flex-wrap:wrap}}
 @media(max-width:768px){
   .compact-checkin-wrapper{flex-direction:column}
@@ -7968,6 +7965,11 @@ async function mountMemberDashboard(data,initialTab){
   // user's exercise-frequency map (used to sort those dropdowns' results by "most done first").
   ctmInitMuscleEquipmentDropdowns();
   window._exerciseFreqMapPromise=loadExerciseFrequencyMap();
+  // Warm the Learn page's exercise-name -> video-path map right away (fire-and-forget) instead of
+  // waiting for the person to actually open the Learn tab — by the time they get there and tap an
+  // exercise, this has almost always already resolved, so selecting an exercise can fetch its clip
+  // immediately instead of first waiting on this lookup.
+  loadWorkoutVideoMap();
   // Show the fixed homepage billing box — fee-due notice (non-cancellable) OR, if nothing is due,
   // the last payment receipt (cancellable only once downloaded). Same slot, same logic every load.
   setupMemberBillingBox(data);
@@ -21252,7 +21254,12 @@ async function renderLearnCard(name,data,videoUrlOverride){
     document.getElementById("learnInfoCard").scrollIntoView({behavior:"smooth",block:"start"});
     return;
   }
-  await loadWorkoutVideoMap(); // no-op after the first call — map is cached in memory
+  // Only actually wait on the name->path map fetch the very first time (nothing cached yet).
+  // Once workoutVideoMap is warm (from localStorage or an earlier fetch this session) skip the
+  // await entirely so the video fetch below fires on the very same tick as the click, instead of
+  // being stuck behind a network round trip for a map that's almost certainly already sitting in
+  // memory — this is what makes the thumbnail/video feel instant instead of lagging every tap.
+  if(!workoutVideoMap)await loadWorkoutVideoMap();
   const videoUrl=videoUrlOverride||data.youtubeUrl;
   const localVideoPath=getLocalVideoPath(name);
   // Fetch the clip THE MOMENT the exercise is selected (not on tap) so it's already sitting in
@@ -21267,7 +21274,7 @@ async function renderLearnCard(name,data,videoUrlOverride){
   // (filled in by setupLearnThumbnail below) instead of the emoji placeholder. Exercises with
   // no local clip keep the old emoji/"3D DEMONSTRATION" fallback since there's no frame to grab.
   const demoBoxHtml=localVideoPath
-    ?`<div class="learn-gif-thumb-wrap" id="learnGifThumbWrap"><div class="learn-gif-thumb-spinner"></div><div class="learn-gif-thumb-play"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></div></div>`
+    ?`<div class="learn-gif-thumb-wrap" id="learnGifThumbWrap"><div class="learn-gif-thumb-spinner"></div></div>`
     :`<div class="learn-gif-fallback"><span class="gif-emoji">${data.gifEmoji}</span><div class="gif-label">${name}</div><div style="font-size:11px;color:var(--text-muted);font-family:var(--font-alt);margin-top:6px;letter-spacing:0.3px">3D DEMONSTRATION</div></div>`;
   const html=`<div class="learn-info-card glass"><div class="learn-info-card-header"><div class="learn-exercise-title">${name}</div><span class="learn-muscle-badge">${data.class}</span></div><div class="learn-main-grid"><div class="learn-gif-col"><div class="learn-gif-container" id="learnGifContainer">${demoBoxHtml}</div><button type="button" class="learn-yt-link" id="learnYtBtn"><span class="learn-yt-icon">▶</span><span class="learn-yt-label">${videoLabel}</span></button><div class="learn-section-block" style="margin-top:12px"><div class="learn-block-title">🎯 Target Muscles</div><div style="margin-bottom:10px"><div style="font-size:11px;font-weight:700;color:var(--text-muted);font-family:var(--font-alt);letter-spacing:0.5px;margin-bottom:6px;text-transform:uppercase">PRIMARY</div><span class="learn-muscle-chip primary">${data.primaryMuscle}</span></div><div><div style="font-size:11px;font-weight:700;color:var(--text-muted);font-family:var(--font-alt);letter-spacing:0.5px;margin-bottom:6px;text-transform:uppercase">SECONDARY</div><div class="learn-muscles-row">${secondaryHtml}</div></div></div></div><div class="learn-details-col"><div class="learn-section-block"><div class="learn-block-title">📋 How To Perform</div><ul class="learn-steps-list">${stepsHtml}</ul></div><div class="learn-section-block"><div class="learn-block-title">⚠️ Common Mistakes</div><ul class="learn-mistakes-list">${mistakesHtml}</ul></div></div></div></div>`;
   document.getElementById("learnInfoCard").innerHTML=html;document.getElementById("learnInfoCard").style.display="block";document.getElementById("learnEmptyState").style.display="none";
@@ -21312,17 +21319,11 @@ function setupLearnThumbnail(name,filePath){
     vid.onseeked=()=>{wrap.classList.add('loaded')};
     vid.src=url;
     wrap.appendChild(vid);
-    const playIcon=document.createElement('div');
-    playIcon.className='learn-gif-thumb-play';
-    playIcon.innerHTML='<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>';
-    wrap.appendChild(playIcon);
   };
   if(workoutVideoBlobCache.has(filePath)){render(workoutVideoBlobCache.get(filePath));return;}
   getWorkoutVideoBlobUrl(filePath).then(render).catch(()=>{
-    // Couldn't fetch a frame — drop back to a plain centered play icon rather than spinning
-    // forever; tapping still falls back to direct streaming inside playLearnVideoInline.
-    const wrap=document.getElementById("learnGifThumbWrap");
-    if(wrap)wrap.innerHTML='<div class="learn-gif-thumb-play" style="position:static;transform:none"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></div>';
+    // Couldn't fetch a frame — leave the spinner state; tapping still falls back to direct
+    // streaming inside playLearnVideoInline (the Watch Tutorial button also still works).
   });
 }
 /* Plays the exercise's demo clip INLINE, replacing the "3D DEMONSTRATION" placeholder box's own
@@ -22487,4 +22488,4 @@ function closeLearnVideo(){
 })();
 </script>
 </body>
-</html> 
+</html>
