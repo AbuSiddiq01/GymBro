@@ -2580,31 +2580,74 @@ body.tracker-fs-lock{overflow:hidden}
 .learn-page-header-top{display:flex;align-items:center;justify-content:space-between;gap:12px;position:relative;z-index:2;margin-bottom:6px}
 .learn-page-header h1{font-family:var(--font-display);font-size:clamp(15px,5.2vw,32px);color:var(--header-text);letter-spacing:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:0;min-width:0;flex:1 1 auto}
 .learn-page-header p{font-size:13px;color:rgba(255,255,255,0.75);font-family:var(--font-alt);letter-spacing:0.5px;line-height:1.5;max-width:600px}
-.learn-search-row{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:14px;margin-bottom:18px}
+/* Same padding scale as .learn-info-card below it, so every card on the Learn page — the picker
+   and the exercise details — breathes consistently at every screen width instead of each using
+   its own fixed padding value. */
+.learn-picker-card{padding:clamp(14px,4.5vw,24px)}
 .learn-search-box{position:relative}
+.learn-search-input-wrap{position:relative}
 .learn-search-box input{margin-top:0;padding-left:40px}
 .learn-search-icon{position:absolute;left:13px;top:50%;transform:translateY(-50%);font-size:16px;pointer-events:none;z-index:1}
-.learn-suggestions{position:absolute;left:0;right:0;top:calc(100% + 4px);background:var(--bg-card);border:1px solid var(--border-col);border-radius:14px;max-height:220px;overflow-y:auto;z-index:200;box-shadow:0 12px 32px rgba(0,0,0,0.14);display:none}
-.learn-suggestions .sug-item{padding:11px 16px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--border-col);color:var(--text-primary);display:flex;align-items:center;gap:10px;transition:background 0.15s}
+/* Deliberately position:static (in-flow), NOT absolute — this box sits inside .section.glass, and
+   .glass has overflow:hidden (it clips its own rounded corners), which was silently clipping an
+   absolutely-positioned dropdown right at the card edge, making the list look like it "wasn't
+   showing". Same fix/pattern the Workout page's own exercise suggestions box (#autoSuggestions)
+   already uses: an in-flow card that simply pushes the content below it down the page instead of
+   floating over it, so it's never clipped or hidden on any screen size. */
+.learn-suggestions{position:static;margin-top:8px;background:var(--bg-card);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid var(--border-col);border-radius:14px;max-height:min(58vh,420px);overflow-y:auto;-webkit-overflow-scrolling:touch;box-shadow:0 6px 20px rgba(0,0,0,0.12);display:none}
+/* Row/badge styling, the "⭐ Your Workouts" section, and the fixed corner ✕ close button are all
+   inherited for free from the shared .suggestions-list rules (see near the top of this stylesheet)
+   since this box also carries the "suggestions-list" class — the exact same row/list/badge markup
+   the Workout page's own exercise suggestions box (#autoSuggestions) uses. */
+.learn-suggestions .sug-item{padding:clamp(9px,3vw,11px) clamp(12px,4vw,16px);cursor:pointer;font-size:clamp(12.5px,3.3vw,13px);border-bottom:1px solid var(--border-col);color:var(--text-primary);display:flex;align-items:center;gap:10px;transition:background 0.15s}
 .learn-suggestions .sug-item:last-child{border-bottom:none}
 .learn-suggestions .sug-item:hover{background:var(--accent-soft);color:var(--accent)}
-.learn-suggestions .sug-item .sug-badge{font-size:10px;background:var(--workout-tag-bg);color:var(--workout-tag-col);padding:2px 7px;border-radius:6px;font-family:var(--font-alt);font-weight:700;margin-left:auto;flex-shrink:0}
-.learn-filter-group label{font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.8px;font-family:var(--font-alt);display:block;margin-bottom:6px}
-.learn-filter-group select{margin-top:0}
-.learn-info-card{background:var(--bg-card);border:1px solid var(--border-col);border-radius:20px;padding:24px;box-shadow:var(--card-shadow);animation:fadeIn 0.4s ease}
-.learn-info-card-header{display:flex;align-items:center;gap:14px;margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--border-col)}
-.learn-exercise-title{font-family:var(--font-display);font-size:28px;color:var(--section-title-col);letter-spacing:1.5px}
-.learn-muscle-badge{background:var(--btn-bg);color:var(--follow-btn-text);padding:6px 14px;border-radius:10px;font-family:var(--font-alt);font-size:13px;font-weight:700;letter-spacing:0.5px;white-space:nowrap}
-.learn-main-grid{display:grid;grid-template-columns:340px 1fr;gap:20px;align-items:start}
-.learn-gif-container{background:var(--accent-soft);border:1px solid var(--border-col);border-radius:16px;overflow:hidden;aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;position:relative;min-height:280px}
-.learn-gif-container img{width:100%;height:100%;object-fit:cover;border-radius:16px}
-.learn-gif-fallback{text-align:center;padding:24px}
-.learn-gif-fallback .gif-emoji{font-size:72px;display:block;margin-bottom:10px;animation:gifBounce 1.5s ease-in-out infinite}
+/* Fixes the class badge sitting wherever the name's text happened to wrap to, instead of pinned
+   to the row's right edge — the Workout page's own rows get this same fixed-right layout "for
+   free" via .ex-row-main (they're always wrapped in that flex row), but Learn's rows are plain,
+   unwrapped divs, so they need the same flex treatment applied directly. */
+.learn-suggestions .sugg-ex-row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.learn-suggestions .sugg-ex-row-name{min-width:0;overflow-wrap:break-word;flex:1 1 auto}
+.learn-suggestions .sugg-ex-row>span:last-child{flex-shrink:0}
+.learn-info-card{background:var(--bg-card);border:1px solid var(--border-col);border-radius:20px;padding:clamp(14px,4.5vw,24px);box-shadow:var(--card-shadow);animation:fadeIn 0.4s ease;max-width:100%;overflow:hidden}
+.learn-info-card-header{display:flex;align-items:center;flex-wrap:wrap;gap:clamp(8px,3vw,14px);margin-bottom:clamp(14px,4.5vw,20px);padding-bottom:clamp(10px,3vw,16px);border-bottom:1px solid var(--border-col)}
+.learn-exercise-title{font-family:var(--font-display);font-size:clamp(19px,5.8vw,28px);color:var(--section-title-col);letter-spacing:1.5px;overflow-wrap:break-word;min-width:0;flex:1 1 auto}
+.learn-muscle-badge{background:var(--btn-bg);color:var(--follow-btn-text);padding:clamp(5px,1.5vw,6px) clamp(10px,3vw,14px);border-radius:10px;font-family:var(--font-alt);font-size:clamp(11.5px,3vw,13px);font-weight:700;letter-spacing:0.5px;white-space:nowrap;flex-shrink:0}
+.learn-main-grid{display:grid;grid-template-columns:340px 1fr;gap:clamp(14px,4.5vw,20px);align-items:start;max-width:100%}
+.learn-gif-col,.learn-details-col{min-width:0}
+.learn-gif-container{background:var(--accent-soft);border:1px solid var(--border-col);border-radius:20px;overflow:hidden;aspect-ratio:1/1;width:100%;max-width:100%;display:flex;align-items:center;justify-content:center;position:relative;box-sizing:border-box}
+.learn-gif-container img,.learn-gif-container video{width:100%;height:100%;object-fit:cover;border-radius:20px}
+/* While a clip is playing inline, the box stacks a title header + video frame — same structure
+   as the Workout page's video modal (.wf-video-modal-box: header bar, then .wf-video-frame-wrap
+   below it) — instead of staying flex-centered/aspect-locked to the static demo photo's own
+   proportions, which no longer fits once there's a header row above the video too. */
+.learn-gif-container.video-active{display:block;aspect-ratio:auto;background:var(--bg-panel)}
+.learn-video-inline-header{padding:12px 52px 12px 16px;min-height:48px;box-sizing:border-box;display:flex;align-items:center;background:var(--bg-panel);border-bottom:1px solid var(--border-col);color:var(--text-primary);font-family:var(--font-alt);font-size:13.5px;font-weight:800;letter-spacing:0.3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* Taller than a plain 16:9 sliver on every screen size — min-height scales smoothly with the
+   column's own width via clamp() rather than being capped by it, so the video reads as a proper
+   demonstration frame instead of a short strip, from narrow phones up through the fixed-width
+   desktop column. */
+.learn-video-inline-frame{position:relative;width:100%;aspect-ratio:16/9;min-height:clamp(230px,62vw,400px);background:#000}
+.learn-video-inline-frame video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:0}
+/* Same round red ✕ close button as the Workout page's video player (.wf-video-close-btn),
+   pinned to the top-right corner of the header bar — never over the video itself — closing just
+   the video and restoring the demo box underneath. */
+.learn-inline-video-close{position:absolute;top:8px;right:10px;width:28px;height:28px;border-radius:50%;background:#ef4444;color:#fff;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 6px rgba(239,68,68,0.5);z-index:3;transition:transform 0.15s ease}
+.learn-inline-video-close:hover{transform:scale(1.08)}
+.learn-inline-video-close:active{transform:scale(0.94)}
+.learn-inline-video-close svg{width:13px;height:13px;display:block;stroke:currentColor}
+.learn-gif-fallback{text-align:center;padding:clamp(14px,5vw,24px)}
+.learn-gif-fallback .gif-emoji{font-size:clamp(46px,14vw,72px);display:block;margin-bottom:10px;animation:gifBounce 1.5s ease-in-out infinite}
 @keyframes gifBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
-.learn-gif-fallback .gif-label{font-family:var(--font-alt);font-size:14px;font-weight:700;color:var(--accent);letter-spacing:0.5px}
-.learn-yt-link{margin-top:12px;display:flex;align-items:center;gap:10px;background:linear-gradient(135deg,#ff0000,#cc0000);color:#fff;border-radius:13px;padding:12px 16px;text-decoration:none;font-family:var(--font-alt);font-size:14px;font-weight:700;letter-spacing:0.5px;transition:all 0.3s ease;box-shadow:0 4px 14px rgba(220,38,38,0.35);border:none;cursor:pointer;width:100%;text-align:left}
+.learn-gif-fallback .gif-label{font-family:var(--font-alt);font-size:clamp(12.5px,3.4vw,14px);font-weight:700;color:var(--accent);letter-spacing:0.5px}
+/* width:100% + box-sizing:border-box keeps this within its parent, but <button> elements default to
+   not wrapping their text (min-content = full unwrapped label width) — without explicitly forcing
+   white-space:normal + a shrinkable flex child, a long label like "Bench Press (Barbell) — Watch
+   Tutorial" visually overflowed past the card/screen edge instead of wrapping to a 2nd line. */
+.learn-yt-link{margin-top:12px;display:flex;align-items:center;gap:10px;background:linear-gradient(135deg,#ff0000,#cc0000);color:#fff;border-radius:13px;padding:clamp(10px,3vw,12px) clamp(12px,4vw,16px);text-decoration:none;font-family:var(--font-alt);font-size:clamp(12.5px,3.4vw,14px);font-weight:700;letter-spacing:0.5px;transition:all 0.3s ease;box-shadow:0 4px 14px rgba(220,38,38,0.35);border:none;cursor:pointer;width:100%;max-width:100%;box-sizing:border-box;text-align:left;white-space:normal}
 .learn-yt-link:hover{transform:translateY(-2px);box-shadow:0 8px 22px rgba(220,38,38,0.45)}
 .learn-yt-icon{font-size:20px;flex-shrink:0}
+.learn-yt-label{min-width:0;flex:1 1 auto;overflow-wrap:break-word;white-space:normal}
 .learn-video-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px;animation:fadeIn 0.25s ease}
 .learn-video-modal-box{background:#0b0b0b;border-radius:16px;overflow:hidden;width:100%;max-width:860px;box-shadow:0 20px 60px rgba(0,0,0,0.55);position:relative}
 .learn-video-modal-title{color:#fff;font-family:var(--font-alt);font-size:13px;font-weight:700;letter-spacing:0.3px;padding:12px 50px 12px 16px;background:#151515;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -2695,16 +2738,18 @@ body.tracker-fs-lock{overflow:hidden}
   .ex-row-add-center-btn{font-size:11px;padding:5px 14px}
   .ex-row-video-fixed-btn{width:22px;height:22px;right:6px;bottom:5px}
 }
-.learn-section-block{margin-bottom:18px;padding:16px;background:var(--accent-soft);border-radius:14px;border:1px solid var(--border-col)}
-.learn-block-title{font-family:var(--font-alt);font-size:15px;font-weight:700;color:var(--section-title-col);letter-spacing:0.5px;margin-bottom:12px;display:flex;align-items:center;gap:7px}
+.learn-section-block{margin-bottom:clamp(12px,4vw,18px);padding:clamp(12px,4vw,16px);background:var(--accent-soft);border-radius:14px;border:1px solid var(--border-col);max-width:100%;box-sizing:border-box}
+.learn-block-title{font-family:var(--font-alt);font-size:clamp(13.5px,3.8vw,15px);font-weight:700;color:var(--section-title-col);letter-spacing:0.5px;margin-bottom:12px;display:flex;align-items:center;gap:7px;flex-wrap:wrap}
 .learn-steps-list{list-style:none;padding:0}
-.learn-steps-list li{display:flex;gap:12px;align-items:flex-start;margin-bottom:10px;font-size:13px;color:var(--text-primary);line-height:1.5}
+.learn-steps-list li{display:flex;gap:12px;align-items:flex-start;margin-bottom:10px;font-size:clamp(12px,3.3vw,13px);color:var(--text-primary);line-height:1.5}
+.learn-steps-list li>span:last-child{min-width:0;overflow-wrap:break-word}
 .learn-step-num{background:var(--btn-bg);color:var(--follow-btn-text);width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--font-alt);font-size:11px;font-weight:800;flex-shrink:0;margin-top:1px}
 .learn-mistakes-list{list-style:none;padding:0}
-.learn-mistakes-list li{padding:8px 0;font-size:13px;color:var(--text-primary);border-bottom:1px solid var(--border-col);display:flex;align-items:flex-start;gap:8px;line-height:1.5}
+.learn-mistakes-list li{padding:8px 0;font-size:clamp(12px,3.3vw,13px);color:var(--text-primary);border-bottom:1px solid var(--border-col);display:flex;align-items:flex-start;gap:8px;line-height:1.5}
 .learn-mistakes-list li:last-child{border-bottom:none;padding-bottom:0}
-.learn-muscles-row{display:flex;gap:12px;flex-wrap:wrap}
-.learn-muscle-chip{padding:8px 14px;border-radius:10px;font-family:var(--font-alt);font-size:13px;font-weight:700;letter-spacing:0.3px}
+.learn-mistakes-list li>span:last-child{min-width:0;overflow-wrap:break-word}
+.learn-muscles-row{display:flex;gap:clamp(8px,2.5vw,12px);flex-wrap:wrap}
+.learn-muscle-chip{padding:clamp(6px,2vw,8px) clamp(10px,3vw,14px);border-radius:10px;font-family:var(--font-alt);font-size:clamp(11.5px,3vw,13px);font-weight:700;letter-spacing:0.3px}
 .learn-muscle-chip.primary{background:var(--btn-bg);color:var(--follow-btn-text)}
 .learn-muscle-chip.secondary{background:var(--accent-soft);color:var(--accent);border:1px solid var(--accent)}
 .learn-empty-state{text-align:center;padding:60px 20px;color:var(--text-muted);font-family:var(--font-alt)}
@@ -2717,9 +2762,8 @@ body.tracker-fs-lock{overflow:hidden}
 .session-resumed-banner{background:linear-gradient(135deg,rgba(22,163,74,0.18),rgba(22,163,74,0.08));border:1px solid #16a34a;border-radius:14px;padding:12px 16px;margin-top:12px;display:flex;align-items:center;gap:10px;font-family:var(--font-alt);font-size:13px;font-weight:700;color:#16a34a;animation:fadeIn 0.4s ease}
 .session-resumed-banner .resume-dot{width:10px;height:10px;border-radius:50%;background:#16a34a;animation:livePulse 1.2s ease-in-out infinite;flex-shrink:0}
 
-@media(max-width:900px){.learn-main-grid{grid-template-columns:1fr}.learn-gif-container{min-height:220px;aspect-ratio:4/3}}
-@media(max-width:600px){.learn-search-row{grid-template-columns:1fr}.learn-info-card-header{flex-wrap:wrap}}
-@media(min-width:601px) and (max-width:860px){.learn-search-row{grid-template-columns:1fr 1fr}}
+@media(max-width:900px){.learn-main-grid{grid-template-columns:1fr}.learn-gif-container{aspect-ratio:16/9;max-height:340px}}
+@media(max-width:600px){.learn-info-card-header{flex-wrap:wrap}}
 @media(max-width:768px){
   .compact-checkin-wrapper{flex-direction:column}
   .checkin-left-controls,.checkin-right-body{width:100%}
@@ -4211,36 +4255,40 @@ body.theme-custom .dash-week-card{border-color:var(--border-col)}
         </div>
         <p>Learn every exercise using realistic workout demonstrations, detailed step-by-step instructions, and curated video tutorials.</p>
       </div>
-      <div class="section glass" style="margin-top:0;padding:20px">
-        <div class="learn-search-row">
-          <div class="learn-filter-group">
-            <label>Search Workout</label>
-            <div class="learn-search-box">
-              <span class="learn-search-icon">🔍</span>
-              <input type="text" id="learnSearchInput" placeholder="Search Workout... (e.g. Bench Press)" oninput="handleLearnSearch()" autocomplete="off" style="margin-top:0">
-              <div class="learn-suggestions" id="learnSuggestions"></div>
-            </div>
-          </div>
-          <div class="learn-filter-group">
-            <label>Choose Muscle Group</label>
-            <select id="learnClassFilter" onchange="handleLearnClassFilter()" style="margin-top:0">
-              <option value="">— Select Muscle Group —</option>
+      <div class="section glass learn-picker-card" style="margin-top:0">
+        <!-- Reuses the exact Muscle/Equipment filter component from the Workout page's exercise
+             selection (.ctm-muscle-eq-row.entry-filter-row) so Learn's workout picker looks and
+             adapts identically — flex-wrap based, no media-query breakpoints needed. -->
+        <div class="ctm-muscle-eq-row entry-filter-row" style="margin-bottom:14px">
+          <div>
+            <label>Muscle</label>
+            <select id="learnClassFilter" onchange="handleLearnClassFilter()">
+              <option value="">All Muscles</option>
             </select>
           </div>
-          <div class="learn-filter-group">
-            <label>Choose Equipment</label>
-            <select id="learnEquipmentFilter" onchange="handleLearnEquipmentFilter()" style="margin-top:0">
+          <div>
+            <label>Equipment</label>
+            <select id="learnEquipmentFilter" onchange="handleLearnEquipmentFilter()">
               <option value="">All Equipment</option>
             </select>
           </div>
         </div>
-        <div id="learnWorkoutPickerRow" style="display:none;margin-top:4px">
-          <div class="learn-filter-group">
-            <label>Select Exercise</label>
-            <select id="learnWorkoutPicker" onchange="handleLearnWorkoutPick()" style="margin-top:0">
-              <option value="">— Choose an exercise —</option>
-            </select>
+        <label style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.6px;font-family:var(--font-alt);display:block;margin-bottom:6px">Exercise Name</label>
+        <!-- Same suggestion-box treatment (clear ✕ icon + dropdown ▼ icon) as the Workout page's
+             exercise-name box, reused as-is for Learn's own exercise picker. -->
+        <div class="learn-search-box suggestion-box">
+          <!-- Icon/clear/dropdown must be positioned relative to the INPUT only, not this whole
+               box — this box also contains the (much taller, variable-height) suggestions list as
+               an in-flow sibling below the input, and top:50% against the *whole* box was
+               centering the search icon against that combined height, dragging it down into the
+               list once it opened instead of staying pinned to the input. -->
+          <div class="learn-search-input-wrap">
+            <span class="learn-search-icon">🔍</span>
+            <input type="text" id="learnSearchInput" placeholder="Search Workout... (e.g. Bench Press)" oninput="handleLearnSearch()" onfocus="handleLearnSearch()" autocomplete="off" style="margin-top:0">
+            <span class="sugg-clear-icon" id="learnSearchClearIcon" title="Clear" onclick="clearLearnSearchInput()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg></span>
+            <span class="sugg-dropdown-icon" id="learnSearchDropdownIcon" onclick="toggleLearnSearchDropdown(event)">▼</span>
           </div>
+          <div class="suggestions-list learn-suggestions" id="learnSuggestions"></div>
         </div>
       </div>
       <div id="learnInfoCard" style="margin-top:18px;display:none"></div>
@@ -13292,7 +13340,7 @@ function finalizeCustomExerciseName(rawName,selectedClass,selectedEquipment){
    section (same search text as the normal list, matched independently) so e.g. typing "Inc" while
    open surfaces "Incline Bench Press (Dumbbell)" here first if the person has logged it before —
    but only while the section is actually open; folded, the normal search is 100% untouched. */
-window._ywOpen={nonlive:true,live:true};
+window._ywOpen={nonlive:true,live:true,learn:true};
 /* Same Muscle/Equipment filtering rules as ctmGetFilteredCatalog, applied to the person's own
    logged history: choosing Chest shows only Chest exercises they've done, adding Dumbbell narrows
    that further to Chest+Dumbbell — exactly like the default catalog list right below it. No filters
@@ -13578,7 +13626,7 @@ async function handleWorkoutSearchAuto(forceShow){
 document.addEventListener("click",e=>{
   if(e.target.id!=="workoutNameInput"&&e.target.id!=="workoutNameDropdownIcon"){document.getElementById("autoSuggestions").style.display="none";const wi=document.getElementById("workoutNameDropdownIcon");if(wi)wi.classList.remove("open");}
   let sr=document.getElementById("gymBroSearchResults");if(sr&&e.target.id!=="gymBroSearchInput"&&!sr.contains(e.target))sr.style.display="none";
-  const ls=document.getElementById("learnSuggestions");if(ls&&e.target.id!=="learnSearchInput"&&!ls.contains(e.target))ls.style.display="none";
+  const ls=document.getElementById("learnSuggestions");if(ls&&e.target.id!=="learnSearchInput"&&e.target.id!=="learnSearchDropdownIcon"&&!ls.contains(e.target)){ls.style.display="none";const li=document.getElementById("learnSearchDropdownIcon");if(li)li.classList.remove("open");}
 });
 /* Tracks original (locked) duration labels per set-index while editing an entry, e.g. {1:"30 sec",2:"1 min 5 sec"} */
 let editOriginalDurations={};
@@ -21028,42 +21076,132 @@ const LEARN_VIDEO_URLS={
 function initLearnPage(){
   loadWorkoutVideoMap(); // fire-and-forget: fetches once, cached for the rest of the session
   if(!document.getElementById("learnClassFilter").dataset.built){
-    document.getElementById("learnClassFilter").innerHTML='<option value="">— Select Muscle Group —</option>'+MUSCLE_LIST.map(m=>`<option value="${m}">${m}</option>`).join("");
-    document.getElementById("learnEquipmentFilter").innerHTML='<option value="">All Equipment</option>'+EQUIPMENT_LIST.map(eq=>`<option value="${eq}">${eq}</option>`).join("");
+    // Same option-building helpers (incl. the combined "Upper Body"/"Lower Body" filters) used to
+    // populate the Muscle/Equipment dropdowns on the Workout page's exercise selection.
+    document.getElementById("learnClassFilter").innerHTML=ctmBuildMuscleOptionsHTML();
+    document.getElementById("learnEquipmentFilter").innerHTML=ctmBuildEquipmentOptionsHTML();
     document.getElementById("learnClassFilter").dataset.built="1";
   }
   document.getElementById("learnSearchInput").value="";document.getElementById("learnClassFilter").value="";document.getElementById("learnEquipmentFilter").value="";
-  document.getElementById("learnWorkoutPickerRow").style.display="none";document.getElementById("learnInfoCard").style.display="none";
+  document.getElementById("learnInfoCard").style.display="none";
   document.getElementById("learnEmptyState").style.display="block";document.getElementById("learnSuggestions").style.display="none";
+  updateNameClearIconVisibility('learnSearchInput','learnSearchClearIcon');
+  const dIcon=document.getElementById("learnSearchDropdownIcon");if(dIcon)dIcon.classList.remove("open");
 }
-function handleLearnSearch(){
-  const val=document.getElementById("learnSearchInput").value.trim();const sugBox=document.getElementById("learnSuggestions");
-  if(val.length<1){sugBox.style.display="none";return}
-  const lower=val.toLowerCase();
-  // Search the SAME full exercise catalog used on the Add Workout page (300+ exercises,
-  // all classes/equipment), not just the small hand-curated LEARN_DB — so every exercise
-  // that shows up in Workout Entry is also findable here.
-  const matches=EXERCISE_CATALOG.filter(e=>e.class!=='multi'&&e.name.toLowerCase().includes(lower)).slice(0,8);
-  if(!matches.length){sugBox.style.display="none";return}
-  sugBox.innerHTML=matches.map(e=>`<div class="sug-item" onclick="selectLearnExercise('${e.name.replace(/'/g,"\\'")}')"> ${e.name}<span class="sug-badge">${e.class}</span></div>`).join("");
-  sugBox.style.display="block";
+/* Same fixed round "✕" corner-close button as the Workout page's exercise suggestions box
+   (see _buildExListFixedClose) — Learn's own copy since that one is hardcoded to the
+   nonlive/live dropdown icon ids. */
+function _buildLearnListFixedClose(box){
+  const wrap=document.createElement('div');
+  wrap.className='ex-list-fixed-close-wrap';
+  const btn=document.createElement('button');
+  btn.type='button';btn.className='ex-list-fixed-close-btn';btn.title='Close';btn.setAttribute('aria-label','Close exercise list');
+  btn.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg>';
+  btn.onclick=(e)=>{e.stopPropagation();box.style.display='none';const icon=document.getElementById('learnSearchDropdownIcon');if(icon)icon.classList.remove('open');};
+  wrap.appendChild(btn);
+  return wrap;
 }
-/* Rebuilds the "Select Exercise" dropdown from the full EXERCISE_CATALOG filtered by the
-   currently chosen Class + Equipment — exactly the same filter logic (ctmGetFilteredCatalog)
-   used to build the exercise list on the Add Workout page, so Learn always shows the full
-   30–40-per-class list instead of a small curated subset. */
-function updateLearnExercisePicker(){
+/* Same "⭐ Your Workouts" foldable quick-pick section (most-frequently-logged exercises first,
+   ×N badge) as the Workout page's exercise suggestions box — reuses the same helpers
+   (_getYourWorkoutsMatches/_ywClassTagHtml/window._exerciseFreqMap) that section already relies
+   on. Rows just select-and-view here (no Add button/swipe-to-add — Learn never logs a workout). */
+function _renderLearnYourWorkoutsSection(box,textVal,muscleVal,equipmentVal){
+  const freqMap=window._exerciseFreqMap;
+  if(!freqMap||!Object.keys(freqMap).length)return false; // brand-new user, nothing logged yet
+  const isOpen=!!window._ywOpen.learn;
+  const wrap=document.createElement('div');
+  wrap.className='yw-section';
+  const header=document.createElement('div');
+  header.className='yw-header';
+  header.innerHTML=`<span>⭐ Your Workouts</span><span class="yw-header-caret${isOpen?' open':''}">▼</span>`;
+  header.onclick=(e)=>{e.stopPropagation();window._ywOpen.learn=!window._ywOpen.learn;handleLearnSearch(true);};
+  wrap.appendChild(header);
+  const list=document.createElement('div');
+  list.className='yw-list'+(isOpen?' open':'');
+  if(isOpen){
+    const matches=_getYourWorkoutsMatches(textVal,muscleVal,equipmentVal);
+    if(matches.length){
+      matches.forEach(m=>{
+        const item=document.createElement('div');
+        item.className='yw-item';
+        item.innerHTML=`<span class="yw-item-name">${escapeHtml(m.name)}</span><span class="yw-item-meta">${_ywClassTagHtml(m.class)}<span class="tracker-freq-badge">×${m.freq}</span></span>`;
+        item.onclick=()=>{box.style.display="none";const icon=document.getElementById("learnSearchDropdownIcon");if(icon)icon.classList.remove("open");selectLearnExercise(m.name);};
+        list.appendChild(item);
+      });
+    }else{
+      list.innerHTML=`<div class="yw-empty">No matches in your workouts.</div>`;
+    }
+  }
+  wrap.appendChild(list);
+  box.appendChild(wrap);
+  return true;
+}
+function toggleLearnSearchDropdown(e){
+  if(e)e.stopPropagation();
+  const box=document.getElementById("learnSuggestions");
+  const icon=document.getElementById("learnSearchDropdownIcon");
+  if(box.style.display==="block"){
+    box.style.display="none";
+    if(icon)icon.classList.remove("open");
+  }else{
+    handleLearnSearch(true);
+    if(icon)icon.classList.add("open");
+  }
+}
+function clearLearnSearchInput(){
+  const input=document.getElementById('learnSearchInput');
+  if(!input)return;
+  input.value='';
+  handleLearnSearch();
+  input.focus();
+}
+/* Single unified picker — same Muscle + Equipment + manual-text filtering (via the shared
+   ctmGetFilteredCatalog helper), the same "Your Workouts" quick-pick section, the same
+   per-class colored badge (CLASS_COLORS) and the same clear/dropdown icon behavior as the
+   Workout page's exercise-name suggestions box (#autoSuggestions) — just without the
+   expand-to-Add/swipe-to-add/video-icon row actions, since Learn only ever needs to pick an
+   exercise to view, never to log/add one. */
+function handleLearnSearch(forceShow){
+  const val=document.getElementById("learnSearchInput").value.trim();
   const cls=document.getElementById("learnClassFilter").value;
   const eq=document.getElementById("learnEquipmentFilter").value;
-  const pickerRow=document.getElementById("learnWorkoutPickerRow");const picker=document.getElementById("learnWorkoutPicker");
-  if(!cls){pickerRow.style.display="none";return}
-  const list=ctmGetFilteredCatalog(cls,eq,'',false,false);
-  picker.innerHTML=`<option value="">— Choose an exercise (${list.length}) —</option>`+list.map(e=>`<option value="${e.name.replace(/"/g,'&quot;')}">${e.name}</option>`).join("");
-  pickerRow.style.display="block";document.getElementById("learnInfoCard").style.display="none";document.getElementById("learnEmptyState").style.display="block";
+  const sugBox=document.getElementById("learnSuggestions");
+  updateNameClearIconVisibility('learnSearchInput','learnSearchClearIcon');
+  const icon=document.getElementById("learnSearchDropdownIcon");
+  sugBox.innerHTML="";sugBox.style.display="none";if(icon)icon.classList.remove("open");
+  if(!forceShow&&!val&&!cls&&!eq)return;
+  sugBox.appendChild(_buildLearnListFixedClose(sugBox));
+  const hasYW=_renderLearnYourWorkoutsSection(sugBox,val,cls,eq);
+  // Search the SAME full exercise catalog used on the Add Workout page (300+ exercises,
+  // all classes/equipment), narrowed by Muscle/Equipment exactly like that page does.
+  const matches=ctmGetFilteredCatalog(cls,eq,val,false,false).slice(0,60);
+  if(matches.length||hasYW){sugBox.style.display="block";if(icon)icon.classList.add("open");}
+  if(matches.length){
+    const defHeader=document.createElement('div');
+    defHeader.className='default-ex-header';
+    defHeader.textContent='🏋 All Exercises';
+    sugBox.appendChild(defHeader);
+    matches.forEach(item=>{
+      const div=document.createElement('div');
+      div.className='sugg-ex-row';
+      const clr=CLASS_COLORS[item.class]||'var(--text-muted)';
+      const classTag=item.class==='multi'?`<span style="background:#6366f1;color:#fff;border-radius:6px;padding:1px 6px;font-size:9px;font-weight:800">MULTI</span>`:`<span style="background:${clr};color:#fff;border-radius:6px;padding:1px 6px;font-size:9px;font-weight:800">${item.class}</span>`;
+      div.innerHTML=`<span class="sugg-ex-row-name">${item.name}${item.isCustom?' <span style="opacity:0.55;font-size:9px">(custom)</span>':''}</span>${classTag}`;
+      div.onclick=()=>{sugBox.style.display="none";if(icon)icon.classList.remove("open");selectLearnExercise(item.name);};
+      sugBox.appendChild(div);
+    });
+  }else if(!hasYW&&(val||cls||eq)){
+    sugBox.innerHTML='';
+    sugBox.appendChild(_buildLearnListFixedClose(sugBox));
+    const empty=document.createElement('div');
+    empty.style.cssText='padding:14px 16px;font-size:13px;color:var(--text-muted);cursor:default';
+    empty.textContent='No exercises found';
+    sugBox.appendChild(empty);
+    sugBox.style.display="block";
+  }
 }
-function handleLearnClassFilter(){updateLearnExercisePicker()}
-function handleLearnEquipmentFilter(){updateLearnExercisePicker()}
-function handleLearnWorkoutPick(){const name=document.getElementById("learnWorkoutPicker").value;if(!name)return;selectLearnExercise(name)}
+function handleLearnClassFilter(){handleLearnSearch(true)}
+function handleLearnEquipmentFilter(){handleLearnSearch(true)}
 function selectLearnExercise(name){
   document.getElementById("learnSuggestions").style.display="none";document.getElementById("learnSearchInput").value=name;
   // 1) Exact match in the hand-curated guide database.
@@ -21104,11 +21242,66 @@ async function renderLearnCard(name,data,videoUrlOverride){
   const stepsHtml=data.steps.map((s,i)=>`<li><span class="learn-step-num">${i+1}</span><span>${s}</span></li>`).join("");
   const mistakesHtml=data.mistakes.map(m=>`<li><span>❌</span><span>${m}</span></li>`).join("");
   const secondaryHtml=data.secondaryMuscles.map(m=>`<span class="learn-muscle-chip secondary">${m}</span>`).join("");
-  const html=`<div class="learn-info-card glass"><div class="learn-info-card-header"><div class="learn-exercise-title">${name}</div><span class="learn-muscle-badge">${data.class}</span></div><div class="learn-main-grid"><div class="learn-gif-col"><div class="learn-gif-container"><div class="learn-gif-fallback"><span class="gif-emoji">${data.gifEmoji}</span><div class="gif-label">${name}</div><div style="font-size:11px;color:var(--text-muted);font-family:var(--font-alt);margin-top:6px;letter-spacing:0.3px">3D DEMONSTRATION</div></div></div><button type="button" class="learn-yt-link" id="learnYtBtn"><span class="learn-yt-icon">▶</span><span>${videoLabel}</span></button><div class="learn-section-block" style="margin-top:12px"><div class="learn-block-title">🎯 Target Muscles</div><div style="margin-bottom:10px"><div style="font-size:11px;font-weight:700;color:var(--text-muted);font-family:var(--font-alt);letter-spacing:0.5px;margin-bottom:6px;text-transform:uppercase">PRIMARY</div><span class="learn-muscle-chip primary">${data.primaryMuscle}</span></div><div><div style="font-size:11px;font-weight:700;color:var(--text-muted);font-family:var(--font-alt);letter-spacing:0.5px;margin-bottom:6px;text-transform:uppercase">SECONDARY</div><div class="learn-muscles-row">${secondaryHtml}</div></div></div></div><div class="learn-details-col"><div class="learn-section-block"><div class="learn-block-title">📋 How To Perform</div><ul class="learn-steps-list">${stepsHtml}</ul></div><div class="learn-section-block"><div class="learn-block-title">⚠️ Common Mistakes</div><ul class="learn-mistakes-list">${mistakesHtml}</ul></div></div></div></div>`;
+  const html=`<div class="learn-info-card glass"><div class="learn-info-card-header"><div class="learn-exercise-title">${name}</div><span class="learn-muscle-badge">${data.class}</span></div><div class="learn-main-grid"><div class="learn-gif-col"><div class="learn-gif-container" id="learnGifContainer"><div class="learn-gif-fallback"><span class="gif-emoji">${data.gifEmoji}</span><div class="gif-label">${name}</div><div style="font-size:11px;color:var(--text-muted);font-family:var(--font-alt);margin-top:6px;letter-spacing:0.3px">3D DEMONSTRATION</div></div></div><button type="button" class="learn-yt-link" id="learnYtBtn"><span class="learn-yt-icon">▶</span><span class="learn-yt-label">${videoLabel}</span></button><div class="learn-section-block" style="margin-top:12px"><div class="learn-block-title">🎯 Target Muscles</div><div style="margin-bottom:10px"><div style="font-size:11px;font-weight:700;color:var(--text-muted);font-family:var(--font-alt);letter-spacing:0.5px;margin-bottom:6px;text-transform:uppercase">PRIMARY</div><span class="learn-muscle-chip primary">${data.primaryMuscle}</span></div><div><div style="font-size:11px;font-weight:700;color:var(--text-muted);font-family:var(--font-alt);letter-spacing:0.5px;margin-bottom:6px;text-transform:uppercase">SECONDARY</div><div class="learn-muscles-row">${secondaryHtml}</div></div></div></div><div class="learn-details-col"><div class="learn-section-block"><div class="learn-block-title">📋 How To Perform</div><ul class="learn-steps-list">${stepsHtml}</ul></div><div class="learn-section-block"><div class="learn-block-title">⚠️ Common Mistakes</div><ul class="learn-mistakes-list">${mistakesHtml}</ul></div></div></div></div>`;
   document.getElementById("learnInfoCard").innerHTML=html;document.getElementById("learnInfoCard").style.display="block";document.getElementById("learnEmptyState").style.display="none";
   const ytBtn=document.getElementById("learnYtBtn");
-  if(ytBtn)ytBtn.onclick=()=>{ if(localVideoPath)openLocalWorkoutVideo(localVideoPath,name); else openLearnVideo(videoUrl,videoLabel); };
+  // Same clip, same autoplay+loop/no-controls playback as the Workout page's ▶ Video action —
+  // just played INLINE, in place of the "3D DEMONSTRATION" box, instead of opening it in an
+  // overlay frame on top of the page. Exercises without a local clip still fall back to the
+  // YouTube search link (a different source, no in-place player available for it).
+  if(ytBtn)ytBtn.onclick=()=>{ if(localVideoPath)playLearnVideoInline(name,localVideoPath); else openLearnVideo(videoUrl,videoLabel); };
   document.getElementById("learnInfoCard").scrollIntoView({behavior:"smooth",block:"start"});
+}
+/* Plays the exercise's demo clip INLINE, replacing the "3D DEMONSTRATION" placeholder box's own
+   content — same clip, same autoplay+loop/muted/no-controls playback as the Workout page's video
+   player (openWorkoutRowVideo/.wf-video-modal-*), just swapped into place on the page instead of
+   opened in a full-screen overlay frame on top of it. Same blob-cache/fallback source resolution
+   as that player too, so it's equally instant when the clip was already prefetched. */
+function playLearnVideoInline(name,filePath){
+  const container=document.getElementById("learnGifContainer");
+  if(!container)return;
+  // Remember the static demo box's own markup (emoji/label/"3D DEMONSTRATION") so the ✕ close
+  // button can restore it exactly as it was, without needing to re-render the whole card.
+  if(!container.dataset.fallbackHtml)container.dataset.fallbackHtml=container.innerHTML;
+  container.classList.add('video-active');
+  const safeTitle=(name||"Exercise Video").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  // Header bar + close button (never overlapping the video itself) above the frame — same
+  // layout as the Workout page's video modal.
+  container.innerHTML=`<div class="learn-video-inline-header">${safeTitle}</div><button type="button" class="learn-inline-video-close" onclick="closeLearnInlineVideo()" title="Close video" aria-label="Close video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg></button><div class="learn-video-inline-frame"><video id="learnInlineVideoEl" autoplay loop muted playsinline webkit-playsinline disablepictureinpicture disableremoteplayback oncontextmenu="return false"></video></div>`;
+  const videoEl=document.getElementById("learnInlineVideoEl");
+  // The clip now loops forever right in the demo box — no further action needed from the button.
+  const ytBtn=document.getElementById("learnYtBtn");
+  if(ytBtn)ytBtn.style.display="none";
+  if(workoutVideoBlobCache.has(filePath)){
+    videoEl.src=workoutVideoBlobCache.get(filePath);
+    videoEl.play().catch(()=>{});
+    return;
+  }
+  getWorkoutVideoBlobUrl(filePath).then(url=>{
+    if(document.getElementById("learnInlineVideoEl")){videoEl.src=url;videoEl.play().catch(()=>{});} // still on this card?
+  }).catch(()=>{
+    const{data}=videoDb.storage.from("workout-videos").getPublicUrl(filePath);
+    videoEl.src=data.publicUrl;
+    videoEl.play().catch(()=>{});
+    videoEl.onerror=()=>{
+      if(!document.getElementById("learnInlineVideoEl"))return;
+      closeLearnInlineVideo();
+      if(typeof showToast==='function')showToast("This video couldn't be loaded. Check your connection and try again.");
+    };
+  });
+}
+/* Closes just the inline video, restoring the "3D DEMONSTRATION" fallback box underneath (and
+   the Watch Tutorial button) — mirrors closeWorkoutRowVideo's "only touch the video, leave
+   everything else exactly where it was" behavior. */
+function closeLearnInlineVideo(){
+  const container=document.getElementById("learnGifContainer");
+  if(!container)return;
+  const videoEl=document.getElementById("learnInlineVideoEl");
+  if(videoEl){try{videoEl.pause()}catch(e){}}
+  if(container.dataset.fallbackHtml)container.innerHTML=container.dataset.fallbackHtml;
+  container.classList.remove('video-active');
+  const ytBtn=document.getElementById("learnYtBtn");
+  if(ytBtn)ytBtn.style.display="";
 }
 
 /* ===================== LEARN — LOCAL SUPABASE WORKOUT VIDEOS =====================
@@ -21184,35 +21377,11 @@ function getWorkoutVideoBlobUrl(filePath){
   workoutVideoFetchPromises.set(filePath,promise);
   return promise;
 }
-function openLocalWorkoutVideo(filePath,title){
-  closeLearnVideo();
-  const overlay=document.createElement("div");
-  overlay.className="learn-video-modal-overlay";overlay.id="learnVideoModalOverlay";
-  overlay.onclick=function(e){if(e.target===overlay)closeLearnVideo()};
-  const safeTitle=(title||"Exercise Video").replace(/</g,"&lt;").replace(/>/g,"&gt;");
-  overlay.innerHTML=`<div class="learn-video-modal-box"><button type="button" class="learn-video-modal-close" onclick="closeLearnVideo()">✕</button><div class="learn-video-modal-title">▶ ${safeTitle}</div><div class="learn-video-modal-frame-wrap"><video id="learnLocalVideoEl" style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#000" controls autoplay playsinline></video></div></div>`;
-  document.body.appendChild(overlay);
-  document.addEventListener("keydown",learnVideoEscHandler);
-  const box=overlay.querySelector(".learn-video-modal-box");
-  const videoEl=document.getElementById("learnLocalVideoEl");
-  if(workoutVideoBlobCache.has(filePath)){
-    // Prefetched while the user was reading the exercise card — instant, zero network.
-    videoEl.src=workoutVideoBlobCache.get(filePath);
-    return;
-  }
-  // Rare case: user tapped Play before the prefetch (kicked off on selection) finished —
-  // await that SAME in-flight fetch rather than starting a second competing request,
-  // which is what was causing the 2-3s delay before.
-  getWorkoutVideoBlobUrl(filePath).then(url=>{
-    if(document.getElementById("learnLocalVideoEl"))videoEl.src=url; // still open?
-  }).catch(()=>{
-    // Background/cached fetch failed (e.g. CORS or network hiccup) — fall back to
-    // direct streaming from the public URL so playback still works.
-    const{data}=videoDb.storage.from("workout-videos").getPublicUrl(filePath);
-    videoEl.src=data.publicUrl;
-    videoEl.onerror=()=>{ if(document.body.contains(box))learnVideoShowFallback(box,data.publicUrl,"This video couldn't be loaded. Check your connection and try again.") };
-  });
-}
+/* openLocalWorkoutVideo (the old native-<video>-controls local player) has been retired — local
+   clips now always open through openWorkoutRowVideo, the same no-controls autoplay/loop player
+   the Workout page uses (see renderLearnCard above). learnLocalVideoEl/learnVideoShowFallback are
+   no longer referenced from here; .learn-video-modal-* + openLearnVideo remain, used only for the
+   YouTube-search fallback when an exercise has no local clip at all. */
 
 /* ===================== WORKOUTS PAGE — INLINE EXERCISE VIDEO (Add/Video row actions) =====================
    Reuses the exact same name->path map (workoutVideoMap) and blob cache (workoutVideoBlobCache) that
