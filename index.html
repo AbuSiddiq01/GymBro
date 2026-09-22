@@ -741,8 +741,23 @@ body.theme-dark .hist-cal-cell:not(.empty)::before{background:linear-gradient(14
 .hist-cal-popup-mid{flex:1.05;text-align:center;min-width:0}
 .hist-cal-popup-date{font-family:var(--font-display);font-size:16px;color:var(--text-primary);letter-spacing:0.4px}
 .hist-cal-popup-day{font-size:9.5px;color:var(--text-muted);font-family:var(--font-alt);font-weight:700;letter-spacing:0.2px;text-transform:uppercase;margin-top:0}
-.hist-cal-popup-classes{margin-top:7px;padding-top:7px;border-top:1px dashed var(--border-col);text-align:center;font-size:11px;color:var(--text-primary);font-weight:700;font-family:var(--font-alt);line-height:1.3}
-.hist-cal-popup-classes.hidden{display:none}
+.hist-cal-popup-classes{text-align:left;font-size:11px;color:var(--text-primary);font-weight:700;font-family:var(--font-alt);line-height:1.3;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* Wraps Class names + Duration on ONE shared line under the dashed divider (instead of two
+   stacked lines) so the detail box never has to grow taller to fit them. Class names sit
+   left and can be long, so they take the flexible remaining width (ellipsizing rather than
+   wrapping/pushing Duration around); Duration is pinned to the right corner via
+   justify-content:space-between and never shrinks itself — its own font-size instead scales
+   with clamp() so it always fits. */
+.hist-cal-popup-bottom-row{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-top:7px;padding-top:7px;border-top:1px dashed var(--border-col)}
+.hist-cal-popup-bottom-row.hidden{display:none}
+/* Duration readout on that shared line — auto-derived total time trained for the selected day
+   (e.g. "1 Hr 45 Min"), shown only for Present days. Fixed app-blue (#2563eb) in both Light and
+   Dark themes — matches the app's other fixed-blue accents (Rest Day badge/dot) rather than the
+   Custom-theme accent var, so it always reads as "blue" regardless of theme. Sized with the same
+   clamp() range as the Check-in/Check-out value text (.hist-cal-popup-value) so it always matches
+   that font size, auto-adapting across screen sizes instead of the old fixed 12.5/10.5/9.5px
+   media-query steps. */
+.hist-cal-popup-duration-corner{flex-shrink:0;font-family:var(--font-display);font-weight:800;color:#2563eb;font-size:clamp(9.5px,2.9vw,12.5px);letter-spacing:0.2px;white-space:nowrap}
 @media(max-width:480px){
   .hist-cal-date-popup{padding:8px 10px 6px;margin-bottom:8px;border-radius:12px}
   .hist-cal-popup-close{width:18px;height:18px;font-size:8px;top:5px;right:5px}
@@ -752,7 +767,8 @@ body.theme-dark .hist-cal-cell:not(.empty)::before{background:linear-gradient(14
   .hist-cal-popup-date{font-size:14px}
   .hist-cal-popup-day{font-size:8.5px}
   .hist-cal-popup-label{font-size:7.5px;margin-bottom:1px}
-  .hist-cal-popup-classes{font-size:10px;margin-top:6px;padding-top:6px}
+  .hist-cal-popup-bottom-row{margin-top:6px;padding-top:6px}
+  .hist-cal-popup-classes{font-size:10px}
 }
 @media(min-width:700px){
   .hist-cal-date-popup{max-width:420px;margin-left:auto;margin-right:auto}
@@ -826,7 +842,8 @@ body.theme-dark .hist-cal-cell:not(.empty)::before{background:linear-gradient(14
   .hist-cal-date-popup{padding:6px 8px 5px;margin-bottom:6px}
   .hist-cal-popup-date{font-size:12px}
   .hist-cal-popup-value{font-size:9.5px}
-  .hist-cal-popup-classes{font-size:9px;margin-top:5px;padding-top:5px}
+  .hist-cal-popup-bottom-row{margin-top:5px;padding-top:5px}
+  .hist-cal-popup-classes{font-size:9px}
 }
 
 /* ===================== WORKOUT CARDS ===================== */
@@ -3949,11 +3966,14 @@ body.theme-custom .dash-week-card{border-color:var(--border-col)}
                 <div class="hist-cal-popup-day" id="histCalPopupDay"></div>
               </div>
               <div class="hist-cal-popup-box">
-                <div class="hist-cal-popup-label">Duration</div>
-                <div class="hist-cal-popup-value" id="histCalPopupDuration">-</div>
+                <div class="hist-cal-popup-label">Check-out</div>
+                <div class="hist-cal-popup-value" id="histCalPopupCheckout">-</div>
               </div>
             </div>
-            <div class="hist-cal-popup-classes hidden" id="histCalPopupClasses"></div>
+            <div class="hist-cal-popup-bottom-row hidden" id="histCalPopupBottomRow">
+              <span class="hist-cal-popup-classes" id="histCalPopupClasses"></span>
+              <span class="hist-cal-popup-duration-corner" id="histCalPopupDurationCorner"></span>
+            </div>
           </div>
           <div class="hist-cal-legend">
             <span class="hist-cal-legend-item"><span class="hist-cal-legend-dot present"></span>Present</span>
@@ -5527,6 +5547,13 @@ function formatMinutesToDuration(m){
   if(!m||m<=0)return "0 min";
   const h=Math.floor(m/60),mn=m%60;
   if(h>0&&mn>0)return `${h}Hr ${mn}min`;if(h>0)return `${h}Hr`;return `${mn}min`;
+}
+/* Same breakdown as formatMinutesToDuration, but spaced + title-case units ("1 Hr 23 Min" instead
+   of "1Hr 23min") — used for the Calendar detail popup's bottom-row Duration readout. */
+function formatMinutesToDurationSpaced(m){
+  if(!m||m<=0)return "0 Min";
+  const h=Math.floor(m/60),mn=m%60;
+  if(h>0&&mn>0)return `${h} Hr ${mn} Min`;if(h>0)return `${h} Hr`;return `${mn} Min`;
 }
 function formatMinutesToHoursText(m){
   if(!m)return "0";let h=Math.floor(m/60),mn=m%60;return h>0?`${h}h ${mn}m`:`${mn}m`;
@@ -9777,11 +9804,21 @@ function renderHistoryCalendar(){
     const clickable=!isFuture;
     const cellCls=`hist-cal-cell ${statusCls}${isToday?' hist-cal-today':''}${extraCls}${clickable?' hist-cal-clickable':''}`;
     if(clickable){
+      // Check-out is derived, never stored: earliest check-in for the day + total minutes
+      // trained that day — the same check-in + duration technique already used for the
+      // "Checked out at …" chip on another user's profile (see the non-private profile status
+      // chip: checkoutISO = created_at + parseDurationToMinutes(duration)).
+      const dayCheckInISO=checkInByDate[key];
+      const dayDurMins=durationByDate[key];
+      const checkOutTxt=(dayCheckInISO&&dayDurMins)
+        ?formatCheckInTime(new Date(new Date(dayCheckInISO).getTime()+dayDurMins*60000).toISOString())
+        :'-';
       histCalDayData[key]={
         status:statusCls,
         statusLbl:statusLbl,
         checkIn:checkInByDate[key]?formatCheckInTime(checkInByDate[key]):'-',
-        duration:durationByDate[key]?formatMinutesToDuration(durationByDate[key]):'-',
+        checkOut:checkOutTxt,
+        duration:durationByDate[key]?formatMinutesToDurationSpaced(durationByDate[key]):'-',
         classes:classesFullTxt,
         dayName:dt.toLocaleDateString('en-US',{weekday:'long'}),
         dateLabel:dt.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})
@@ -9822,9 +9859,11 @@ function histCalSetupTouchHover(){
 }
 
 /* Tapping a date box opens the detail popup ABOVE the grid (normal flow, not a modal) — the
-   calendar underneath stays fully visible. Left box = check-in time, right box = duration, middle
-   = date & weekday, with classes trained for that day listed below (Present days only). Tapping
-   the same already-selected date again closes it; picking another date swaps the popup content. */
+   calendar underneath stays fully visible. Left box = check-in time, right box = check-out time
+   (auto-derived, see histCalDayData above), middle = date & weekday, with class names (left) and
+   total Duration (right, pinned corner) sharing one line below the divider (Present days only).
+   Tapping the same already-selected date again closes it; picking another date swaps the popup
+   content. */
 function histCalCellClick(key){
   const d=histCalDayData[key];
   if(!d)return;
@@ -9836,14 +9875,18 @@ function histCalCellClick(key){
   document.getElementById('histCalPopupDate').textContent=d.dateLabel;
   document.getElementById('histCalPopupDay').textContent=d.dayName;
   document.getElementById('histCalPopupCheckin').textContent=isPresent?d.checkIn:(d.statusLbl||'-');
-  document.getElementById('histCalPopupDuration').textContent=isPresent?d.duration:'-';
+  document.getElementById('histCalPopupCheckout').textContent=isPresent?d.checkOut:'-';
   const classesEl=document.getElementById('histCalPopupClasses');
+  const durCornerEl=document.getElementById('histCalPopupDurationCorner');
+  const bottomRowEl=document.getElementById('histCalPopupBottomRow');
   if(isPresent){
-    classesEl.textContent=d.classes?`Classes: ${d.classes}`:'No classes logged';
-    classesEl.classList.remove('hidden');
+    classesEl.textContent=d.classes?d.classes:'No classes logged';
+    durCornerEl.textContent=d.duration&&d.duration!=='-'?d.duration:'-';
+    bottomRowEl.classList.remove('hidden');
   } else {
     classesEl.textContent='';
-    classesEl.classList.add('hidden');
+    durCornerEl.textContent='';
+    bottomRowEl.classList.add('hidden');
   }
 
   popup.dataset.date=key;
