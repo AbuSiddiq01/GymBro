@@ -450,6 +450,23 @@ body.ptr-dragging,body.ptr-dragging *{transition:none!important}
 .gymbroTopSolo .gymbroBrandWrap{grid-column:2;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px}
 .gymbroTopSolo .gymbroBrandWrap h2{display:flex;align-items:center;gap:8px}
 .gymbroAccentBar{display:block;width:38px;height:3px;border-radius:3px;margin-top:4px;background:linear-gradient(90deg,var(--accent),var(--accent2));box-shadow:0 0 8px var(--accent-glow)}
+/* Dark theme only: the banner was a flat/plain box, so give it a thin, light, glowing
+   "blue spark" border and tint its heading/subtitle text blue instead of plain white,
+   so it matches the black/blue Dark palette rather than standing out as generic white-on-dark. */
+body.theme-dark .gymbroTop,
+body.theme-dark .gymbroTopSolo{
+  border:1px solid rgba(79,140,255,0.45);
+  box-shadow:0 10px 30px rgba(0,0,0,0.15),inset 0 1px 0 rgba(255,255,255,0.06),0 0 14px rgba(79,140,255,0.2);
+  animation:gymbroBannerSpark 3.6s ease-in-out infinite;
+}
+@keyframes gymbroBannerSpark{
+  0%,100%{border-color:rgba(79,140,255,0.35);box-shadow:0 10px 30px rgba(0,0,0,0.15),inset 0 1px 0 rgba(255,255,255,0.06),0 0 10px rgba(79,140,255,0.16)}
+  50%{border-color:rgba(120,170,255,0.75);box-shadow:0 10px 30px rgba(0,0,0,0.15),inset 0 1px 0 rgba(255,255,255,0.06),0 0 18px rgba(79,140,255,0.34)}
+}
+body.theme-dark .gymbroTop h2,
+body.theme-dark .gymbroTop p{
+  color:var(--accent);
+}
 /* Theme toggle + logout reused inside the Settings page Appearance row */
 .settings-row-ctrl .themeToggle{background:rgba(0,0,0,0.2)}
 .settings-row-ctrl .themeBtn{color:var(--text-secondary)}
@@ -3282,7 +3299,7 @@ body.tracker-fs-lock{overflow:hidden}
 
   <!-- ===================== LOGIN PAGE ===================== -->
   <div class="auth-box glass" id="loginPage">
-    <h2>🏋 GYMBRO</h2>
+    <h2>GYMBRO</h2>
     <p>TRACK · TRAIN · TRANSFORM</p>
     <label class="form-label">Login ID</label>
     <input type="text" placeholder="Your Login ID (e.g. 1001)" id="loginId" autocomplete="username">
@@ -3299,7 +3316,7 @@ body.tracker-fs-lock{overflow:hidden}
 
   <!-- ===================== REGISTER PAGE ===================== -->
   <div class="auth-box glass" id="registerPage" style="display:none">
-    <h2>🏋 SIGN UP</h2>
+    <h2>SIGN UP</h2>
     <p>JOIN THE ARENA — BEGIN YOUR JOURNEY</p>
     <label class="form-label">Username</label>
     <input type="text" placeholder="Your name (e.g. Abu)" id="regName" autocomplete="name" maxlength="30" oninput="sanitizeNameInput(this)">
@@ -3333,7 +3350,7 @@ body.tracker-fs-lock{overflow:hidden}
         <span></span><span></span><span></span>
       </button>
       <div class="gymbroBrandWrap">
-        <h2>🏋 GYMBRO</h2>
+        <h2>GYMBRO</h2>
         <p>TRACK · TRAIN · DOMINATE</p>
         <span class="gymbroAccentBar"></span>
       </div>
@@ -4613,7 +4630,7 @@ body.tracker-fs-lock{overflow:hidden}
                 <div class="ctm-demo-banner-inner">
                   <span>☰</span>
                   <div>
-                    <h4>🏋 GYMBRO</h4>
+                    <h4>GYMBRO</h4>
                     <p>TRACK · TRAIN · DOMINATE</p>
                   </div>
                 </div>
@@ -22164,4 +22181,4 @@ function closeLearnVideo(){
 })();
 </script>
 </body>
-</html>
+</html> 
