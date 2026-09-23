@@ -726,6 +726,12 @@ body.theme-dark .hist-cal-cell.rest{border-color:rgba(59,130,246,0.32)}
 body.theme-dark .hist-cal-cell.absent{border-color:rgba(239,68,68,0.32)}
 body.theme-dark .hist-cal-cell.pending{border-color:rgba(245,158,11,0.32)}
 body.theme-dark .hist-cal-cell:not(.empty)::before{background:linear-gradient(145deg,rgba(255,255,255,0.05) 0%,rgba(255,255,255,0.015) 32%,rgba(255,255,255,0) 55%)}
+/* Dark theme ONLY: the status pill's fill colors (green/blue/red/amber) are the same fixed
+   gradients on every theme, but white text on them runs low contrast — especially on the
+   amber "Today" pill, where white is barely legible. Black text holds up better on all four
+   pills, so swap it in for dark theme only; Light/Custom themes keep the original white text
+   untouched. */
+body.theme-dark .hist-cal-status{color:#15181c}
 /* Today's box gets a slow ambient glow-pulse (same visual family as roomGlowPulse elsewhere in the app) */
 .hist-cal-cell.hist-cal-today{animation:histCalGlowPulse 2.4s ease-in-out infinite}
 @keyframes histCalGlowPulse{
