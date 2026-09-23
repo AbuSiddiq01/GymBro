@@ -689,7 +689,7 @@ input::placeholder{color:var(--text-muted)}
 /* Glossy "glass" date box — layered gradient + soft top sheen + tinted glow shadow so it reads as
    part of the same design language as .card/.glass/.today-workout-banner elsewhere in the app. */
 .hist-cal-cell{
-  position:relative;border-radius:14px;border:1px solid var(--border-col);
+  position:relative;border-radius:18px;border:1px solid var(--border-col);
   background:var(--bg-panel);
   /* Container query context: lets the status chip / date / class text below size themselves off
      THIS box's own rendered width (cqi units), not the viewport — so they auto-shrink/grow to
@@ -867,7 +867,7 @@ body.theme-dark .hist-cal-cell:not(.empty)::before{background:linear-gradient(14
   .hist-filter-bar span{font-size:11px}
   .hist-cal-daynames{gap:3px}
   .hist-cal-grid{column-gap:3px;row-gap:12px}
-  .hist-cal-cell{min-height:58px;border-radius:9px;padding:3px 1px 4px}
+  .hist-cal-cell{min-height:58px;border-radius:13px;padding:3px 1px 4px}
   /* Date/Status/Classes font-sizes are intentionally NOT overridden here — they're clamp()+cqi
      driven off the box's own container width (see .hist-cal-status/.hist-cal-date/.hist-cal-classes
      above) so they already shrink correctly as this narrower box shrinks, without a separate step. */
@@ -882,7 +882,7 @@ body.theme-dark .hist-cal-cell:not(.empty)::before{background:linear-gradient(14
 @media(max-width:360px){
   .hist-cal-daynames{gap:2px}
   .hist-cal-grid{column-gap:2px;row-gap:10px}
-  .hist-cal-cell{min-height:52px;border-radius:8px;padding:2px 0 3px}
+  .hist-cal-cell{min-height:52px;border-radius:12px;padding:2px 0 3px}
   .hist-cal-dayname{font-size:7.5px}
   .hist-cal-monthlabel{font-size:15px}
   .hist-cal-legend{gap:5px 8px;margin-bottom:10px}
@@ -892,7 +892,7 @@ body.theme-dark .hist-cal-cell:not(.empty)::before{background:linear-gradient(14
   .hist-cal-wrap{max-width:680px;margin-left:auto;margin-right:auto}
   .hist-cal-daynames{gap:8px}
   .hist-cal-grid{column-gap:8px;row-gap:18px}
-  .hist-cal-cell{min-height:92px;padding:8px 4px 9px;border-radius:16px}
+  .hist-cal-cell{min-height:92px;padding:8px 4px 9px;border-radius:20px}
   .hist-cal-date{margin:4px 0 2px}
   /* Status/Classes font-sizes are intentionally NOT overridden here — clamp()+cqi (see the base
      rules above) already scales them up to their max as this wider box grows. */
@@ -916,7 +916,7 @@ body.theme-dark .hist-cal-cell:not(.empty)::before{background:linear-gradient(14
   .hist-cal-daynames{gap:3px;margin-bottom:3px}
   .hist-cal-dayname{font-size:7px}
   .hist-cal-grid{column-gap:3px;row-gap:5px}
-  .hist-cal-cell{min-height:42px;padding:2px 1px 3px;border-radius:8px;gap:1px}
+  .hist-cal-cell{min-height:42px;padding:2px 1px 3px;border-radius:11px;gap:1px}
   .hist-cal-date{margin:1px 0 0}
   /* This is the tightest box size the calendar ever renders at (short landscape phones), so the
      status chip's clamp() floor is allowed to wrap onto a 2nd line here instead of
