@@ -786,7 +786,8 @@ body.theme-dark .hist-cal-status{color:#15181c}
    just the trailing 12-month window #monthFilter used to be limited to — above a 12-box Jan–Dec
    month grid. The original <select> stays in the DOM (visually hidden) as the single source of
    truth, so every existing reader of #monthFilter's value keeps working unchanged. */
-.hist-month-trigger{display:flex;align-items:center;justify-content:space-between;gap:6px;flex:0 1 auto;min-width:0;padding:10px 14px;margin-top:0;border:1px solid var(--input-border);border-radius:12px;background:var(--input-bg);color:var(--text-primary);font-size:clamp(11px,3.2vw,13px);font-family:var(--font-alt);font-weight:700;cursor:pointer;transition:all 0.2s ease;white-space:nowrap}
+.hist-month-trigger-wrap{position:relative;flex:0 1 auto;min-width:0}
+.hist-month-trigger{display:flex;align-items:center;justify-content:space-between;gap:6px;width:100%;box-sizing:border-box;padding:10px 14px;margin-top:0;border:1px solid var(--input-border);border-radius:12px;background:var(--input-bg);color:var(--text-primary);font-size:clamp(11px,3.2vw,13px);font-family:var(--font-alt);font-weight:700;cursor:pointer;transition:all 0.2s ease;white-space:nowrap}
 .hist-month-trigger:active{border-color:var(--accent)}
 .hist-month-trigger span{overflow:visible;text-overflow:clip;white-space:nowrap}
 .hist-month-trigger svg{flex-shrink:0;opacity:0.7}
@@ -798,21 +799,65 @@ body.theme-dark .hist-cal-status{color:#15181c}
 #histWeekRow{gap:16px}
 @media(max-width:480px){#histWeekRow{gap:12px}}
 @media(max-width:360px){#histWeekRow{gap:9px}}
-.hist-month-picker-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:999750;align-items:center;justify-content:center;padding:20px;box-sizing:border-box;animation:fadeIn 0.2s ease}
-.hist-month-picker-overlay.open{display:flex}
-.hist-month-picker-panel{width:100%;max-width:340px;background:var(--bg-card);border:1px solid var(--accent);border-radius:16px;padding:16px;box-shadow:0 10px 40px var(--accent-glow)}
-.hist-month-picker-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
-.hist-month-picker-title{font-family:var(--font-display);font-size:16px;letter-spacing:0.4px;color:var(--text-primary)}
-.hist-month-picker-close{width:28px;height:28px;border-radius:50%;border:1px solid var(--input-border);background:var(--input-bg);color:var(--text-secondary);font-size:12px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;padding:0}
-.hist-month-picker-years{display:flex;gap:clamp(5px,1.6vw,8px);overflow-x:auto;padding-bottom:10px;margin-bottom:12px;border-bottom:1px dashed var(--border-col);scroll-behavior:smooth;-webkit-overflow-scrolling:touch}
-.hist-month-picker-years::-webkit-scrollbar{height:4px}
-.hist-month-picker-year-pill{flex-shrink:0;padding:clamp(5px,1.6vw,7px) clamp(10px,3vw,14px);border-radius:16px;border:1px solid var(--input-border);background:var(--input-bg);color:var(--text-secondary);font-family:var(--font-alt);font-weight:700;font-size:clamp(10px,2.6vw,12px);cursor:pointer;white-space:nowrap;transition:all 0.15s ease}
-.hist-month-picker-year-pill.active{background:var(--accent);border-color:var(--accent);color:#fff}
-.hist-month-picker-months{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(5px,1.6vw,7px)}
-.hist-month-picker-month-box{padding:clamp(7px,2.2vw,10px) 2px;border-radius:8px;border:1px solid var(--input-border);background:var(--input-bg);color:var(--text-primary);font-family:var(--font-alt);font-weight:700;font-size:clamp(9.5px,2.4vw,11.5px);text-align:center;cursor:pointer;transition:all 0.15s ease}
-.hist-month-picker-month-box.active{background:var(--accent);border-color:var(--accent);color:#fff}
-.hist-month-picker-month-box.disabled{opacity:0.32;cursor:not-allowed;pointer-events:none}
-@media(max-width:360px){.hist-month-picker-panel{padding:12px}}
+/* ===================== HISTORY MONTH PICKER: small anchored vertical wheel =====================
+   Replaces the old full-screen dark modal (year-strip + 12-box month grid) with a small popover
+   that opens right at the Month dropdown trigger, and a 3-row vertical "wheel" — one scrollable
+   list mixing month+year together (so both are picked in a single scroll, no separate year strip)
+   with the centered row being the picked value, same interaction as a native iOS-style date wheel.
+   See histOpenMonthPicker/histWheelSettle in JS for the scroll-centers-to-select logic.
+   The panel no longer floats as an absolutely-positioned popover (that caused it to overlap the
+   card content below/beside it, and to spill past the card edge on narrow screens). Instead,
+   opening the picker REPLACES the trigger button in-place, in normal document flow — it takes
+   over just the small box the trigger button itself occupied (not the full card width), so the
+   week-nav controls on the same row stay put and nothing shifts around. A max-width safety clamp
+   still guarantees it can never exceed the card's own available width on any screen size.
+   Closing it — via the small ✕, or automatically the moment a month is picked (see
+   histWheelCommit) — restores the trigger button exactly as it was. */
+.hist-month-picker-overlay{display:none;position:fixed;inset:0;background:transparent;z-index:999740;pointer-events:none}
+.hist-month-picker-overlay.open{display:block}
+#histWeekRow.picker-open #monthFilterTrigger{display:none}
+.hist-month-picker-panel{
+  display:none;position:relative;width:clamp(120px,34vw,158px);max-width:100%;z-index:2;
+  background:var(--bg-card);border:1px solid var(--accent);
+  border-radius:14px;padding:4px;box-shadow:0 6px 20px var(--accent-glow);box-sizing:border-box;
+  animation:fadeIn 0.15s ease;
+}
+.hist-month-picker-panel.open{display:block}
+.hist-month-picker-close{
+  position:absolute;top:-9px;right:-9px;width:20px;height:20px;border-radius:50%;
+  border:1px solid var(--input-border);background:var(--input-bg);color:var(--text-secondary);
+  font-size:9px;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;z-index:2;
+}
+/* The wheel itself: exactly 3 rows tall (--wh-item set from JS-measured row height, after the
+   items render, so this always matches whatever font-size clamp() below actually renders at —
+   no risk of the 3-row math drifting out of sync with the row's real height on any screen size).
+   Extra top/bottom padding equal to one row height is what lets the very first/last item in the
+   list ever reach the centered row — see the CSS comment further down + the JS scroll math. */
+.hist-month-wheel{
+  position:relative;height:calc(var(--wh-item,34px)*3);overflow-y:auto;overflow-x:hidden;
+  scroll-snap-type:y mandatory;scroll-behavior:smooth;-webkit-overflow-scrolling:touch;
+  padding-top:var(--wh-item,34px);padding-bottom:var(--wh-item,34px);
+  scrollbar-width:none;-ms-overflow-style:none;
+  /* Fade the top/bottom row edges so they read as "scrolling past", not truncated content */
+  -webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 32%,#000 68%,transparent 100%);
+  mask-image:linear-gradient(to bottom,transparent 0,#000 32%,#000 68%,transparent 100%);
+}
+.hist-month-wheel::-webkit-scrollbar{display:none}
+/* Center-row highlight band — sits behind the items, fixed in the middle row position always */
+.hist-month-wheel-band{
+  position:absolute;left:4px;right:4px;top:50%;height:var(--wh-item,34px);transform:translateY(-50%);
+  background:var(--accent-soft);border-top:1px solid var(--accent);border-bottom:1px solid var(--accent);
+  border-radius:8px;pointer-events:none;z-index:0;
+}
+.hist-month-wheel-item{
+  height:var(--wh-item,34px);display:flex;align-items:center;justify-content:center;
+  scroll-snap-align:center;font-family:var(--font-alt);font-weight:700;
+  font-size:clamp(10px,3vw,12.5px);color:var(--text-muted);cursor:pointer;position:relative;z-index:1;
+  transition:color .15s ease,font-size .15s ease;white-space:nowrap;
+}
+.hist-month-wheel-item.centered{color:var(--accent);font-size:clamp(12px,3.6vw,14.5px)}
+.hist-month-wheel-item.disabled{opacity:0.3;cursor:not-allowed}
+@media(max-width:360px){.hist-month-picker-panel{width:clamp(108px,36vw,140px)}}
 @media(max-width:480px){
   .hist-cal-date-popup{padding:8px 10px 6px;margin-bottom:8px;border-radius:12px}
   .hist-cal-popup-close{width:18px;height:18px;font-size:8px;top:5px;right:5px}
@@ -4032,22 +4077,24 @@ body.theme-custom .dash-week-card{border-color:var(--border-col)}
             <button type="button" class="week-nav-btn" id="histWeekNext" onclick="histWeekNav(1)" title="Next week">&#8250;</button>
           </div>
           <select id="monthFilter" onchange="histMonthChanged()" style="display:none" aria-hidden="true" tabindex="-1"></select>
-          <button type="button" id="monthFilterTrigger" class="hist-month-trigger" onclick="histOpenMonthPicker()" aria-haspopup="true">
-            <span id="monthFilterTriggerLabel"></span>
-            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
-          </button>
-        </div>
-
-        <div id="histMonthPickerOverlay" class="hist-month-picker-overlay" onclick="if(event.target===this)histCloseMonthPicker()">
-          <div class="hist-month-picker-panel">
-            <div class="hist-month-picker-head">
-              <span class="hist-month-picker-title">Select Month</span>
+          <div class="hist-month-trigger-wrap" id="histMonthTriggerWrap">
+            <button type="button" id="monthFilterTrigger" class="hist-month-trigger" onclick="histOpenMonthPicker()" aria-haspopup="true">
+              <span id="monthFilterTriggerLabel"></span>
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </button>
+            <div class="hist-month-picker-panel" id="histMonthPickerPanel">
               <button type="button" class="hist-month-picker-close" onclick="histCloseMonthPicker()" aria-label="Close">✕</button>
+              <div class="hist-month-wheel" id="histMonthWheel">
+                <div class="hist-month-wheel-band"></div>
+              </div>
             </div>
-            <div class="hist-month-picker-years" id="histMonthPickerYears"></div>
-            <div class="hist-month-picker-months" id="histMonthPickerMonths"></div>
           </div>
         </div>
+
+        <!-- Legacy full-screen node, kept only so old class toggles are harmless no-ops; it no
+             longer catches clicks (pointer-events:none) since outside taps must NOT close the
+             picker anymore — only the small ✕ inside the panel (histCloseMonthPicker) does. -->
+        <div id="histMonthPickerOverlay" class="hist-month-picker-overlay"></div>
 
         <div style="font-size:11px;color:var(--text-muted);font-family:var(--font-alt);font-weight:700;letter-spacing:0.5px;text-transform:uppercase;margin-bottom:6px">This Month</div>
         <div id="histMonthSummary" class="cards hist-summary-cards">
@@ -9510,12 +9557,16 @@ function initHistoryMonthDropdown(){
   }
   sel.dataset.inited='1';
 }
-/* ===================== HISTORY MONTH PICKER: custom in-app Year-strip + Month-grid =====================
-   Replaces the native OS <select> popover for #monthFilter with our own themed picker (see the CSS
-   block above for the visual rationale). #monthFilter itself remains the single source of truth for
-   every other part of the app that reads its .value — this section only ever writes to it. */
-const HIST_MONTH_PICKER_YEARS_BACK=12; // how many years before "this year" the Year strip offers
-let histMonthPickerYear=null; // year currently highlighted in the Year strip (not yet committed until a month box is tapped)
+/* ===================== HISTORY MONTH PICKER: small anchored vertical wheel =====================
+   Replaces the old Year-strip + 12-box Month-grid modal with a single scrollable wheel mixing
+   month+year together, 3 rows visible at a time, center row = the picked value — same "scroll to
+   pick" feel as Compare mode's calendar, and the same join-date floor Compare mode already
+   enforces (_myJoinYM/_ensureMyJoinDate, defined further down). Used by both the History List view
+   and the History Calendar view since both read/write the same shared #monthFilter trigger. */
+let _histWheelItems=[];       // [{year,month(0-based),disabled}] currently rendered, oldest first
+let _histWheelItemH=34;       // measured row height in px — kept in sync with the --wh-item CSS var
+let _histWheelCenteredIdx=-1; // index most recently centered, used to avoid double-commits
+let _histWheelSettleTimer=null;
 /* Short "Sep 2026" form for List view (compact, matches the request); Calendar view keeps the
    full "September 2026" form it already had. */
 function histMonthFilterTriggerLabel(val){
@@ -9541,59 +9592,119 @@ function histEnsureMonthOption(val){
   opt.value=val;opt.textContent=histMonthFilterTriggerLabel(val);
   sel.appendChild(opt);
 }
-function histOpenMonthPicker(){
-  const{year}=_selectedMonthYM(document.getElementById('monthFilter'));
-  histMonthPickerYear=year;
-  histRenderMonthPickerYears();
-  histRenderMonthPickerMonths();
+async function histOpenMonthPicker(){
+  const sel=document.getElementById('monthFilter');
+  const{year:selYear,month:selMonth}=_selectedMonthYM(sel);
+  await _ensureMyJoinDate(); // defined further down — same join-date lookup Compare mode uses
+  const now=new Date();
+  // No join date on file yet → fall back to a generous 10-year window so the wheel still works.
+  const startYM=_myJoinYM||{year:now.getFullYear()-10,month:now.getMonth()};
+  const nowTotal=now.getFullYear()*12+now.getMonth();
+  const startTotal=startYM.year*12+startYM.month;
+  // The wheel stops dead at the CURRENT month — no not-yet-arrived future months are ever added
+  // to the list, so there's nothing to scroll to past "now" (previously a couple of future months
+  // were included but disabled; that still let the user scroll to them, just not pick them).
+  const endTotal=nowTotal;
+  _histWheelItems=[];
+  for(let t=startTotal;t<=endTotal;t++){
+    _histWheelItems.push({year:Math.floor(t/12),month:t%12,disabled:false});
+  }
+  // Open the panel FIRST — histRenderMonthWheel below measures each row's real rendered height,
+  // which only works once the panel actually has layout (display:none elements measure as 0).
+  // Swap the trigger button + week-nav out for the panel, in the same row, so the picker replaces
+  // the dropdown in place instead of floating over/beside other content.
+  document.getElementById('histWeekRow')?.classList.add('picker-open');
   document.getElementById('histMonthPickerOverlay')?.classList.add('open');
+  document.getElementById('histMonthPickerPanel')?.classList.add('open');
+  histRenderMonthWheel(selYear,selMonth);
+  // Deferred (not attached synchronously) so the very click that opened the picker — which is
+  // still bubbling up to document right now — doesn't immediately trigger this and re-close it.
+  setTimeout(()=>document.addEventListener('click',histOutsideMonthPickerClick,true),0);
 }
 function histCloseMonthPicker(){
+  document.getElementById('histWeekRow')?.classList.remove('picker-open');
   document.getElementById('histMonthPickerOverlay')?.classList.remove('open');
+  document.getElementById('histMonthPickerPanel')?.classList.remove('open');
+  document.removeEventListener('click',histOutsideMonthPickerClick,true);
+  clearTimeout(_histWheelSettleTimer);
 }
-function histRenderMonthPickerYears(){
-  const wrap=document.getElementById('histMonthPickerYears');
-  if(!wrap)return;
-  const nowY=new Date().getFullYear();
-  const startY=nowY-HIST_MONTH_PICKER_YEARS_BACK;
-  wrap.innerHTML='';
-  for(let y=nowY;y>=startY;y--){
-    const pill=document.createElement('button');
-    pill.type='button';
-    pill.className='hist-month-picker-year-pill'+(y===histMonthPickerYear?' active':'');
-    pill.textContent=y;
-    pill.onclick=()=>{histMonthPickerYear=y;histRenderMonthPickerYears();histRenderMonthPickerMonths();};
-    wrap.appendChild(pill);
-  }
-  wrap.querySelector('.active')?.scrollIntoView({block:'nearest',inline:'center'});
+/* A tap anywhere outside the open panel closes it (without changing the selection) — the other way
+   to close besides tapping directly on a month. */
+function histOutsideMonthPickerClick(e){
+  const panel=document.getElementById('histMonthPickerPanel');
+  if(panel&&!panel.contains(e.target))histCloseMonthPicker();
 }
-function histRenderMonthPickerMonths(){
-  const wrap=document.getElementById('histMonthPickerMonths');
-  const sel=document.getElementById('monthFilter');
-  if(!wrap||!sel)return;
-  const{year:selYear,month:selMonth}=_selectedMonthYM(sel);
-  const now=new Date();
+function histRenderMonthWheel(selYear,selMonth){
+  const wheel=document.getElementById('histMonthWheel');
+  if(!wheel)return;
+  wheel.onscroll=null; // detached until after the initial programmatic scroll below settles
+  wheel.querySelectorAll('.hist-month-wheel-item').forEach(n=>n.remove());
   const monthNames=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  wrap.innerHTML='';
-  monthNames.forEach((name,idx)=>{
-    const isFuture=histMonthPickerYear===now.getFullYear()&&idx>now.getMonth();
-    const isActive=histMonthPickerYear===selYear&&idx===selMonth;
-    const box=document.createElement('button');
-    box.type='button';
-    box.className='hist-month-picker-month-box'+(isActive?' active':'')+(isFuture?' disabled':'');
-    box.textContent=name;
-    if(!isFuture)box.onclick=()=>histPickMonth(histMonthPickerYear,idx);
-    wrap.appendChild(box);
+  let selIdx=0;
+  _histWheelItems.forEach((it,idx)=>{
+    if(it.year===selYear&&it.month===selMonth)selIdx=idx;
+    const row=document.createElement('div');
+    row.className='hist-month-wheel-item'+(it.disabled?' disabled':'');
+    row.textContent=`${monthNames[it.month]} ${it.year}`;
+    row.dataset.idx=idx;
+    row.onclick=()=>histWheelJumpTo(idx);
+    wheel.appendChild(row);
+  });
+  // Measure the actual rendered row height so the 3-row wheel height + scroll-snap math (CSS
+  // --wh-item var) always matches whatever the clamp()'d font-size really renders at on this
+  // screen, instead of assuming a fixed px number that could drift out of sync on some sizes.
+  const firstRow=wheel.querySelector('.hist-month-wheel-item');
+  _histWheelItemH=firstRow?firstRow.offsetHeight:34;
+  wheel.style.setProperty('--wh-item',_histWheelItemH+'px');
+  // The wheel now has CSS scroll-behavior:smooth (for nicer scrolling while browsing months), but
+  // that would also smooth-animate THIS initial jump to the current selection every time the
+  // picker opens — toggle it off for just this one assignment so opening still snaps instantly.
+  wheel.style.scrollBehavior='auto';
+  wheel.scrollTop=selIdx*_histWheelItemH; // jump straight to the current selection, no animation
+  requestAnimationFrame(()=>{wheel.style.scrollBehavior='';});
+  _histWheelCenteredIdx=selIdx;
+  histWheelHighlight(selIdx);
+  // Re-attach the scroll listener only AFTER the jump above — assigning scrollTop still fires a
+  // scroll event, and if the listener were live for it, the settle-timer would auto-commit and
+  // instantly close the picker the moment it opens, before the user touched anything.
+  requestAnimationFrame(()=>{wheel.onscroll=histWheelOnScroll;});
+}
+function histWheelHighlight(idx){
+  document.querySelectorAll('.hist-month-wheel-item').forEach(n=>{
+    n.classList.toggle('centered',Number(n.dataset.idx)===idx);
   });
 }
-function histPickMonth(year,monthIdx0){
+function histWheelOnScroll(){
+  const wheel=document.getElementById('histMonthWheel');
+  if(!wheel)return;
+  const idx=Math.max(0,Math.min(_histWheelItems.length-1,Math.round(wheel.scrollTop/_histWheelItemH)));
+  histWheelHighlight(idx);
+  clearTimeout(_histWheelSettleTimer);
+  // Just remember which row is centered once the scroll settles — dragging/flicking through months
+  // must NEVER auto-select or auto-close by itself. Committing only ever happens from an explicit
+  // tap on a month (histWheelJumpTo) or a tap outside the panel (histOutsideMonthPickerClick).
+  _histWheelSettleTimer=setTimeout(()=>{_histWheelCenteredIdx=idx;},140);
+}
+/* Tapping ANY visible row — centered or not — commits that month immediately (histWheelCommit,
+   which then closes the panel). It also smooth-scrolls the tapped row into the center first, purely
+   as visual feedback, but the selection itself doesn't wait for that animation to finish. */
+function histWheelJumpTo(idx){
+  const it=_histWheelItems[idx];
+  if(!it||it.disabled)return;
+  document.getElementById('histMonthWheel')?.scrollTo({top:idx*_histWheelItemH,behavior:'smooth'});
+  histWheelHighlight(idx);
+  _histWheelCenteredIdx=idx;
+  histWheelCommit(it.year,it.month);
+}
+function histWheelCommit(year,monthIdx0){
   const val=`${year}-${String(monthIdx0+1).padStart(2,'0')}`;
   histEnsureMonthOption(val);
   document.getElementById('monthFilter').value=val;
   histRefreshMonthFilterTrigger();
-  histCloseMonthPicker();
+  setTimeout(histCloseMonthPicker,180); // brief pause so the centered highlight is visible, then close
   histMonthChanged();
 }
+
 let histWeekAnchor=getMonday(new Date()); // Monday of the currently displayed Attendance History week
 let _histLastMonthYM=null; // {year,month} the History Month dropdown was last resolved to (for direction detection)
 /* Prev/Next week nav — identical Mon–Sun, month-bounded concept as the Duration/Volume weekly graphs */
