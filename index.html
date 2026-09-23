@@ -666,6 +666,14 @@ input::placeholder{color:var(--text-muted)}
 .hist-filter-clear-btn{background:none;border:none;color:var(--accent);font-weight:800;font-size:11px;cursor:pointer;padding:2px 6px;letter-spacing:0.3px}
 
 /* ===================== ATTENDANCE HISTORY: CALENDAR VIEW ===================== */
+/* The card (.section.glass) used a fixed 22px side padding on EVERY screen size, so on narrow
+   phones that padding alone ate ~44px of width before the 7-column date grid even started —
+   the exact "unused space at both corners" the calendar box was wasting instead of giving to the
+   date boxes. Trim it progressively as the screen narrows (same pattern already used for
+   #workPage .section.glass above), so that space goes to the grid instead. */
+#attPage .section.glass{padding-left:14px;padding-right:14px;box-sizing:border-box}
+@media(max-width:480px){#attPage .section.glass{padding-left:8px;padding-right:8px}}
+@media(max-width:360px){#attPage .section.glass{padding-left:5px;padding-right:5px}}
 .hist-cal-wrap{margin-bottom:16px}
 .hist-cal-monthlabel{text-align:center;font-family:var(--font-display);font-size:20px;letter-spacing:1px;color:var(--accent);margin-bottom:10px}
 .hist-cal-legend{display:flex;flex-wrap:wrap;justify-content:center;gap:10px 16px;margin-bottom:14px}
@@ -820,23 +828,41 @@ body.theme-dark .hist-cal-cell:not(.empty)::before{background:linear-gradient(14
    whatever room that individual box actually has — phone, tablet, or desktop, portrait or
    landscape, any grid density — rather than jumping between a few fixed viewport-width steps.
    The clamp() min/max floors/ceilings still guarantee a readable minimum and a sane maximum. */
-.hist-cal-status{position:relative;z-index:1;font-size:clamp(5.6px,13cqi,9.5px);font-weight:800;letter-spacing:0.2px;text-transform:uppercase;font-family:var(--font-alt);padding:clamp(1px,3.2cqi,2.5px) clamp(2px,4.6cqi,5px);border-radius:6px;color:#fff;white-space:nowrap;max-width:96%;overflow:hidden;text-overflow:ellipsis;line-height:1.3;box-shadow:0 1px 0 rgba(255,255,255,0.25) inset,0 2px 6px -2px rgba(0,0,0,0.35)}
+/* Base (always-on) sizing — plain vw-based clamp(), understood by every browser including old
+   Android/WebView builds that predate CSS Container Queries. This is the box these old devices
+   actually get. Without this, the cqi-only rules below (13cqi/26cqi/12cqi units) are simply
+   INVALID on those browsers — an unsupported unit invalidates the whole clamp(), so the
+   font-size silently falls back to its much larger inherited default instead of shrinking,
+   which is exactly why "7:33 P...", "Abs..." etc were getting clipped: the box itself is small
+   but the text on those devices was never actually shrinking at all. */
+.hist-cal-status{position:relative;z-index:1;font-size:clamp(5.6px,2.4vw,9.5px);font-weight:800;letter-spacing:0.2px;text-transform:uppercase;font-family:var(--font-alt);padding:clamp(1px,0.7vw,2.5px) clamp(2px,1vw,5px);border-radius:6px;color:#fff;white-space:nowrap;max-width:96%;overflow:hidden;text-overflow:ellipsis;line-height:1.3;box-shadow:0 1px 0 rgba(255,255,255,0.25) inset,0 2px 6px -2px rgba(0,0,0,0.35)}
 .hist-cal-status.present{background:linear-gradient(160deg,#22c55e,#16a34a)}
 .hist-cal-status.rest{background:linear-gradient(160deg,#3b82f6,#2563eb)}
 .hist-cal-status.absent{background:linear-gradient(160deg,#ef4444,#dc2626)}
 .hist-cal-status.pending{background:linear-gradient(160deg,#fbbf24,#f59e0b)}
-.hist-cal-date{position:relative;z-index:1;font-family:var(--font-display);font-size:clamp(10px,26cqi,19px);margin:2px 0 1px;color:var(--text-primary);font-weight:500;letter-spacing:0.5px}
+.hist-cal-date{position:relative;z-index:1;font-family:var(--font-display);font-size:clamp(10px,4vw,19px);margin:2px 0 1px;color:var(--text-primary);font-weight:500;letter-spacing:0.5px}
 .hist-cal-cell.future .hist-cal-date{color:var(--text-muted)}
-.hist-cal-classes{position:relative;z-index:1;font-size:clamp(5.4px,12cqi,9.5px);color:var(--text-secondary);font-weight:800;text-align:center;line-height:1.25;font-family:var(--font-alt);overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;word-break:break-word;padding:0 1px;max-width:100%}
+.hist-cal-classes{position:relative;z-index:1;font-size:clamp(5.4px,2.1vw,9.5px);color:var(--text-secondary);font-weight:800;text-align:center;line-height:1.25;font-family:var(--font-alt);overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;word-break:break-word;padding:0 1px;max-width:100%}
+/* Progressive enhancement: ONLY on browsers that actually support Container Queries (modern
+   Chrome/Safari/Firefox) do we switch to sizing off the box's own rendered width (cqi) instead of
+   the viewport — this is what lets each cell auto-scale correctly even inside narrower/denser
+   layouts (e.g. a modal reusing this grid) where viewport width alone wouldn't reflect the box's
+   real size. Old devices that don't understand `container-type` never reach this block at all, so
+   they keep the safe vw-based sizing above instead of the box going oversized/broken. */
+@supports (container-type: inline-size){
+  .hist-cal-status{font-size:clamp(5.6px,13cqi,9.5px);padding:clamp(1px,3.2cqi,2.5px) clamp(2px,4.6cqi,5px)}
+  .hist-cal-date{font-size:clamp(10px,26cqi,19px)}
+  .hist-cal-classes{font-size:clamp(5.4px,12cqi,9.5px)}
+}
 .hist-cal-classes-more{display:inline-block;background:var(--accent);color:#fff;font-weight:800;border-radius:5px;padding:0 3px;margin-left:2px;font-size:0.92em;line-height:1.3;white-space:nowrap;vertical-align:baseline}
 .hist-cal-empty-note{text-align:center;font-size:11px;color:var(--text-muted);font-family:var(--font-alt);padding:16px 0}
 @media(max-width:480px){
   .hist-cal-icon-btn{width:38px;height:38px;margin:10px auto 14px}
   .hist-filter-bar{padding:7px 10px}
   .hist-filter-bar span{font-size:11px}
-  .hist-cal-daynames{gap:5px}
-  .hist-cal-grid{column-gap:5px;row-gap:12px}
-  .hist-cal-cell{min-height:52px;border-radius:11px;padding:4px 1px 5px}
+  .hist-cal-daynames{gap:3px}
+  .hist-cal-grid{column-gap:3px;row-gap:12px}
+  .hist-cal-cell{min-height:52px;border-radius:9px;padding:3px 1px 4px}
   /* Date/Status/Classes font-sizes are intentionally NOT overridden here — they're clamp()+cqi
      driven off the box's own container width (see .hist-cal-status/.hist-cal-date/.hist-cal-classes
      above) so they already shrink correctly as this narrower box shrinks, without a separate step. */
@@ -844,6 +870,18 @@ body.theme-dark .hist-cal-cell:not(.empty)::before{background:linear-gradient(14
   .hist-cal-monthlabel{font-size:17px}
   .hist-cal-legend{gap:7px 12px;margin-bottom:12px}
   .hist-cal-legend-item{font-size:9.5px}
+}
+/* Extra-narrow / older small-screen phones: the 480px step above still leaves real gaps between
+   the 7 date boxes on ~320-360px-wide screens. Shrink the gutters and box padding once more here
+   so that reclaimed width goes into the boxes themselves rather than sitting unused between them. */
+@media(max-width:360px){
+  .hist-cal-daynames{gap:2px}
+  .hist-cal-grid{column-gap:2px;row-gap:10px}
+  .hist-cal-cell{min-height:46px;border-radius:8px;padding:2px 0 3px}
+  .hist-cal-dayname{font-size:7.5px}
+  .hist-cal-monthlabel{font-size:15px}
+  .hist-cal-legend{gap:5px 8px;margin-bottom:10px}
+  .hist-cal-legend-item{font-size:8.5px}
 }
 @media(min-width:700px){
   .hist-cal-wrap{max-width:680px;margin-left:auto;margin-right:auto}
