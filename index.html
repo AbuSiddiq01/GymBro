@@ -4562,8 +4562,8 @@ body.theme-custom .dash-week-card{border-color:var(--border-col)}
             <div class="settings-accordion-title-wrap">
               <span class="settings-accordion-icon">🎨</span>
               <div>
-                <div class="settings-accordion-title">Appearance &amp; Account</div>
-                <div class="settings-accordion-sub">Switch theme mode &amp; manage your session</div>
+                <div class="settings-accordion-title">Appearance</div>
+                <div class="settings-accordion-sub">Switch theme mode</div>
               </div>
             </div>
             <span class="settings-accordion-chevron">▼</span>
@@ -4581,15 +4581,6 @@ body.theme-custom .dash-week-card{border-color:var(--border-col)}
                   <button class="themeBtn" id="theme-custom" onclick="selectCustomTheme()">🎨 CUSTOM</button>
                 </div>
                 <button class="ctm-edit-btn" onclick="openCustomThemeModal()" title="Customize your theme">✎ Edit</button>
-              </div>
-            </div>
-            <div class="settings-row">
-              <div>
-                <div class="settings-row-label">Account</div>
-                <div class="settings-row-sub">Sign out of GymBro on this device.</div>
-              </div>
-              <div class="settings-row-ctrl">
-                <button class="logoutBtn" onclick="logoutUser()">LOGOUT</button>
               </div>
             </div>
           </div>
@@ -4824,6 +4815,19 @@ body.theme-custom .dash-week-card{border-color:var(--border-col)}
                   <span class="fm-gesture-opt-check">✓</span>
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Logout — standalone, always last -->
+        <div class="settings-accordion" id="accordion-logout">
+          <div class="settings-row" style="padding:16px 18px;border-bottom:none">
+            <div>
+              <div class="settings-row-label">Log Out</div>
+              <div class="settings-row-sub">Sign out of GymBro on this device.</div>
+            </div>
+            <div class="settings-row-ctrl">
+              <button class="logoutBtn" onclick="logoutUser()">LOGOUT</button>
             </div>
           </div>
         </div>
@@ -8984,7 +8988,17 @@ function showToast(msg,duration){
   document.body.appendChild(t);setTimeout(()=>{t.style.opacity='0';t.style.transition='opacity 0.3s ease';setTimeout(()=>t.remove(),300)},duration||2200);
 }
 
-function logoutUser(){
+async function logoutUser(){
+  const ok=await showAppConfirm({
+    title:'🚪 Log Out?',
+    body:'Are you sure you want to log out of GymBro on this device?',
+    confirmText:'OK',
+    cancelText:'Cancel'
+  });
+  if(!ok)return;
+  _doLogout();
+}
+function _doLogout(){
   if(activeWorkoutTimer){clearInterval(activeWorkoutTimer);activeWorkoutTimer=null}
   activeSessionCheckInTimestamp=null;
   // Tear down any live room subscriptions/timers, but keep the room-session key so it resumes on next login.
