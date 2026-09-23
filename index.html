@@ -760,6 +760,39 @@ body.theme-dark .hist-cal-cell:not(.empty)::before{background:linear-gradient(14
    that font size, auto-adapting across screen sizes instead of the old fixed 12.5/10.5/9.5px
    media-query steps. */
 .hist-cal-popup-duration-corner{flex-shrink:0;font-family:var(--font-display);font-weight:800;color:#2563eb;font-size:clamp(9.5px,2.9vw,12.5px);letter-spacing:0.2px;white-space:nowrap}
+/* ===== Custom in-app Month/Year picker — replaces the native OS <select> popover for #monthFilter
+   (shared by both History List view and History Calendar view, since both read the same select)
+   with our own themed picker: a horizontally-scrollable Year strip — so ANY year is reachable, not
+   just the trailing 12-month window #monthFilter used to be limited to — above a 12-box Jan–Dec
+   month grid. The original <select> stays in the DOM (visually hidden) as the single source of
+   truth, so every existing reader of #monthFilter's value keeps working unchanged. */
+.hist-month-trigger{display:flex;align-items:center;justify-content:space-between;gap:6px;flex:0 1 auto;min-width:0;padding:10px 14px;margin-top:0;border:1px solid var(--input-border);border-radius:12px;background:var(--input-bg);color:var(--text-primary);font-size:clamp(11px,3.2vw,13px);font-family:var(--font-alt);font-weight:700;cursor:pointer;transition:all 0.2s ease;white-space:nowrap}
+.hist-month-trigger:active{border-color:var(--accent)}
+.hist-month-trigger span{overflow:visible;text-overflow:clip;white-space:nowrap}
+.hist-month-trigger svg{flex-shrink:0;opacity:0.7}
+@media(max-width:480px){.hist-month-trigger{padding:8px 11px}}
+@media(max-width:360px){.hist-month-trigger{padding:7px 9px}}
+/* More breathing room between the week nav (‹ Week label ›) and the month trigger than the
+   generic .stats-period-row gap gives — scoped to this row only so nothing else on the app is
+   affected. */
+#histWeekRow{gap:16px}
+@media(max-width:480px){#histWeekRow{gap:12px}}
+@media(max-width:360px){#histWeekRow{gap:9px}}
+.hist-month-picker-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:999750;align-items:center;justify-content:center;padding:20px;box-sizing:border-box;animation:fadeIn 0.2s ease}
+.hist-month-picker-overlay.open{display:flex}
+.hist-month-picker-panel{width:100%;max-width:340px;background:var(--bg-card);border:1px solid var(--accent);border-radius:16px;padding:16px;box-shadow:0 10px 40px var(--accent-glow)}
+.hist-month-picker-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.hist-month-picker-title{font-family:var(--font-display);font-size:16px;letter-spacing:0.4px;color:var(--text-primary)}
+.hist-month-picker-close{width:28px;height:28px;border-radius:50%;border:1px solid var(--input-border);background:var(--input-bg);color:var(--text-secondary);font-size:12px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;padding:0}
+.hist-month-picker-years{display:flex;gap:clamp(5px,1.6vw,8px);overflow-x:auto;padding-bottom:10px;margin-bottom:12px;border-bottom:1px dashed var(--border-col);scroll-behavior:smooth;-webkit-overflow-scrolling:touch}
+.hist-month-picker-years::-webkit-scrollbar{height:4px}
+.hist-month-picker-year-pill{flex-shrink:0;padding:clamp(5px,1.6vw,7px) clamp(10px,3vw,14px);border-radius:16px;border:1px solid var(--input-border);background:var(--input-bg);color:var(--text-secondary);font-family:var(--font-alt);font-weight:700;font-size:clamp(10px,2.6vw,12px);cursor:pointer;white-space:nowrap;transition:all 0.15s ease}
+.hist-month-picker-year-pill.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.hist-month-picker-months{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(5px,1.6vw,7px)}
+.hist-month-picker-month-box{padding:clamp(7px,2.2vw,10px) 2px;border-radius:8px;border:1px solid var(--input-border);background:var(--input-bg);color:var(--text-primary);font-family:var(--font-alt);font-weight:700;font-size:clamp(9.5px,2.4vw,11.5px);text-align:center;cursor:pointer;transition:all 0.15s ease}
+.hist-month-picker-month-box.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.hist-month-picker-month-box.disabled{opacity:0.32;cursor:not-allowed;pointer-events:none}
+@media(max-width:360px){.hist-month-picker-panel{padding:12px}}
 @media(max-width:480px){
   .hist-cal-date-popup{padding:8px 10px 6px;margin-bottom:8px;border-radius:12px}
   .hist-cal-popup-close{width:18px;height:18px;font-size:8px;top:5px;right:5px}
@@ -3934,7 +3967,22 @@ body.theme-custom .dash-week-card{border-color:var(--border-col)}
             <span id="histWeekLabel" class="week-range-label"></span>
             <button type="button" class="week-nav-btn" id="histWeekNext" onclick="histWeekNav(1)" title="Next week">&#8250;</button>
           </div>
-          <select id="monthFilter" onchange="histMonthChanged()"></select>
+          <select id="monthFilter" onchange="histMonthChanged()" style="display:none" aria-hidden="true" tabindex="-1"></select>
+          <button type="button" id="monthFilterTrigger" class="hist-month-trigger" onclick="histOpenMonthPicker()" aria-haspopup="true">
+            <span id="monthFilterTriggerLabel"></span>
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </button>
+        </div>
+
+        <div id="histMonthPickerOverlay" class="hist-month-picker-overlay" onclick="if(event.target===this)histCloseMonthPicker()">
+          <div class="hist-month-picker-panel">
+            <div class="hist-month-picker-head">
+              <span class="hist-month-picker-title">Select Month</span>
+              <button type="button" class="hist-month-picker-close" onclick="histCloseMonthPicker()" aria-label="Close">✕</button>
+            </div>
+            <div class="hist-month-picker-years" id="histMonthPickerYears"></div>
+            <div class="hist-month-picker-months" id="histMonthPickerMonths"></div>
+          </div>
         </div>
 
         <div style="font-size:11px;color:var(--text-muted);font-family:var(--font-alt);font-weight:700;letter-spacing:0.5px;text-transform:uppercase;margin-bottom:6px">This Month</div>
@@ -9398,6 +9446,90 @@ function initHistoryMonthDropdown(){
   }
   sel.dataset.inited='1';
 }
+/* ===================== HISTORY MONTH PICKER: custom in-app Year-strip + Month-grid =====================
+   Replaces the native OS <select> popover for #monthFilter with our own themed picker (see the CSS
+   block above for the visual rationale). #monthFilter itself remains the single source of truth for
+   every other part of the app that reads its .value — this section only ever writes to it. */
+const HIST_MONTH_PICKER_YEARS_BACK=12; // how many years before "this year" the Year strip offers
+let histMonthPickerYear=null; // year currently highlighted in the Year strip (not yet committed until a month box is tapped)
+/* Short "Sep 2026" form for List view (compact, matches the request); Calendar view keeps the
+   full "September 2026" form it already had. */
+function histMonthFilterTriggerLabel(val){
+  if(!val)return'';
+  const[y,m]=val.split('-').map(Number);
+  const d=new Date(y,m-1,1);
+  return histViewMode==='calendar'
+    ?d.toLocaleDateString('en-US',{month:'long',year:'numeric'})
+    :d.toLocaleDateString('en-US',{month:'short',year:'numeric'});
+}
+function histRefreshMonthFilterTrigger(){
+  const lbl=document.getElementById('monthFilterTriggerLabel');
+  const sel=document.getElementById('monthFilter');
+  if(lbl&&sel)lbl.textContent=histMonthFilterTriggerLabel(sel.value)||'Select Month';
+}
+/* A native <select>.value assignment silently no-ops if no matching <option> exists, and
+   #monthFilter is only pre-populated with a trailing 12-month window by initHistoryMonthDropdown,
+   so any month picked further back (any year, per the picker) needs its <option> created first. */
+function histEnsureMonthOption(val){
+  const sel=document.getElementById('monthFilter');
+  if(!sel||sel.querySelector(`option[value="${val}"]`))return;
+  const opt=document.createElement('option');
+  opt.value=val;opt.textContent=histMonthFilterTriggerLabel(val);
+  sel.appendChild(opt);
+}
+function histOpenMonthPicker(){
+  const{year}=_selectedMonthYM(document.getElementById('monthFilter'));
+  histMonthPickerYear=year;
+  histRenderMonthPickerYears();
+  histRenderMonthPickerMonths();
+  document.getElementById('histMonthPickerOverlay')?.classList.add('open');
+}
+function histCloseMonthPicker(){
+  document.getElementById('histMonthPickerOverlay')?.classList.remove('open');
+}
+function histRenderMonthPickerYears(){
+  const wrap=document.getElementById('histMonthPickerYears');
+  if(!wrap)return;
+  const nowY=new Date().getFullYear();
+  const startY=nowY-HIST_MONTH_PICKER_YEARS_BACK;
+  wrap.innerHTML='';
+  for(let y=nowY;y>=startY;y--){
+    const pill=document.createElement('button');
+    pill.type='button';
+    pill.className='hist-month-picker-year-pill'+(y===histMonthPickerYear?' active':'');
+    pill.textContent=y;
+    pill.onclick=()=>{histMonthPickerYear=y;histRenderMonthPickerYears();histRenderMonthPickerMonths();};
+    wrap.appendChild(pill);
+  }
+  wrap.querySelector('.active')?.scrollIntoView({block:'nearest',inline:'center'});
+}
+function histRenderMonthPickerMonths(){
+  const wrap=document.getElementById('histMonthPickerMonths');
+  const sel=document.getElementById('monthFilter');
+  if(!wrap||!sel)return;
+  const{year:selYear,month:selMonth}=_selectedMonthYM(sel);
+  const now=new Date();
+  const monthNames=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  wrap.innerHTML='';
+  monthNames.forEach((name,idx)=>{
+    const isFuture=histMonthPickerYear===now.getFullYear()&&idx>now.getMonth();
+    const isActive=histMonthPickerYear===selYear&&idx===selMonth;
+    const box=document.createElement('button');
+    box.type='button';
+    box.className='hist-month-picker-month-box'+(isActive?' active':'')+(isFuture?' disabled':'');
+    box.textContent=name;
+    if(!isFuture)box.onclick=()=>histPickMonth(histMonthPickerYear,idx);
+    wrap.appendChild(box);
+  });
+}
+function histPickMonth(year,monthIdx0){
+  const val=`${year}-${String(monthIdx0+1).padStart(2,'0')}`;
+  histEnsureMonthOption(val);
+  document.getElementById('monthFilter').value=val;
+  histRefreshMonthFilterTrigger();
+  histCloseMonthPicker();
+  histMonthChanged();
+}
 let histWeekAnchor=getMonday(new Date()); // Monday of the currently displayed Attendance History week
 let _histLastMonthYM=null; // {year,month} the History Month dropdown was last resolved to (for direction detection)
 /* Prev/Next week nav — identical Mon–Sun, month-bounded concept as the Duration/Volume weekly graphs */
@@ -9537,7 +9669,7 @@ function _histStatusMonthLabel(status){
 async function loadAttendanceHistoryRecords(){
   let uid=localStorage.getItem("user_id");
   const{data,error}=await sessionFetchAllForUser(uid,false);
-  if(error)return;window.cachedAttendance=data;initHistoryMonthDropdown();
+  if(error)return;window.cachedAttendance=data;initHistoryMonthDropdown();histRefreshMonthFilterTrigger();
   histWeekAnchor=getMonday(new Date());
   {const n=new Date();_histLastMonthYM={year:n.getFullYear(),month:n.getMonth()};}
   renderAttendanceHistory();
@@ -9572,6 +9704,7 @@ function histToggleViewMode(){
 function histSetViewMode(mode){
   if(mode!=='list'&&mode!=='calendar')return;
   histViewMode=mode;
+  histRefreshMonthFilterTrigger();
   const btn=document.getElementById('histCalToggleBtn');
   if(btn){
     btn.classList.toggle('active',mode==='calendar');
@@ -9685,7 +9818,7 @@ function renderAttendanceHistory(){
     let tr=document.createElement("tr");
     if(row._placeholderStatus){
       if(row._pending){
-        tr.innerHTML=`<td>${ds}, ${dn}</td><td><span class="badge pending">Not Checked In</span></td><td style="font-size:11px;max-width:120px">-</td><td style="font-size:12px">-</td><td style="font-size:12px">-</td><td style="font-size:12px">-</td>`;
+        tr.innerHTML=`<td>${ds}, ${dn}</td><td><span class="badge pending">Today</span></td><td style="font-size:11px;max-width:120px">-</td><td style="font-size:12px">-</td><td style="font-size:12px">-</td><td style="font-size:12px">-</td>`;
         tbody.appendChild(tr);
         return;
       }
@@ -9788,7 +9921,7 @@ function renderHistoryCalendar(){
     if(!isFuture){
       const resolved=_resolveDayStatus(dt,presentSet,overrides,restSettings);
       const isPending=isToday&&resolved==='absent';
-      if(isPending){statusCls='pending';statusLbl='Pending';}
+      if(isPending){statusCls='pending';statusLbl='Today';}
       else if(resolved==='present'){statusCls='present';statusLbl=checkInByDate[key]?formatCheckInTime(checkInByDate[key]):'Present';}
       else{statusCls=resolved;statusLbl=resolved==='rest'?'Rest':'Absent';}
     }
