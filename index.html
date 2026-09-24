@@ -7463,6 +7463,17 @@ function saveSeqBreakState(idx){
 }
 function loadSeqBreakStateRaw(){try{return JSON.parse(localStorage.getItem(getSeqBreakKey())||'null')}catch(e){return null}}
 function clearSeqBreakState(){try{localStorage.removeItem(getSeqBreakKey())}catch(e){}}
+/* A break paused via "Edit Break" has no running epoch any more — persist it as {paused:true,
+   accumulated} so neither the room-wide watcher (which would otherwise read the stale epoch and
+   announce a break that is actually paused) nor a refresh (which would otherwise count the paused
+   time as elapsed) gets it wrong. */
+function savePausedSeqBreakState(idx){
+  if(seqBreakTotalSecs[idx]===undefined)return;
+  try{localStorage.setItem(getSeqBreakKey(),JSON.stringify({
+    idx,total:seqBreakTotalSecs[idx],accumulated:seqBreakSeconds[idx]||0,
+    startEpoch:null,paused:true,forcedAuto:!!seqBreakForced[idx]
+  }))}catch(e){}
+}
 /* Called right after renderNonLiveSetsRows finishes rebuilding the sets grid from a restored draft
    (restoreInProgressWorkoutFormIfAny / showAddWorkoutForm) — i.e. on every landing this app has:
    fresh login, refresh, tab switch, app resume, AND a room host switching targets. Only resumes if
@@ -7476,6 +7487,12 @@ function restoreSeqBreakIfAny(){
   const st=loadSeqBreakStateRaw();
   if(!st)return;
   const idx=st.idx;
+  // ROOM: this member's break ran out while nobody was looking at them (refresh / app closed and
+  // reopened / just switched back). Announce it BY NAME before the state is cleared below —
+  // roomBreakAlertOnce is de-duplicated (persisted), so the room watcher can't announce it twice.
+  if(window.__room&&!st.paused&&st.startEpoch&&((st.accumulated||0)+Math.floor((Date.now()-st.startEpoch)/1000))>=st.total){
+    roomBreakAlertOnce(getEffectiveUid(),st);
+  }
   const row=document.getElementById(`seqBreakRow_${idx}`);
   const setRow=document.getElementById(`setRow_${idx}`);
   const nextSetRow=document.getElementById(`setRow_${idx+1}`);
@@ -7485,7 +7502,7 @@ function restoreSeqBreakIfAny(){
   // this break is gating) either no longer existing (sets structure changed) or already being locked
   // itself (completed for real elsewhere in the meantime).
   if(!row||!setRow||!setRow.classList.contains('set-row-locked')||!nextSetRow||nextSetRow.classList.contains('set-row-locked')){clearSeqBreakState();return}
-  const elapsed=(st.accumulated||0)+Math.floor((Date.now()-st.startEpoch)/1000);
+  const elapsed=st.paused?(st.accumulated||0):((st.accumulated||0)+Math.floor((Date.now()-st.startEpoch)/1000));
   if(elapsed>=st.total){clearSeqBreakState();return}
   row.style.display="block";
   const titleEl=document.getElementById(`seqBreakTitle_${idx}`);
@@ -7565,6 +7582,7 @@ function startSeqBreak(idx,forcedSecs){
   runSeqBreakInterval(idx);
 }
 function runSeqBreakInterval(idx){
+  const _breakOwnerUid=getEffectiveUid(); // whose break this interval belongs to (fixed at start, never re-read at expiry)
   const timerEl=document.getElementById(`seqBreakTimer_${idx}`),msgEl=document.getElementById(`seqBreakMsg_${idx}`);
   const editBtn=document.getElementById(`seqBreakEditBtn_${idx}`),editPanel=document.getElementById(`seqBreakEditPanel_${idx}`);
   if(seqBreakTimers[idx]){clearInterval(seqBreakTimers[idx]);delete seqBreakTimers[idx]}
@@ -7574,13 +7592,17 @@ function runSeqBreakInterval(idx){
     seqBreakSeconds[idx]=(seqBreakAccumAtStart[idx]||0)+Math.floor((Date.now()-seqBreakStartEpoch[idx])/1000);
     let rem=seqBreakTotalSecs[idx]-seqBreakSeconds[idx];
     if(rem<=0){
+      const _brkSnap={idx,total:seqBreakTotalSecs[idx],accumulated:seqBreakAccumAtStart[idx]||0,startEpoch:seqBreakStartEpoch[idx]};
       clearInterval(seqBreakTimers[idx]);delete seqBreakTimers[idx];delete seqBreakTotalSecs[idx];delete seqBreakStartEpoch[idx];delete seqBreakAccumAtStart[idx];
       clearSeqBreakState();
       if(timerEl){timerEl.textContent="00:00";timerEl.style.display="none"}
       if(msgEl){msgEl.textContent="🔔 Break over! Time to crush the next set!";msgEl.style.display="block"}
       if(editBtn)editBtn.style.display="none";if(editPanel)editPanel.style.display="none";
-      releaseBreakWakeLock();playBreakAlertSound();
-      if(navigator.vibrate)navigator.vibrate([200,100,200]);
+      releaseBreakWakeLock();
+      // In a workout room the alert names whose break it was (and is shared/de-duplicated with the
+      // room-wide watcher); outside a room it stays exactly the plain beep + vibrate it always was.
+      if(window.__room){roomBreakAlertOnce(_breakOwnerUid,_brkSnap)}
+      else{playBreakAlertSound();if(navigator.vibrate)navigator.vibrate([200,100,200])}
       setTimeout(()=>{const row=document.getElementById(`seqBreakRow_${idx}`);if(row)row.style.display="none";activateNextSeqSet(idx)},1500);
       return;
     }
@@ -7611,7 +7633,9 @@ function toggleEditSeqBreakPanel(idx){
   const opening=panel.style.display==="none"||!panel.style.display;
   if(opening){
     if(seqBreakTimers[idx]){clearInterval(seqBreakTimers[idx]);delete seqBreakTimers[idx]}
+    if(seqBreakStartEpoch[idx]!==undefined)seqBreakSeconds[idx]=(seqBreakAccumAtStart[idx]||0)+Math.floor((Date.now()-seqBreakStartEpoch[idx])/1000);
     delete seqBreakStartEpoch[idx];delete seqBreakAccumAtStart[idx];
+    savePausedSeqBreakState(idx);
     const baseSecs=getDefaultBreakSeconds();
     mountMinSecPicker(`seqBreakEditPickerMount_${idx}`,`seqBreakEdit_${idx}`,Math.floor(baseSecs/60),baseSecs%60);
     if(msgEl){msgEl.textContent="⏸ Break paused";msgEl.style.display="block"}
@@ -8746,7 +8770,7 @@ function updateNotifPermStatus(){
    auto-restored refresh). This is the one channel that bypasses the browser's "needs a tap first"
    rule for audio/vibration, because the OS — not the page — is the one producing the sound/buzz.
    Safe no-op if permission hasn't been granted or the API isn't supported. */
-/* memberName is optional — only passed by the room-wide watcher above (notifyOtherMemberBreakOver),
+/* memberName is optional — only passed by the room-wide watcher above (roomBreakAlertOnce),
    for the host's own break this is always omitted, so the title/tag/body stay exactly as before. */
 function fireBreakEndSystemNotification(vibrationPattern,memberName){
   if(!('Notification' in window)||Notification.permission!=='granted')return;
@@ -8892,13 +8916,13 @@ function primeSharedBeepCtx(){
   if(ctx&&ctx.state==='suspended')ctx.resume().catch(()=>{});
 }
 
-function playConfiguredBreakSound(){
+function playConfiguredBreakSound(memberName){
   const cfg=getNotifSettings();
 
   if(cfg.vibrationEnabled){
     fireVibration(cfg.vibrationId);       // works while screen is on & GymBro is in front, AND the page has had a tap since load
     const pat=(VIBRATION_PATTERNS.find(p=>p.id===cfg.vibrationId)||VIBRATION_PATTERNS[2]).pattern;
-    fireBreakEndSystemNotification(pat);  // works even with zero page interaction yet, or when locked/backgrounded — if permission granted
+    fireBreakEndSystemNotification(pat,memberName);  // works even with zero page interaction yet, or when locked/backgrounded — if permission granted
   }
 
   if(!cfg.soundEnabled)return;
@@ -18331,59 +18355,108 @@ async function switchRoomTarget(loginId){
 }
 
 /* ===================== ROOM-WIDE BREAK-TIMER WATCHER (host device only) =====================
-   liveBreakTimers (like liveSetTimers) is a single, page-global set of intervals — it only ever
-   represents whichever member is CURRENTLY selected, because switching targets tears the on-screen
-   session down and rebuilds it fresh from that member's own draft (see switchRoomTarget). That means
-   a break running for a member the host has switched AWAY from has no interval left ticking for it,
-   so the sound/vibration/system notification used to only ever fire for whoever happened to be
-   on-screen at the exact moment their break hit zero — any other member's break silently expired
-   with no alert at all.
-   This watcher runs independently of who's currently selected: once a second, while a room is
-   active, it re-reads EVERY joined member's own persisted live draft straight from localStorage —
-   the same {liveBreak:{idx,total,running,accumulated,startEpoch}} shape buildLiveDraftSnapshot
-   already writes on every tick — and does its own epoch math to check whether that member's break
-   has reached zero. The member currently on-screen is skipped, since their own live interval
-   (activateBreakTimer's setInterval) already fires the exact same alert for them in real time; this
-   only fills the gap for everyone else, however many members have a break running at once, and
-   names whose break it was so it's never ambiguous which member's set is next. */
+   Every person in the room (the host AND every joined member) has their OWN break timer, persisted
+   under `gymbro_seqbreak_<userId>` as an epoch snapshot {idx,total,accumulated,startEpoch} (see
+   saveSeqBreakState). The on-screen countdown only ever exists for whoever is currently selected, so
+   this watcher runs independently of that: once a second (and instantly whenever the app comes back
+   to the foreground / is reopened) it re-reads EVERY room participant's saved break straight from
+   localStorage, does its own epoch math, and — the moment any of them reaches zero, whoever is on
+   screen — announces it BY NAME (toast + configured sound + vibration + OS notification).
+   • Covers the host too, not just members (host's own uid = same fallback getEffectiveUid uses).
+   • Covers the currently selected person as a safety net; their on-screen interval and this watcher
+     share roomBreakAlertOnce, so exactly one alert fires per break.
+   • "Already announced" is persisted (ROOM_BREAK_NOTIFIED_KEY), so refresh / close / reopen never
+     re-announces an old break — and a break that expired while the app was closed is announced once
+     on reopen (with "ended X ago").
+   • Several breaks ending together are staggered and their toasts stack, so each name is seen/heard. */
+const ROOM_BREAK_NOTIFIED_KEY='gymbro_room_break_notified';
 let _roomBreakWatcherInterval=null;
-const _roomBreakNotifiedFor={}; // loginId -> break idx already alerted, so one finished break doesn't re-fire every tick
+let _roomBreakAlertNextAt=0;
+function _loadRoomBreakNotified(){try{return JSON.parse(localStorage.getItem(ROOM_BREAK_NOTIFIED_KEY)||'{}')||{}}catch(e){return {}}}
+function _roomBreakSig(st){return `${st.idx}:${st.startEpoch}:${st.total}`}
+function getRoomHostOwnUid(){return localStorage.getItem('user_uuid')||localStorage.getItem('user_id')}
+/* Display name for a room participant's uid: the host's own name, or the joined member's name. */
+function getRoomBreakOwnerName(uid){
+  if(!window.__room)return null;
+  if(String(uid)===String(getRoomHostOwnUid()))return localStorage.getItem('user_name')||'Host';
+  const metas=window.__room.membersMeta||{};
+  for(const k in metas){const m=metas[k];if(m&&String(m.userId)===String(uid))return m.name||('@'+m.loginId)}
+  return null;
+}
+function _formatBreakAgo(sec){
+  if(sec<60)return sec+'s';
+  const m=Math.floor(sec/60);
+  if(m<60)return m+' min';
+  return Math.floor(m/60)+'h '+(m%60)+'m';
+}
+/* A toast per finished break that STACKS (showToast pins everything to one spot, so simultaneous
+   break-overs would hide each other). */
+function _showBreakToast(msg){
+  const open=document.querySelectorAll('.gb-break-toast').length;
+  const t=document.createElement('div');
+  t.className='gb-break-toast';
+  t.textContent=msg;
+  Object.assign(t.style,{position:'fixed',bottom:(80+open*58)+'px',left:'50%',transform:'translateX(-50%)',background:'var(--toast-bg)',color:'#fff',padding:'12px 22px',borderRadius:'14px',fontFamily:'var(--font-alt)',fontSize:'13px',fontWeight:'700',letterSpacing:'0.5px',zIndex:'9999999',boxShadow:'0 8px 28px rgba(0,0,0,0.3)',animation:'fadeIn 0.3s ease',whiteSpace:'normal',maxWidth:'88vw',width:'max-content',textAlign:'center',boxSizing:'border-box'});
+  document.body.appendChild(t);
+  setTimeout(()=>{t.style.opacity='0';t.style.transition='opacity 0.3s ease';setTimeout(()=>t.remove(),300)},5000);
+}
+/* The single place a room break-over is announced. `st` = {idx,total,accumulated,startEpoch}.
+   Returns false (and does nothing) if this exact break was already announced. */
+function roomBreakAlertOnce(uid,st){
+  if(!uid||!st||!st.startEpoch)return false;
+  const sig=_roomBreakSig(st);
+  const map=_loadRoomBreakNotified();
+  if(map[uid]===sig)return false;
+  map[uid]=sig;
+  try{localStorage.setItem(ROOM_BREAK_NOTIFIED_KEY,JSON.stringify(map))}catch(e){}
+  const name=getRoomBreakOwnerName(uid)||'A member';
+  const overdue=(st.accumulated||0)+Math.floor((Date.now()-st.startEpoch)/1000)-st.total;
+  const late=overdue>=15?` (ended ${_formatBreakAgo(overdue)} ago)`:'';
+  // stagger simultaneous alerts so sounds/notifications don't collapse into one
+  const now=Date.now(),at=Math.max(now,_roomBreakAlertNextAt);
+  _roomBreakAlertNextAt=at+1800;
+  setTimeout(()=>{
+    _showBreakToast(`🔔 ${name}'s break is over${late} — time for their next set!`);
+    try{playConfiguredBreakSound(name)}catch(e){}
+    try{
+      // playConfiguredBreakSound only raises the OS notification when vibration is enabled; a break
+      // alert with the person's name should always reach the lock screen.
+      if(!getNotifSettings().vibrationEnabled)fireBreakEndSystemNotification([220,100,220],name);
+    }catch(e){}
+  },at-now);
+  return true;
+}
 function startRoomBreakWatcher(){
   if(_roomBreakWatcherInterval)return;
-  for(const k in _roomBreakNotifiedFor)delete _roomBreakNotifiedFor[k];
-  _roomBreakWatcherInterval=setInterval(checkOtherMembersBreakTimers,1000);
+  _roomBreakWatcherInterval=setInterval(checkRoomBreakTimers,1000);
+  checkRoomBreakTimers();
 }
 function stopRoomBreakWatcher(){
   if(_roomBreakWatcherInterval){clearInterval(_roomBreakWatcherInterval);_roomBreakWatcherInterval=null}
-  for(const k in _roomBreakNotifiedFor)delete _roomBreakNotifiedFor[k];
 }
-function checkOtherMembersBreakTimers(){
-  if(!window.__room||!window.__room.membersMeta)return;
-  const activeLoginId=window.__room.target?window.__room.target.loginId:null;
-  Object.keys(window.__room.membersMeta).forEach(loginId=>{
-    if(loginId===activeLoginId)return; // this member's own on-screen timer already covers them
-    const meta=window.__room.membersMeta[loginId];
-    if(!meta||!meta.userId)return;
-    let brk=null;
-    try{brk=JSON.parse(localStorage.getItem(`gymbro_seqbreak_${meta.userId}`)||'null')}catch(e){}
-    if(!brk||!brk.startEpoch){delete _roomBreakNotifiedFor[loginId];return}
-    const remain=brk.total-((brk.accumulated||0)+Math.floor((Date.now()-brk.startEpoch)/1000));
-    if(remain>0){delete _roomBreakNotifiedFor[loginId];return}
-    if(_roomBreakNotifiedFor[loginId]===brk.idx)return; // already alerted for this exact break
-    _roomBreakNotifiedFor[loginId]=brk.idx;
-    notifyOtherMemberBreakOver(meta);
+function checkRoomBreakTimers(){
+  if(!window.__room)return;
+  const activeUid=String(getEffectiveUid());
+  const uids=[];
+  const hostUid=getRoomHostOwnUid();
+  if(hostUid)uids.push(String(hostUid));
+  Object.values(window.__room.membersMeta||{}).forEach(m=>{if(m&&m.userId)uids.push(String(m.userId))});
+  [...new Set(uids)].forEach(uid=>{
+    let st=null;
+    try{st=JSON.parse(localStorage.getItem(`gymbro_seqbreak_${uid}`)||'null')}catch(e){}
+    if(!st||st.paused||!st.startEpoch)return;
+    const elapsed=(st.accumulated||0)+Math.floor((Date.now()-st.startEpoch)/1000);
+    if(elapsed<st.total)return; // still counting down
+    roomBreakAlertOnce(uid,st);
+    // A break for someone who is NOT on screen has nothing left to tick — drop the finished snapshot.
+    // (The selected person's own on-screen path/restore clears theirs itself.)
+    if(uid!==activeUid){try{localStorage.removeItem(`gymbro_seqbreak_${uid}`)}catch(e){}}
   });
 }
-/* Same alert channels the on-screen break timer itself uses (playConfiguredBreakSound +
-   vibration + lock-screen system notification) — just with the member's name attached, since more
-   than one of these can legitimately be firing for different members at once. */
-function notifyOtherMemberBreakOver(meta){
-  const name=meta.name||('@'+meta.loginId);
-  showToast(`🔔 ${name}'s break is over — time for their next set!`);
-  playConfiguredBreakSound();
-  try{if(navigator.vibrate){navigator.vibrate(0);navigator.vibrate([220,100,220])}}catch(e){}
-  fireBreakEndSystemNotification([220,100,220],name);
-}
+/* Mobile browsers suspend timers entirely while backgrounded/locked — check immediately on return. */
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')checkRoomBreakTimers()});
+window.addEventListener('pageshow',checkRoomBreakTimers);
+window.addEventListener('focus',checkRoomBreakTimers);
 
 function subscribeRoomRealtime(roomId){
   if(!window.__room)return;
