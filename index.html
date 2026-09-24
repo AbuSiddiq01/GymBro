@@ -7437,8 +7437,93 @@ function clearCardioSwStorage(){try{localStorage.removeItem(getCardioSwStorageKe
    same as every other timer in the app, so it survives a refresh/background/tab-switch correctly. */
 function stopAllSeqBreakTimers(){
   Object.values(seqBreakTimers).forEach(t=>clearInterval(t));
-  seqBreakTimers={};seqBreakSeconds={};seqBreakTotalSecs={};seqBreakStartEpoch={};seqBreakAccumAtStart={};
+  seqBreakTimers={};seqBreakSeconds={};seqBreakTotalSecs={};seqBreakStartEpoch={};seqBreakAccumAtStart={};seqBreakForced={};
   document.querySelectorAll('.live-break-row').forEach(el=>{el.style.display="none";});
+}
+/* ===== LIVE-MODE BREAK TIMER PERSISTENCE (survives refresh, app close/reopen, tab switch, and
+   switching room targets) =====
+   Everything above (seqBreakTimers/seqBreakSeconds/etc.) is page-global, in-memory-only state: every
+   rebuild of the sets grid calls stopAllSeqBreakTimers() and wipes it, and nothing else in the app
+   ever wrote it anywhere — so a running break used to simply vanish the moment the host switched to
+   another room member's tile (switchRoomTarget rebuilds the grid from that member's own draft), and
+   the same was true of a plain refresh, an app close/reopen, or even just resuming after the OS fully
+   killed the backgrounded tab. This mirrors the exact epoch-snapshot + localStorage pattern
+   saveNonLiveDraft already uses for the sets themselves, keyed by getEffectiveUid() so it's scoped
+   per member exactly like that draft is: switching room targets, refreshing, or closing/reopening the
+   app all read back whichever uid is effective at that moment, so a host who switches to another
+   member's tile sees THAT member's own break (if any) resume exactly where it was — and switching
+   back resumes the host's own, uninterrupted. */
+function getSeqBreakKey(){return `gymbro_seqbreak_${getEffectiveUid()}`}
+function saveSeqBreakState(idx){
+  if(seqBreakTotalSecs[idx]===undefined||seqBreakStartEpoch[idx]===undefined){clearSeqBreakState();return}
+  try{localStorage.setItem(getSeqBreakKey(),JSON.stringify({
+    idx,total:seqBreakTotalSecs[idx],accumulated:seqBreakAccumAtStart[idx]||0,
+    startEpoch:seqBreakStartEpoch[idx],forcedAuto:!!seqBreakForced[idx]
+  }))}catch(e){}
+}
+function loadSeqBreakStateRaw(){try{return JSON.parse(localStorage.getItem(getSeqBreakKey())||'null')}catch(e){return null}}
+function clearSeqBreakState(){try{localStorage.removeItem(getSeqBreakKey())}catch(e){}}
+/* Called right after renderNonLiveSetsRows finishes rebuilding the sets grid from a restored draft
+   (restoreInProgressWorkoutFormIfAny / showAddWorkoutForm) — i.e. on every landing this app has:
+   fresh login, refresh, tab switch, app resume, AND a room host switching targets. Only resumes if
+   the saved break's set still has a break row in the just-rebuilt grid (the sets structure may have
+   changed) and that set isn't already locked (it may have been saved for real on another device in
+   the meantime). If the break's deadline already passed while nobody was looking, it's simply
+   cleared rather than replayed — the normal flow already advances to the next set as soon as this
+   device is looking again. */
+function restoreSeqBreakIfAny(){
+  if(!liveMode)return;
+  const st=loadSeqBreakStateRaw();
+  if(!st)return;
+  const idx=st.idx;
+  const row=document.getElementById(`seqBreakRow_${idx}`);
+  const setRow=document.getElementById(`setRow_${idx}`);
+  const nextSetRow=document.getElementById(`setRow_${idx+1}`);
+  // idx is the set that was JUST completed when the break started, so setRow_idx is SUPPOSED to
+  // already be locked — that's not staleness, that's the normal shape of a break in progress. What
+  // actually means "this break has already been superseded for real" is the NEXT set (idx+1, the one
+  // this break is gating) either no longer existing (sets structure changed) or already being locked
+  // itself (completed for real elsewhere in the meantime).
+  if(!row||!setRow||!setRow.classList.contains('set-row-locked')||!nextSetRow||nextSetRow.classList.contains('set-row-locked')){clearSeqBreakState();return}
+  const elapsed=(st.accumulated||0)+Math.floor((Date.now()-st.startEpoch)/1000);
+  if(elapsed>=st.total){clearSeqBreakState();return}
+  row.style.display="block";
+  const titleEl=document.getElementById(`seqBreakTitle_${idx}`);
+  const inputsRow=document.getElementById(`seqBreakInputsRow_${idx}`);
+  const autoSkipBtn=document.getElementById(`seqBreakAutoSkip_${idx}`);
+  const editBtn=document.getElementById(`seqBreakEditBtn_${idx}`);
+  const timerEl=document.getElementById(`seqBreakTimer_${idx}`);
+  const msgEl=document.getElementById(`seqBreakMsg_${idx}`);
+  if(titleEl)titleEl.textContent=st.forcedAuto?"⏸ BREAK TIME (auto)":"⏸ BREAK TIME (optional)";
+  if(inputsRow)inputsRow.style.display=st.forcedAuto?"none":"flex";
+  if(autoSkipBtn)autoSkipBtn.style.display=st.forcedAuto?"inline-block":"none";
+  if(editBtn)editBtn.style.display=st.forcedAuto?"inline-flex":"none";
+  if(timerEl)timerEl.style.display="block";
+  if(msgEl){msgEl.style.display="none";msgEl.textContent=""}
+  const startBtn=document.querySelector(`#seqBreakRow_${idx} .live-break-btn.start`),skipBtn=document.querySelectorAll(`#seqBreakRow_${idx} .live-break-btn`)[1];
+  if(startBtn){startBtn.disabled=true;startBtn.style.opacity="0.5"}if(skipBtn){skipBtn.disabled=false;skipBtn.style.opacity="1"}
+  seqBreakForced[idx]=!!st.forcedAuto;
+  seqBreakTotalSecs[idx]=st.total;
+  seqBreakSeconds[idx]=elapsed;
+  acquireBreakWakeLock();
+  runSeqBreakInterval(idx); // reseeds accumAtStart/startEpoch from seqBreakSeconds and re-persists — continues ticking exactly on schedule
+}
+/* Live Mode's own ON/OFF toggle is itself just a page-global boolean with nothing saving it, so a
+   genuine refresh/app-relaunch (unlike a tab switch, which never clears JS memory) silently landed
+   back on OFF — which meant the break row above wouldn't even be in the rebuilt grid to resume into.
+   Persisted per-uid for the same reason the break state above is: it should follow whichever member
+   (self, or a room target switched to) is currently effective. */
+function getLiveModeKey(){return `gymbro_livemode_${getEffectiveUid()}`}
+function saveLiveModePref(){try{localStorage.setItem(getLiveModeKey(),liveMode?'1':'0')}catch(e){}}
+function loadLiveModePref(){try{return localStorage.getItem(getLiveModeKey())==='1'}catch(e){return false}}
+/* Applies a restored/loaded Live Mode value to both the page-global flag and its on-screen toggle
+   (used on every landing, before the sets grid is rebuilt, so breakRowHtml's liveMode check and
+   restoreSeqBreakIfAny above both see the right value). */
+function applyLiveModeState(on){
+  liveMode=!!on;
+  const tog=document.getElementById("liveModeToggle"),lbl=document.getElementById("liveModeLabel");
+  if(tog)tog.classList.toggle("on",liveMode);
+  if(lbl){lbl.textContent=liveMode?"ON":"OFF";lbl.style.color=liveMode?"var(--accent)":"var(--text-muted)"}
 }
 /* Shown the moment a set is ticked/locked (see handleSetLockToggle), before any countdown starts —
    decides Auto vs Manual exactly like the old Live form's saveLiveSet did: a Settings default break
@@ -7470,7 +7555,7 @@ function startSeqBreak(idx,forcedSecs){
   if(timerEl)timerEl.style.display="block";if(msgEl)msgEl.style.display="none";
   let startBtn=document.querySelector(`#seqBreakRow_${idx} .live-break-btn.start`),skipBtn=document.querySelectorAll(`#seqBreakRow_${idx} .live-break-btn`)[1];
   if(startBtn){startBtn.disabled=true;startBtn.style.opacity="0.5"}if(skipBtn){skipBtn.disabled=false;skipBtn.style.opacity="1"}
-  seqBreakSeconds[idx]=0;seqBreakTotalSecs[idx]=totalSecs;
+  seqBreakSeconds[idx]=0;seqBreakTotalSecs[idx]=totalSecs;seqBreakForced[idx]=forcedSecs!==undefined;
   acquireBreakWakeLock();
   // "Edit Break" is only offered for a genuine Auto Break (forcedSecs set from the saved default) —
   // a manual break is already entered by hand each time, so no per-set override is needed there.
@@ -7484,11 +7569,13 @@ function runSeqBreakInterval(idx){
   const editBtn=document.getElementById(`seqBreakEditBtn_${idx}`),editPanel=document.getElementById(`seqBreakEditPanel_${idx}`);
   if(seqBreakTimers[idx]){clearInterval(seqBreakTimers[idx]);delete seqBreakTimers[idx]}
   seqBreakAccumAtStart[idx]=seqBreakSeconds[idx]||0;seqBreakStartEpoch[idx]=Date.now();
+  saveSeqBreakState(idx); // persist the fresh epoch snapshot so a refresh/app-close/room-switch right after this resumes from exactly here
   seqBreakTimers[idx]=setInterval(()=>{
     seqBreakSeconds[idx]=(seqBreakAccumAtStart[idx]||0)+Math.floor((Date.now()-seqBreakStartEpoch[idx])/1000);
     let rem=seqBreakTotalSecs[idx]-seqBreakSeconds[idx];
     if(rem<=0){
       clearInterval(seqBreakTimers[idx]);delete seqBreakTimers[idx];delete seqBreakTotalSecs[idx];delete seqBreakStartEpoch[idx];delete seqBreakAccumAtStart[idx];
+      clearSeqBreakState();
       if(timerEl){timerEl.textContent="00:00";timerEl.style.display="none"}
       if(msgEl){msgEl.textContent="🔔 Break over! Time to crush the next set!";msgEl.style.display="block"}
       if(editBtn)editBtn.style.display="none";if(editPanel)editPanel.style.display="none";
@@ -7503,6 +7590,7 @@ function runSeqBreakInterval(idx){
 function skipSeqBreak(idx){
   if(seqBreakTimers[idx]){clearInterval(seqBreakTimers[idx]);delete seqBreakTimers[idx];}
   delete seqBreakTotalSecs[idx];delete seqBreakStartEpoch[idx];delete seqBreakAccumAtStart[idx];
+  clearSeqBreakState();
   releaseBreakWakeLock();
   const autoSkipBtn=document.getElementById(`seqBreakAutoSkip_${idx}`);if(autoSkipBtn)autoSkipBtn.style.display="none";
   const editBtn=document.getElementById(`seqBreakEditBtn_${idx}`);if(editBtn)editBtn.style.display="none";
@@ -14845,6 +14933,12 @@ async function restoreInProgressWorkoutFormIfAny(wasRefresh,opts){
   }
   // Draft + queue for a fresh entry live in localStorage, so these are restored on ANY landing
   // (fresh login, refresh, or a brand-new browser session).
+  // Live Mode's ON/OFF flag (and, if it's on, whatever break is currently running) belongs to
+  // whichever uid is effective RIGHT NOW — getEffectiveUid() already reflects the room target by
+  // this point (restoreRoomSessionIfAny/switchRoomTarget both run before this). Applied before the
+  // sets grid below is rebuilt, since breakRowHtml's liveMode check and restoreSeqBreakIfAny both
+  // need it set correctly first.
+  applyLiveModeState(loadLiveModePref());
   const nlDraft=loadNonLiveDraft();
   const nlQueue=loadNonLiveQueue();
   if(nonLiveDraftHasContent(nlDraft)||nlQueue.length){
@@ -14863,6 +14957,7 @@ async function restoreInProgressWorkoutFormIfAny(wasRefresh,opts){
       // the saved value shows instead of being blanked/zeroed out by the hidden-input render path.
       if(isBodyweightNoWeightExercise((nlDraft.name||'').trim())&&nlDraft.sets.some(s=>parseFloat(s.w)>0))bwKgRevealed.nonlive=true;
       renderNonLiveSetsRows(nlDraft.sets.map(s=>s.w),nlDraft.sets.map(s=>s.r),nlDraft.sets.map(s=>s.locked),nlDraft.sets.map(s=>s.km),nlDraft.sets.map(s=>s.min),nlDraft.sets.map(s=>s.sec));
+      restoreSeqBreakIfAny(); // resumes a running break exactly where it was — same landings as everything else here
       restoreCardioSwStorage();
       // Previous Performance is looked up live from the DB and was never part of the persisted
       // draft, so a refresh (or tab-switch/app-resume triggering this same restore path) left the
@@ -16184,11 +16279,10 @@ function _initLevelUpSwipe(el){
 let liveMode=false;
 /* Break-timer state for the Live-Mode "tick set → break → next set unlocks" flow. Epoch-based
    (like every other timer in the app) so a refresh/backgrounding can't throw the countdown off. */
-let seqBreakTimers={},seqBreakSeconds={},seqBreakTotalSecs={},seqBreakStartEpoch={},seqBreakAccumAtStart={};
+let seqBreakTimers={},seqBreakSeconds={},seqBreakTotalSecs={},seqBreakStartEpoch={},seqBreakAccumAtStart={},seqBreakForced={};
 function toggleLiveMode(){
-  liveMode=!liveMode;
-  const tog=document.getElementById("liveModeToggle"),lbl=document.getElementById("liveModeLabel");
-  tog.classList.toggle("on",liveMode);lbl.textContent=liveMode?"ON":"OFF";lbl.style.color=liveMode?"var(--accent)":"var(--text-muted)";
+  applyLiveModeState(!liveMode);
+  saveLiveModePref();
   // If the Add/Edit form is already open, re-render the sets immediately so the sequential
   // lock/unlock behavior (or lack of it) takes effect right away instead of on the next open.
   const formOpen=document.getElementById("workoutFormStructure")?.style.display==="block";
@@ -16250,6 +16344,7 @@ function showAddWorkoutForm(){
     document.getElementById("workoutNameInput").value=draft.name||"";
     document.getElementById("setsCountSelect").value=String(draft.setsCount||draft.sets.length||1);
     renderNonLiveSetsRows(draft.sets.map(s=>s.w),draft.sets.map(s=>s.r),draft.sets.map(s=>s.locked),draft.sets.map(s=>s.km),draft.sets.map(s=>s.min),draft.sets.map(s=>s.sec));
+    restoreSeqBreakIfAny(); // resumes a running break for this uid exactly where it was, same as any other landing
     // Previous Performance is looked up live from the DB and was never part of the persisted
     // draft, so re-run the lookup now that the name is back in the box — covers every set
     // format (Kg-Reps, Reps only, Reps with Kg, Km-Time).
@@ -18269,11 +18364,10 @@ function checkOtherMembersBreakTimers(){
     if(loginId===activeLoginId)return; // this member's own on-screen timer already covers them
     const meta=window.__room.membersMeta[loginId];
     if(!meta||!meta.userId)return;
-    let draft=null;
-    try{draft=JSON.parse(localStorage.getItem(`gymbro_live_draft_${meta.userId}`)||'null')}catch(e){}
-    const brk=draft&&draft.mode==='live'?draft.liveBreak:null;
-    if(!brk||!brk.running){delete _roomBreakNotifiedFor[loginId];return}
-    const remain=brk.total-((brk.accumulated||0)+Math.floor((Date.now()-(brk.startEpoch||Date.now()))/1000));
+    let brk=null;
+    try{brk=JSON.parse(localStorage.getItem(`gymbro_seqbreak_${meta.userId}`)||'null')}catch(e){}
+    if(!brk||!brk.startEpoch){delete _roomBreakNotifiedFor[loginId];return}
+    const remain=brk.total-((brk.accumulated||0)+Math.floor((Date.now()-brk.startEpoch)/1000));
     if(remain>0){delete _roomBreakNotifiedFor[loginId];return}
     if(_roomBreakNotifiedFor[loginId]===brk.idx)return; // already alerted for this exact break
     _roomBreakNotifiedFor[loginId]=brk.idx;
