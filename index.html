@@ -7502,8 +7502,9 @@ function restoreSeqBreakIfAny(){
   // ROOM: this member's break ran out while nobody was looking at them (refresh / app closed and
   // reopened / just switched back). Announce it BY NAME before the state is cleared below —
   // roomBreakAlertOnce is de-duplicated (persisted), so the room watcher can't announce it twice.
-  if(window.__room&&!st.paused&&st.startEpoch&&((st.accumulated||0)+Math.floor((Date.now()-st.startEpoch)/1000))>=st.total){
-    roomBreakAlertOnce(getEffectiveUid(),st);
+  if(!st.paused&&st.startEpoch&&((st.accumulated||0)+Math.floor((Date.now()-st.startEpoch)/1000))>=st.total){
+    if(window.__room)roomBreakAlertOnce(getEffectiveUid(),st);
+    else ownQueuedBreakAlertOnce('onscreen',document.getElementById('workoutNameInput')?.value||'Workout',st);
   }
   const row=document.getElementById(`seqBreakRow_${idx}`);
   const setRow=document.getElementById(`setRow_${idx}`);
@@ -7611,10 +7612,11 @@ function runSeqBreakInterval(idx){
       if(msgEl){msgEl.textContent="🔔 Break over! Time to crush the next set!";msgEl.style.display="block"}
       if(editBtn)editBtn.style.display="none";if(editPanel)editPanel.style.display="none";
       releaseBreakWakeLock();
-      // In a workout room the alert names whose break it was (and is shared/de-duplicated with the
-      // room-wide watcher); outside a room it stays exactly the plain beep + vibrate it always was.
+      // Named popup + configured sound + vibration, shared/de-duplicated with the background watcher:
+      // in a room, named after the room member; solo, named after the workout currently in the form
+      // (matches how a queued-but-not-open workout's break is named by ownQueuedBreakAlertOnce).
       if(window.__room){roomBreakAlertOnce(_breakOwnerUid,_brkSnap)}
-      else{playBreakAlertSound();if(navigator.vibrate)navigator.vibrate([200,100,200])}
+      else{ownQueuedBreakAlertOnce('onscreen',document.getElementById('workoutNameInput')?.value||'Workout',_brkSnap)}
       setTimeout(()=>{const row=document.getElementById(`seqBreakRow_${idx}`);if(row)row.style.display="none";activateNextSeqSet(idx)},1500);
       return;
     }
@@ -8330,6 +8332,10 @@ async function mountMemberDashboard(data,initialTab){
   // Show the fixed homepage billing box — fee-due notice (non-cancellable) OR, if nothing is due,
   // the last payment receipt (cancellable only once downloaded). Same slot, same logic every load.
   setupMemberBillingBox(data);
+  // Popup + sound + vibration for every finished break — this device's own queued workouts always,
+  // plus (while in a room) every other room member by name. Runs continuously; harmless with no
+  // room open since it then only ever finds this device's own queued-workout breaks.
+  startBreakAlertWatcher();
 }
 
 /* ===================== AUTO-RESTORE SESSION ON PAGE LOAD ===================== */
@@ -14826,12 +14832,21 @@ function serializeCurrentNonLiveForm(){
       sets.push({w:document.getElementById(`weight_set_${i}`)?.value||'',r:document.getElementById(`reps_set_${i}`)?.value||'',locked:!!document.getElementById(`lock_set_${i}`)?.checked});
     }
   }
-  return{name,setsCount:cnt,sets};
+  // Each queued workout owns its OWN timers. The stopwatch/break state normally lives in single per-user
+  // slots that get wiped whenever the form swaps to another entry — so an entry going into the queue
+  // takes a snapshot of both with it (epoch-based: they keep "running" while it waits, nothing is lost).
+  const out={name,setsCount:cnt,sets};
+  const sw=snapshotCardioSwData();
+  if(Object.keys(sw).length)out.sw=sw;
+  const brk=loadSeqBreakStateRaw();
+  if(brk)out.brk=brk;
+  return out;
 }
 /* Loads a serialized {name,setsCount,sets} entry into the (blank) non-live form — mirrors the
    refresh-restore logic in showAddWorkoutForm/restoreInProgressWorkoutFormIfAny above. */
 function loadNonLiveFormEntry(entry){
   clearCardioSwStorage();
+  clearSeqBreakState(); // the outgoing entry's break went into ITS queue slot; this entry brings its own (below)
   document.getElementById("workoutNameInput").value=entry.name||"";
   document.getElementById("setsCountSelect").value=String(entry.setsCount||(entry.sets&&entry.sets.length)||1);
   const sets=entry.sets||[];
@@ -14854,6 +14869,13 @@ function loadNonLiveFormEntry(entry){
   resetNlCopyAllState();
   updateTrackWorkoutBtnVisibility('nonlive');
   updateNameClearIconVisibility('workoutNameInput','workoutNameClearIcon');
+  // Bring back THIS entry's own timers exactly where they stood (running ones resume from their saved
+  // epochs, so time spent on another queued workout still counts).
+  if(entry.sw&&Object.keys(entry.sw).length){applyCardioSwData(entry.sw);saveCardioSwStorage()}
+  if(entry.brk){
+    try{localStorage.setItem(getSeqBreakKey(),JSON.stringify(entry.brk))}catch(e){}
+    restoreSeqBreakIfAny();
+  }
   saveNonLiveDraft();
 }
 /* Whether the multi-entry queue applies right now: non-live, and a brand-new entry (never while
@@ -14892,6 +14914,7 @@ function addAnotherNonLiveWorkout(){
   // blank entry's Set 1 (see cancelWorkoutLogging(), which does the same wipe for the same reason).
   document.getElementById("dynamicSetsContainer").innerHTML="";
   buildSetsInputFields();
+  clearSeqBreakState(); // the outgoing entry took its break snapshot into the queue; the blank entry starts with none
   document.getElementById("prevPerfBadgeNonLive").classList.remove("visible");
   document.getElementById("quickFillCopyAllBtn").classList.remove("visible");
   resetNlCopyAllState();
@@ -17897,7 +17920,6 @@ async function startOwnerRoomSession(roomId,ownerId,endTime,approvalRequired){
   renderRoomMembersStrip();
   startRoomCountdown();
   subscribeRoomRealtime(roomId);
-  startRoomBreakWatcher();
 }
 
 async function toggleLiveRoomApproval(){
@@ -18393,7 +18415,7 @@ async function switchRoomTarget(loginId){
      on reopen (with "ended X ago").
    • Several breaks ending together are staggered and their toasts stack, so each name is seen/heard. */
 const ROOM_BREAK_NOTIFIED_KEY='gymbro_room_break_notified';
-let _roomBreakWatcherInterval=null;
+let _breakAlertWatcherInterval=null;
 let _roomBreakAlertNextAt=0;
 function _loadRoomBreakNotified(){try{return JSON.parse(localStorage.getItem(ROOM_BREAK_NOTIFIED_KEY)||'{}')||{}}catch(e){return {}}}
 function _roomBreakSig(st){return `${st.idx}:${st.startEpoch}:${st.total}`}
@@ -18423,48 +18445,90 @@ function _showBreakToast(msg){
   document.body.appendChild(t);
   setTimeout(()=>{t.style.opacity='0';t.style.transition='opacity 0.3s ease';setTimeout(()=>t.remove(),300)},5000);
 }
-/* The single place a room break-over is announced. `st` = {idx,total,accumulated,startEpoch}.
-   Returns false (and does nothing) if this exact break was already announced. */
-function roomBreakAlertOnce(uid,st){
-  if(!uid||!st||!st.startEpoch)return false;
+/* The single place ANY finished break is announced — popup + configured sound + vibration (+ OS
+   notification if the sound path alone wouldn't raise one). `label` is what the popup names: a room
+   member's name, or (for this device's own queued workouts) that workout's name. `key` scopes the
+   "already announced" record so a room member's break and this device's own queued-workout break
+   never collide even if their raw signatures matched. `st` = {idx,total,accumulated,startEpoch}. */
+function _fireBreakAlert(key,label,st){
+  if(!key||!st||!st.startEpoch)return false;
   const sig=_roomBreakSig(st);
   const map=_loadRoomBreakNotified();
-  if(map[uid]===sig)return false;
-  map[uid]=sig;
+  const seen=Array.isArray(map[key])?map[key]:(map[key]?[map[key]]:[]);
+  if(seen.includes(sig))return false;
+  map[key]=seen.concat(sig).slice(-20);
   try{localStorage.setItem(ROOM_BREAK_NOTIFIED_KEY,JSON.stringify(map))}catch(e){}
-  const name=getRoomBreakOwnerName(uid)||'A member';
   const overdue=(st.accumulated||0)+Math.floor((Date.now()-st.startEpoch)/1000)-st.total;
   const late=overdue>=15?` (ended ${_formatBreakAgo(overdue)} ago)`:'';
   // stagger simultaneous alerts so sounds/notifications don't collapse into one
   const now=Date.now(),at=Math.max(now,_roomBreakAlertNextAt);
   _roomBreakAlertNextAt=at+1800;
   setTimeout(()=>{
-    _showBreakToast(`🔔 ${name}'s break is over${late} — time for their next set!`);
-    try{playConfiguredBreakSound(name)}catch(e){}
+    _showBreakToast(`🔔 ${label}'s break is over${late} — time for the next set!`);
+    try{playConfiguredBreakSound(label)}catch(e){}
     try{
       // playConfiguredBreakSound only raises the OS notification when vibration is enabled; a break
-      // alert with the person's name should always reach the lock screen.
-      if(!getNotifSettings().vibrationEnabled)fireBreakEndSystemNotification([220,100,220],name);
+      // alert should always reach the lock screen too.
+      if(!getNotifSettings().vibrationEnabled)fireBreakEndSystemNotification([220,100,220],label);
     }catch(e){}
   },at-now);
   return true;
 }
-function startRoomBreakWatcher(){
-  if(_roomBreakWatcherInterval)return;
-  _roomBreakWatcherInterval=setInterval(checkRoomBreakTimers,1000);
-  checkRoomBreakTimers();
+/* Room-member break: key = uid, label = their name. */
+function roomBreakAlertOnce(uid,st){
+  return _fireBreakAlert(uid,getRoomBreakOwnerName(uid)||'A member',st);
 }
-function stopRoomBreakWatcher(){
-  if(_roomBreakWatcherInterval){clearInterval(_roomBreakWatcherInterval);_roomBreakWatcherInterval=null}
+/* This device's own break, whether it belongs to a QUEUED workout or the one on screen right now —
+   label is that workout's own name so each one is announced separately. Keyed by uid only (NOT by
+   queue slot / "onscreen"), because the same break moves between those roles as you switch workouts:
+   the watcher sees it as slot 2 in the queue, then you switch to it and it becomes "onscreen", then
+   you switch away and it's slot 2 again. A key that changed with the role broke de-duplication —
+   the same already-alerted break got a fresh "seen" signature under its new role and alerted again
+   with sound + vibration ("Break ended 1 min ago") purely from switching back to it. One key per
+   user, with _fireBreakAlert's own signature (idx+startEpoch+total) telling breaks apart, fixes that:
+   switching a workout in and out of view can never re-trigger its already-announced break.
+   slotIdx is no longer used for the key but is kept as a parameter for callers that still pass one. */
+function ownQueuedBreakAlertOnce(slotIdx,workoutName,st){
+  return _fireBreakAlert(`own:${getEffectiveUid()}`,workoutName||'Workout',st);
 }
-function checkRoomBreakTimers(){
-  if(!window.__room)return;
+function startBreakAlertWatcher(){
+  if(_breakAlertWatcherInterval)return;
+  _breakAlertWatcherInterval=setInterval(checkAllBreakTimers,1000);
+  checkAllBreakTimers();
+}
+function stopBreakAlertWatcher(){
+  if(_breakAlertWatcherInterval){clearInterval(_breakAlertWatcherInterval);_breakAlertWatcherInterval=null}
+}
+function checkAllBreakTimers(){
+  // This device's own queued (not-on-screen) workouts, named by workout — only when solo. While
+  // hosting/in a room, getEffectiveUid() points at whichever member is selected, not this device's
+  // own uid, AND the host's own uid is already in the room loop below (named by person there) — so
+  // running this here too would double-fire the same break under two different labels.
+  if(!window.__room){
+    try{
+      const myUid=getEffectiveUid();
+      (JSON.parse(localStorage.getItem(`gymbro_nonlive_queue_${myUid}`)||'[]')||[]).forEach((q,i)=>{
+        const b=q&&q.brk;
+        if(!b||b.paused||!b.startEpoch)return;
+        if((b.accumulated||0)+Math.floor((Date.now()-b.startEpoch)/1000)>=b.total)ownQueuedBreakAlertOnce(i,q.name,b);
+      });
+    }catch(e){}
+    return;
+  }
   const activeUid=String(getEffectiveUid());
   const uids=[];
   const hostUid=getRoomHostOwnUid();
   if(hostUid)uids.push(String(hostUid));
   Object.values(window.__room.membersMeta||{}).forEach(m=>{if(m&&m.userId)uids.push(String(m.userId))});
   [...new Set(uids)].forEach(uid=>{
+    // That person's OTHER queued workouts (not on screen for anyone) — same as the own-device check above.
+    try{
+      (JSON.parse(localStorage.getItem(`gymbro_nonlive_queue_${uid}`)||'[]')||[]).forEach(q=>{
+        const b=q&&q.brk;
+        if(!b||b.paused||!b.startEpoch)return;
+        if((b.accumulated||0)+Math.floor((Date.now()-b.startEpoch)/1000)>=b.total)roomBreakAlertOnce(uid,b);
+      });
+    }catch(e){}
     let st=null;
     try{st=JSON.parse(localStorage.getItem(`gymbro_seqbreak_${uid}`)||'null')}catch(e){}
     if(!st||st.paused||!st.startEpoch)return;
@@ -18477,9 +18541,9 @@ function checkRoomBreakTimers(){
   });
 }
 /* Mobile browsers suspend timers entirely while backgrounded/locked — check immediately on return. */
-document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')checkRoomBreakTimers()});
-window.addEventListener('pageshow',checkRoomBreakTimers);
-window.addEventListener('focus',checkRoomBreakTimers);
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')checkAllBreakTimers()});
+window.addEventListener('pageshow',checkAllBreakTimers);
+window.addEventListener('focus',checkAllBreakTimers);
 
 function subscribeRoomRealtime(roomId){
   if(!window.__room)return;
@@ -18632,7 +18696,6 @@ async function demoteHostToMember(row){
     if(window.__room.channel)db.removeChannel(window.__room.channel);
     if(window.__room.countdownInterval)clearInterval(window.__room.countdownInterval);
   }
-  stopRoomBreakWatcher();
   window.__room=null;
   showToast("👑 Hosting was handed off — you're a member now.");
   await startMemberRoomSession(row,myLoginId);
@@ -18645,7 +18708,6 @@ function cleanupRoomState(msg){
     if(window.__room.channel)db.removeChannel(window.__room.channel);
     if(window.__room.countdownInterval)clearInterval(window.__room.countdownInterval);
   }
-  stopRoomBreakWatcher();
   window.__room=null;
   clearRoomSession();
   document.getElementById('roomActiveStrip').style.display='none';
@@ -18661,7 +18723,7 @@ function teardownRoomUiOnLogout(){
     if(window.__room.countdownInterval)clearInterval(window.__room.countdownInterval);
     window.__room=null;
   }
-  stopRoomBreakWatcher();
+  stopBreakAlertWatcher();
   if(window.__memberRoom){
     if(window.__memberRoom.channel)db.removeChannel(window.__memberRoom.channel);
     if(window.__memberRoom.countdownInterval)clearInterval(window.__memberRoom.countdownInterval);
