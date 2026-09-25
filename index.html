@@ -255,9 +255,36 @@ body.ptr-dragging,body.ptr-dragging *{transition:none!important}
 .room-pending-actions button svg{width:12px;height:12px;stroke:#fff;flex-shrink:0}
 .room-pending-accept{background:#16a34a}
 .room-pending-reject{background:#dc2626}
-/* Room target badge — shown near the Add/Edit workout entry area while host is acting on behalf of a member */
-.room-target-badge{display:none;align-items:center;gap:10px;background:var(--accent-soft);border:1.5px solid var(--accent);border-radius:12px;padding:8px 12px;margin-bottom:12px}
+/* Room target badge — shown right above the "+ ADD WORKOUT ENTRY" area while host is acting on
+   behalf of a member. Sits normally in-flow (right where it's placed in the markup) until the page
+   is scrolled far enough that it would scroll out of view; at that point .pinned is added by JS
+   (updateRoomBadgePin) and it switches to position:fixed so it stays visible while everything below
+   it keeps scrolling underneath. Scrolling back up until its original spot (roomTargetBadgeAnchor)
+   is back in view removes .pinned and it drops back into normal flow.
+   (position:sticky looked right at first glance but silently never actually stuck: .glass sets
+   overflow:hidden for its own rounded-corner blur clipping, and ANY ancestor with overflow other
+   than visible breaks position:sticky on its descendants — a well-known CSS gotcha. Since .glass is
+   reused all over the app for the card look, this JS-driven fixed toggle sidesteps that instead of
+   touching a shared class.) */
+.room-target-badge{display:none;align-items:center;gap:10px;background:var(--bg-card);border:1.5px solid var(--accent);border-radius:12px;padding:8px 12px;box-sizing:border-box}
 .room-target-badge.visible{display:flex}
+/* Pinned state — lifted out of flow to the top of the viewport. Width is set with clamp() instead of
+   left/right+max-width so the box is a consistent, predictable size on narrow, medium and wide
+   screens alike (it no longer visibly grows once pinned) — it scales with the viewport between a
+   floor and a ceiling rather than always stretching edge-to-edge. Background is a low-opacity mix of
+   the theme's own card color (falls back to a plain translucent dark if color-mix isn't supported)
+   so it reads as "glass" — content scrolling underneath stays visibly, if softly, visible through it
+   — in every theme, light, dark or custom, since it derives from --bg-card rather than a fixed color.
+   The matching .room-target-badge-spacer below reserves the badge's normal in-flow height only while
+   pinned, so pulling it out of flow doesn't make the page jump; see updateRoomBadgePin. */
+.room-target-badge.pinned{position:fixed;top:10px;left:50%;transform:translateX(-50%);
+  width:clamp(260px,92vw,480px);z-index:850;
+  background:rgba(20,22,28,0.55);
+  background:color-mix(in srgb, var(--bg-card) 55%, transparent);
+  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  box-shadow:0 8px 24px rgba(0,0,0,0.3)}
+.room-target-badge-spacer{display:none;height:56px}
+.room-target-badge-spacer.visible{display:block}
 .room-target-badge-avatar{width:34px;height:34px;border-radius:50%;overflow:hidden;flex-shrink:0;border:2px solid var(--accent);display:flex;align-items:center;justify-content:center;background:var(--bg-card);font-size:15px}
 .room-target-badge-avatar img{width:100%;height:100%;object-fit:cover}
 .room-target-badge-text{font-family:var(--font-alt);font-size:12px;line-height:1.35}
@@ -4232,10 +4259,12 @@ body.theme-custom .dash-week-card{border-color:var(--border-col)}
           <label style="font-size:12px;font-weight:700;color:var(--text-muted);font-family:var(--font-alt);letter-spacing:0.5px">FILTER BY DATE:</label>
           <input type="date" id="workoutCalendarFilter" onchange="loadWorkoutsForDate()">
         </div>
+        <div id="roomTargetBadgeAnchor" style="height:0"></div>
         <div id="roomTargetBadge" class="room-target-badge">
           <div class="room-target-badge-avatar" id="roomTargetBadgeAvatarBox">🏋</div>
           <div class="room-target-badge-text">You're working on <b id="roomTargetBadgeName"></b>'s workouts</div>
         </div>
+        <div id="roomTargetBadgeSpacer" class="room-target-badge-spacer"></div>
         <div id="initialWorkoutBox">
           <button class="btn" onclick="showAddWorkoutForm()">+ ADD WORKOUT ENTRY</button>
         </div>
@@ -8790,17 +8819,28 @@ function updateNotifPermStatus(){
    Safe no-op if permission hasn't been granted or the API isn't supported. */
 /* memberName is optional — only passed by the room-wide watcher above (roomBreakAlertOnce),
    for the host's own break this is always omitted, so the title/tag/body stay exactly as before. */
-function fireBreakEndSystemNotification(vibrationPattern,memberName){
+/* Generic OS-level notification — the piece that gets vibration AND sound through even with zero page
+   interaction yet (e.g. right after an auto-restored refresh), or while locked/backgrounded, because
+   the OS — not the page — produces the sound/buzz. Safe no-op if permission hasn't been granted or the
+   API isn't supported. Shared by break-end alerts and room join/join-request alerts below. */
+function fireSystemNotification(title,body,tag,vibrationPattern){
   if(!('Notification' in window)||Notification.permission!=='granted')return;
   try{
-    new Notification(memberName?`⏱ ${memberName}'s break is over!`:'⏱ Break Over!',{
-      body:memberName?`${memberName}'s next set is up! 💪`:'Time to crush the next set! 💪',
-      tag:memberName?('gymbro-break-end-'+memberName):'gymbro-break-end',
-      renotify:true,           // makes sure repeat break-end alerts re-buzz/re-sound instead of silently updating a stale one
+    new Notification(title,{
+      body,tag,
+      renotify:true,           // makes sure a repeat alert with the same tag re-buzzes/re-sounds instead of silently updating a stale one
       silent:false,            // ask the OS to play its own notification sound — independent of the page's AudioContext
       vibrate:vibrationPattern||[220,100,220]  // Android honors this at the OS level even with no page interaction; ignored elsewhere
     })
   }catch(e){}
+}
+function fireBreakEndSystemNotification(vibrationPattern,memberName){
+  fireSystemNotification(
+    memberName?`⏱ ${memberName}'s break is over!`:'⏱ Break Over!',
+    memberName?`${memberName}'s next set is up! 💪`:'Time to crush the next set! 💪',
+    memberName?('gymbro-break-end-'+memberName):'gymbro-break-end',
+    vibrationPattern
+  );
 }
 
 function handleVolumeSliderChange(){
@@ -8934,13 +8974,15 @@ function primeSharedBeepCtx(){
   if(ctx&&ctx.state==='suspended')ctx.resume().catch(()=>{});
 }
 
-function playConfiguredBreakSound(memberName){
+/* Plays whatever sound+vibration(+OS notification) the person configured in Notification Settings —
+   the shared pipeline for every "alert the host/user with sound+vibration" moment in the app. */
+function playConfiguredAlertSound(title,body,tag){
   const cfg=getNotifSettings();
 
   if(cfg.vibrationEnabled){
     fireVibration(cfg.vibrationId);       // works while screen is on & GymBro is in front, AND the page has had a tap since load
     const pat=(VIBRATION_PATTERNS.find(p=>p.id===cfg.vibrationId)||VIBRATION_PATTERNS[2]).pattern;
-    fireBreakEndSystemNotification(pat,memberName);  // works even with zero page interaction yet, or when locked/backgrounded — if permission granted
+    fireSystemNotification(title,body,tag,pat);  // works even with zero page interaction yet, or when locked/backgrounded — if permission granted
   }
 
   if(!cfg.soundEnabled)return;
@@ -8964,6 +9006,13 @@ function playConfiguredBreakSound(memberName){
       osc.start(ctx.currentTime+delay);osc.stop(ctx.currentTime+delay+0.35);
     });
   }catch(e){playBreakAlertSound()}
+}
+function playConfiguredBreakSound(memberName){
+  playConfiguredAlertSound(
+    memberName?`⏱ ${memberName}'s break is over!`:'⏱ Break Over!',
+    memberName?`${memberName}'s next set is up! 💪`:'Time to crush the next set! 💪',
+    memberName?('gymbro-break-end-'+memberName):'gymbro-break-end'
+  );
 }
 
 /* ===================== TODAY'S WORKOUT BANNER (order-following, check-in based) ===================== */
@@ -9176,6 +9225,10 @@ function _doLogout(){
    and Stats/Workouts moved to the bottom nav bar. */
 
 async function switchMemberTab(id){
+  // Leaving the Workouts page entirely — a pinned room-target badge is reparented to <body> while
+  // pinned (see updateRoomBadgePin), so it must be dropped back into place here or it would keep
+  // floating fixed on top of whichever tab the person switches to next.
+  if(id!=='workPage'&&typeof unpinRoomBadge==='function')unpinRoomBadge();
   // Leaving the Stats page entirely — the 3-Month fullscreen focus view never persists across pages.
   if(id!=='statsPage'&&statsGraphFsOpen)exitStatsGraphFullscreen();
   // Same for the Track Workout graph's fullscreen focus view — it never persists across a page change.
@@ -9215,7 +9268,7 @@ async function switchMemberTab(id){
     }
   }
   else if(id==='attPage')await loadAttendanceHistoryRecords();
-  else if(id==='workPage'){await loadWorkoutsForDate();await _trackerRestoreState();}
+  else if(id==='workPage'){await loadWorkoutsForDate();await _trackerRestoreState();if(typeof updateRoomBadgePin==='function')updateRoomBadgePin();}
   else if(id==='learnPage')initLearnPage();
   else if(id==='socialPage')loadSocialPage();
   else if(id==='settingsPage')initSettingsPage();
@@ -17920,6 +17973,9 @@ async function startOwnerRoomSession(roomId,ownerId,endTime,approvalRequired){
   renderRoomMembersStrip();
   startRoomCountdown();
   subscribeRoomRealtime(roomId);
+  // Shows the badge immediately as "your own workouts" — the room starts with no member selected,
+  // and the badge shouldn't wait for the Add Workout form to be opened before saying so.
+  if(typeof updateRoomTargetBadge==='function')updateRoomTargetBadge();
 }
 
 async function toggleLiveRoomApproval(){
@@ -18320,14 +18376,74 @@ async function makeCurrentRoomTargetHost(){
    selected member's DP + name so the host can never accidentally add/edit for the wrong person. */
 function updateRoomTargetBadge(){
   const badge=document.getElementById('roomTargetBadge');
+  const spacer=document.getElementById('roomTargetBadgeSpacer');
   if(!badge)return;
   const target=window.__room&&window.__room.target;
-  if(!target){badge.classList.remove('visible');return}
+  const textEl=document.querySelector('#roomTargetBadge .room-target-badge-text');
+  // No room at all → nothing to show. A room WITHOUT a selected member means the host is working on
+  // THEIR OWN workouts (not a member's) — that's still worth showing, so it's always clear whose
+  // workouts are being added, host included, not just when a member is selected.
+  if(!window.__room){badge.classList.remove('visible');if(spacer)spacer.classList.remove('visible');return}
   const box=document.getElementById('roomTargetBadgeAvatarBox');
+  if(!target){
+    // Host working on THEIR OWN workouts (no member selected) — show the host's own DP, same
+    // source as the rest of the app (gymbro_avatar_url), instead of always falling back to the
+    // generic dumbbell emoji.
+    const myAvatar=localStorage.getItem('gymbro_avatar_url')||null;
+    box.innerHTML=myAvatar?`<img src="${myAvatar}" onerror="this.parentElement.textContent='🏋'">`:'🏋';
+    if(textEl)textEl.innerHTML="You're working on <b>your own</b> workouts";
+    badge.classList.add('visible');if(spacer)spacer.classList.add('visible');
+    return;
+  }
   box.innerHTML=target.avatarUrl?`<img src="${target.avatarUrl}" onerror="this.parentElement.textContent='🏋'">`:'🏋';
+  if(textEl)textEl.innerHTML="You're working on <b id='roomTargetBadgeName'></b>'s workouts";
   document.getElementById('roomTargetBadgeName').textContent=target.name||('@'+target.loginId);
-  badge.classList.add('visible');
+  badge.classList.add('visible');if(spacer)spacer.classList.add('visible');
+  updateRoomBadgePin();
 }
+
+/* Keeps the room target badge in normal flow (right above "+ ADD WORKOUT ENTRY") until scrolling
+   would carry it out of view, then pins it fixed to the top of the screen so everything below keeps
+   scrolling underneath it — and un-pins it again once scrolling back up brings its original spot
+   (roomTargetBadgeAnchor, a 0-height marker left in its original place) back into view.
+   While pinned, the badge is reparented to <body> (see unpinRoomBadge for the move back). This is
+   needed because its real ancestor here is a ".glass" section, and backdrop-filter — like a CSS
+   transform — creates its own containing block for position:fixed descendants, so a fixed badge left
+   inside it would stay clipped/contained to that section instead of truly pinning to the viewport
+   (the same fix already used for the fixed-position GymBro search dropdown elsewhere in this file). */
+function updateRoomBadgePin(){
+  const badge=document.getElementById('roomTargetBadge');
+  const anchor=document.getElementById('roomTargetBadgeAnchor');
+  const spacer=document.getElementById('roomTargetBadgeSpacer');
+  if(!badge||!anchor||!spacer||!badge.classList.contains('visible')){unpinRoomBadge();return}
+  // Anchor's own tab isn't the one on screen right now (offsetParent is null whenever an element or
+  // any ancestor is display:none) — skip entirely rather than reading a meaningless top:0 rect.
+  if(anchor.offsetParent===null)return;
+  const PIN_POINT=10; // matches .room-target-badge.pinned's top:10px
+  const anchorTop=anchor.getBoundingClientRect().top;
+  if(anchorTop<=PIN_POINT){
+    if(!badge.classList.contains('pinned')){
+      badge.classList.add('pinned');
+      if(badge.parentElement!==document.body)document.body.appendChild(badge);
+      spacer.classList.add('visible');
+    }
+  }else{
+    unpinRoomBadge();
+  }
+}
+/* Drops the badge back into its normal in-flow spot (right before its spacer) and removes the
+   fixed/pinned styling. Also used when navigating away from the Workouts tab entirely, since a
+   body-reparented fixed badge would otherwise keep floating on top of every other tab. */
+function unpinRoomBadge(){
+  const badge=document.getElementById('roomTargetBadge');
+  const spacer=document.getElementById('roomTargetBadgeSpacer');
+  if(!badge||!spacer)return;
+  if(badge.classList.contains('pinned'))badge.classList.remove('pinned');
+  if(badge.nextSibling!==spacer||badge.parentElement!==spacer.parentElement)spacer.parentNode.insertBefore(badge,spacer);
+  spacer.classList.remove('visible');
+}
+window.addEventListener('scroll',updateRoomBadgePin,{passive:true});
+window.addEventListener('resize',updateRoomBadgePin);
 
 /* Pure state+UI update for "which member is selected" — sets window.__room.target, the today-only
    date-filter lock, and the banner/badge/strip visuals. Deliberately does NOT touch the workout
@@ -18590,10 +18706,27 @@ async function onRoomRowUpdate(row,announce){
   if(announce&&newJoinedIds.length){
     const names=newJoinedIds.map(id=>(window.__room.membersMeta[id]&&window.__room.membersMeta[id].name)||('@'+id));
     showToast(`👋 ${names.join(', ')} joined the room!`);
+    // Approval OFF: someone just joined outright — sound + vibration (+ OS notification) for the host,
+    // one per person, staggered so simultaneous joins don't collapse into a single tone.
+    // Approval ON: this same id already got a sound alert the moment they REQUESTED to join (below) —
+    // pendingMeta[id] is only cleared at the very end of this function, so it's still set here for
+    // anyone just approved, letting us skip a second sound for the same person joining. The toast
+    // above still confirms the join either way; only the repeat sound+vibration is skipped.
+    newJoinedIds.forEach((id,i)=>{
+      if(window.__room.pendingMeta[id])return;
+      const name=(window.__room.membersMeta[id]&&window.__room.membersMeta[id].name)||('@'+id);
+      setTimeout(()=>{try{playConfiguredAlertSound(`👋 ${name} joined your room!`,`${name} joined — say hi 💪`,'gymbro-room-join-'+id)}catch(e){}},i*700);
+    });
   }
   if(announce&&newPendingIds.length){
     const names=newPendingIds.map(id=>(window.__room.pendingMeta[id]&&window.__room.pendingMeta[id].name)||('@'+id));
     showToast(`🙋 ${names.join(', ')} ${newPendingIds.length>1?'want':'wants'} to join — accept or reject below.`);
+    // Approval ON: someone is waiting on the host to accept/reject — same sound+vibration treatment,
+    // so the host notices the request even without watching the screen.
+    newPendingIds.forEach((id,i)=>{
+      const name=(window.__room.pendingMeta[id]&&window.__room.pendingMeta[id].name)||('@'+id);
+      setTimeout(()=>{try{playConfiguredAlertSound(`🙋 ${name} wants to join`,'Accept or reject the request below.','gymbro-room-pending-'+id)}catch(e){}},i*700);
+    });
   }
   // Detect members who left/were removed (present locally but no longer "joined" in the DB row)
   Object.keys(window.__room.membersMeta).forEach(loginId=>{
@@ -18709,6 +18842,11 @@ function cleanupRoomState(msg){
     if(window.__room.countdownInterval)clearInterval(window.__room.countdownInterval);
   }
   window.__room=null;
+  // Runs AFTER window.__room is nulled: switchRoomTarget(null) above ran updateRoomTargetBadge()
+  // while __room still existed (target null → "your own workouts", the new host-own-workouts case),
+  // so it must be called once more now, or the fixed-position badge would stay stuck on screen with
+  // stale text even after the room has fully ended.
+  if(typeof updateRoomTargetBadge==='function')updateRoomTargetBadge();
   clearRoomSession();
   document.getElementById('roomActiveStrip').style.display='none';
   document.getElementById('roomIdleControls').style.display='none';const _rotb=document.getElementById('roomOptionsToggleBtn');if(_rotb){_rotb.classList.remove('active');if(!isAnyRoomStateActive())_rotb.style.display='';}
