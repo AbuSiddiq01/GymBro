@@ -266,8 +266,9 @@ body.ptr-dragging,body.ptr-dragging *{transition:none!important}
    than visible breaks position:sticky on its descendants — a well-known CSS gotcha. Since .glass is
    reused all over the app for the card look, this JS-driven fixed toggle sidesteps that instead of
    touching a shared class.) */
-.room-target-badge{display:none;align-items:center;gap:10px;background:var(--bg-card);border:1.5px solid var(--accent);border-radius:12px;padding:8px 12px;box-sizing:border-box}
+.room-target-badge{display:none;flex-direction:column;gap:6px;background:var(--bg-card);border:1.5px solid var(--accent);border-radius:12px;padding:8px 12px;box-sizing:border-box;touch-action:pan-y;cursor:grab}
 .room-target-badge.visible{display:flex}
+.room-target-badge-row{display:flex;align-items:center;gap:10px}
 /* Pinned state — lifted out of flow to the top of the viewport. Width is set with clamp() instead of
    left/right+max-width so the box is a consistent, predictable size on narrow, medium and wide
    screens alike (it no longer visibly grows once pinned) — it scales with the viewport between a
@@ -282,13 +283,26 @@ body.ptr-dragging,body.ptr-dragging *{transition:none!important}
   background:rgba(20,22,28,0.55);
   background:color-mix(in srgb, var(--bg-card) 55%, transparent);
   backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
-  box-shadow:0 8px 24px rgba(0,0,0,0.3)}
+  box-shadow:0 8px 24px rgba(0,0,0,0.3);
+  animation:roomBadgePinIn .16s ease}
+@keyframes roomBadgePinIn{from{opacity:0;transform:translate(-50%,-6px)}to{opacity:1;transform:translateX(-50%)}}
+body.workout-edit-lock .room-target-badge.pinned{z-index:10000}
 .room-target-badge-spacer{display:none;height:56px}
 .room-target-badge-spacer.visible{display:block}
 .room-target-badge-avatar{width:34px;height:34px;border-radius:50%;overflow:hidden;flex-shrink:0;border:2px solid var(--accent);display:flex;align-items:center;justify-content:center;background:var(--bg-card);font-size:15px}
 .room-target-badge-avatar img{width:100%;height:100%;object-fit:cover}
 .room-target-badge-text{font-family:var(--font-alt);font-size:12px;line-height:1.35}
 .room-target-badge-text b{color:var(--accent);font-size:13px}
+/* Small page-indicator dots — same look/feel as the Time box's .cardio-time-dot carousel — doubling
+   as a direct tap target (handleRoomTargetDotClick) for whoever'd rather click than swipe (desktop
+   especially). One dot per possible target (you + every joined member); only shown once there's
+   actually more than one to switch between. Swiping (touch-drag or mouse-drag) left/right on the
+   badge itself also cycles through them — see roomBadgeSwipeStart/roomBadgeSwipeEnd in JS. */
+.room-target-badge-dots{display:none;justify-content:center;align-items:center;gap:clamp(3px,1.2vw,6px);flex-wrap:nowrap;width:100%}
+.room-target-badge-dots.multi{display:flex}
+.room-target-badge-dot{flex:1 1 auto;min-width:12px;max-width:44px;width:clamp(12px,7vw,44px);height:16px;padding:0;border:none;background:transparent;cursor:pointer;display:flex;align-items:center;-webkit-tap-highlight-color:transparent}
+.room-target-badge-dot::before{content:'';display:block;width:100%;height:4px;border-radius:2px;background:var(--border-col);transition:background 0.15s ease,opacity 0.15s ease}
+.room-target-badge-dot.active::before{background:var(--accent)}
 /* Approval toggle row */
 .room-approval-row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:12px 0}
 .room-approval-row .room-approval-label{font-size:12px;font-weight:700;color:var(--text-secondary);font-family:var(--font-alt)}
@@ -4260,9 +4274,12 @@ body.theme-custom .dash-week-card{border-color:var(--border-col)}
           <input type="date" id="workoutCalendarFilter" onchange="loadWorkoutsForDate()">
         </div>
         <div id="roomTargetBadgeAnchor" style="height:0"></div>
-        <div id="roomTargetBadge" class="room-target-badge">
-          <div class="room-target-badge-avatar" id="roomTargetBadgeAvatarBox">🏋</div>
-          <div class="room-target-badge-text">You're working on <b id="roomTargetBadgeName"></b>'s workouts</div>
+        <div id="roomTargetBadge" class="room-target-badge" ontouchstart="roomBadgeSwipeStart(event)" ontouchend="roomBadgeSwipeEnd(event)" onmousedown="roomBadgeSwipeStart(event)" onmouseup="roomBadgeSwipeEnd(event)" onmouseleave="roomBadgeSwipeCancel(event)">
+          <div class="room-target-badge-row">
+            <div class="room-target-badge-avatar" id="roomTargetBadgeAvatarBox">🏋</div>
+            <div class="room-target-badge-text">You're working on <b id="roomTargetBadgeName"></b>'s workouts</div>
+          </div>
+          <div class="room-target-badge-dots" id="roomTargetBadgeDots"></div>
         </div>
         <div id="roomTargetBadgeSpacer" class="room-target-badge-spacer"></div>
         <div id="initialWorkoutBox">
@@ -17509,6 +17526,13 @@ function trackWorkoutFromCard(e,name){
    put back in exactly the right spot on close. This is used ONLY for editing an existing saved
    workout — the "+ ADD WORKOUT ENTRY" flow never calls this and keeps its original in-page form. */
 let _workoutEditOverlayFormParent=null,_workoutEditOverlayFormNext=null,_workoutEditOverlayFormEl=null;
+/* In room mode, the "You're working on X's workouts" badge (anchor+badge+spacer, moved as one
+   contiguous group) is relocated into the overlay too, right above the form, so it's still visible
+   while editing — otherwise it'd be left behind under the overlay's opaque/blurred backdrop. Only
+   done when a room is active; outside room mode nothing here moves at all. Forced unpinned first so
+   the move always grabs a normal, in-flow badge regardless of whether it happened to be pinned to
+   <body> at the moment the overlay opened; closeWorkoutEditOverlay reverses the same steps. */
+let _workoutEditOverlayBadgeParent=null,_workoutEditOverlayBadgeNext=null,_workoutEditOverlayBadgeAnchor=null;
 function openWorkoutEditOverlay(formEl){
   const overlay=document.getElementById("workoutEditOverlay");
   const stage=document.getElementById("workoutEditOverlayStage");
@@ -17516,10 +17540,23 @@ function openWorkoutEditOverlay(formEl){
   _workoutEditOverlayFormEl=formEl;
   _workoutEditOverlayFormParent=formEl.parentNode;
   _workoutEditOverlayFormNext=formEl.nextSibling;
+  if(window.__room&&typeof unpinRoomBadge==='function'){
+    unpinRoomBadge();
+    const anchor=document.getElementById('roomTargetBadgeAnchor');
+    const badge=document.getElementById('roomTargetBadge');
+    const spacer=document.getElementById('roomTargetBadgeSpacer');
+    if(anchor&&badge&&spacer&&anchor.parentNode){
+      _workoutEditOverlayBadgeAnchor=anchor;
+      _workoutEditOverlayBadgeParent=anchor.parentNode;
+      _workoutEditOverlayBadgeNext=spacer.nextSibling; // whatever originally followed the spacer
+      stage.appendChild(anchor);stage.appendChild(badge);stage.appendChild(spacer);
+    }
+  }
   stage.appendChild(formEl);
   overlay.classList.add("active");
   document.body.classList.add("workout-edit-lock");
   overlay.scrollTop=0;stage.scrollTop=0;
+  if(typeof updateRoomBadgePin==='function')updateRoomBadgePin();
 }
 function closeWorkoutEditOverlay(){
   const overlay=document.getElementById("workoutEditOverlay");
@@ -17528,8 +17565,19 @@ function closeWorkoutEditOverlay(){
     _workoutEditOverlayFormParent.insertBefore(_workoutEditOverlayFormEl,_workoutEditOverlayFormNext);
   }
   _workoutEditOverlayFormEl=null;_workoutEditOverlayFormParent=null;_workoutEditOverlayFormNext=null;
+  if(_workoutEditOverlayBadgeAnchor&&_workoutEditOverlayBadgeParent&&typeof unpinRoomBadge==='function'){
+    unpinRoomBadge(); // drop it back next to its (currently in-overlay) spacer first
+    const anchor=_workoutEditOverlayBadgeAnchor;
+    const badge=document.getElementById('roomTargetBadge');
+    const spacer=document.getElementById('roomTargetBadgeSpacer');
+    _workoutEditOverlayBadgeParent.insertBefore(anchor,_workoutEditOverlayBadgeNext);
+    if(badge)_workoutEditOverlayBadgeParent.insertBefore(badge,_workoutEditOverlayBadgeNext);
+    if(spacer)_workoutEditOverlayBadgeParent.insertBefore(spacer,_workoutEditOverlayBadgeNext);
+  }
+  _workoutEditOverlayBadgeAnchor=null;_workoutEditOverlayBadgeParent=null;_workoutEditOverlayBadgeNext=null;
   overlay.classList.remove("active");
   document.body.classList.remove("workout-edit-lock");
+  if(typeof updateRoomBadgePin==='function')updateRoomBadgePin();
 }
 /* Wired to the overlay's own ✕ button — routes through the real cancel handlers so timers stop
    and drafts clear correctly, instead of just hiding the overlay cosmetically. */
@@ -18393,13 +18441,83 @@ function updateRoomTargetBadge(){
     box.innerHTML=myAvatar?`<img src="${myAvatar}" onerror="this.parentElement.textContent='🏋'">`:'🏋';
     if(textEl)textEl.innerHTML="You're working on <b>your own</b> workouts";
     badge.classList.add('visible');if(spacer)spacer.classList.add('visible');
+    renderRoomTargetBadgeDots();
+    updateRoomBadgePin();
     return;
   }
   box.innerHTML=target.avatarUrl?`<img src="${target.avatarUrl}" onerror="this.parentElement.textContent='🏋'">`:'🏋';
   if(textEl)textEl.innerHTML="You're working on <b id='roomTargetBadgeName'></b>'s workouts";
   document.getElementById('roomTargetBadgeName').textContent=target.name||('@'+target.loginId);
   badge.classList.add('visible');if(spacer)spacer.classList.add('visible');
+  renderRoomTargetBadgeDots();
   updateRoomBadgePin();
+}
+
+/* ===== Room target badge — swipe/dots to switch whose workouts you're logging =====
+   Same interaction as the Time box's own swipe carousel (cardio-time-dot / cardioTimeSwipeStart /
+   cardioTimeSwipeEnd above) — a small dot per page, tap a dot or drag left/right to move between
+   them — just replicated here with "pages" being you + every joined member instead of Duration vs
+   Stopwatch. Order matches the host-side member strip: you first, then everyone else alphabetically,
+   so the swipe order always matches what's shown there. */
+function getRoomTargetOrder(){
+  if(!window.__room)return[];
+  const order=[null];
+  Object.values(window.__room.membersMeta||{}).sort((a,b)=>(a.name||'').localeCompare(b.name||'')).forEach(m=>order.push(m.loginId));
+  return order;
+}
+function currentRoomTargetIndex(order){
+  if(!window.__room||!window.__room.target)return 0;
+  const idx=order.findIndex(id=>id===window.__room.target.loginId);
+  return idx===-1?0:idx;
+}
+function renderRoomTargetBadgeDots(){
+  const dotsEl=document.getElementById('roomTargetBadgeDots');
+  if(!dotsEl)return;
+  const order=getRoomTargetOrder();
+  if(order.length<2){dotsEl.classList.remove('multi');dotsEl.innerHTML='';return}
+  const activeIdx=currentRoomTargetIndex(order);
+  dotsEl.innerHTML=order.map((id,idx)=>`<button type="button" class="room-target-badge-dot${idx===activeIdx?' active':''}" title="${id===null?'You':'Switch member'}" onclick="handleRoomTargetDotClick(event,${idx})"></button>`).join('');
+  dotsEl.classList.add('multi');
+}
+/* Tapping a dot directly (mainly for desktop/mouse, no drag needed) — stopPropagation so it doesn't
+   also fire the badge's own swipe handlers. */
+function handleRoomTargetDotClick(e,idx){
+  e.stopPropagation();
+  const order=getRoomTargetOrder();
+  if(idx<0||idx>=order.length)return;
+  switchRoomTarget(order[idx]);
+}
+/* Records the drag/touch start point on the badge — handles both touch (mobile swipe) and mouse
+   (desktop click-drag), same pattern as cardioTimeSwipeStart. */
+function roomBadgeSwipeStart(evt){
+  const p=evt.touches?evt.touches[0]:evt;
+  if(!p)return;
+  evt.currentTarget.dataset.rtsX=p.clientX;
+  evt.currentTarget.dataset.rtsY=p.clientY;
+}
+/* Aborts a mouse-drag if the pointer leaves the badge without a mouseup (so a stray drag-off never
+   leaves a stale start point behind to corrupt the next gesture). */
+function roomBadgeSwipeCancel(evt){
+  delete evt.currentTarget.dataset.rtsX;delete evt.currentTarget.dataset.rtsY;
+}
+/* ...and on release, if it was a clear, mostly-horizontal drag (not a tap), switches to the
+   previous/next person in the swipe order — clamped at both ends rather than wrapping, same as the
+   Time box's 2-page carousel. */
+function roomBadgeSwipeEnd(evt){
+  const el=evt.currentTarget;
+  const startX=parseFloat(el.dataset.rtsX),startY=parseFloat(el.dataset.rtsY);
+  delete el.dataset.rtsX;delete el.dataset.rtsY;
+  if(isNaN(startX)||isNaN(startY))return;
+  const p=evt.changedTouches?evt.changedTouches[0]:evt;
+  if(!p)return;
+  const dx=p.clientX-startX,dy=p.clientY-startY;
+  if(Math.abs(dy)>Math.abs(dx))return; // vertical scroll — not a swipe
+  if(Math.abs(dx)<20)return; // too small — treat as a tap, not a swipe
+  const order=getRoomTargetOrder();
+  if(order.length<2)return;
+  let idx=currentRoomTargetIndex(order);
+  idx=dx<0?Math.min(order.length-1,idx+1):Math.max(0,idx-1);
+  switchRoomTarget(order[idx]);
 }
 
 /* Keeps the room target badge in normal flow (right above "+ ADD WORKOUT ENTRY") until scrolling
@@ -18419,15 +18537,22 @@ function updateRoomBadgePin(){
   // Anchor's own tab isn't the one on screen right now (offsetParent is null whenever an element or
   // any ancestor is display:none) — skip entirely rather than reading a meaningless top:0 rect.
   if(anchor.offsetParent===null)return;
-  const PIN_POINT=10; // matches .room-target-badge.pinned's top:10px
+  // Two thresholds, not one — a small dead zone between where it pins and where it un-pins. A single
+  // shared threshold made the badge flicker in/out right at the boundary (scroll momentum, elastic
+  // overscroll bounce, and subpixel rounding all jitter the anchor's rect by a pixel or two per frame).
+  const PIN_ENGAGE=10; // matches .room-target-badge.pinned's top:10px
+  const PIN_RELEASE=24;
   const anchorTop=anchor.getBoundingClientRect().top;
-  if(anchorTop<=PIN_POINT){
-    if(!badge.classList.contains('pinned')){
-      badge.classList.add('pinned');
-      if(badge.parentElement!==document.body)document.body.appendChild(badge);
-      spacer.classList.add('visible');
-    }
-  }else{
+  const isPinned=badge.classList.contains('pinned');
+  if(!isPinned&&anchorTop<=PIN_ENGAGE){
+    // Measure the badge's real rendered height right before it leaves normal flow, instead of
+    // assuming a fixed size — a mismatch there is what made the page (and the "+ ADD WORKOUT ENTRY"
+    // button right below the anchor) visibly jump the instant it pinned.
+    spacer.style.height=badge.offsetHeight+'px';
+    badge.classList.add('pinned');
+    if(badge.parentElement!==document.body)document.body.appendChild(badge);
+    spacer.classList.add('visible');
+  }else if(isPinned&&anchorTop>=PIN_RELEASE){
     unpinRoomBadge();
   }
 }
@@ -18442,8 +18567,30 @@ function unpinRoomBadge(){
   if(badge.nextSibling!==spacer||badge.parentElement!==spacer.parentElement)spacer.parentNode.insertBefore(badge,spacer);
   spacer.classList.remove('visible');
 }
-window.addEventListener('scroll',updateRoomBadgePin,{passive:true});
-window.addEventListener('resize',updateRoomBadgePin);
+// rAF-throttled: native 'scroll' events can fire many times per frame, and updateRoomBadgePin does a
+// layout read (getBoundingClientRect) plus, right at the pin boundary, a style write — running that
+// on every single event (instead of once per frame) was the main source of the scroll-time glitching.
+let _roomBadgePinTicking=false;
+function _scheduleRoomBadgePinUpdate(){
+  if(_roomBadgePinTicking)return;
+  _roomBadgePinTicking=true;
+  requestAnimationFrame(function(){_roomBadgePinTicking=false;updateRoomBadgePin()});
+}
+window.addEventListener('scroll',_scheduleRoomBadgePinUpdate,{passive:true});
+window.addEventListener('resize',_scheduleRoomBadgePinUpdate);
+// The workout-edit overlay is its own internal scroll container (overflow-y:auto), so scrolling
+// inside it never fires a 'scroll' event on window — it needs its own listener for the pin/unpin
+// logic above to keep working whenever the badge has been relocated into it (room mode only; see
+// openWorkoutEditOverlay).
+function _wireWorkoutEditOverlayBadgeScroll(){
+  const _oel=document.getElementById('workoutEditOverlay');
+  if(_oel)_oel.addEventListener('scroll',_scheduleRoomBadgePinUpdate,{passive:true});
+}
+if(document.readyState==='loading'){
+  document.addEventListener('DOMContentLoaded',_wireWorkoutEditOverlayBadgeScroll);
+}else{
+  _wireWorkoutEditOverlayBadgeScroll();
+}
 
 /* Pure state+UI update for "which member is selected" — sets window.__room.target, the today-only
    date-filter lock, and the banner/badge/strip visuals. Deliberately does NOT touch the workout
