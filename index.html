@@ -7369,20 +7369,27 @@ async function resetCardioStopwatch(i){
    once the form itself is done with (saved, cancelled, or swapped for a different queued entry), via
    clearCardioSwStorage(). */
 function getCardioSwStorageKey(){return `gymbro_cardio_sw_${getEffectiveUid()}`}
+/* Snapshot of every set's stopwatch (running flag, accumulated seconds, start epoch) plus which page
+   (Duration picker vs Stopwatch) its Time box is showing, read from the live in-memory state + DOM.
+   Shared by saveCardioSwStorage (persist) and handleSetsCountSelectChange (carry across a rebuild). */
+function snapshotCardioSwData(){
+  const data={};
+  Object.keys(window._cardioSwState||{}).forEach(i=>{
+    const st=window._cardioSwState[i];
+    if(!st||(!st.running&&!st.accumSec))return; // nothing worth persisting for this set
+    data[i]={running:st.running,accumSec:st.accumSec,startEpoch:st.startEpoch};
+  });
+  // Also remember which page (Duration picker vs digital Stopwatch) each cardio set's Time box is
+  // currently showing, so a restore lands back on the same view, not just the same numbers.
+  document.querySelectorAll('[id^="cardioTimeTrack_set_"]').forEach(track=>{
+    const i=track.id.replace('cardioTimeTrack_set_','');
+    if(track.classList.contains('sw-page-1')){data[i]=data[i]||{running:false,accumSec:0,startEpoch:0};data[i].page=1;}
+  });
+  return data;
+}
 function saveCardioSwStorage(){
   try{
-    const data={};
-    Object.keys(window._cardioSwState||{}).forEach(i=>{
-      const st=window._cardioSwState[i];
-      if(!st||(!st.running&&!st.accumSec))return; // nothing worth persisting for this set
-      data[i]={running:st.running,accumSec:st.accumSec,startEpoch:st.startEpoch};
-    });
-    // Also remember which page (Duration picker vs digital Stopwatch) each cardio set's Time box is
-    // currently showing, so a restore lands back on the same view, not just the same numbers.
-    document.querySelectorAll('[id^="cardioTimeTrack_set_"]').forEach(track=>{
-      const i=track.id.replace('cardioTimeTrack_set_','');
-      if(track.classList.contains('sw-page-1')){data[i]=data[i]||{running:false,accumSec:0,startEpoch:0};data[i].page=1;}
-    });
+    const data=snapshotCardioSwData();
     if(!Object.keys(data).length){localStorage.removeItem(getCardioSwStorageKey());return}
     localStorage.setItem(getCardioSwStorageKey(),JSON.stringify(data));
   }catch(e){}
@@ -7396,6 +7403,11 @@ function restoreCardioSwStorage(){
   let data;
   try{data=JSON.parse(localStorage.getItem(getCardioSwStorageKey())||'null')}catch(e){data=null}
   if(!data)return;
+  applyCardioSwData(data);
+}
+/* Rebuilds the in-memory stopwatch state + on-screen buttons/time/interval for each set in `data`
+   (same shape saveCardioSwStorage writes) onto whatever rows are currently mounted. */
+function applyCardioSwData(data){
   Object.keys(data).forEach(iStr=>{
     const i=parseInt(iStr);
     const entry=data[iStr];
@@ -15018,7 +15030,18 @@ function handleSetsCountSelectChange(){
     showToast(`⚠️ Can't remove saved sets here — use the 🗑 icon on a set instead.`);
     return;
   }
+  // Changing the set count rebuilds every row, and renderNonLiveSetsRows tears down all in-memory
+  // per-set timers on every rebuild. buildSetsInputFields carries the typed values across, but not a
+  // running stopwatch — so a Play timer on e.g. Set 1 used to snap back to 00:00 (stopped) the moment
+  // another set count was picked. Snapshot it first and re-apply it onto the rebuilt rows: epoch-based,
+  // so a stopwatch that was running keeps counting with no time lost; sets that no longer exist are
+  // simply dropped. Scoped to this dropdown on purpose — other rebuilds (new exercise, reset, member
+  // switch) must still start from a clean stopwatch.
+  const _swSnap=snapshotCardioSwData();
   buildSetsInputFields();
+  applyCardioSwData(_swSnap);
+  saveCardioSwStorage(); // re-persist (and prune any set that was removed)
+  restoreSeqBreakIfAny(); // same rebuild also dropped a running Live-Mode break's on-screen countdown; its saved epoch resumes it
 }
 
 /* Disables any dropdown option below the originally-saved set count while editing, so the only way down is the delete icon. */
