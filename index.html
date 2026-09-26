@@ -335,7 +335,7 @@ body.workout-edit-lock .room-target-badge.pinned{z-index:10000}
 
 /* Non-live "multiple workouts at a time" queue strip — small switchable boxes for workout entries
    started but not yet saved, shown above the Add Workout form (new-entry flow only). */
-.nl-queue-strip{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 8px;margin-bottom:6px;-webkit-overflow-scrolling:touch}
+.nl-queue-strip{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 8px;margin-bottom:6px;-webkit-overflow-scrolling:touch;touch-action:auto}
 .nl-queue-chip{position:relative;flex-shrink:0;display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-width:84px;max-width:120px;padding:6px 18px 6px 9px;border-radius:10px;border:1.5px solid var(--border-col);background:var(--bg-card);cursor:pointer;transition:border-color .2s ease,background .2s ease}
 .nl-queue-chip.active{border-color:var(--accent);background:var(--accent-soft)}
 .nl-queue-chip .nlq-label{font-size:10.5px;font-weight:800;color:var(--text-primary);font-family:var(--font-alt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
@@ -2261,7 +2261,11 @@ input:checked+.privacy-toggle-slider:before{transform:translateX(20px)}
 .rankup-close{background:var(--btn-bg);color:var(--follow-btn-text);border:none;border-radius:12px;padding:12px 30px;margin-top:24px;font-size:15px;font-weight:700;font-family:var(--font-alt);cursor:pointer;letter-spacing:1px}
 
 /* Misc */
-.workout-form-wrapper{background:var(--accent-soft);padding:16px;border-radius:16px;border:1px solid var(--border-col);margin-top:10px;box-sizing:border-box}
+/* touch-action:pan-y: lets the browser keep handling normal vertical page scroll on its own inside
+   the form (same as .set-row/.room-target-badge elsewhere) while still letting our own JS read a
+   horizontal drag for the room-target swipe (see workoutFormSwipeStart/End) without the browser's
+   own horizontal pan/rubber-band gesture fighting it. */
+.workout-form-wrapper{background:var(--accent-soft);padding:16px;border-radius:16px;border:1px solid var(--border-col);margin-top:10px;box-sizing:border-box;touch-action:pan-y}
 .workout-form-wrapper h4{color:var(--accent);margin-bottom:10px;font-family:var(--font-alt);font-size:16px;font-weight:700}
 /* Workout Log Manager card — trimmed side padding gives the single-line cardio set row (S.No / Km /
    Time / Copy / Tick) extra horizontal breathing room to lay everything out without wrapping or
@@ -4297,7 +4301,7 @@ body.theme-custom .dash-week-card{border-color:var(--border-col)}
           <button type="button" class="wf-finish-btn" id="workoutFinishBtn" style="display:none" onclick="openWorkoutFinishModal()">✅ Finish</button>
         </div>
         <div id="workoutClassChipsRow" class="workout-class-chips-row" style="display:none"></div>
-        <div id="workoutFormStructure" class="workout-form-wrapper" style="display:none">
+        <div id="workoutFormStructure" class="workout-form-wrapper" style="display:none" ontouchstart="workoutFormSwipeStart(event)" ontouchend="workoutFormSwipeEnd(event)" onmousedown="workoutFormSwipeStart(event)" onmouseup="workoutFormSwipeEnd(event)" onmouseleave="workoutFormSwipeCancel(event)">
           <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px">
             <h4 id="formActionTitle" style="margin-bottom:0">LOG NEW ENTRY</h4>
             <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;font-weight:700;color:var(--text-muted);font-family:var(--font-alt);letter-spacing:0.5px;flex-shrink:0">
@@ -18570,6 +18574,65 @@ function roomBadgeSwipeEnd(evt){
   switchRoomTarget(order[idx]);
 }
 
+/* ===== Add/Edit workout form — swipe left/right to switch room target =====
+   Same interaction as the room target badge's own swipe (roomBadgeSwipeStart/End above) — a mostly-
+   horizontal drag switches to the previous/next person in the room's swipe order, clamped at both
+   ends — just replicated here directly on the "+ ADD WORKOUT ENTRY" / edit form itself (#workoutFormStructure,
+   the same single element used for both add and edit — see openWorkoutEditOverlay) so switching
+   doesn't require scrolling away from the form to reach the badge first.
+   Two guards keep this from ever fighting anything else:
+   • isRoomFormSwipeEligible() — only live in Room Mode with at least one joined member (same
+     order.length<2 gate renderRoomTargetBadgeDots uses for the badge's own dots); with nobody to
+     switch to, the form behaves exactly as before.
+   • WF_SWIPE_EXCLUDE_SELECTOR — a drag that STARTS on a text field (typing/cursor placement), a
+     select (native picker), or one of the form's own swipeable sub-widgets (a set row's own
+     swipe-to-lock/delete, the cardio Time box's own swipe carousel, the Previous Performance value's
+     own swipe-through-history, the exercise-suggestions list, the multi-workout queue strip's own
+     native horizontal scroll) is ignored here entirely, left untouched for that element's existing
+     behavior. Plain buttons/links are deliberately NOT excluded — a real >=20px swipe starting on one
+     never fires its click anyway (that needs an in-place tap), so letting them join the swipeable
+     surface is what makes "swipe anywhere on the form" actually work in practice, since the form is
+     mostly made up of exactly those controls. */
+let _wfSwipeLastTouchTs=0;
+const WF_SWIPE_EXCLUDE_SELECTOR='input[type="text"],input:not([type]),textarea,select,.set-row,.cardio-time-swipe,.cardio-time-viewport,.prev-perf-value,.prev-perf-nav,.suggestion-box,#autoSuggestions,.nl-queue-strip';
+function isRoomFormSwipeEligible(){
+  return !!window.__room&&getRoomTargetOrder().length>=2;
+}
+function workoutFormSwipeStart(evt){
+  if(!isRoomFormSwipeEligible())return;
+  if(evt.type==='touchstart'){
+    _wfSwipeLastTouchTs=Date.now();
+  }else if(Date.now()-_wfSwipeLastTouchTs<600){
+    return; // synthetic mouse event following a real touch — ignore it entirely
+  }
+  if(evt.target&&evt.target.closest&&evt.target.closest(WF_SWIPE_EXCLUDE_SELECTOR))return;
+  const p=evt.touches?evt.touches[0]:evt;
+  if(!p)return;
+  evt.currentTarget.dataset.wfsX=p.clientX;
+  evt.currentTarget.dataset.wfsY=p.clientY;
+}
+/* Aborts a mouse-drag if the pointer leaves the form without a mouseup, same as roomBadgeSwipeCancel. */
+function workoutFormSwipeCancel(evt){
+  delete evt.currentTarget.dataset.wfsX;delete evt.currentTarget.dataset.wfsY;
+}
+function workoutFormSwipeEnd(evt){
+  const el=evt.currentTarget;
+  const startX=parseFloat(el.dataset.wfsX),startY=parseFloat(el.dataset.wfsY);
+  delete el.dataset.wfsX;delete el.dataset.wfsY;
+  if(isNaN(startX)||isNaN(startY))return; // no matching start (excluded target, or not eligible) — nothing to do
+  if(!isRoomFormSwipeEligible())return;
+  const p=evt.changedTouches?evt.changedTouches[0]:evt;
+  if(!p)return;
+  const dx=p.clientX-startX,dy=p.clientY-startY;
+  if(Math.abs(dy)>Math.abs(dx))return; // vertical scroll — not a swipe, and never prevented, so it still scrolls normally
+  if(Math.abs(dx)<20)return; // too small — a tap, leave it to whatever's actually under the finger
+  const order=getRoomTargetOrder();
+  if(order.length<2)return;
+  let idx=currentRoomTargetIndex(order);
+  idx=dx<0?Math.min(order.length-1,idx+1):Math.max(0,idx-1);
+  switchRoomTarget(order[idx]);
+}
+
 /* Keeps the room target badge in normal flow (right above "+ ADD WORKOUT ENTRY") until scrolling
    would carry it out of view, then pins it fixed to the top of the screen so everything below keeps
    scrolling underneath it — and un-pins it again once scrolling back up brings its original spot
@@ -18703,6 +18766,22 @@ function setRoomTargetState(loginId){
   if(!window.__room)return false;
   const dateInput=document.getElementById('workoutCalendarFilter');
   const banner=document.getElementById('roomModeBanner');
+  // roomModeBanner (shown/hidden below) and roomMembersStrip (re-rendered below) both sit ABOVE
+  // roomTargetBadgeAnchor in the DOM. While the badge is in normal flow that's harmless — any height
+  // change there is directly visible right where the user's looking. But once the badge is PINNED
+  // (fixed to the viewport, way further down the page than its anchor), the same height change
+  // happens entirely off-screen, above where the user's actually scrolled to — and since scrollY
+  // itself doesn't move just because off-screen content resized, that delta used to shift everything
+  // currently on screen the instant you swiped/tapped to switch: the exact "jerk/jump" glitch.
+  // Fix: snapshot the anchor's on-screen position now, and once the banner/strip changes below have
+  // landed, nudge scrollY by however far the anchor actually moved — so whatever's currently visible
+  // stays exactly where it was, and the (still off-screen) anchor/banner move underneath it instead.
+  // Only needed while pinned; while in normal flow this is a no-op (delta lines up with what's on
+  // screen anyway, so scrolling by it changes nothing the user would notice).
+  const _badgeForJumpFix=document.getElementById('roomTargetBadge');
+  const _anchorForJumpFix=document.getElementById('roomTargetBadgeAnchor');
+  const _pinnedForJumpFix=!!(_badgeForJumpFix&&_badgeForJumpFix.classList.contains('pinned'));
+  const _anchorTopBeforeJumpFix=(_pinnedForJumpFix&&_anchorForJumpFix)?_anchorForJumpFix.getBoundingClientRect().top:null;
   if(loginId===null){
     window.__room.target=null;
     if(dateInput){dateInput.disabled=false;if(window.__room.savedDateValue)dateInput.value=window.__room.savedDateValue}
@@ -18721,6 +18800,17 @@ function setRoomTargetState(loginId){
     if(banner)banner.style.display='flex';
   }
   renderRoomMembersStrip();
+  // Compensate BEFORE updateRoomTargetBadge() below runs its own pin/unpin check, so that check reads
+  // a viewport that's already stable instead of one still showing the banner/strip's raw, uncorrected
+  // shift (which — right at the pin/unpin boundary — could otherwise flip the pin state on its own).
+  // scrollBy(x,y) follows the page's CSS scroll-behavior (html{scroll-behavior:smooth} above) unless
+  // told otherwise — so without behavior:'instant' here, this correction itself glides into place over
+  // a couple hundred ms instead of snapping immediately, which is exactly what made switching look
+  // slow/jumpy even with the fix in place.
+  if(_pinnedForJumpFix&&_anchorForJumpFix){
+    const _jumpDelta=_anchorForJumpFix.getBoundingClientRect().top-_anchorTopBeforeJumpFix;
+    if(_jumpDelta)window.scrollBy({top:_jumpDelta,left:0,behavior:'instant'});
+  }
   updateRoomTargetBadge();
   return true;
 }
@@ -23546,4 +23636,4 @@ function closeLearnVideo(){
 })();
 </script>
 </body>
-</html>
+</html> 
