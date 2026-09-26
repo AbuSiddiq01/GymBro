@@ -266,9 +266,12 @@ body.ptr-dragging,body.ptr-dragging *{transition:none!important}
    than visible breaks position:sticky on its descendants — a well-known CSS gotcha. Since .glass is
    reused all over the app for the card look, this JS-driven fixed toggle sidesteps that instead of
    touching a shared class.) */
-.room-target-badge{display:none;flex-direction:column;gap:6px;background:var(--bg-card);border:1.5px solid var(--accent);border-radius:12px;padding:8px 12px;box-sizing:border-box;touch-action:pan-y;cursor:grab}
+.room-target-badge{display:none;flex-direction:column;gap:6px;background:var(--bg-card);border:1.5px solid var(--accent);border-radius:12px;padding:8px 12px;box-sizing:border-box;touch-action:pan-y;cursor:grab;position:relative}
 .room-target-badge.visible{display:flex}
-.room-target-badge-row{display:flex;align-items:center;gap:10px}
+.room-target-badge-row{display:flex;align-items:center;gap:10px;padding-right:16px}
+.room-target-badge-pin-icon{position:absolute;top:6px;right:7px;width:20px;height:20px;padding:4px;box-sizing:border-box;color:var(--text-muted);opacity:0;pointer-events:none;transition:opacity 0.15s ease}
+.room-target-badge-pin-icon.revealed{opacity:0.85;pointer-events:auto}
+.room-target-badge-pin-icon svg{display:block;width:100%;height:100%}
 /* Pinned state — lifted out of flow to the top of the viewport. Width is set with clamp() instead of
    left/right+max-width so the box is a consistent, predictable size on narrow, medium and wide
    screens alike (it no longer visibly grows once pinned) — it scales with the viewport between a
@@ -4275,6 +4278,7 @@ body.theme-custom .dash-week-card{border-color:var(--border-col)}
         </div>
         <div id="roomTargetBadgeAnchor" style="height:0"></div>
         <div id="roomTargetBadge" class="room-target-badge" ontouchstart="roomBadgeSwipeStart(event)" ontouchend="roomBadgeSwipeEnd(event)" onmousedown="roomBadgeSwipeStart(event)" onmouseup="roomBadgeSwipeEnd(event)" onmouseleave="roomBadgeSwipeCancel(event)">
+          <div class="room-target-badge-pin-icon" id="roomTargetBadgePinIcon" aria-hidden="true"></div>
           <div class="room-target-badge-row">
             <div class="room-target-badge-avatar" id="roomTargetBadgeAvatarBox">🏋</div>
             <div class="room-target-badge-text">You're working on <b id="roomTargetBadgeName"></b>'s workouts</div>
@@ -18440,17 +18444,30 @@ function updateRoomTargetBadge(){
     const myAvatar=localStorage.getItem('gymbro_avatar_url')||null;
     box.innerHTML=myAvatar?`<img src="${myAvatar}" onerror="this.parentElement.textContent='🏋'">`:'🏋';
     if(textEl)textEl.innerHTML="You're working on <b>your own</b> workouts";
-    badge.classList.add('visible');if(spacer)spacer.classList.add('visible');
-    renderRoomTargetBadgeDots();
-    updateRoomBadgePin();
+    badge.classList.add('visible');
+    _finishRoomTargetBadgeRefresh();
     return;
   }
   box.innerHTML=target.avatarUrl?`<img src="${target.avatarUrl}" onerror="this.parentElement.textContent='🏋'">`:'🏋';
   if(textEl)textEl.innerHTML="You're working on <b id='roomTargetBadgeName'></b>'s workouts";
   document.getElementById('roomTargetBadgeName').textContent=target.name||('@'+target.loginId);
-  badge.classList.add('visible');if(spacer)spacer.classList.add('visible');
+  badge.classList.add('visible');
+  _finishRoomTargetBadgeRefresh();
+}
+/* Shared tail of updateRoomTargetBadge: re-renders the dots (so a member joining/leaving is always
+   reflected), re-checks whether the badge should be pinned right now, and — the part that was
+   missing — if it's ALREADY pinned, resyncs the spacer's reserved height to the badge's real current
+   height. Switching users (or a member joining/leaving) can change the badge's content — a longer/
+   shorter name, the dot row appearing/disappearing — which changes its height; without this the
+   spacer kept reserving the OLD height, leaving a gap (or an overlap) under the pinned box and making
+   the page "jump" every time the target switched. */
+function _finishRoomTargetBadgeRefresh(){
   renderRoomTargetBadgeDots();
+  renderRoomBadgePinIcon();
   updateRoomBadgePin();
+  const badge=document.getElementById('roomTargetBadge');
+  const spacer=document.getElementById('roomTargetBadgeSpacer');
+  if(badge&&spacer&&badge.classList.contains('pinned'))spacer.style.height=badge.offsetHeight+'px';
 }
 
 /* ===== Room target badge — swipe/dots to switch whose workouts you're logging =====
@@ -18488,31 +18505,46 @@ function handleRoomTargetDotClick(e,idx){
   switchRoomTarget(order[idx]);
 }
 /* Records the drag/touch start point on the badge — handles both touch (mobile swipe) and mouse
-   (desktop click-drag), same pattern as cardioTimeSwipeStart. */
+   (desktop click-drag), same pattern as cardioTimeSwipeStart. Also remembers whether the gesture
+   started on the dot line or the pin icon, so a tap/swipe there is never also treated as a tap on
+   the box itself. */
 function roomBadgeSwipeStart(evt){
   const p=evt.touches?evt.touches[0]:evt;
   if(!p)return;
   evt.currentTarget.dataset.rtsX=p.clientX;
   evt.currentTarget.dataset.rtsY=p.clientY;
+  evt.currentTarget.dataset.rtsOnDots=(evt.target.closest&&evt.target.closest('.room-target-badge-dots'))?'1':'';
+  evt.currentTarget.dataset.rtsOnIcon=(evt.target.closest&&evt.target.closest('.room-target-badge-pin-icon'))?'1':'';
 }
 /* Aborts a mouse-drag if the pointer leaves the badge without a mouseup (so a stray drag-off never
    leaves a stale start point behind to corrupt the next gesture). */
 function roomBadgeSwipeCancel(evt){
   delete evt.currentTarget.dataset.rtsX;delete evt.currentTarget.dataset.rtsY;
+  delete evt.currentTarget.dataset.rtsOnDots;delete evt.currentTarget.dataset.rtsOnIcon;
 }
-/* ...and on release, if it was a clear, mostly-horizontal drag (not a tap), switches to the
-   previous/next person in the swipe order — clamped at both ends rather than wrapping, same as the
-   Time box's 2-page carousel. */
+/* ...and on release: a clear, mostly-horizontal drag (not a tap) switches to the previous/next person
+   in the swipe order — clamped at both ends rather than wrapping, same as the Time box's 2-page
+   carousel. A tap is split three ways: on the dot line, that's the dots' own onclick's job; on the
+   pin icon (only tappable once revealed — see below), it toggles the pin preference; anywhere else on
+   the box, it just reveals the icon without changing anything yet. */
 function roomBadgeSwipeEnd(evt){
   const el=evt.currentTarget;
   const startX=parseFloat(el.dataset.rtsX),startY=parseFloat(el.dataset.rtsY);
-  delete el.dataset.rtsX;delete el.dataset.rtsY;
+  const startedOnDots=el.dataset.rtsOnDots==='1';
+  const startedOnIcon=el.dataset.rtsOnIcon==='1';
+  delete el.dataset.rtsX;delete el.dataset.rtsY;delete el.dataset.rtsOnDots;delete el.dataset.rtsOnIcon;
   if(isNaN(startX)||isNaN(startY))return;
   const p=evt.changedTouches?evt.changedTouches[0]:evt;
   if(!p)return;
   const dx=p.clientX-startX,dy=p.clientY-startY;
   if(Math.abs(dy)>Math.abs(dx))return; // vertical scroll — not a swipe
-  if(Math.abs(dx)<20)return; // too small — treat as a tap, not a swipe
+  if(Math.abs(dx)<20){ // too small — a tap, not a swipe/drag
+    if(startedOnDots)return; // the dots' own onclick already handled it
+    if(startedOnIcon)toggleRoomBadgePinPreference();
+    else revealRoomBadgePinIcon();
+    return;
+  }
+  if(startedOnDots||startedOnIcon)return; // a drag starting on the dots or the icon isn't a box-level swipe
   const order=getRoomTargetOrder();
   if(order.length<2)return;
   let idx=currentRoomTargetIndex(order);
@@ -18533,7 +18565,7 @@ function updateRoomBadgePin(){
   const badge=document.getElementById('roomTargetBadge');
   const anchor=document.getElementById('roomTargetBadgeAnchor');
   const spacer=document.getElementById('roomTargetBadgeSpacer');
-  if(!badge||!anchor||!spacer||!badge.classList.contains('visible')){unpinRoomBadge();return}
+  if(!badge||!anchor||!spacer||!badge.classList.contains('visible')||_roomBadgePinUserDisabled){unpinRoomBadge();return}
   // Anchor's own tab isn't the one on screen right now (offsetParent is null whenever an element or
   // any ancestor is display:none) — skip entirely rather than reading a meaningless top:0 rect.
   if(anchor.offsetParent===null)return;
@@ -18566,6 +18598,45 @@ function unpinRoomBadge(){
   if(badge.classList.contains('pinned'))badge.classList.remove('pinned');
   if(badge.nextSibling!==spacer||badge.parentElement!==spacer.parentElement)spacer.parentNode.insertBefore(badge,spacer);
   spacer.classList.remove('visible');
+}
+/* ===== Manual pin / auto-pin preference =====
+   Pins by default (the scroll-driven behavior above). The pin/unpin icon itself stays hidden until
+   the box is tapped (revealRoomBadgePinIcon) — tapping the box again, now that the icon is visible
+   and tappable, on the icon itself is what actually flips the preference (toggleRoomBadgePinPreference,
+   called from roomBadgeSwipeEnd). While disabled, updateRoomBadgePin above leaves the badge in normal
+   flow no matter how far the page is scrolled, until re-enabled the same way. The preference (not the
+   reveal state — that resets each load, by design) is saved to localStorage so it survives a refresh,
+   closing/reopening the app, and switching which room member or app tab is active. */
+const _ROOM_BADGE_PIN_STORAGE_KEY='gymbro_room_badge_pin_disabled';
+let _roomBadgePinUserDisabled=(function(){try{return localStorage.getItem(_ROOM_BADGE_PIN_STORAGE_KEY)==='1'}catch(e){return false}})();
+let _roomBadgeIconRevealed=false;
+const _ROOM_BADGE_PIN_ICON_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a5 5 0 0 0-5 5c0 3 2 4.5 3 7l2 6 2-6c1-2.5 3-4 3-7a5 5 0 0 0-5-5z"/><circle cx="12" cy="7" r="2"/></svg>';
+const _ROOM_BADGE_UNPIN_ICON_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a5 5 0 0 0-5 5c0 3 2 4.5 3 7l2 6 2-6c1-2.5 3-4 3-7a5 5 0 0 0-5-5z"/><circle cx="12" cy="7" r="2"/><line x1="3" y1="3" x2="21" y2="21"/></svg>';
+function renderRoomBadgePinIcon(){
+  const iconEl=document.getElementById('roomTargetBadgePinIcon');
+  if(!iconEl)return;
+  iconEl.innerHTML=_roomBadgePinUserDisabled?_ROOM_BADGE_UNPIN_ICON_SVG:_ROOM_BADGE_PIN_ICON_SVG;
+  iconEl.title=_roomBadgePinUserDisabled?'Unpinned — tap to pin while scrolling':'Pinned while scrolling — tap to unpin';
+  iconEl.classList.toggle('revealed',_roomBadgeIconRevealed);
+}
+/* A tap anywhere on the box other than the (already-revealed) icon or the dot line — just reveals
+   the icon so it can be tapped next; doesn't change the preference itself yet. */
+function revealRoomBadgePinIcon(){
+  if(_roomBadgeIconRevealed)return;
+  _roomBadgeIconRevealed=true;
+  renderRoomBadgePinIcon();
+}
+function toggleRoomBadgePinPreference(){
+  _roomBadgePinUserDisabled=!_roomBadgePinUserDisabled;
+  try{localStorage.setItem(_ROOM_BADGE_PIN_STORAGE_KEY,_roomBadgePinUserDisabled?'1':'0')}catch(e){}
+  renderRoomBadgePinIcon();
+  if(_roomBadgePinUserDisabled){
+    unpinRoomBadge(); // drop back into normal flow right away; scrolling won't re-pin it until re-enabled
+    if(typeof showToast==='function')showToast('📌 Unpinned — it\'ll scroll away normally now');
+  }else{
+    updateRoomBadgePin(); // re-check right away in case we're already scrolled past the pin point
+    if(typeof showToast==='function')showToast('📌 Pinned while scrolling');
+  }
 }
 // rAF-throttled: native 'scroll' events can fire many times per frame, and updateRoomBadgePin does a
 // layout read (getBoundingClientRect) plus, right at the pin boundary, a style write — running that
@@ -18889,6 +18960,10 @@ async function onRoomRowUpdate(row,announce){
     if(!pendingLoginIds.includes(loginId))delete window.__room.pendingMeta[loginId];
   });
   renderRoomMembersStrip();
+  // The badge's own dot line (one dot per joined member) is otherwise only refreshed on an explicit
+  // target switch — without this, a member joining or an unselected member leaving left it showing
+  // the old member count.
+  if(typeof updateRoomTargetBadge==='function')updateRoomTargetBadge();
 }
 
 /* Shared by both the host's and a joined member's own countdown ticker (startRoomCountdown /
@@ -23441,4 +23516,4 @@ function closeLearnVideo(){
 })();
 </script>
 </body>
-</html>
+</html> 
