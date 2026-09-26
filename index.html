@@ -319,6 +319,80 @@ body.workout-edit-lock .room-target-badge.pinned{z-index:10000}
 .room-target-badge-dot{flex:1 1 auto;min-width:12px;max-width:44px;width:clamp(12px,7vw,44px);height:16px;padding:0;border:none;background:transparent;cursor:pointer;display:flex;align-items:center;-webkit-tap-highlight-color:transparent}
 .room-target-badge-dot::before{content:'';display:block;width:100%;height:4px;border-radius:2px;background:var(--border-col);transition:background 0.15s ease,opacity 0.15s ease}
 .room-target-badge-dot.active::before{background:var(--accent)}
+/* ===================== ROOM TARGET RAIL (replaces the old top-pinned pill above) =====================
+   The "You're working on X's workouts" indicator now lives here instead: a small floating dock of
+   name+avatar pairs, vertically centered on the RIGHT SIDE of the screen, in the empty page-background
+   gutter beside the content — not on top of any card, and without shrinking .container/the cards at all.
+   Where exactly that gutter is changes with screen size (.container is 95% wide on phones, capped at
+   1400px and centered on wide screens), so the horizontal position is measured in JS against the real,
+   current edge of .container (see positionRoomRail) rather than a fixed CSS "right" value — that's what
+   makes it land in the actual empty space next to the content on any screen size instead of drifting
+   onto the card. On the rare very-narrow phone where that gutter is only a few pixels wide, the rail is
+   clamped so it never starts to the left of .container's edge (it will only ever touch the card's very
+   edge pixel, never sit on top of its content), and the collapse toggle below lets it be tucked away to
+   almost nothing when it's in the way.
+   TRUE viewport pinning: position:fixed only stays glued to the viewport if none of its ancestors set
+   transform / filter / backdrop-filter / perspective / will-change:transform — each of those creates
+   its own "containing block", and a "fixed" descendant then sticks to THAT ancestor instead of the
+   page, i.e. it scrolls right along with it. Every card in this app uses .glass (backdrop-filter:
+   blur(...)), which is exactly that trap — it's why the rail used to drift/scroll despite already
+   having position:fixed here. The fix is in JS (see renderRoomTargetRail): the rail element is moved
+   to be a direct child of <body> the first time it renders, so it never sits inside a filtered
+   ancestor and position:fixed genuinely pins it to the screen — it does NOT move again on scroll, only
+   on resize/orientation change (screen-size changes).
+   The small ▾ toggle at the top of the stack opens/closes the avatar list in place — the pill's anchor
+   point never moves, only the list of avatars collapses/expands beneath the toggle.
+   It is its own floating panel — a blurred glass capsule with its own background/border/shadow, same
+   visual language as the old pinned badge's glass look (see .room-target-badge.pinned above) — so it
+   reads as a distinct floating control sitting on top of the app, the way a floating action button
+   does, rather than looking like it's glued onto whatever card happens to be underneath it.
+   The old horizontal badge above is force-hidden (see the override near the end of this rule block);
+   its JS keeps running harmlessly in the background (other code reads its DOM defensively), it's just
+   never shown on screen anymore. */
+.room-rail{position:fixed;top:50%;left:0;transform:translateY(-50%);z-index:900;display:none;flex-direction:column;align-items:center;gap:10px;max-height:70vh;overflow-y:auto;overflow-x:visible;padding:9px 6px;pointer-events:auto;scrollbar-width:none;-ms-overflow-style:none;
+  border-radius:16px;border:1.5px solid var(--border-col);
+  background:rgba(20,22,28,0.6);
+  background:color-mix(in srgb, var(--bg-card) 62%, transparent);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  box-shadow:0 10px 28px -8px rgba(0,0,0,0.55)}
+body.workout-edit-lock .room-rail{z-index:10000}
+.room-rail::-webkit-scrollbar{display:none}
+.room-rail.visible{display:flex}
+/* Small caret that opens/closes the avatar list in place — the rail's anchor point stays put. */
+.room-rail-toggle{display:flex;align-items:center;justify-content:center;width:18px;height:18px;flex-shrink:0;border:none;background:none;cursor:pointer;padding:0;color:var(--text-muted);font-size:10px;line-height:1;-webkit-tap-highlight-color:transparent;transition:transform .2s ease}
+.room-rail.collapsed .room-rail-toggle{transform:rotate(-90deg)}
+.room-rail-items{display:flex;flex-direction:column;align-items:center;gap:10px;overflow:hidden;max-height:60vh;opacity:1;transition:max-height .22s ease,opacity .15s ease,margin .22s ease,gap .22s ease}
+.room-rail.collapsed .room-rail-items{max-height:0;opacity:0;gap:0;margin:0;pointer-events:none}
+.room-rail-item{display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;background:none;border:none;padding:0;flex-shrink:0;-webkit-tap-highlight-color:transparent}
+.room-rail-avatar{width:24px;height:24px;border-radius:50%;overflow:hidden;flex-shrink:0;border:2px solid var(--border-col);display:flex;align-items:center;justify-content:center;background:var(--bg-panel);font-size:10px;font-weight:800;color:var(--text-muted);font-family:var(--font-alt);transition:box-shadow .18s ease,border-color .18s ease}
+.room-rail-avatar img{width:100%;height:100%;object-fit:cover}
+.room-rail-item.active .room-rail-avatar{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent),0 0 12px 3px var(--accent)}
+.room-rail-name{font-family:var(--font-alt);font-size:7px;font-weight:800;color:var(--text-muted);max-width:34px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.15}
+.room-rail-item.active .room-rail-name{color:var(--accent)}
+/* Extra-narrow phones: .container leaves almost no gutter at all, so shrink the rail as much as
+   possible (smaller avatars, no name label) to keep its footprint — and therefore any unavoidable
+   overlap with the very edge of the card — as small as it can possibly be. */
+@media(max-width:360px){
+  .room-rail{padding:7px 5px;gap:8px}
+  .room-rail-avatar{width:20px;height:20px;font-size:8px;border-width:1.5px}
+  .room-rail-name{display:none}
+}
+/* Medium (tablet-ish) widths: the gutter beside .container opens up, so the rail can afford to be a
+   little bigger without any risk of touching the card. */
+@media(min-width:481px) and (max-width:900px){
+  .room-rail{gap:12px;padding:11px 8px}
+  .room-rail-avatar{width:30px;height:30px;font-size:12px}
+  .room-rail-name{font-size:8.5px;max-width:48px}
+}
+/* Wide/desktop: .container is width-capped (see .container), so there's real empty gutter out to the
+   viewport edge — give the rail more breathing room and slightly bigger targets. */
+@media(min-width:901px){
+  .room-rail{gap:14px;padding:12px 9px}
+  .room-rail-avatar{width:38px;height:38px;font-size:14px}
+  .room-rail-name{font-size:10px;max-width:62px}
+}
+/* The old horizontal "You're working on X's workouts" pill — superseded by .room-rail above. */
+.room-target-badge,.room-target-badge-spacer{display:none !important}
 /* Approval toggle row */
 .room-approval-row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:12px 0}
 .room-approval-row .room-approval-label{font-size:12px;font-weight:700;color:var(--text-secondary);font-family:var(--font-alt)}
@@ -4305,6 +4379,10 @@ body.theme-custom .dash-week-card{border-color:var(--border-col)}
           <div class="room-target-badge-dots" id="roomTargetBadgeDots"></div>
         </div>
         <div id="roomTargetBadgeSpacer" class="room-target-badge-spacer"></div>
+        <!-- Vertical avatar rail — replaces the pill above as the "who am I logging for" switcher.
+             position:fixed (see .room-rail CSS), so its DOM position in the page doesn't matter; kept
+             here purely for logical proximity to the badge it supersedes. -->
+        <div id="roomTargetRail" class="room-rail" role="tablist" aria-label="Switch whose workouts you're logging"></div>
         <div id="initialWorkoutBox">
           <button class="btn" onclick="showAddWorkoutForm()">+ ADD WORKOUT ENTRY</button>
         </div>
@@ -18539,7 +18617,7 @@ function updateRoomTargetBadge(){
   // No room at all → nothing to show. A room WITHOUT a selected member means the host is working on
   // THEIR OWN workouts (not a member's) — that's still worth showing, so it's always clear whose
   // workouts are being added, host included, not just when a member is selected.
-  if(!window.__room){badge.classList.remove('visible');if(spacer)spacer.classList.remove('visible');return}
+  if(!window.__room){badge.classList.remove('visible');if(spacer)spacer.classList.remove('visible');renderRoomTargetRail();return}
   const box=document.getElementById('roomTargetBadgeAvatarBox');
   if(!target){
     // Host working on THEIR OWN workouts (no member selected) — show the host's own DP, same
@@ -18569,10 +18647,133 @@ function _finishRoomTargetBadgeRefresh(){
   renderRoomTargetBadgeDots();
   renderRoomBadgePinIcon();
   updateRoomBadgePin();
+  renderRoomTargetRail();
   const badge=document.getElementById('roomTargetBadge');
   const spacer=document.getElementById('roomTargetBadgeSpacer');
   if(badge&&spacer&&badge.classList.contains('pinned'))spacer.style.height=badge.offsetHeight+'px';
 }
+/* Vertical avatar rail (see .room-rail CSS) — the actual "who am I logging for" switcher now that the
+   old horizontal pill is hidden. Same source data as the dots (getRoomTargetOrder/membersMeta), just
+   rendered as a persistent, collapsible stack instead of a swipe carousel: you first, then every
+   joined member alphabetically, with the currently selected one getting the blue glow ring.
+   Built with real DOM nodes (createElement/textContent/addEventListener) rather than innerHTML+inline
+   onclick strings — a name or login id containing a quote character would otherwise break out of a
+   string-built HTML attribute and corrupt every click handler after it on the page.
+   IMPORTANT: the rail is reparented to be a direct child of <body> the first time this runs. It lives
+   in the markup next to the "+ ADD WORKOUT ENTRY" button purely for readability, but every card on this
+   page is a .glass element (backdrop-filter), and a backdrop-filter/filter/transform ancestor hijacks
+   position:fixed for its descendants — the rail would then scroll along with that card instead of
+   staying pinned to the screen. Moving it out to <body> removes that ancestor entirely. */
+function renderRoomTargetRail(){
+  const rail=document.getElementById('roomTargetRail');
+  if(!rail)return;
+  if(rail.parentElement!==document.body)document.body.appendChild(rail);
+  if(!window.__room){rail.classList.remove('visible');document.body.classList.remove('has-room-rail');rail.innerHTML='';return}
+
+  const wasCollapsed=rail.classList.contains('collapsed'); // keep the user's open/closed choice across re-renders
+  rail.innerHTML='';
+
+  const toggleBtn=document.createElement('button');
+  toggleBtn.type='button';
+  toggleBtn.className='room-rail-toggle';
+  toggleBtn.setAttribute('aria-label','Show or hide the workout switcher');
+  toggleBtn.setAttribute('aria-expanded',wasCollapsed?'false':'true');
+  toggleBtn.textContent='▾';
+  toggleBtn.addEventListener('click',()=>{
+    const nowCollapsed=rail.classList.toggle('collapsed');
+    toggleBtn.setAttribute('aria-expanded',nowCollapsed?'false':'true');
+  });
+
+  const itemsWrap=document.createElement('div');
+  itemsWrap.className='room-rail-items';
+
+  const order=getRoomTargetOrder();
+  const activeIdx=currentRoomTargetIndex(order);
+  const myAvatarUrl=localStorage.getItem('gymbro_avatar_url')||null;
+  order.forEach((id,idx)=>{
+    let avatarUrl=myAvatarUrl,name='You';
+    if(id!==null){
+      const m=window.__room.membersMeta[id];
+      if(!m)return;
+      avatarUrl=m.avatarUrl;name=m.name||('@'+m.loginId);
+    }
+    const initial=(name||'?').trim().charAt(0).toUpperCase()||'🏋';
+    const label=id===null?'your own workouts':`${name}'s workouts`;
+
+    const item=document.createElement('button');
+    item.type='button';
+    item.className='room-rail-item'+(idx===activeIdx?' active':'');
+    item.setAttribute('role','tab');
+    item.setAttribute('aria-selected',idx===activeIdx?'true':'false');
+    item.title=`Switch to ${label}`;
+    item.addEventListener('click',()=>switchRoomTarget(id));
+
+    const nameEl=document.createElement('span');
+    nameEl.className='room-rail-name';
+    nameEl.textContent=id===null?'You':name;
+
+    const avatarEl=document.createElement('span');
+    avatarEl.className='room-rail-avatar';
+    if(avatarUrl){
+      const img=document.createElement('img');
+      img.src=avatarUrl;
+      img.alt='';
+      img.onerror=function(){avatarEl.textContent=initial;};
+      avatarEl.appendChild(img);
+    }else{
+      avatarEl.textContent=initial;
+    }
+
+    item.appendChild(nameEl); // name ABOVE the DP
+    item.appendChild(avatarEl);
+    itemsWrap.appendChild(item);
+  });
+
+  rail.appendChild(toggleBtn);
+  rail.appendChild(itemsWrap);
+  rail.classList.toggle('collapsed',wasCollapsed);
+  rail.classList.add('visible');
+  document.body.classList.add('has-room-rail');
+  positionRoomRail();
+}
+/* Measures the REAL empty gutter beside .container (the app's main content wrapper) and places the
+   rail (now a direct child of <body>, see above) just outside its right edge, vertically centered on
+   the screen — WITHOUT ever letting the rail get clipped off the edge of the screen. That clipping is
+   exactly what happened on narrow/extra-narrow phones before this fix: the old version guaranteed
+   "never left of .container's edge" as a hard rule, but on a phone .container is ~95% of the viewport
+   width, leaving only a few px of real gutter — nowhere near enough room for the rail's actual width,
+   so it got pushed mostly off the right edge of the screen and only a sliver of one avatar remained
+   visible. Visibility now wins: the rail's real width is measured (railRect.width, not a guessed
+   number), and its left edge is clamped so the WHOLE rail always stays inside the viewport
+   (left + railWidth + margin <= window width) on every screen size — extra-narrow, narrow, medium,
+   wide, wider, all of it. It still prefers to sit just outside .container's right edge when there's
+   room for that (desktop/wide screens, where the gutter is generously sized), and only ever eats a few
+   px of that gutter's inner edge on the rare screen too narrow to fit both requirements at once — it
+   never covers card content in the middle of the screen either way, since it only ever touches the
+   card's very edge pixel, if at all.
+   Runs once per render, plus on resize/orientation change, but deliberately NOT on scroll — the rail
+   locks to that one spot on screen once placed, exactly like every other position:fixed element. */
+function positionRoomRail(){
+  const rail=document.getElementById('roomTargetRail');
+  if(!rail||!rail.classList.contains('visible'))return;
+  const containerEl=document.querySelector('.container');
+  const vw=window.innerWidth;
+  const margin=4; // always keep this many px clear of the true viewport edge
+  const railWidth=rail.getBoundingClientRect().width||40;
+  const maxLeft=Math.max(margin,vw-railWidth-margin); // hard limit: whole rail must fit on-screen
+  let left=maxLeft;
+  if(containerEl){
+    const rect=containerEl.getBoundingClientRect();
+    const gutter=Math.max(0,vw-rect.right);
+    const preferredGap=Math.min(10,Math.max(2,gutter*0.25));
+    const preferredLeft=rect.right+preferredGap;
+    left=Math.min(preferredLeft,maxLeft);
+  }
+  left=Math.max(margin,left);
+  rail.style.left=Math.round(left)+'px';
+}
+window.addEventListener('resize',function(){if(document.body.classList.contains('has-room-rail'))positionRoomRail();});
+window.addEventListener('orientationchange',function(){if(document.body.classList.contains('has-room-rail'))setTimeout(positionRoomRail,150);});
 
 /* ===== Room target badge — swipe/dots to switch whose workouts you're logging =====
    Same interaction as the Time box's own swipe carousel (cardio-time-dot / cardioTimeSwipeStart /
@@ -19323,6 +19524,7 @@ function teardownRoomUiOnLogout(){
   const mrs=document.getElementById('memberRoomStrip');if(mrs)mrs.style.display='none';
   const mws=document.getElementById('memberRoomWaitingStrip');if(mws)mws.style.display='none';
   const ric=document.getElementById('roomIdleControls');if(ric)ric.style.display='none';const _rotb2=document.getElementById('roomOptionsToggleBtn');if(_rotb2){_rotb2.classList.remove('active');if(!isAnyRoomStateActive())_rotb2.style.display='';}
+  if(typeof renderRoomTargetRail==='function')renderRoomTargetRail(); // window.__room is already null above, so this just hides the rail + drops body.has-room-rail
 }
 
 /* Called from mountMemberDashboard() on BOTH fresh login and page-refresh auto-restore, so an
