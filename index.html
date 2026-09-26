@@ -6499,15 +6499,21 @@ function _accumulateSessionRowVolume(bucket,row){
 async function sessionInsert(payload){
   const row={user_id:payload.user_id,date:payload.date,class:payload.class||'',duration:payload.duration||'',workouts:payload.workouts||[]};
   if(payload.created_at)row.created_at=payload.created_at;
-  return await db.from(SESSION_TABLE).insert([row]).select();
+  const result=await db.from(SESSION_TABLE).insert([row]).select();
+  if(typeof invalidatePrevPerfCache==='function')invalidatePrevPerfCache(payload.user_id); // a save just happened — any cached Previous Performance/Max-Min rows for this user are now stale
+  return result;
 }
 /* Update a specific Session row, identified by its full composite key. patch: partial fields. */
 async function sessionUpdateByKey(uid,date,createdAt,patch){
-  return await db.from(SESSION_TABLE).update(patch).eq('user_id',uid).eq('date',date).eq('created_at',createdAt);
+  const result=await db.from(SESSION_TABLE).update(patch).eq('user_id',uid).eq('date',date).eq('created_at',createdAt);
+  if(typeof invalidatePrevPerfCache==='function')invalidatePrevPerfCache(uid);
+  return result;
 }
 /* Delete a specific Session row, identified by its full composite key. */
 async function sessionDeleteByKey(uid,date,createdAt){
-  return await db.from(SESSION_TABLE).delete().eq('user_id',uid).eq('date',date).eq('created_at',createdAt);
+  const result=await db.from(SESSION_TABLE).delete().eq('user_id',uid).eq('date',date).eq('created_at',createdAt);
+  if(typeof invalidatePrevPerfCache==='function')invalidatePrevPerfCache(uid);
+  return result;
 }
 /* All Session rows for a user on one date (usually 0 or 1, occasionally 2). */
 async function sessionFetchByUserDate(uid,date){
@@ -15487,12 +15493,40 @@ function applyTrackerFocus(){
    navigatePrevPerf/renderPrevPerfEntry/updatePrevPerfNav below. */
 window._prevPerfHistory={nonlive:[],live:[]};
 window._prevPerfHistoryIdx={nonlive:0,live:0};
+/* Caches the raw Session rows a previous-performance lookup fetched, keyed by uid, so switching room
+   target back and forth (most commonly switching back to yourself/"host") never re-hits the network
+   for data that hasn't changed. Before this cache existed, EVERY switch back re-fetched from scratch:
+   the badge briefly showed "Looking up history..." and then, once the network call resolved (often
+   after the room-switch's own page-height lock had already released), swapped in the real content —
+   two height changes landing after the page was supposedly already settled, which is exactly what made
+   the page visibly jump up and down on every switch back to host. With the cache, a repeat lookup for
+   the same uid renders straight from memory, synchronously, with no loading flicker and no late height
+   change at all. Cleared (see invalidatePrevPerfCache) the moment that user's data actually changes, so
+   a genuinely new save still shows up immediately. */
+window._prevPerfRawCache={}; // uid -> {rows:[{date,workouts}]}
+window._maxMinRawCache={};   // uid -> {rows:[{date,workouts}]} — separate cache: computeExerciseMaxMinStats
+                              // runs its own unbounded (no .limit) query, a different result set than the one below.
+function invalidatePrevPerfCache(uid){
+  if(!uid)return;
+  delete window._prevPerfRawCache[uid];
+  delete window._maxMinRawCache[uid];
+}
 async function fetchPrevPerformance(exerciseName, mode, excludeDate){
-  if(isRoomMemberModeActive())return; // members: no history/previous-performance visibility
+  const badgeEl0=document.getElementById(mode==='live'?'prevPerfBadgeLive':'prevPerfBadgeNonLive');
+  if(isRoomMemberModeActive()){
+    // Members: no history/previous-performance visibility. Explicitly hide the badge here too (not
+    // just skip fetching) — otherwise, if it was already showing the HOST's own previous performance
+    // from just before switching to this member, that stale host data would stay on screen looking
+    // like it belongs to the member now selected.
+    if(badgeEl0)badgeEl0.classList.remove('visible');
+    renderPrevPerfStats(mode,null);
+    updatePrevPerfNav(mode);
+    return;
+  }
   const uid=getEffectiveUid();
   if(!uid||!exerciseName)return;
   updateTrackWorkoutBtnVisibility(mode);
-  const badgeEl=document.getElementById(mode==='live'?'prevPerfBadgeLive':'prevPerfBadgeNonLive');
+  const badgeEl=badgeEl0;
   const valueEl=document.getElementById(mode==='live'?'prevPerfValueLive':'prevPerfValueNonLive');
   if(!badgeEl||!valueEl)return;
   // A fresh lookup is starting (new exercise name) — any earlier previous-performance data (and any
@@ -15501,11 +15535,6 @@ async function fetchPrevPerformance(exerciseName, mode, excludeDate){
   window._prevPerfHistory[mode]=[];
   window._prevPerfHistoryIdx[mode]=0;
   resetPrevPerfCopyState(mode);
-  badgeEl.classList.add("visible");
-  applyPrevPerfCollapseState(mode); // fold state is independent of content — restore it every time the badge (re)shows
-  valueEl.innerHTML=`<span class="prev-perf-loading">Looking up history...</span>`;
-  renderPrevPerfStats(mode,null); // clear any stale Max/Min from a previous exercise while this one loads
-  updatePrevPerfNav(mode); // hide the nav row while loading
   // "Reference date" = the date this entry is being logged FOR. Live entries are always logged for
   // right now, so that's always actual today. Non-live entries can be backdated via the
   // workoutCalendarFilter date picker — when they are, THAT selected date acts as "today" for
@@ -15513,9 +15542,28 @@ async function fetchPrevPerformance(exerciseName, mode, excludeDate){
   // BEFORE the selected date, not simply the most recent row in the whole table (which could
   // otherwise be a later/actual-today entry, or the entry currently being edited).
   const refDate=mode==='live'?getLocalDateString():(document.getElementById("workoutCalendarFilter")?.value||getLocalDateString());
+  let data;
+  const cached=window._prevPerfRawCache[uid];
+  if(cached){
+    // Reuse the already-fetched rows for this user — synchronous, no network round-trip, no loading
+    // placeholder ever shown, so nothing here can change the badge's height a moment later.
+    data=cached.rows;
+    applyPrevPerfCollapseState(mode);
+  } else {
+    badgeEl.classList.add("visible");
+    applyPrevPerfCollapseState(mode); // fold state is independent of content — restore it every time the badge (re)shows
+    valueEl.innerHTML=`<span class="prev-perf-loading">Looking up history...</span>`;
+    renderPrevPerfStats(mode,null); // clear any stale Max/Min from a previous exercise while this one loads
+    updatePrevPerfNav(mode); // hide the nav row while loading
+    try{
+      const{data:fetched,error}=await db.from(SESSION_TABLE).select("date,workouts").eq("user_id",uid).order("date",{ascending:false}).limit(60);
+      if(error||!fetched){badgeEl.classList.remove("visible");renderPrevPerfStats(mode,null);updatePrevPerfNav(mode);return}
+      data=fetched;
+      window._prevPerfRawCache[uid]={rows:data};
+    }catch(err){badgeEl.classList.remove("visible");renderPrevPerfStats(mode,null);if(mode==='live')window._prevPerfSetsLive=null;else window._prevPerfSetsNonLive=null;updatePrevPerfNav(mode);return}
+  }
   try{
-    const{data,error}=await db.from(SESSION_TABLE).select("date,workouts").eq("user_id",uid).order("date",{ascending:false}).limit(60);
-    if(error||!data||!data.length){badgeEl.classList.remove("visible");renderPrevPerfStats(mode,null);updatePrevPerfNav(mode);return}
+    if(!data.length){badgeEl.classList.remove("visible");renderPrevPerfStats(mode,null);updatePrevPerfNav(mode);return}
     const nameLower=exerciseName.toLowerCase().trim();
     // Every strictly-prior occurrence of this exercise, not just the single most recent one — `data`
     // is already date-descending, so this list comes out newest-first for free (index 0 = what the
@@ -15766,8 +15814,22 @@ async function computeExerciseMaxMinStats(exerciseName){
   if(!uid||!exerciseName)return null;
   const nameLower=exerciseName.toLowerCase().trim();
   try{
-    const{data,error}=await db.from(SESSION_TABLE).select("date,workouts").eq("user_id",uid);
-    if(error||!data||!data.length)return null;
+    // Same idea as fetchPrevPerformance's cache above (see window._prevPerfRawCache) — a separate
+    // cache because this query is deliberately unbounded (no .limit), a different result set than the
+    // recent-60 one used there. Reused across repeat lookups for the same uid so the Max/Min stat row
+    // never has a late arrival of its own, cleared together with the other cache the instant this
+    // user's data actually changes (see invalidatePrevPerfCache).
+    let data;
+    const cached=window._maxMinRawCache[uid];
+    if(cached){
+      data=cached.rows;
+    } else {
+      const{data:fetched,error}=await db.from(SESSION_TABLE).select("date,workouts").eq("user_id",uid);
+      if(error||!fetched)return null;
+      data=fetched;
+      window._maxMinRawCache[uid]={rows:data};
+    }
+    if(!data.length)return null;
     const allSets=[];
     data.forEach(row=>{
       sessionWorkoutsArray(row).forEach(wEntryRaw=>{
@@ -24485,4 +24547,4 @@ function closeLearnVideo(){
 })();
 </script>
 </body>
-</html> 
+</html>
