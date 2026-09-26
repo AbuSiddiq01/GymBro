@@ -18508,7 +18508,17 @@ function handleRoomTargetDotClick(e,idx){
    (desktop click-drag), same pattern as cardioTimeSwipeStart. Also remembers whether the gesture
    started on the dot line or the pin icon, so a tap/swipe there is never also treated as a tap on
    the box itself. */
+/* Touch browsers fire a synthetic mousedown/mouseup shortly after the real touchstart/touchend for
+   the same physical tap. Reveal is idempotent so that double-firing was harmless, but the pin toggle
+   isn't — it flips state — so without this guard, one real tap ran the tap logic twice and the second
+   (synthetic) run immediately flipped the state back, making a single tap look like it did nothing. */
+let _roomBadgeLastTouchTs=0;
 function roomBadgeSwipeStart(evt){
+  if(evt.type==='touchstart'){
+    _roomBadgeLastTouchTs=Date.now();
+  }else if(Date.now()-_roomBadgeLastTouchTs<600){
+    return; // synthetic mouse event following a real touch — ignore it entirely
+  }
   const p=evt.touches?evt.touches[0]:evt;
   if(!p)return;
   evt.currentTarget.dataset.rtsX=p.clientX;
@@ -18524,15 +18534,24 @@ function roomBadgeSwipeCancel(evt){
 }
 /* ...and on release: a clear, mostly-horizontal drag (not a tap) switches to the previous/next person
    in the swipe order — clamped at both ends rather than wrapping, same as the Time box's 2-page
-   carousel. A tap is split three ways: on the dot line, that's the dots' own onclick's job; on the
-   pin icon (only tappable once revealed — see below), it toggles the pin preference; anywhere else on
-   the box, it just reveals the icon without changing anything yet. */
+   carousel — regardless of whether the drag started on the dot line (the dots now span nearly the
+   full width of the badge, so almost every swipe starts on one; only a small movement there is
+   treated as a genuine dot tap instead). A TAP is split three ways: on the dot line, that's the dots'
+   own onclick's job; on the pin icon (only tappable once revealed — see below), it toggles the pin
+   preference; anywhere else on the box, it toggles whether the icon is shown at all. */
 function roomBadgeSwipeEnd(evt){
   const el=evt.currentTarget;
   const startX=parseFloat(el.dataset.rtsX),startY=parseFloat(el.dataset.rtsY);
   const startedOnDots=el.dataset.rtsOnDots==='1';
   const startedOnIcon=el.dataset.rtsOnIcon==='1';
   delete el.dataset.rtsX;delete el.dataset.rtsY;delete el.dataset.rtsOnDots;delete el.dataset.rtsOnIcon;
+  // Touch browsers fire a synthetic mousedown/mouseup/click a moment after a real touchend for the
+  // same physical tap. preventDefault() on the touchend itself is what actually suppresses that
+  // synthetic chain (a time-window guard alone isn't reliable once an async confirm — or anything
+  // else — adds delay in between). BUT a dot is a real <button> that switches on its own onclick —
+  // that onclick only fires because of this exact synthetic click, so a tap that started on the dot
+  // line must never have its default prevented, or the dots stop switching entirely.
+  if(!startedOnDots&&evt.type==='touchend'&&evt.cancelable)evt.preventDefault();
   if(isNaN(startX)||isNaN(startY))return;
   const p=evt.changedTouches?evt.changedTouches[0]:evt;
   if(!p)return;
@@ -18541,10 +18560,9 @@ function roomBadgeSwipeEnd(evt){
   if(Math.abs(dx)<20){ // too small — a tap, not a swipe/drag
     if(startedOnDots)return; // the dots' own onclick already handled it
     if(startedOnIcon)toggleRoomBadgePinPreference();
-    else revealRoomBadgePinIcon();
+    else toggleRoomBadgePinIconReveal();
     return;
   }
-  if(startedOnDots||startedOnIcon)return; // a drag starting on the dots or the icon isn't a box-level swipe
   const order=getRoomTargetOrder();
   if(order.length<2)return;
   let idx=currentRoomTargetIndex(order);
@@ -18601,17 +18619,18 @@ function unpinRoomBadge(){
 }
 /* ===== Manual pin / auto-pin preference =====
    Pins by default (the scroll-driven behavior above). The pin/unpin icon itself stays hidden until
-   the box is tapped (revealRoomBadgePinIcon) — tapping the box again, now that the icon is visible
-   and tappable, on the icon itself is what actually flips the preference (toggleRoomBadgePinPreference,
-   called from roomBadgeSwipeEnd). While disabled, updateRoomBadgePin above leaves the badge in normal
-   flow no matter how far the page is scrolled, until re-enabled the same way. The preference (not the
-   reveal state — that resets each load, by design) is saved to localStorage so it survives a refresh,
-   closing/reopening the app, and switching which room member or app tab is active. */
+   the box is tapped (toggleRoomBadgePinIconReveal) — a second tap on the box (still not the icon)
+   hides it again. Once it's visible and tappable, tapping the icon itself is what actually flips the
+   preference (toggleRoomBadgePinPreference, called from roomBadgeSwipeEnd). While disabled,
+   updateRoomBadgePin above leaves the badge in normal flow no matter how far the page is scrolled,
+   until re-enabled the same way. The preference (not the reveal state — that resets each load, by
+   design) is saved to localStorage so it survives a refresh, closing/reopening the app, and switching
+   which room member or app tab is active. */
 const _ROOM_BADGE_PIN_STORAGE_KEY='gymbro_room_badge_pin_disabled';
 let _roomBadgePinUserDisabled=(function(){try{return localStorage.getItem(_ROOM_BADGE_PIN_STORAGE_KEY)==='1'}catch(e){return false}})();
 let _roomBadgeIconRevealed=false;
-const _ROOM_BADGE_PIN_ICON_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a5 5 0 0 0-5 5c0 3 2 4.5 3 7l2 6 2-6c1-2.5 3-4 3-7a5 5 0 0 0-5-5z"/><circle cx="12" cy="7" r="2"/></svg>';
-const _ROOM_BADGE_UNPIN_ICON_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a5 5 0 0 0-5 5c0 3 2 4.5 3 7l2 6 2-6c1-2.5 3-4 3-7a5 5 0 0 0-5-5z"/><circle cx="12" cy="7" r="2"/><line x1="3" y1="3" x2="21" y2="21"/></svg>';
+const _ROOM_BADGE_PIN_ICON_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"/></svg>';
+const _ROOM_BADGE_UNPIN_ICON_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"/><line x1="3" y1="3" x2="21" y2="21"/></svg>';
 function renderRoomBadgePinIcon(){
   const iconEl=document.getElementById('roomTargetBadgePinIcon');
   if(!iconEl)return;
@@ -18619,14 +18638,25 @@ function renderRoomBadgePinIcon(){
   iconEl.title=_roomBadgePinUserDisabled?'Unpinned — tap to pin while scrolling':'Pinned while scrolling — tap to unpin';
   iconEl.classList.toggle('revealed',_roomBadgeIconRevealed);
 }
-/* A tap anywhere on the box other than the (already-revealed) icon or the dot line — just reveals
-   the icon so it can be tapped next; doesn't change the preference itself yet. */
-function revealRoomBadgePinIcon(){
-  if(_roomBadgeIconRevealed)return;
-  _roomBadgeIconRevealed=true;
+/* A tap anywhere on the box other than the (revealed) icon or the dot line flips whether the icon is
+   shown at all — first tap reveals it, a second tap (still not on the icon) hides it again. Either
+   way this never touches the pin preference itself — only tapping the icon does that. */
+function toggleRoomBadgePinIconReveal(){
+  _roomBadgeIconRevealed=!_roomBadgeIconRevealed;
   renderRoomBadgePinIcon();
 }
-function toggleRoomBadgePinPreference(){
+async function toggleRoomBadgePinPreference(){
+  // Ask before changing anything, using the app's own themed confirm modal (not the browser's native
+  // confirm()) — it's async/non-blocking, so it can't be defeated by the touch/synthetic-mouse
+  // duplication above the way a blocking dialog could. Cancel leaves the preference untouched.
+  const willPin=_roomBadgePinUserDisabled; // currently disabled → this action would re-enable pinning
+  const ok=await showAppConfirm({
+    title:willPin?'📌 Pin this box?':'📌 Unpin this box?',
+    body:willPin?"It'll stay visible at the top while you scroll.":"It'll scroll away normally instead of staying fixed.",
+    confirmText:willPin?'📌 Pin':'📌 Unpin',
+    cancelText:'Cancel'
+  });
+  if(!ok)return;
   _roomBadgePinUserDisabled=!_roomBadgePinUserDisabled;
   try{localStorage.setItem(_ROOM_BADGE_PIN_STORAGE_KEY,_roomBadgePinUserDisabled?'1':'0')}catch(e){}
   renderRoomBadgePinIcon();
@@ -23516,4 +23546,4 @@ function closeLearnVideo(){
 })();
 </script>
 </body>
-</html> 
+</html>
