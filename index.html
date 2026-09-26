@@ -242,6 +242,19 @@ body.ptr-dragging,body.ptr-dragging *{transition:none!important}
 .room-exit-btn:hover{background:#b91c1c}
 .room-remove-btn{width:auto;height:auto;aspect-ratio:auto;flex-shrink:0;background:#dc2626;color:#fff;border:none;border-radius:8px;padding:3px 10px;font-size:10.5px;font-weight:800;font-family:var(--font-alt);cursor:pointer}
 .room-remove-btn:hover{background:#b91c1c}
+/* Room strip header: was a single flex row (title + timer/end-button group) that relied on
+   flex-wrap to drop the controls to a 2nd line once the title got long — which made the controls
+   jump between line 1 and line 2 depending on exact viewport width (room id length, owner-badge
+   text, font rendering all shift the breakpoint). Now the title always occupies its own row and the
+   timer/edit/end (or timer/leave) controls always occupy a second, fixed row beneath it, at every
+   screen size; only the internal spacing of that second row adapts via the media queries below. */
+.room-header-row{display:flex;flex-direction:column;gap:8px;width:100%}
+.room-header-title{font-family:var(--font-alt);font-size:12px;font-weight:800;color:var(--accent);letter-spacing:0.5px;display:flex;flex-wrap:wrap;align-items:center;gap:6px;min-width:0}
+.room-header-controls{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;width:100%}
+.room-header-timer-group{display:flex;align-items:center;gap:8px;flex-wrap:nowrap;min-width:0}
+.room-header-timer-text{font-family:var(--font-alt);font-size:12px;font-weight:800;color:var(--text-muted);white-space:nowrap}
+@media(max-width:480px){.room-header-controls{gap:8px}.room-header-timer-text{font-size:11px}}
+@media(max-width:360px){.room-header-controls{gap:6px}.room-header-timer-group{gap:6px}.room-header-timer-text{font-size:10.5px}}
 /* Sits next to Remove in roomModeBanner — same shape/sizing, but the app's violet room accent
    (matches the "Create Room" button and the approval toggle) instead of destructive red, since
    handing off hosting is a positive/neutral action, not a removal. */
@@ -4232,12 +4245,12 @@ body.theme-custom .dash-week-card{border-color:var(--border-col)}
           <div style="margin-top:8px;font-family:var(--font-alt);font-size:11.5px;color:var(--text-muted)">The host needs to approve you before you can join this room.</div>
         </div>
         <div id="memberRoomStrip" class="room-box" style="display:none">
-          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
-            <div style="font-family:var(--font-alt);font-size:12px;font-weight:800;color:var(--accent);letter-spacing:0.5px">
+          <div class="room-header-row">
+            <div class="room-header-title">
               🙋 IN ROOM <span id="memberRoomIdText"></span> · hosted by <span id="memberRoomHostName"></span>
             </div>
-            <div style="display:flex;align-items:center;gap:10px">
-              <span id="memberRoomTimerText" style="font-family:var(--font-alt);font-size:12px;font-weight:800;color:var(--text-muted)"></span>
+            <div class="room-header-controls">
+              <span id="memberRoomTimerText" class="room-header-timer-text"></span>
               <button class="room-exit-btn" onclick="leaveWorkoutRoom()">Leave Room</button>
             </div>
           </div>
@@ -4245,13 +4258,15 @@ body.theme-custom .dash-week-card{border-color:var(--border-col)}
           <div id="memberRoomMembersStrip" style="display:flex;gap:10px;margin-top:10px;flex-wrap:wrap;align-items:center"></div>
         </div>
         <div id="roomActiveStrip" class="room-box" style="display:none">
-          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
-            <div style="font-family:var(--font-alt);font-size:12px;font-weight:800;color:var(--accent);letter-spacing:0.5px">
+          <div class="room-header-row">
+            <div class="room-header-title">
               ROOM <span id="roomIdBadgeText"></span> <span id="roomOwnerBadge" style="color:var(--text-muted);font-weight:700"></span>
             </div>
-            <div style="display:flex;align-items:center;gap:10px">
-              <span id="roomTimerText" style="font-family:var(--font-alt);font-size:12px;font-weight:800;color:var(--text-muted)"></span>
-              <button type="button" class="room-timer-edit-btn" id="roomTimerEditBtn" onclick="openRoomTimeModal('edit')" title="Edit room timer" aria-label="Edit room timer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>
+            <div class="room-header-controls">
+              <div class="room-header-timer-group">
+                <span id="roomTimerText" class="room-header-timer-text"></span>
+                <button type="button" class="room-timer-edit-btn" id="roomTimerEditBtn" onclick="openRoomTimeModal('edit')" title="Edit room timer" aria-label="Edit room timer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>
+              </div>
               <button class="room-exit-btn" onclick="endWorkoutRoom()" id="roomEndBtn">End Room</button>
             </div>
           </div>
@@ -16448,11 +16463,22 @@ function toggleLiveMode(){
 function isAnyRoomStateActive(){
   return !!(window.__room||window.__memberRoom||window.__memberWaiting);
 }
-function toggleRoomOptionsVisibility(){
+async function toggleRoomOptionsVisibility(){
   if(isAnyRoomStateActive())return; // button is hidden in this state anyway (see start*/cleanup* room functions) — this is just a defensive no-op
   const box=document.getElementById("roomIdleControls"),btn=document.getElementById("roomOptionsToggleBtn");
   if(!box||!btn)return;
   const opening=box.style.display==="none"||!box.style.display;
+  if(opening){
+    // Re-sync with the server right before offering "Create Room"/"Enter Room ID" — this device's
+    // local state can say "no room" while the SAME account is actually already hosting/in a room
+    // started from another device or tab. Catching that here (instead of only on a full page
+    // refresh) means the account is dropped straight back into its real, already-active room rather
+    // than being allowed to open a create/join panel that would try to start a duplicate.
+    const myUserId=localStorage.getItem('user_uuid')||localStorage.getItem('user_id');
+    const myLoginId=localStorage.getItem('user_login_id');
+    const found=await findMyActiveRoomOnServer(myUserId,myLoginId);
+    if(found){await restoreRoomSessionIfAny({id:myUserId});return}
+  }
   box.style.display=opening?"flex":"none";
   btn.classList.toggle("active",opening);
 }
@@ -17906,6 +17932,47 @@ const ROOM_MAX_MEMBERS=6;
 function roomOccupantCount(membersObj){
   return 1+Object.values(membersObj||{}).filter(v=>v==='joined').length; // +1 for the host
 }
+/* ===================== ONE ACCOUNT, ONE ACTIVE ROOM (SERVER-SIDE TRUTH) =====================
+   isAnyRoomStateActive() above only knows about THIS tab/device's in-memory window state, so it
+   can't stop the same account from hosting/joining a second room from a different device, or from
+   a second browser tab on the same device — each has its own JS memory and its own localStorage.
+   findMyActiveRoomOnServer() answers the real question — "does this ACCOUNT already have an ongoing
+   room, as host or as a member/pending, anywhere?" — straight from workout_rooms, so every device
+   this account is logged into can agree on the same single active room, and any device (including
+   ones with no local room-session key at all) can be blocked from spinning up a duplicate or
+   restored straight into the room that's actually running. */
+async function findMyActiveRoomOnServer(myUserId,myLoginId){
+  if(!myUserId&&!myLoginId)return null;
+  const stillOngoing=row=>row&&row.end_time&&new Date(row.end_time).getTime()>Date.now();
+  try{
+    if(myUserId){
+      const{data:hostRow}=await db.from('workout_rooms').select('*').eq('owner_id',myUserId).eq('room_status','ongoing').maybeSingle();
+      if(stillOngoing(hostRow))return{role:'host',row:hostRow};
+    }
+    if(myLoginId){
+      const key=String(myLoginId);
+      const{data:joinedRows}=await db.from('workout_rooms').select('*').eq('room_status','ongoing').contains('members_id',{[key]:'joined'});
+      const activeJoined=(joinedRows||[]).find(stillOngoing);
+      if(activeJoined)return{role:'member',row:activeJoined};
+      const{data:pendingRows}=await db.from('workout_rooms').select('*').eq('room_status','ongoing').contains('members_id',{[key]:'pending'});
+      const activePending=(pendingRows||[]).find(stillOngoing);
+      if(activePending)return{role:'pending',row:activePending};
+    }
+  }catch(e){console.error('findMyActiveRoomOnServer:',e)}
+  return null;
+}
+/* Shared pre-flight for Create Room / Enter Room ID. Returns the account's existing active room
+   (so the caller can block and point at it) or null if it's clear to proceed. sameRoomId lets a
+   join attempt against the room the account is ALREADY active in fall through instead of being
+   blocked, since re-entering your own current room is a resume, not a duplicate. */
+async function guardSingleActiveRoom(sameRoomId){
+  if(isAnyRoomStateActive())return{role:'local',row:{room_id:(window.__room&&window.__room.roomId)||(window.__memberRoom&&window.__memberRoom.roomId)||(window.__memberWaiting&&window.__memberWaiting.roomId)}};
+  const myUserId=localStorage.getItem('user_uuid')||localStorage.getItem('user_id');
+  const myLoginId=localStorage.getItem('user_login_id');
+  const found=await findMyActiveRoomOnServer(myUserId,myLoginId);
+  if(found&&sameRoomId&&String(found.row.room_id)===String(sameRoomId))return null; // resuming your own current room, not a duplicate
+  return found;
+}
 function toggleCreateRoomApproval(){
   window.__createRoomApprovalOn=!window.__createRoomApprovalOn;
   const t=document.getElementById('createRoomApprovalToggle');
@@ -18000,6 +18067,16 @@ async function confirmCreateRoom(){
   const approvalRequired=!!window.__createRoomApprovalOn;
   const ownerId=localStorage.getItem('user_uuid')||localStorage.getItem('user_id');
   if(!ownerId){alert('Please log in first.');return}
+  // Re-entrancy guard, same reasoning as confirmJoinRoom — a double-tap must never fire two
+  // overlapping create attempts for the same account.
+  if(window.__createRoomInFlight)return;
+  window.__createRoomInFlight=true;
+  try{
+  // One account, one active room at a time — including across other devices/tabs this same
+  // account is logged into. Checked here (not just via the hidden-idle-controls UI) since a stale
+  // tab/device that hasn't refreshed yet could still reach this point.
+  const already=await guardSingleActiveRoom(null);
+  if(already){closeCreateRoomModal();showToast(`🚫 You're already active in room #${already.row.room_id}. Leave or end it first.`);return}
   const endTime=new Date(Date.now()+mins*60000).toISOString();
   let roomId=null;
   for(let attempt=0;attempt<5&&!roomId;attempt++){
@@ -18013,6 +18090,7 @@ async function confirmCreateRoom(){
   document.getElementById('createRoomCodeDisplay').textContent=roomId;
   await startOwnerRoomSession(roomId,ownerId,endTime,approvalRequired);
   saveRoomSession({role:'host',roomId,targetLoginId:null});
+  }finally{window.__createRoomInFlight=false}
 }
 
 async function startOwnerRoomSession(roomId,ownerId,endTime,approvalRequired){
@@ -18051,6 +18129,27 @@ async function confirmJoinRoom(){
   if(!roomId){errEl.textContent='Enter the Room ID.';errEl.style.display='block';return}
   const myLoginId=localStorage.getItem('user_login_id');
   if(!myLoginId){errEl.textContent='Please log in first, then try again.';errEl.style.display='block';return}
+  // Re-entrancy guard — a double-tap/double-click on "Join Room" while the first request is still
+  // in flight must never be able to fire two overlapping join attempts for the same account.
+  if(window.__joinRoomInFlight)return;
+  window.__joinRoomInFlight=true;
+  try{
+  // One account, one active room — if this account is already active anywhere (this device, another
+  // tab, or another device entirely), block the join UNLESS it's the exact same room they're already
+  // in, in which case this just resumes that room instead of re-running the join RPC (the real fix
+  // for the same user getting duplicated into the same room's member list).
+  const already=await guardSingleActiveRoom(roomId);
+  if(already){
+    if(String(already.row.room_id)===String(roomId)){
+      closeJoinRoomModal();
+      showToast(`You're already active in room #${roomId} — resuming it.`);
+      await restoreRoomSessionIfAny({id:localStorage.getItem('user_uuid')||localStorage.getItem('user_id')});
+      return;
+    }
+    errEl.textContent=`🚫 You're already active in room #${already.row.room_id}. Leave or end it before joining another.`;
+    errEl.style.display='block';
+    return;
+  }
   const{data:userRow,error:userErr}=await db.from('users').select('id,login_id,name,avatar_url').eq('login_id',myLoginId).maybeSingle();
   if(userErr||!userRow){errEl.textContent='Could not verify your account. Please re-login and try again.';errEl.style.display='block';return}
   // Capacity pre-check — done with a plain SELECT *before* calling the join RPC, since the RPC would
@@ -18089,6 +18188,7 @@ async function confirmJoinRoom(){
     await startMemberRoomSession(roomRow,String(userRow.login_id));
   }
   saveRoomSession({role:'member',roomId,loginId:String(userRow.login_id)});
+  }finally{window.__joinRoomInFlight=false}
 }
 
 /* ===================== MEMBER-SIDE: WAITING FOR APPROVAL ===================== */
@@ -19172,6 +19272,12 @@ async function demoteHostToMember(row){
     if(window.__room.countdownInterval)clearInterval(window.__room.countdownInterval);
   }
   window.__room=null;
+  // Must run AFTER window.__room is nulled: switchRoomTarget(null) above (if it ran at all) called
+  // updateRoomTargetBadge() while __room still existed, which shows "you're working on your own
+  // workouts" — correct for a host, but this device is no longer the host. Without this call the
+  // badge stays stuck on-screen for the demoted (previous) host, who should see no such badge at all
+  // now that they're a plain member again.
+  if(typeof updateRoomTargetBadge==='function')updateRoomTargetBadge();
   showToast("👑 Hosting was handed off — you're a member now.");
   await startMemberRoomSession(row,myLoginId);
   saveRoomSession({role:'member',roomId:row.room_id,loginId:myLoginId});
@@ -19220,16 +19326,25 @@ function teardownRoomUiOnLogout(){
 }
 
 /* Called from mountMemberDashboard() on BOTH fresh login and page-refresh auto-restore, so an
-   in-progress room (as host or as a joined member) reappears until its timer/host ends it. */
+   in-progress room (as host or as a joined member) reappears until its timer/host ends it.
+   Server-truth first: rather than trusting this device's local ROOM_SESSION_KEY to decide WHETHER
+   a room is active, it always asks the database "does this account actually have an ongoing room
+   right now?" (findMyActiveRoomOnServer). That's what makes the same account's active room show up
+   on every device/browser it's logged into — including one that never saved a local session key
+   for it — and it's what keeps a device from re-showing a room the account already left/ended
+   elsewhere. The local session key is only still consulted for one thing: the host's
+   previously-selected member (targetLoginId), a per-device UI nicety, not a source of truth about
+   whether a room exists. */
 async function restoreRoomSessionIfAny(userData){
+  const myUserId=(userData&&userData.id)||localStorage.getItem('user_uuid')||localStorage.getItem('user_id');
+  const myLoginId=localStorage.getItem('user_login_id');
+  let sess=null;
   const raw=localStorage.getItem(ROOM_SESSION_KEY);
-  if(!raw)return;
-  let sess;
-  try{sess=JSON.parse(raw)}catch(e){clearRoomSession();return}
-  const{data:row,error}=await db.from('workout_rooms').select('*').eq('room_id',sess.roomId).maybeSingle();
-  if(error||!row||row.room_status!=='ongoing'){clearRoomSession();return}
-  if(sess.role==='host'){
-    if(String(row.owner_id)!==String(userData.id)){clearRoomSession();return}
+  if(raw){try{sess=JSON.parse(raw)}catch(e){clearRoomSession()}}
+  const found=await findMyActiveRoomOnServer(myUserId,myLoginId);
+  if(!found){clearRoomSession();return}
+  const row=found.row;
+  if(found.role==='host'){
     await startOwnerRoomSession(row.room_id,row.owner_id,row.end_time,row.approval_required);
     await onRoomRowUpdate(row,false); // populates membersMeta — must resolve before the target below can be looked up
     // Re-select whichever member the host had open before the refresh (see switchRoomTarget), so
@@ -19238,16 +19353,21 @@ async function restoreRoomSessionIfAny(userData){
     // add/edit form, queue, and running timers (set/rest/cardio) come back exactly where they were
     // left. Deliberately uses setRoomTargetState (state+UI only), never switchRoomTarget/
     // resetWorkoutFormUIOnly here — the form hasn't been touched yet this load, so there's nothing
-    // to blank, and the draft must be left untouched for the restore call to find.
-    if(sess.targetLoginId){
-      if(!setRoomTargetState(sess.targetLoginId))saveRoomSession({role:'host',roomId:row.room_id,targetLoginId:null});
+    // to blank, and the draft must be left untouched for the restore call to find. Only honored when
+    // the local session actually matches this same room — a stale session left over from a
+    // previously-hosted room must never be applied to a different one found on the server.
+    const targetLoginId=(sess&&sess.role==='host'&&String(sess.roomId)===String(row.room_id))?sess.targetLoginId:null;
+    if(targetLoginId){
+      if(!setRoomTargetState(targetLoginId))saveRoomSession({role:'host',roomId:row.room_id,targetLoginId:null});
+    }else{
+      saveRoomSession({role:'host',roomId:row.room_id,targetLoginId:null});
     }
-  }else if(sess.role==='member'){
-    const membersObj=row.members_id||{};
-    const myStatus=membersObj[sess.loginId];
-    if(myStatus==='pending'){await startMemberWaitingSession(row,sess.loginId);return}
-    if(myStatus!=='joined'){clearRoomSession();return}
-    await startMemberRoomSession(row,sess.loginId);
+  }else if(found.role==='member'){
+    await startMemberRoomSession(row,myLoginId);
+    saveRoomSession({role:'member',roomId:row.room_id,loginId:myLoginId});
+  }else if(found.role==='pending'){
+    await startMemberWaitingSession(row,myLoginId);
+    saveRoomSession({role:'member',roomId:row.room_id,loginId:myLoginId});
   }
 }
 
@@ -23636,4 +23756,4 @@ function closeLearnVideo(){
 })();
 </script>
 </body>
-</html> 
+</html>
