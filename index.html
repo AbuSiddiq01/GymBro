@@ -319,6 +319,121 @@ body.workout-edit-lock .room-target-badge.pinned{z-index:10000}
 .room-target-badge-dot{flex:1 1 auto;min-width:12px;max-width:44px;width:clamp(12px,7vw,44px);height:16px;padding:0;border:none;background:transparent;cursor:pointer;display:flex;align-items:center;-webkit-tap-highlight-color:transparent}
 .room-target-badge-dot::before{content:'';display:block;width:100%;height:4px;border-radius:2px;background:var(--border-col);transition:background 0.15s ease,opacity 0.15s ease}
 .room-target-badge-dot.active::before{background:var(--accent)}
+/* ===================== ROOM TARGET RAIL (replaces the old top-pinned pill above) =====================
+   The "You're working on X's workouts" indicator now lives here instead: a small floating dock of
+   name+avatar pairs, vertically centered on the RIGHT SIDE of the screen, in the empty page-background
+   gutter beside the content — not on top of any card, and without shrinking .container/the cards at all.
+   Where exactly that gutter is changes with screen size (.container is 95% wide on phones, capped at
+   1400px and centered on wide screens), so the horizontal position is measured in JS against the real,
+   current edge of .container (see positionRoomRail) rather than a fixed CSS "right" value — that's what
+   makes it land in the actual empty space next to the content on any screen size instead of drifting
+   onto the card. On the rare very-narrow phone where that gutter is only a few pixels wide, the rail is
+   clamped so it never starts to the left of .container's edge (it will only ever touch the card's very
+   edge pixel, never sit on top of its content), and the collapse toggle below lets it be tucked away to
+   almost nothing when it's in the way.
+   TRUE viewport pinning: position:fixed only stays glued to the viewport if none of its ancestors set
+   transform / filter / backdrop-filter / perspective / will-change:transform — each of those creates
+   its own "containing block", and a "fixed" descendant then sticks to THAT ancestor instead of the
+   page, i.e. it scrolls right along with it. Every card in this app uses .glass (backdrop-filter:
+   blur(...)), which is exactly that trap — it's why the rail used to drift/scroll despite already
+   having position:fixed here. The fix is in JS (see renderRoomTargetRail): the rail element is moved
+   to be a direct child of <body> the first time it renders, so it never sits inside a filtered
+   ancestor and position:fixed genuinely pins it to the screen — it does NOT move again on scroll, only
+   on resize/orientation change (screen-size changes).
+   The small ▾ toggle at the top of the stack opens/closes the avatar list in place — the pill's anchor
+   point never moves, only the list of avatars collapses/expands beneath the toggle.
+   It is its own floating panel — a blurred glass capsule with its own background/border/shadow, same
+   visual language as the old pinned badge's glass look (see .room-target-badge.pinned above) — so it
+   reads as a distinct floating control sitting on top of the app, the way a floating action button
+   does, rather than looking like it's glued onto whatever card happens to be underneath it.
+   The old horizontal badge above is force-hidden (see the override near the end of this rule block);
+   its JS keeps running harmlessly in the background (other code reads its DOM defensively), it's just
+   never shown on screen anymore. */
+.room-rail{position:fixed;top:50%;left:0;transform:translateY(-50%) scale(var(--rail-scale,1));transform-origin:center right;--rail-scale:1;z-index:900;display:none;flex-direction:column;align-items:center;gap:clamp(8px,2.5vw,14px);max-height:70vh;overflow-y:auto;overflow-x:visible;padding:clamp(7px,2vw,12px) clamp(5px,1.6vw,9px);pointer-events:auto;scrollbar-width:none;-ms-overflow-style:none;touch-action:none;
+  border-radius:16px;border:1.5px solid var(--border-col);
+  background:rgba(20,22,28,0.6);
+  background:color-mix(in srgb, var(--bg-card) 62%, transparent);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  box-shadow:0 10px 28px -8px rgba(0,0,0,0.55)}
+body.workout-edit-lock .room-rail{z-index:10000}
+.room-rail::-webkit-scrollbar{display:none}
+/* The rail is a fixed, direct child of <body> (see renderRoomTargetRail), so it would otherwise
+   float on top of every page, not just Workouts. Gate its visibility on a body class that
+   switchMemberTab toggles, so it only ever shows while the Workouts page is the active tab. */
+.room-rail.visible{display:none}
+body.on-work-page .room-rail.visible{display:flex}
+/* Free-placed mode: once the user has long-pressed the rail and dropped it somewhere (or resized
+   it), it's positioned by explicit top/left (in px, set from JS) instead of the auto-docked
+   top:50%/right-gutter placement above, and scales from its top-left corner instead of staying
+   vertically centered. */
+.room-rail.customized{top:0;left:0;transform:scale(var(--rail-scale,1));transform-origin:top left}
+/* Picked up mid long-press: deliberately NO outline, panel or buttons — the box must look exactly as
+   it did a moment ago, the only new thing on screen anywhere is the small ⤡ resize dot at its corner
+   (see .room-rail-resize-handle below). touch-action:none stops the page itself from trying to scroll
+   underneath the drag gesture. */
+.room-rail.float-edit{touch-action:none;cursor:grabbing}
+/* Resize + reset handles: kept OUTSIDE the rail (sibling fixed elements positioned over its corner in
+   JS — see _positionRoomRailHandle) so the rail's own overflow-y:auto never clips them.
+   Both are small rounded-square "boxes" (not circles) so they read as two distinct buttons even when
+   sitting close together, rather than blurring into one shape. Sized with clamp() so they scale
+   sensibly on every screen — big enough to tap comfortably on a small phone, never oversized on a
+   larger one — and _positionRoomRailHandle reads each one's real rendered size back (rather than
+   assuming a fixed px number) to work out the gap between them, so they never touch or overlap at any
+   screen width. */
+.room-rail-resize-handle,.room-rail-reset-handle{position:fixed;width:clamp(24px,7vw,32px);height:clamp(24px,7vw,32px);border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.4);z-index:901;display:flex;align-items:center;justify-content:center;font-size:clamp(12px,3vw,15px);line-height:1;touch-action:none;-webkit-tap-highlight-color:transparent;transition:background .15s ease,color .15s ease,border-color .15s ease,transform .1s ease}
+.room-rail-resize-handle:active,.room-rail-reset-handle:active{transform:scale(0.92)}
+/* Resize dot: a plain neutral box by default (accent-colored border/icon, not filled) — it only turns
+   solid blue (the accent color) once actually grabbed (see .rr-active, toggled in JS on pointerdown/up),
+   so that color change itself is the cue "you're resizing now — drag to grow or shrink the box". */
+.room-rail-resize-handle{background:var(--bg-card);border:2px solid var(--accent);color:var(--accent);cursor:nwse-resize}
+.room-rail-resize-handle.rr-active{background:var(--accent);border-color:#fff;color:#fff;box-shadow:0 0 0 3px var(--accent-glow),0 2px 8px rgba(0,0,0,0.4)}
+/* Reset dot: sits just to the LEFT of the resize dot (see _positionRoomRailHandle) with a clear gap
+   between the two. A single tap instantly snaps the box back to its default docked spot/size — the
+   same outcome as the double-tap gesture, just discoverable without needing to know that shortcut
+   exists. Stays a plain neutral box always — the action is instantaneous, so there's no "in progress"
+   state to indicate the way there is for resize. */
+.room-rail-reset-handle{background:var(--bg-card);border:2px solid var(--border-col);color:var(--text-secondary);cursor:pointer}
+/* Room-switch visual guard (see _rrBeginRoomSwitchGuard/_rrEndRoomSwitchGuard): keeps the workout
+   form/list area exactly as-is on screen (still fully laid out, just invisible) for the brief window
+   where switchRoomTarget tears the form down to blank and rebuilds it for the newly-selected member.
+   visibility (not display) is used on purpose — the element keeps its layout box/height the whole
+   time, so nothing about the page's scroll height changes because of this guard itself; only the
+   otherwise-visible flash of the blank/mismatched intermediate state is hidden. */
+.room-switch-hiding{visibility:hidden}
+/* Small caret that opens/closes the avatar list in place — the rail's anchor point stays put. */
+.room-rail-toggle{display:flex;align-items:center;justify-content:center;width:18px;height:18px;flex-shrink:0;border:none;background:none;cursor:pointer;padding:0;color:var(--text-muted);font-size:10px;line-height:1;-webkit-tap-highlight-color:transparent;transition:transform .2s ease}
+.room-rail-header-row{display:flex;align-items:center;justify-content:center;gap:4px}
+.room-rail.collapsed .room-rail-toggle{transform:rotate(-90deg)}
+/* Vertical breathing room between stacked members — scales with clamp() (not a fixed px) so a bigger
+   screen (or a box enlarged with the resize dot) always keeps a clear gap between one item's name and
+   the avatar of its neighbor above/below it, instead of them crowding together. */
+.room-rail-items{display:flex;flex-direction:column;align-items:center;gap:clamp(10px,4vw,20px);overflow:hidden;max-height:60vh;opacity:1;transition:max-height .22s ease,opacity .15s ease,margin .22s ease,gap .22s ease}
+.room-rail.collapsed .room-rail-items{max-height:0;opacity:0;gap:0;margin:0;pointer-events:none}
+.room-rail-item{display:flex;flex-direction:column;align-items:center;gap:clamp(3px,1.2vw,6px);cursor:pointer;background:none;border:none;padding:0;flex-shrink:0;-webkit-tap-highlight-color:transparent}
+.room-rail-avatar{width:clamp(20px,6vw,38px);height:clamp(20px,6vw,38px);border-radius:50%;overflow:hidden;flex-shrink:0;border:2px solid var(--border-col);display:flex;align-items:center;justify-content:center;background:var(--bg-panel);font-size:clamp(8px,2.4vw,14px);font-weight:800;color:var(--text-muted);font-family:var(--font-alt);transition:box-shadow .18s ease,border-color .18s ease}
+.room-rail-avatar img{width:100%;height:100%;object-fit:cover}
+.room-rail-item.active .room-rail-avatar{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent),0 0 12px 3px var(--accent)}
+/* The name is never hidden anymore, at any screen width — it's what tells the person WHO they're about
+   to switch to, so hiding it on narrow/extra-narrow phones (the old behavior below 360px) did more harm
+   than a small label ever could. Sized with clamp() off the viewport width instead of fixed
+   per-breakpoint pixel jumps, so text size scales smoothly on every screen, and stays proportionate
+   when the whole box is enlarged/shrunk via the resize dot (--rail-scale visually scales this same
+   pre-scale baseline size along with everything else in the box). */
+.room-rail-name{font-family:var(--font-alt);font-size:clamp(9px,2.6vw,12px);font-weight:800;color:var(--text-muted);max-width:clamp(46px,16vw,70px);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.3}
+.room-rail-item.active .room-rail-name{color:var(--accent)}
+/* Room-switch "paper turn" transition: replaces the old page jump/scroll-jerk when switching who
+   you're logging for. Applied briefly (see switchRoomTarget) to whichever form box (initial/full)
+   and the saved-entries list just got rebuilt for the newly-selected member, so the change reads as
+   a quick card flip in place instead of the page lurching up/down. perspective() is chained straight
+   into the transform itself so this works with no special parent — no ancestor perspective needed. */
+@keyframes roomSwitchPaperTurn{
+  0%{transform:perspective(600px) rotateY(-14deg);opacity:.35}
+  100%{transform:perspective(600px) rotateY(0deg);opacity:1}
+}
+.room-switch-turn{animation:roomSwitchPaperTurn .3s cubic-bezier(0.22,1,0.36,1) both;transform-origin:left center;backface-visibility:hidden}
+@media (prefers-reduced-motion: reduce){.room-switch-turn{animation:none!important}}
+/* The old horizontal "You're working on X's workouts" pill — superseded by .room-rail above. */
+.room-target-badge,.room-target-badge-spacer{display:none !important}
 /* Approval toggle row */
 .room-approval-row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:12px 0}
 .room-approval-row .room-approval-label{font-size:12px;font-weight:700;color:var(--text-secondary);font-family:var(--font-alt)}
@@ -4305,6 +4420,10 @@ body.theme-custom .dash-week-card{border-color:var(--border-col)}
           <div class="room-target-badge-dots" id="roomTargetBadgeDots"></div>
         </div>
         <div id="roomTargetBadgeSpacer" class="room-target-badge-spacer"></div>
+        <!-- Vertical avatar rail — replaces the pill above as the "who am I logging for" switcher.
+             position:fixed (see .room-rail CSS), so its DOM position in the page doesn't matter; kept
+             here purely for logical proximity to the badge it supersedes. -->
+        <div id="roomTargetRail" class="room-rail" role="tablist" aria-label="Switch whose workouts you're logging"></div>
         <div id="initialWorkoutBox">
           <button class="btn" onclick="showAddWorkoutForm()">+ ADD WORKOUT ENTRY</button>
         </div>
@@ -9269,6 +9388,9 @@ async function switchMemberTab(id){
   // pinned (see updateRoomBadgePin), so it must be dropped back into place here or it would keep
   // floating fixed on top of whichever tab the person switches to next.
   if(id!=='workPage'&&typeof unpinRoomBadge==='function')unpinRoomBadge();
+  // The room member-switch rail (see .room-rail) must only ever be visible on the Workouts page —
+  // it's a fixed, body-level element so nothing else would otherwise hide it on other tabs.
+  document.body.classList.toggle('on-work-page',id==='workPage');
   // Leaving the Stats page entirely — the 3-Month fullscreen focus view never persists across pages.
   if(id!=='statsPage'&&statsGraphFsOpen)exitStatsGraphFullscreen();
   // Same for the Track Workout graph's fullscreen focus view — it never persists across a page change.
@@ -9308,7 +9430,7 @@ async function switchMemberTab(id){
     }
   }
   else if(id==='attPage')await loadAttendanceHistoryRecords();
-  else if(id==='workPage'){await loadWorkoutsForDate();await _trackerRestoreState();if(typeof updateRoomBadgePin==='function')updateRoomBadgePin();}
+  else if(id==='workPage'){await loadWorkoutsForDate();await _trackerRestoreState();if(typeof updateRoomBadgePin==='function')updateRoomBadgePin();if(typeof positionRoomRail==='function')positionRoomRail();}
   else if(id==='learnPage')initLearnPage();
   else if(id==='socialPage')loadSocialPage();
   else if(id==='settingsPage')initSettingsPage();
@@ -16548,7 +16670,100 @@ function showAddWorkoutForm(){
    being wiped the moment their tile is selected. cancelWorkoutLogging() (the explicit "Cancel"
    button) wraps this same UI reset but additionally clears storage, since that action really does
    mean "throw this away". */
+/* ===================== SHARED PAGE-HEIGHT LOCK ===================== */
+/* Anything that swaps a tall box for a smaller one for a moment — collapsing the Add/Edit workout
+   form back down to the small "+ ADD WORKOUT ENTRY" box, or swapping the saved-entries list out for
+   a "Loading…" placeholder — shrinks the page. If the user was scrolled further down than the new
+   (shorter) height, the browser is FORCED to clamp the scroll position upward right then, and nothing
+   ever un-clamps it once the real content regrows — that clamp-then-drift is what reads as the page
+   jerking up/down, and it happens on every save, cancel, edit, delete or room-switch that touches
+   either of those two boxes, not just room-switching. Fix the cause instead of chasing it afterward:
+   pin the page's minimum height to its current (tallest-seen) height for as long as ANY of these
+   shrink/regrow steps are in flight, so the browser never sees the page get shorter and never has a
+   reason to move the scroll position. Reentrant (a counter, not a boolean) so overlapping callers —
+   e.g. switchRoomTarget wrapping both resetWorkoutFormUIOnly() and loadWorkoutsForDate() — compound
+   correctly instead of one releasing the lock out from under the other. */
+let _phlCount=0,_phlHeight=0;
+function beginPageHeightLock(){
+  const h=document.documentElement.scrollHeight;
+  if(h>_phlHeight)_phlHeight=h;
+  _phlCount++;
+  document.body.style.minHeight=_phlHeight+'px';
+}
+function endPageHeightLockSoon(){
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    _phlCount=Math.max(0,_phlCount-1);
+    if(_phlCount===0){document.body.style.minHeight='';_phlHeight=0;}
+  }));
+}
+/* ===================== SCROLL FREEZE (room member switch) =====================
+   The height lock above stops the PAGE from getting shorter mid-switch (the root cause of the browser
+   clamping scroll upward). This is a second, independent guard on top of that — and a stronger one:
+   rather than reacting after something nudges the scroll position (which is still a visible
+   scroll-then-snap-back flicker, especially alongside the paper-turn animation), it freezes the body
+   in place with position:fixed for the whole switch, so the page is physically incapable of scrolling
+   at all while it's in flight — nothing to correct, nothing to see move. The instant it's unfrozen,
+   the exact original scroll position is restored in one frame, with no visible jump either way. Only
+   the paper-turn animation is left to be seen; the page itself never appears to move. */
+let _rsLockCount=0,_rsLockedScrollY=0;
+function _rsBeginScrollPin(){
+  if(_rsLockCount===0){
+    _rsLockedScrollY=window.scrollY||document.documentElement.scrollTop||0;
+    const b=document.body;
+    b.style.position='fixed';
+    b.style.top=(-_rsLockedScrollY)+'px';
+    b.style.left='0';
+    b.style.right='0';
+    b.style.width='100%';
+  }
+  _rsLockCount++;
+}
+function _rsEndScrollPin(){
+  _rsLockCount=Math.max(0,_rsLockCount-1);
+  if(_rsLockCount===0){
+    const b=document.body,y=_rsLockedScrollY;
+    b.style.position='';
+    b.style.top='';
+    b.style.left='';
+    b.style.right='';
+    b.style.width='';
+    // IMPORTANT: window.scrollTo(x,y) — the plain two-argument form — is spec-equivalent to
+    // window.scrollTo({top:y,left:x,behavior:'auto'}), and behavior:'auto' means "honor whatever
+    // the page's CSS scroll-behavior says" (see html{scroll-behavior:smooth} near the top of this
+    // stylesheet). That made this restore SMOOTHLY ANIMATE back to y on every single room-member
+    // switch — the exact visible "page scrolls up and down" glitch this whole lock exists to
+    // prevent. Only the options-object form with an explicit behavior:'instant' actually bypasses
+    // the CSS setting and snaps with zero visible motion.
+    window.scrollTo({top:y,left:0,behavior:'instant'});
+  }
+}
+/* ===================== ROOM-SWITCH VISUAL GUARD =====================
+   The height lock and scroll pin above stop the PAGE ITSELF from moving during a room-member switch.
+   They do NOT stop the box the user is actually looking at from visibly changing shape underneath
+   them: switchRoomTarget calls resetWorkoutFormUIOnly() (blanks the Add/Edit form down to the plain
+   "+ ADD WORKOUT ENTRY" box) and only afterwards awaits restoreInProgressWorkoutFormIfAny() (rebuilds
+   it for the newly-selected member) — and separately, loadWorkoutsForDate() briefly swaps the saved
+   entries list out for a "Loading…" placeholder. Even though nothing here does any real network/timer
+   work, each `await` still hands control back to the browser for a moment, and on some devices that's
+   enough for a frame of the blank/mismatched in-between state to actually paint — which is what reads
+   as the page "jumping" even though its scroll position never really moved.
+   Fix: make that in-between state literally invisible. visibility:hidden (never display:none, which
+   would collapse the element's height and defeat the lock above) is applied to the exact elements
+   that get torn down and rebuilt, right before the tear-down starts, and lifted the instant each part
+   is settled again — so whatever the browser paints in between is simply blank space, not a flash of
+   the wrong content. */
+function _rrRoomSwitchFormEls(){
+  return [document.getElementById('initialWorkoutBox'),document.getElementById('workoutFormStructure')].filter(Boolean);
+}
+function _rrRoomSwitchListEls(){
+  return [document.getElementById('savedWorkoutLogsContainer'),document.getElementById('workoutBreakdownRow'),document.getElementById('workoutClassChipsRow')].filter(Boolean);
+}
+function _rrHideRoomSwitchForm(){_rrRoomSwitchFormEls().forEach(el=>el.classList.add('room-switch-hiding'));}
+function _rrShowRoomSwitchForm(){_rrRoomSwitchFormEls().forEach(el=>el.classList.remove('room-switch-hiding'));}
+function _rrHideRoomSwitchList(){_rrRoomSwitchListEls().forEach(el=>el.classList.add('room-switch-hiding'));}
+function _rrShowRoomSwitchList(){_rrRoomSwitchListEls().forEach(el=>el.classList.remove('room-switch-hiding'));}
 function resetWorkoutFormUIOnly(){
+  beginPageHeightLock();
   currentEditingIndex=null;document.getElementById("workoutNameInput").value="";
   bwKgRevealed.nonlive=false;
   updateTrackWorkoutBtnVisibility('nonlive');
@@ -16565,6 +16780,7 @@ function resetWorkoutFormUIOnly(){
   document.getElementById("workoutFormStructure").style.display="none";document.getElementById("initialWorkoutBox").style.display="block";
   window._liveSetCopiedFlags={};
   closeWorkoutEditOverlay();
+  endPageHeightLockSoon();
 }
 function cancelWorkoutLogging(){
   resetWorkoutFormUIOnly();
@@ -16962,6 +17178,8 @@ function wcResyncCiAfterReorder(container){
   });
 }
 async function loadWorkoutsForDate(){
+  beginPageHeightLock();
+  try{
   let uid=getEffectiveUid(),date=isRoomMemberModeActive()?getLocalDateString():document.getElementById("workoutCalendarFilter").value;
   const editable=isWorkoutEditableDate(date);
   // Add Workout button: only for today/yesterday/day-before-yesterday. Older dates stay
@@ -17023,6 +17241,9 @@ async function loadWorkoutsForDate(){
   html+=`<div class="vol-drill-total"><span>📦 Daily Total</span><strong>${formatVolNum(totalVolAll)} kg·reps</strong></div>`;
   con.innerHTML=html;
   wcInitScrollGlow();
+  }finally{
+    endPageHeightLockSoon();
+  }
 }
 
 /* ===================== WORKOUTS PAGE: AUTO CLASS CHIPS + FINISH WIDGET =====================
@@ -18539,7 +18760,7 @@ function updateRoomTargetBadge(){
   // No room at all → nothing to show. A room WITHOUT a selected member means the host is working on
   // THEIR OWN workouts (not a member's) — that's still worth showing, so it's always clear whose
   // workouts are being added, host included, not just when a member is selected.
-  if(!window.__room){badge.classList.remove('visible');if(spacer)spacer.classList.remove('visible');return}
+  if(!window.__room){badge.classList.remove('visible');if(spacer)spacer.classList.remove('visible');renderRoomTargetRail();return}
   const box=document.getElementById('roomTargetBadgeAvatarBox');
   if(!target){
     // Host working on THEIR OWN workouts (no member selected) — show the host's own DP, same
@@ -18569,9 +18790,477 @@ function _finishRoomTargetBadgeRefresh(){
   renderRoomTargetBadgeDots();
   renderRoomBadgePinIcon();
   updateRoomBadgePin();
+  renderRoomTargetRail();
   const badge=document.getElementById('roomTargetBadge');
   const spacer=document.getElementById('roomTargetBadgeSpacer');
   if(badge&&spacer&&badge.classList.contains('pinned'))spacer.style.height=badge.offsetHeight+'px';
+}
+/* Vertical avatar rail (see .room-rail CSS) — the actual "who am I logging for" switcher now that the
+   old horizontal pill is hidden. Same source data as the dots (getRoomTargetOrder/membersMeta), just
+   rendered as a persistent, collapsible stack instead of a swipe carousel: you first, then every
+   joined member alphabetically, with the currently selected one getting the blue glow ring.
+   Built with real DOM nodes (createElement/textContent/addEventListener) rather than innerHTML+inline
+   onclick strings — a name or login id containing a quote character would otherwise break out of a
+   string-built HTML attribute and corrupt every click handler after it on the page.
+   IMPORTANT: the rail is reparented to be a direct child of <body> the first time this runs. It lives
+   in the markup next to the "+ ADD WORKOUT ENTRY" button purely for readability, but every card on this
+   page is a .glass element (backdrop-filter), and a backdrop-filter/filter/transform ancestor hijacks
+   position:fixed for its descendants — the rail would then scroll along with that card instead of
+   staying pinned to the screen. Moving it out to <body> removes that ancestor entirely. */
+function renderRoomTargetRail(){
+  const rail=document.getElementById('roomTargetRail');
+  if(!rail)return;
+  if(rail.parentElement!==document.body)document.body.appendChild(rail);
+  if(!window.__room){rail.classList.remove('visible');document.body.classList.remove('has-room-rail');rail.innerHTML='';const _h=document.getElementById('roomRailResizeHandle');if(_h)_h.remove();const _rst=document.getElementById('roomRailResetHandle');if(_rst)_rst.remove();return}
+
+  const wasCollapsed=rail.classList.contains('collapsed'); // keep the user's open/closed choice across re-renders
+  rail.innerHTML='';
+
+  const toggleBtn=document.createElement('button');
+  toggleBtn.type='button';
+  toggleBtn.className='room-rail-toggle';
+  toggleBtn.setAttribute('aria-label','Show or hide the workout switcher');
+  toggleBtn.setAttribute('aria-expanded',wasCollapsed?'false':'true');
+  toggleBtn.textContent='▾';
+  toggleBtn.addEventListener('click',()=>{
+    const nowCollapsed=rail.classList.toggle('collapsed');
+    toggleBtn.setAttribute('aria-expanded',nowCollapsed?'false':'true');
+  });
+
+  const headerRow=document.createElement('div');
+  headerRow.className='room-rail-header-row';
+  headerRow.appendChild(toggleBtn);
+
+  const itemsWrap=document.createElement('div');
+  itemsWrap.className='room-rail-items';
+
+  const order=getRoomTargetOrder();
+  const activeIdx=currentRoomTargetIndex(order);
+  const myAvatarUrl=localStorage.getItem('gymbro_avatar_url')||null;
+  order.forEach((id,idx)=>{
+    let avatarUrl=myAvatarUrl,name='You';
+    if(id!==null){
+      const m=window.__room.membersMeta[id];
+      if(!m)return;
+      avatarUrl=m.avatarUrl;name=m.name||('@'+m.loginId);
+    }
+    const initial=(name||'?').trim().charAt(0).toUpperCase()||'🏋';
+    const label=id===null?'your own workouts':`${name}'s workouts`;
+
+    const item=document.createElement('button');
+    item.type='button';
+    item.className='room-rail-item'+(idx===activeIdx?' active':'');
+    item.setAttribute('role','tab');
+    item.setAttribute('aria-selected',idx===activeIdx?'true':'false');
+    item.title=`Switch to ${label}`;
+    item.addEventListener('click',()=>switchRoomTarget(id));
+
+    const nameEl=document.createElement('span');
+    nameEl.className='room-rail-name';
+    nameEl.textContent=id===null?'You':name;
+
+    const avatarEl=document.createElement('span');
+    avatarEl.className='room-rail-avatar';
+    if(avatarUrl){
+      const img=document.createElement('img');
+      img.src=avatarUrl;
+      img.alt='';
+      img.onerror=function(){avatarEl.textContent=initial;};
+      avatarEl.appendChild(img);
+    }else{
+      avatarEl.textContent=initial;
+    }
+
+    item.appendChild(nameEl); // name ABOVE the DP
+    item.appendChild(avatarEl);
+    itemsWrap.appendChild(item);
+  });
+
+  rail.appendChild(headerRow);
+  rail.appendChild(itemsWrap);
+  rail.classList.toggle('collapsed',wasCollapsed);
+  rail.classList.add('visible');
+  document.body.classList.add('has-room-rail');
+  // innerHTML='' above wipes the resize dot too, if it was showing mid long-press edit (e.g. a member
+  // joining/leaving triggers a re-render while the user is still repositioning) — put it back.
+  if(_roomRailFloatEdit){_ensureRoomRailResizeHandle();_ensureRoomRailResetHandle();_positionRoomRailHandle();}
+  initRoomRailFloatHandlers(rail);
+  positionRoomRail();
+}
+/* Resize icon at the box's corner. Only exists while the box is picked up (long-press → float-edit,
+   see below) — created here and removed again on Done/Reset/tap-outside, so it never clutters the
+   box during ordinary use. Lives outside the rail itself (see the comment above renderRoomTargetRail)
+   so it's never clipped by the rail's own overflow:auto box. */
+function _ensureRoomRailResizeHandle(){
+  if(document.getElementById('roomRailResizeHandle'))return;
+  const handle=document.createElement('div');
+  handle.id='roomRailResizeHandle';
+  handle.className='room-rail-resize-handle';
+  handle.title='Drag to resize';
+  handle.setAttribute('aria-label','Drag to resize the workout switcher');
+  handle.textContent='⤡';
+  handle.addEventListener('pointerdown',function(e){
+    if(_rrDragging||_rrResizing)return;
+    _rrResizing=true;
+    _rrResizeStart={x:e.clientX,y:e.clientY,scale:(_roomRailCustom&&_roomRailCustom.scale)||1};
+    // Turning the dot solid blue IS the "you're now resizing" indicator — it's the visual cue that
+    // dragging from here on will grow/shrink the box, rather than do nothing. Cleared again in
+    // _rrPointerUp the instant the drag ends.
+    handle.classList.add('rr-active');
+    e.preventDefault();
+    e.stopPropagation();
+  });
+  document.body.appendChild(handle);
+}
+/* Reset dot — sits immediately to the left of the resize dot (see _positionRoomRailHandle), only ever
+   present alongside it while the box is picked up. A single tap snaps the box straight back to its
+   default docked spot and default size, clearing whatever custom position/scale was saved — the exact
+   same outcome the double-tap shortcut gives, just as a visible, discoverable button instead of a
+   gesture the person has to already know about. */
+function _ensureRoomRailResetHandle(){
+  if(document.getElementById('roomRailResetHandle'))return;
+  const handle=document.createElement('div');
+  handle.id='roomRailResetHandle';
+  handle.className='room-rail-reset-handle';
+  handle.title='Reset position & size';
+  handle.setAttribute('aria-label','Reset the workout switcher back to its default position and size');
+  handle.textContent='↺';
+  handle.addEventListener('pointerdown',function(e){
+    e.preventDefault();
+    e.stopPropagation();
+    // Order matters here: _exitRoomRailFloatEdit() must run FIRST, clearing _roomRailFloatEdit back to
+    // false, because _resetRoomRailCustom()'s call to positionRoomRail() silently no-ops while
+    // _roomRailFloatEdit is still true (positionRoomRail deliberately defers to the drag/resize handlers
+    // while the box is picked up) — call them the other way round and the box never actually snaps back
+    // to its docked spot, only its saved custom values get cleared.
+    _exitRoomRailFloatEdit(true); // true = skip persist — we're about to reset, nothing to save back
+    _resetRoomRailCustom();
+  });
+  document.body.appendChild(handle);
+}
+/* Shared by both the reset dot above and the double-tap gesture below — clears any saved custom
+   position/scale and lets the rail fall back to its normal auto-docked spot/size. Must be called AFTER
+   _roomRailFloatEdit is already false (see the reset-dot handler above) or positionRoomRail() below
+   will no-op instead of actually repositioning the rail. */
+function _resetRoomRailCustom(){
+  const rail=document.getElementById('roomTargetRail');
+  if(!rail)return;
+  _roomRailCustom=null;
+  try{localStorage.removeItem(ROOM_RAIL_CUSTOM_KEY)}catch(err){}
+  rail.style.removeProperty('--rail-scale');
+  rail.classList.remove('customized');
+  rail.style.top='';
+  rail.style.left='';
+  positionRoomRail();
+}
+/* Measures the REAL empty gutter beside .container (the app's main content wrapper) and places the
+   rail (now a direct child of <body>, see above) just outside its right edge, vertically centered on
+   the screen — WITHOUT ever letting the rail get clipped off the edge of the screen. That clipping is
+   exactly what happened on narrow/extra-narrow phones before this fix: the old version guaranteed
+   "never left of .container's edge" as a hard rule, but on a phone .container is ~95% of the viewport
+   width, leaving only a few px of real gutter — nowhere near enough room for the rail's actual width,
+   so it got pushed mostly off the right edge of the screen and only a sliver of one avatar remained
+   visible. Visibility now wins: the rail's real width is measured (railRect.width, not a guessed
+   number), and its left edge is clamped so the WHOLE rail always stays inside the viewport
+   (left + railWidth + margin <= window width) on every screen size — extra-narrow, narrow, medium,
+   wide, wider, all of it. It still prefers to sit just outside .container's right edge when there's
+   room for that (desktop/wide screens, where the gutter is generously sized), and only ever eats a few
+   px of that gutter's inner edge on the rare screen too narrow to fit both requirements at once — it
+   never covers card content in the middle of the screen either way, since it only ever touches the
+   card's very edge pixel, if at all.
+   Runs once per render, plus on resize/orientation change, but deliberately NOT on scroll — the rail
+   locks to that one spot on screen once placed, exactly like every other position:fixed element. */
+function positionRoomRail(){
+  const rail=document.getElementById('roomTargetRail');
+  if(!rail||!rail.classList.contains('visible'))return;
+  if(_roomRailFloatEdit)return; // mid drag/resize — the pointer handlers own left/top/scale right now
+  if(_roomRailCustom&&_roomRailCustom.customized){
+    // User has long-pressed the rail before and dropped it somewhere (or resized it) — honor that
+    // instead of the auto-docked gutter placement below, just re-clamped to the current viewport
+    // (screen size may have changed since it was last placed).
+    rail.classList.add('customized');
+    rail.style.setProperty('--rail-scale',_roomRailCustom.scale||1);
+    const rect=rail.getBoundingClientRect();
+    const w=rect.width||60,h=rect.height||60;
+    let left=Math.max(4,Math.min(window.innerWidth-w-4,_roomRailCustom.left||0));
+    let top=Math.max(4,Math.min(window.innerHeight-h-4,_roomRailCustom.top||0));
+    rail.style.left=Math.round(left)+'px';
+    rail.style.top=Math.round(top)+'px';
+    _positionRoomRailHandle();
+    return;
+  }
+  rail.classList.remove('customized');
+  rail.style.top='';
+  const containerEl=document.querySelector('.container');
+  const vw=window.innerWidth;
+  const margin=4; // always keep this many px clear of the true viewport edge
+  const railWidth=rail.getBoundingClientRect().width||40;
+  const maxLeft=Math.max(margin,vw-railWidth-margin); // hard limit: whole rail must fit on-screen
+  let left=maxLeft;
+  if(containerEl){
+    const rect=containerEl.getBoundingClientRect();
+    const gutter=Math.max(0,vw-rect.right);
+    const preferredGap=Math.min(10,Math.max(2,gutter*0.25));
+    const preferredLeft=rect.right+preferredGap;
+    left=Math.min(preferredLeft,maxLeft);
+  }
+  left=Math.max(margin,left);
+  rail.style.left=Math.round(left)+'px';
+  _positionRoomRailHandle();
+}
+window.addEventListener('resize',function(){if(document.body.classList.contains('has-room-rail'))positionRoomRail();});
+window.addEventListener('orientationchange',function(){if(document.body.classList.contains('has-room-rail'))setTimeout(positionRoomRail,150);});
+
+/* ===================== ROOM RAIL: LONG-PRESS TO PICK UP, THEN DRAG OR RESIZE =====================
+   By default the rail auto-docks to the right-hand gutter (positionRoomRail above). A press-and-hold
+   (~350ms) ANYWHERE on the box — an avatar, the ▾ toggle, the padding, doesn't matter — "picks it up"
+   with NO visual change at all beyond that: no outline, no panel, no buttons — the box stays looking
+   exactly as it already did (collapsed stays collapsed, expanded stays expanded), and the only new
+   thing on screen is a small ⤡ dot at its corner. From that instant the person can do either thing:
+   keep holding and drag the box anywhere on screen (it stays exactly the same size the whole time —
+   dragging never resizes it), or grab that ⤡ dot instead to resize it (which never moves it). Letting
+   go ends whichever gesture was in progress and immediately drops the box right there — there's no
+   separate "Done" step to tap. A quick tap — press and release without holding — is completely
+   unaffected: switching members and opening/closing the list both still work exactly as before, since
+   the long-press only ever fires after being held roughly still for the full 350ms; releasing any
+   sooner is treated as the ordinary tap it always was. The exact spot and size are remembered (per
+   device, via localStorage) — every future room session opens right back there. To go back to the
+   automatic docked spot, double-tap the box (only does anything once it's actually been moved/resized
+   — an ordinary double-tap on a box still sitting at its default spot behaves as two ordinary taps). */
+const ROOM_RAIL_CUSTOM_KEY='gymbro_room_rail_custom';
+let _roomRailCustom=(function(){try{return JSON.parse(localStorage.getItem(ROOM_RAIL_CUSTOM_KEY)||'null')}catch(e){return null}})();
+let _roomRailFloatEdit=false;
+let _roomRailSuppressClick=false;
+let _rrLongPressTimer=null;
+let _rrPressStart=null; // {x,y,moved}
+let _rrDragging=false;
+let _rrDragOffset={x:0,y:0};
+let _rrDragSize={w:60,h:60};
+let _rrResizing=false;
+let _rrResizeStart=null; // {x,y,scale}
+let _rrLastTapTime=0,_rrLastTapXY=null; // double-tap-to-reset bookkeeping
+
+function initRoomRailFloatHandlers(rail){
+  if(rail._rrHandlersBound)return;
+  rail._rrHandlersBound=true;
+  // Swallow the click that would otherwise fire on whatever the pointer lands on (an avatar, the
+  // background) right after a long-press picked the box up — capture phase so it runs before that
+  // element's own click handler (e.g. switchRoomTarget) ever sees the event.
+  rail.addEventListener('click',function(e){
+    if(_roomRailSuppressClick){e.stopPropagation();e.preventDefault();_roomRailSuppressClick=false;}
+  },true);
+  rail.addEventListener('pointerdown',_rrPointerDown);
+}
+// Bound once, globally — pointermove/up need to keep tracking even if the pointer strays outside
+// the (possibly small) rail element mid-drag.
+window.addEventListener('pointermove',_rrPointerMove);
+window.addEventListener('pointerup',_rrPointerUp);
+window.addEventListener('pointercancel',_rrPointerUp);
+// Tapping anywhere outside the rail while it's picked up drops it in place (belt-and-suspenders —
+// the normal path is releasing the pointer, handled in _rrPointerUp below, which already drops it).
+document.addEventListener('pointerdown',function(e){
+  if(!_roomRailFloatEdit)return;
+  // The resize and reset dots are deliberately separate fixed elements outside the rail itself (see
+  // _ensureRoomRailResizeHandle/_ensureRoomRailResetHandle) so the rail's own overflow:auto never clips
+  // them — which also means a press on either of them is technically "outside the rail" and must be
+  // explicitly excluded here, or this outside-tap-drops-the-box listener would fire first and yank the
+  // box out of float-edit before the dot's own handler ever got a chance to run.
+  if(e.target.closest('.room-rail-resize-handle,.room-rail-reset-handle'))return;
+  const rail=document.getElementById('roomTargetRail');
+  if(rail&&!rail.contains(e.target))_exitRoomRailFloatEdit();
+},true);
+
+function _rrPointerDown(e){
+  if(_rrDragging||_rrResizing)return;
+  const rail=document.getElementById('roomTargetRail');
+  if(!rail)return;
+  // The resize handle only ever exists once the box is already picked up, and is a completely
+  // separate gesture from moving the box — pressing it can never start a drag.
+  if(e.target.closest('.room-rail-resize-handle')){
+    _rrResizing=true;
+    _rrResizeStart={x:e.clientX,y:e.clientY,scale:(_roomRailCustom&&_roomRailCustom.scale)||1};
+    e.preventDefault();
+    return;
+  }
+  // Double-tap anywhere on an already-customized (moved/resized) box resets it straight back to the
+  // default docked spot/size — the only "reset" affordance now that there's no Done/Reset panel.
+  // Gated on .customized so an ordinary double-tap on a box still sitting at its default spot is left
+  // alone and behaves as two ordinary taps (e.g. switching to the same member twice).
+  if(!_roomRailFloatEdit&&rail.classList.contains('customized')){
+    const now=Date.now();
+    if(_rrLastTapTime&&now-_rrLastTapTime<350&&_rrLastTapXY&&Math.abs(e.clientX-_rrLastTapXY.x)<24&&Math.abs(e.clientY-_rrLastTapXY.y)<24){
+      _rrLastTapTime=0;_rrLastTapXY=null;
+      _resetRoomRailCustom();
+      _roomRailSuppressClick=true; // swallow the click this second tap would otherwise fire
+      setTimeout(function(){_roomRailSuppressClick=false;},60);
+      e.preventDefault();
+      return;
+    }
+    _rrLastTapTime=now;_rrLastTapXY={x:e.clientX,y:e.clientY};
+  }
+  // Already picked up (mid-reposition, e.g. the finger lifted for a moment while dragging) — resume
+  // dragging on this very touch immediately, no need to hold still for another 350ms.
+  if(_roomRailFloatEdit){
+    const r=rail.getBoundingClientRect();
+    _rrDragSize={w:r.width,h:r.height};
+    _rrDragging=true;
+    _rrDragOffset={x:e.clientX-r.left,y:e.clientY-r.top};
+    _roomRailSuppressClick=true;
+    e.preventDefault();
+    return;
+  }
+  // NOTE: deliberately no preventDefault() here — this is also the pointerdown that precedes an
+  // ordinary quick tap (switching members), and calling preventDefault() on a touch pointerdown
+  // suppresses the click event the browser would otherwise fire on release, which would silently
+  // break plain tapping. touch-action:none on .room-rail (see its CSS) already stops the browser's
+  // own panning/scrolling from engaging on this element without needing that.
+  _rrPressStart={x:e.clientX,y:e.clientY,moved:false};
+  clearTimeout(_rrLongPressTimer);
+  _rrLongPressTimer=setTimeout(function(){
+    if(!_rrPressStart||_rrPressStart.moved)return; // finger moved before the hold completed — treat as a normal tap/scroll instead
+    const r=rail.getBoundingClientRect();
+    _rrDragSize={w:r.width,h:r.height};
+    _enterRoomRailFloatEdit(); // picks the box up EXACTLY as it currently looks — never force-expands it
+    // Picking it up no longer force-starts a drag. The box now simply stays picked up — ⤡ dot visible —
+    // even after the finger lifts, so the person can take their hand off and then deliberately tap the
+    // dot to resize. If the finger keeps moving instead of lifting (same continuous hold), _rrPointerMove
+    // above promotes it into a real drag, so long-press-then-drag-without-lifting still works too.
+    _roomRailSuppressClick=true;
+    if(navigator.vibrate)try{navigator.vibrate(15)}catch(err){}
+  },350);
+}
+// A real finger/mouse hand naturally drifts a little during a hold — tolerate a fair amount of that
+// drift (28px) before treating it as an intentional early move that cancels the long-press, so an
+// ordinary unsteady hold still reliably picks the box up instead of silently reverting to a tap.
+function _rrPointerMove(e){
+  if(_rrPressStart&&!_rrDragging&&!_rrResizing){
+    // The long-press has already fired and picked the box up (⤡ dot showing), but this is still the
+    // very same continuous hold — the finger never lifted. Moving it now promotes the hold straight
+    // into a real drag. If instead the finger DOES lift without moving, _rrPointerUp below leaves
+    // float-edit active and the dot stays on screen, so the person can let go and tap it separately.
+    if(_roomRailFloatEdit){
+      if(Math.abs(e.clientX-_rrPressStart.x)>8||Math.abs(e.clientY-_rrPressStart.y)>8){
+        const rail=document.getElementById('roomTargetRail');
+        if(rail){
+          const r=rail.getBoundingClientRect();
+          _rrDragSize={w:r.width,h:r.height};
+          _rrDragOffset={x:e.clientX-r.left,y:e.clientY-r.top};
+          _rrDragging=true;
+          _roomRailSuppressClick=true;
+          _rrPressStart=null;
+          e.preventDefault();
+        }
+      }
+      return;
+    }
+    if(Math.abs(e.clientX-_rrPressStart.x)>28||Math.abs(e.clientY-_rrPressStart.y)>28){
+      _rrPressStart.moved=true;
+      clearTimeout(_rrLongPressTimer);
+    }
+    return;
+  }
+  const rail=document.getElementById('roomTargetRail');
+  if(!rail)return;
+  if(_rrDragging){
+    e.preventDefault();
+    let left=e.clientX-_rrDragOffset.x, top=e.clientY-_rrDragOffset.y;
+    left=Math.max(4,Math.min(window.innerWidth-_rrDragSize.w-4,left));
+    top=Math.max(4,Math.min(window.innerHeight-_rrDragSize.h-4,top));
+    rail.style.left=Math.round(left)+'px';
+    rail.style.top=Math.round(top)+'px';
+    _positionRoomRailHandle();
+  }else if(_rrResizing){
+    e.preventDefault();
+    const dx=e.clientX-_rrResizeStart.x, dy=e.clientY-_rrResizeStart.y;
+    let scale=_rrResizeStart.scale+((dx+dy)/2)/140;
+    scale=Math.max(0.4,Math.min(2.6,scale));
+    rail.style.setProperty('--rail-scale',scale);
+    rail._rrPendingScale=scale;
+    _positionRoomRailHandle();
+  }
+}
+function _rrPointerUp(){
+  clearTimeout(_rrLongPressTimer);
+  _rrPressStart=null;
+  const rail=document.getElementById('roomTargetRail');
+  if(_rrDragging){
+    _rrDragging=false;
+    if(_roomRailSuppressClick)setTimeout(function(){_roomRailSuppressClick=false;},60);
+    // Letting go IS "Done" now — no separate confirm step. _exitRoomRailFloatEdit() below persists the
+    // new left/top itself, straight from the rail's live style (already set by the drag above).
+    _exitRoomRailFloatEdit();
+  }
+  if(_rrResizing){
+    _rrResizing=false;
+    const resizeHandle=document.getElementById('roomRailResizeHandle');
+    if(resizeHandle)resizeHandle.classList.remove('rr-active'); // back to idle color; drag is over
+    // Must run BEFORE _exitRoomRailFloatEdit() below — that function's own persist call only knows
+    // about the already-saved scale, not this just-finished resize's pending one.
+    if(rail&&rail._rrPendingScale)_persistRoomRailCustom({scale:rail._rrPendingScale});
+    _exitRoomRailFloatEdit();
+  }
+}
+function _persistRoomRailCustom(patch){
+  _roomRailCustom=Object.assign({left:0,top:0,scale:1,customized:true},_roomRailCustom||{},patch);
+  try{localStorage.setItem(ROOM_RAIL_CUSTOM_KEY,JSON.stringify(_roomRailCustom))}catch(e){}
+}
+function _enterRoomRailFloatEdit(){
+  if(_roomRailFloatEdit)return;
+  _roomRailFloatEdit=true;
+  const rail=document.getElementById('roomTargetRail');
+  if(!rail)return;
+  // Deliberately does NOT touch rail.classList('collapsed') here. Picking the box up (long-press)
+  // must never force it open to full size — whatever state it was showing (collapsed down to just
+  // the avatar column, or fully expanded) is exactly what gets dragged/resized. This is what lets the
+  // person park the box collapsed in a corner and have it STAY that small size and spot, instead of
+  // every pick-up ballooning it back out to the full member list.
+  const rect=rail.getBoundingClientRect();
+  rail.classList.add('customized'); // switch to explicit top/left before the drag moves it, using its current on-screen spot so it doesn't jump
+  rail.style.left=Math.round(rect.left)+'px';
+  rail.style.top=Math.round(rect.top)+'px';
+  // No outline, no panel — picking the box up changes NOTHING about how it looks beyond the ⤡ dot
+  // below. .float-edit only still matters for its (invisible) touch-action:none/cursor, not for looks.
+  rail.classList.add('float-edit');
+  _ensureRoomRailResizeHandle();
+  _ensureRoomRailResetHandle();
+  _positionRoomRailHandle();
+}
+// skipPersist=true (used by the reset dot) exits float-edit WITHOUT saving the current left/top/scale
+// back to localStorage — reset already cleared/removed the saved custom values, so re-persisting here
+// would just immediately re-save the box back into "customized" state.
+function _exitRoomRailFloatEdit(skipPersist){
+  if(!_roomRailFloatEdit)return;
+  _roomRailFloatEdit=false;
+  const rail=document.getElementById('roomTargetRail');
+  if(!rail)return;
+  rail.classList.remove('float-edit');
+  const handle=document.getElementById('roomRailResizeHandle');if(handle)handle.remove();
+  const resetHandle=document.getElementById('roomRailResetHandle');if(resetHandle)resetHandle.remove();
+  if(!skipPersist){
+    _persistRoomRailCustom({left:parseInt(rail.style.left,10)||0,top:parseInt(rail.style.top,10)||0,scale:(_roomRailCustom&&_roomRailCustom.scale)||1});
+  }
+}
+function _positionRoomRailHandle(){
+  const rail=document.getElementById('roomTargetRail');
+  if(!rail)return;
+  const rect=rail.getBoundingClientRect();
+  const handle=document.getElementById('roomRailResizeHandle');
+  const resetHandle=document.getElementById('roomRailResetHandle');
+  // Both dots are sized responsively via CSS clamp() (see their rule), so their real on-screen size is
+  // read back here rather than assumed — this, plus a gap that scales the same way, is what keeps the
+  // two dots visibly separated (never touching or overlapping) at every screen size, phone to desktop.
+  const handleSize=(handle&&handle.getBoundingClientRect().width)||26;
+  const gap=Math.max(6,Math.min(12,handleSize*0.4));
+  if(handle){
+    handle.style.left=Math.round(rect.right-handleSize/2)+'px';
+    handle.style.top=Math.round(rect.bottom-handleSize/2)+'px';
+  }
+  if(resetHandle){
+    const resetSize=resetHandle.getBoundingClientRect().width||handleSize;
+    // Immediately to the LEFT of the resize dot, same row, with a clear gap between the two.
+    resetHandle.style.left=Math.round(rect.right-handleSize/2-gap-resetSize)+'px';
+    resetHandle.style.top=Math.round(rect.bottom-resetSize/2)+'px';
+  }
 }
 
 /* ===== Room target badge — swipe/dots to switch whose workouts you're logging =====
@@ -18937,6 +19626,21 @@ async function switchRoomTarget(loginId){
     showToast('⏳ Finishing the current save first…');
     return;
   }
+  // Page-height jump fix now lives centrally in resetWorkoutFormUIOnly()/loadWorkoutsForDate()
+  // themselves (see beginPageHeightLock/endPageHeightLockSoon) — every shrink-then-regrow those two
+  // do is covered there automatically. This outer lock just spans the gap BETWEEN them too (the await
+  // below can take a moment on a slow connection), so the page never has even a brief unlocked window
+  // mid-switch. Reentrant, so it stacks harmlessly with the locks those functions take internally.
+  beginPageHeightLock();
+  // Belt-and-suspenders on top of the height lock: pin the exact scroll pixel too, so the page is
+  // held right where it was for this member the whole time the switch is running, released once the
+  // switch fully settles below.
+  _rsBeginScrollPin();
+  // Third guard, on top of the two above: hide the exact boxes that are about to be torn down and
+  // rebuilt so the in-between blank/mismatched state never actually paints on screen (see
+  // "ROOM-SWITCH VISUAL GUARD" above). Lifted per-section, the moment each one is settled again.
+  _rrHideRoomSwitchForm();
+  _rrHideRoomSwitchList();
   setRoomTargetState(loginId);
   saveRoomSession({role:'host',roomId:window.__room.roomId,targetLoginId:loginId});
   resetWorkoutFormUIOnly();
@@ -18945,12 +19649,36 @@ async function switchRoomTarget(loginId){
   // relogin) and no redundant tab-switch-triggered DB fetch. Everything restored here (form fields,
   // running set/rest/cardio timers) comes straight out of localStorage, so it lands back instantly.
   await restoreInProgressWorkoutFormIfAny(false,{silent:true,skipTabSwitch:true});
+  // Form is fully settled now — reveal it and play the "paper turn" cue on it right away, rather than
+  // waiting for the (possibly slower) saved-entries list below to also finish.
+  _rrShowRoomSwitchForm();
+  // Visual cue that something changed — a quick "paper turn" on whichever form box is now showing —
+  // in place of the page movement this whole fix removes.
+  _playRoomSwitchTurn(document.getElementById('workoutFormStructure').style.display!=='none'?'workoutFormStructure':'initialWorkoutBox');
   // The saved-entries list below the form still needs today's data for whichever member is now
-  // selected. Fired in the background, never awaited, so it can never delay the form above — which
-  // is already fully painted by this point straight from localStorage. (Harmless if
-  // restoreNonLiveEditDraftIfAny already fetched the same thing a moment ago as part of resolving
-  // an edit-draft — it's just a fresh, cheap re-fetch.)
-  if(typeof loadWorkoutsForDate==='function')loadWorkoutsForDate();
+  // selected. Fired in the background (its returned promise is only used to release this outer lock
+  // and play the list's own turn animation, never awaited before painting the form above), so it can
+  // never delay the form — which is already fully painted by this point straight from localStorage.
+  const _wfdPromise=(typeof loadWorkoutsForDate==='function')?loadWorkoutsForDate():null;
+  const _finishSwitch=()=>{endPageHeightLockSoon();_rsEndScrollPin();_rrShowRoomSwitchList();_playRoomSwitchTurn('savedWorkoutLogsContainer');};
+  if(_wfdPromise&&typeof _wfdPromise.then==='function'){
+    // .catch as well as .then: if the list fetch itself fails, the guard must still be lifted and the
+    // locks released — otherwise the list would stay invisible and the page stuck height-locked until
+    // the next switch happens to come along and clean up after this one.
+    _wfdPromise.then(_finishSwitch,_finishSwitch);
+  }else{
+    _finishSwitch();
+  }
+}
+// Briefly applies the "paper turn" transition (see .room-switch-turn CSS) to one element, then cleans
+// the class back off once the animation finishes so it's ready to replay on the next switch.
+function _playRoomSwitchTurn(elId){
+  const el=document.getElementById(elId);
+  if(!el)return;
+  el.classList.remove('room-switch-turn');
+  void el.offsetWidth; // force reflow so re-adding the class restarts the animation every time
+  el.classList.add('room-switch-turn');
+  setTimeout(()=>el.classList.remove('room-switch-turn'),320);
 }
 
 /* ===================== ROOM-WIDE BREAK-TIMER WATCHER (host device only) =====================
@@ -19323,6 +20051,7 @@ function teardownRoomUiOnLogout(){
   const mrs=document.getElementById('memberRoomStrip');if(mrs)mrs.style.display='none';
   const mws=document.getElementById('memberRoomWaitingStrip');if(mws)mws.style.display='none';
   const ric=document.getElementById('roomIdleControls');if(ric)ric.style.display='none';const _rotb2=document.getElementById('roomOptionsToggleBtn');if(_rotb2){_rotb2.classList.remove('active');if(!isAnyRoomStateActive())_rotb2.style.display='';}
+  if(typeof renderRoomTargetRail==='function')renderRoomTargetRail(); // window.__room is already null above, so this just hides the rail + drops body.has-room-rail
 }
 
 /* Called from mountMemberDashboard() on BOTH fresh login and page-refresh auto-restore, so an
