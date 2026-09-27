@@ -3102,14 +3102,15 @@ body.tracker-fs-lock{overflow:hidden}
 .ex-row-add-center-btn:hover{transform:translateY(-1px);box-shadow:0 8px 22px var(--accent-glow)}
 .ex-row-add-center-btn:active{transform:scale(0.95)}
 .ex-row-add-center-btn svg{width:12px;height:12px;stroke:currentColor;flex-shrink:0}
-/* Fixed video icon, pinned to the box's bottom-right corner — round, red (universal "play video"
-   color, matches .wf-video-close-btn/.learn-video-fallback-btn elsewhere in the app), only shown
-   once the row is expanded. Small so it doesn't force extra row height. */
-.ex-row-video-fixed-btn{position:absolute;right:7px;bottom:6px;width:24px;height:24px;border-radius:50%;border:none;display:none;align-items:center;justify-content:center;background:linear-gradient(135deg,#ff0000,#cc0000);color:#fff;box-shadow:0 3px 10px rgba(239,68,68,0.5);cursor:pointer;transition:transform 0.15s ease;z-index:2;-webkit-tap-highlight-color:transparent}
+/* Fixed video icon, pinned to the box's bottom-right corner — round, in the app's theme accent
+   color (var(--btn-bg)/var(--accent-glow), same tokens the Add button and other primary controls
+   use, so it stays correct across light/dark/custom themes), only shown once the row is expanded.
+   Small so it doesn't force extra row height. */
+.ex-row-video-fixed-btn{position:absolute;right:clamp(5px,1.8vw,8px);bottom:clamp(4px,1.6vw,7px);width:clamp(20px,5.5vw,26px);height:clamp(20px,5.5vw,26px);border-radius:50%;border:none;display:none;align-items:center;justify-content:center;background:var(--btn-bg);color:#fff;box-shadow:0 3px 10px var(--accent-glow);cursor:pointer;transition:transform 0.15s ease;z-index:2;-webkit-tap-highlight-color:transparent}
 .ex-row-expandable.expanded .ex-row-video-fixed-btn{display:flex;animation:fadeIn 0.2s ease}
 .ex-row-video-fixed-btn:hover{transform:scale(1.1)}
 .ex-row-video-fixed-btn:active{transform:scale(0.92)}
-.ex-row-video-fixed-btn svg{width:11px;height:11px;margin-left:1px}
+.ex-row-video-fixed-btn svg{width:clamp(9px,2.4vw,12px);height:clamp(9px,2.4vw,12px)}
 /* Mirrors the saved-workout card's own actions column (.workout-actions-overlay / .action-icon-btn,
    see the .workout-log-card rules) instead of a floating corner button — same "click the row, the
    box shrinks and Edit+Delete appear beside it" mechanic, same icon styling — only ever added to a
@@ -3143,6 +3144,12 @@ body.tracker-fs-lock{overflow:hidden}
 .wf-video-header{position:relative;padding:14px 52px 14px 16px;background:var(--bg-panel);border-bottom:1px solid var(--border-col);color:var(--text-primary);font-family:var(--font-alt);font-size:13.5px;font-weight:800;letter-spacing:0.3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .wf-video-frame-wrap{position:relative;width:100%;aspect-ratio:16/9;background:var(--bg-panel);overflow:hidden}
 .wf-video-frame-wrap video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:var(--bg-panel);pointer-events:none}
+/* Loading state: shown the instant the modal opens, covering the (otherwise blank) frame while the
+   clip is fetched/decoded, and removed only once playback actually starts (the video's own "playing"
+   event) — never on a fixed timer, so it always matches real load time on slow connections too. */
+.wf-video-loading{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:var(--bg-panel);z-index:1;transition:opacity 0.2s ease}
+.wf-video-loading-spinner{width:34px;height:34px;border-radius:50%;border:3px solid var(--border-col);border-top-color:var(--accent);animation:learnThumbSpin 0.8s linear infinite}
+.wf-video-loading-text{color:var(--text-secondary);font-family:var(--font-alt);font-size:11.5px;font-weight:700;letter-spacing:0.4px}
 .wf-video-close-btn{position:absolute;top:10px;right:10px;width:34px;height:34px;border-radius:50%;background:#ef4444;color:#fff;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 14px rgba(239,68,68,0.55);z-index:3;transition:transform 0.15s ease}
 .wf-video-close-btn:hover{transform:scale(1.08)}
 .wf-video-close-btn svg{width:15px;height:15px;stroke:currentColor}
@@ -3154,7 +3161,6 @@ body.tracker-fs-lock{overflow:hidden}
   .wf-video-modal-box{max-width:100%;border-radius:20px}
   .wf-video-frame-wrap{aspect-ratio:4/3;max-height:56vh}
   .ex-row-add-center-btn{font-size:11px;padding:5px 14px}
-  .ex-row-video-fixed-btn{width:22px;height:22px;right:6px;bottom:5px}
 }
 .learn-section-block{margin-bottom:clamp(12px,4vw,18px);padding:clamp(12px,4vw,16px);background:var(--accent-soft);border-radius:14px;border:1px solid var(--border-col);max-width:100%;box-sizing:border-box}
 .learn-block-title{font-family:var(--font-alt);font-size:clamp(13.5px,3.8vw,15px);font-weight:700;color:var(--section-title-col);letter-spacing:0.5px;margin-bottom:12px;display:flex;align-items:center;gap:7px;flex-wrap:wrap}
@@ -14557,7 +14563,8 @@ async function handleWorkoutSearchAuto(forceShow){
   _updateInlineEquipBtn('workoutNameInput','_inlineEquipBtnNonLive','nonlive');
 }
 document.addEventListener("click",e=>{
-  if(e.target.id!=="workoutNameInput"&&e.target.id!=="workoutNameDropdownIcon"){document.getElementById("autoSuggestions").style.display="none";const wi=document.getElementById("workoutNameDropdownIcon");if(wi)wi.classList.remove("open");}
+  const ags=document.getElementById("autoSuggestions");
+  if(ags&&e.target.id!=="workoutNameInput"&&e.target.id!=="workoutNameDropdownIcon"&&!ags.contains(e.target)){ags.style.display="none";const wi=document.getElementById("workoutNameDropdownIcon");if(wi)wi.classList.remove("open");}
   let sr=document.getElementById("gymBroSearchResults");if(sr&&e.target.id!=="gymBroSearchInput"&&!sr.contains(e.target))sr.style.display="none";
   const ls=document.getElementById("learnSuggestions");if(ls&&e.target.id!=="learnSearchInput"&&e.target.id!=="learnSearchDropdownIcon"&&!ls.contains(e.target)){ls.style.display="none";const li=document.getElementById("learnSearchDropdownIcon");if(li)li.classList.remove("open");}
 });
@@ -23805,6 +23812,13 @@ function _wfVideoFallback(box,reasonText){
   if(!frameWrap)return;
   frameWrap.innerHTML=`<div class="wf-video-fallback"><div class="wf-video-fallback-icon">🎬</div><div class="wf-video-fallback-text">${reasonText}</div></div>`;
 }
+// Dismisses the video modal's loading spinner the moment the clip is actually ready to be seen —
+// "loadeddata" (first frame decoded) as the earliest safe point, "playing" as the real confirmation
+// once autoplay kicks in — rather than on a fixed timer, so it always matches real load time.
+function _wfHideVideoLoading(){
+  const el=document.getElementById("wfVideoLoading");
+  if(el)el.remove();
+}
 async function openWorkoutRowVideo(name){
   closeWorkoutRowVideo();
   const overlay=document.createElement("div");
@@ -23816,11 +23830,16 @@ async function openWorkoutRowVideo(name){
   // closing the video (by ✕, or by tapping the backdrop) always leaves that list open and untouched.
   overlay.onclick=function(e){e.stopPropagation();if(e.target===overlay)closeWorkoutRowVideo()};
   const safeTitle=(name||"Exercise Video").replace(/</g,"&lt;").replace(/>/g,"&gt;");
-  overlay.innerHTML=`<div class="wf-video-modal-box"><div class="wf-video-header">${safeTitle}</div><button type="button" class="wf-video-close-btn" onclick="closeWorkoutRowVideo()" title="Close" aria-label="Close video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg></button><div class="wf-video-frame-wrap"><video id="wfVideoEl" autoplay loop muted playsinline webkit-playsinline disablepictureinpicture disableremoteplayback oncontextmenu="return false"></video></div></div>`;
+  overlay.innerHTML=`<div class="wf-video-modal-box"><div class="wf-video-header">${safeTitle}</div><button type="button" class="wf-video-close-btn" onclick="closeWorkoutRowVideo()" title="Close" aria-label="Close video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg></button><div class="wf-video-frame-wrap"><video id="wfVideoEl" autoplay loop muted playsinline webkit-playsinline disablepictureinpicture disableremoteplayback oncontextmenu="return false"></video><div class="wf-video-loading" id="wfVideoLoading"><div class="wf-video-loading-spinner"></div><div class="wf-video-loading-text">Loading video…</div></div></div></div>`;
   document.body.appendChild(overlay);
   document.addEventListener("keydown",wfVideoEscHandler);
   const box=overlay.querySelector(".wf-video-modal-box");
   const videoEl=document.getElementById("wfVideoEl");
+  // Whichever fires first — "loadeddata" (first frame decoded) or "playing" (autoplay actually
+  // started) — dismisses the spinner; either way it's the real moment there's something to see,
+  // never a fixed timer, so it matches actual load time on slow connections too.
+  videoEl.addEventListener("loadeddata",_wfHideVideoLoading,{once:true});
+  videoEl.addEventListener("playing",_wfHideVideoLoading,{once:true});
   await loadWorkoutVideoMap();
   const filePath=getLocalVideoPath(name);
   if(!filePath){
@@ -23841,7 +23860,7 @@ async function openWorkoutRowVideo(name){
     const{data}=videoDb.storage.from("workout-videos").getPublicUrl(filePath);
     videoEl.src=data.publicUrl;
     videoEl.play().catch(()=>{});
-    videoEl.onerror=()=>{ if(document.body.contains(box))_wfVideoFallback(box,"This video couldn't be loaded. Check your connection and try again.") };
+    videoEl.onerror=()=>{ if(document.body.contains(box)){_wfHideVideoLoading();_wfVideoFallback(box,"This video couldn't be loaded. Check your connection and try again.")} };
   });
 }
 /* Turns a plain exercise-row <div> (already holding its name/class-tag markup as innerHTML) into
@@ -23857,7 +23876,7 @@ async function openWorkoutRowVideo(name){
 function _wireExRowActions(div,videoName,addFn){
   div.classList.add('ex-row-expandable');
   const innerMarkup=div.innerHTML;
-  div.innerHTML=`<div class="ex-row-swipe-bg"><span>Add</span><span class="ex-row-swipe-chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></span><span class="ex-row-swipe-chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></span></div><div class="ex-row-content"><div class="ex-row-main">${innerMarkup}</div><div class="ex-row-actions"><button type="button" class="ex-row-add-center-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>Add</button></div><button type="button" class="ex-row-video-fixed-btn" aria-label="Watch exercise video" title="Watch video"><svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M8 5v14l11-7z"/></svg></button></div>`;
+  div.innerHTML=`<div class="ex-row-swipe-bg"><span>Add</span><span class="ex-row-swipe-chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></span><span class="ex-row-swipe-chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></span></div><div class="ex-row-content"><div class="ex-row-main">${innerMarkup}</div><div class="ex-row-actions"><button type="button" class="ex-row-add-center-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>Add</button></div><button type="button" class="ex-row-video-fixed-btn" aria-label="Watch exercise video" title="Watch video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1.5" y="6" width="14" height="12" rx="2.5"/><path d="M15.5 10.5 22 7v10l-6.5-3.5z"/></svg></button></div>`;
   div.querySelector('.ex-row-main').onclick=(e)=>{
     e.stopPropagation();
     const box=div.parentElement;
@@ -24794,4 +24813,4 @@ function closeLearnVideo(){
 })();
 </script>
 </body>
-</html> 
+</html>
