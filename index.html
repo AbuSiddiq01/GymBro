@@ -3110,6 +3110,23 @@ body.tracker-fs-lock{overflow:hidden}
 .ex-row-video-fixed-btn:hover{transform:scale(1.1)}
 .ex-row-video-fixed-btn:active{transform:scale(0.92)}
 .ex-row-video-fixed-btn svg{width:11px;height:11px;margin-left:1px}
+/* Mirrors the saved-workout card's own actions column (.workout-actions-overlay / .action-icon-btn,
+   see the .workout-log-card rules) instead of a floating corner button — same "click the row, the
+   box shrinks and Edit+Delete appear beside it" mechanic, same icon styling — only ever added to a
+   row for a custom exercise while browsing the Muscle filter's "Custom" list (see
+   handleWorkoutSearchAuto), so it's never present on a built-in catalog row. Width 0 until the row
+   is expanded (the row's existing tap-to-expand trigger — same "click" that already reveals the
+   Add/Video controls below), at which point it grows in-flow and .ex-row-main (the name/class-tag
+   line) shrinks to make room, exactly like a saved-workout box does. Edit opens
+   _showCustomExerciseEditModal (Class/Equipment); Delete removes the custom-exercise registry entry
+   entirely (via _confirmDeleteCustomExercise) — neither touches any workout already logged with
+   this name. */
+.ex-row-header-flex{display:flex;align-items:stretch}
+.ex-row-header-flex .ex-row-main{flex:1 1 auto;min-width:0}
+.ex-row-custom-actions{width:0;flex-shrink:0;overflow:hidden;opacity:0;display:flex;flex-direction:column;justify-content:center;gap:4px;margin:0;transition:width 0.2s ease,opacity 0.2s ease,margin-left 0.2s ease;pointer-events:none}
+.ex-row-expandable.expanded .ex-row-custom-actions{width:28px;opacity:1;margin-left:6px;pointer-events:auto;padding:6px 0}
+.ex-row-custom-actions .action-icon-btn{width:24px;height:24px}
+.ex-row-custom-actions .action-icon-btn svg{width:12px;height:12px}
 /* Swipe-to-add completion flash: a quick accent pulse right after the swipe-add fires, confirming
    the add once the content has settled back/away. */
 .ex-row-expandable.ex-row-swipe-flash{animation:exRowSwipeFlash 0.45s ease;z-index:1}
@@ -8028,11 +8045,17 @@ function ctmMuscleClassesFor(muscleVal){
   if(MUSCLE_GROUP_MAP[muscleVal])return MUSCLE_GROUP_MAP[muscleVal];
   return [muscleVal];
 }
-/* Builds the <option> list shared by both Muscle dropdowns (Add Workout + Tracker). */
-function ctmBuildMuscleOptionsHTML(){
+/* Builds the <option> list shared by both Muscle dropdowns (Add Workout + Tracker). includeCustomOption
+   (default true) appends a trailing "Custom" entry — a pseudo-muscle value meaning "only exercises
+   I've created myself" (handled specially in ctmGetFilteredCatalog, not a real EXERCISE_CATALOG
+   class) — used for the Add/Edit/Live workout-entry forms where picking a custom exercise makes
+   sense. Passed false for the Tracker (analytics filters by an entry's own real logged class, never
+   "Custom") and the Learn page (custom exercises have no built-in tips/video content to show). */
+function ctmBuildMuscleOptionsHTML(includeCustomOption){
   let html='<option value="">All Muscles</option>';
   MUSCLE_LIST.forEach(m=>html+=`<option value="${m}">${m}</option>`);
   html+='<option value="Upper Body">Upper Body</option><option value="Lower Body">Lower Body</option>';
+  if(includeCustomOption!==false)html+='<option value="Custom">Custom</option>';
   return html;
 }
 function ctmBuildEquipmentOptionsHTML(){
@@ -8195,7 +8218,7 @@ function ctmInitMuscleEquipmentDropdowns(){
   ['addWorkoutMuscleFilter','addWorkoutEquipmentFilter','trackerMuscleFilter','trackerEquipmentFilter','liveWorkoutMuscleFilter','liveWorkoutEquipmentFilter'].forEach(id=>{
     const el=document.getElementById(id);
     if(el&&!el.dataset.built){
-      el.innerHTML=id.toLowerCase().includes('muscle')?ctmBuildMuscleOptionsHTML():ctmBuildEquipmentOptionsHTML();
+      el.innerHTML=id.toLowerCase().includes('muscle')?ctmBuildMuscleOptionsHTML(id!=='trackerMuscleFilter'):ctmBuildEquipmentOptionsHTML();
       el.dataset.built='1';
       ctmApplyPersistedFilter(id);
       el.addEventListener('change',()=>ctmSaveFilterValue(id,el.value));
@@ -8263,8 +8286,24 @@ function _refreshExerciseDropdownsAfterFreqMapLoad(){
    user's personal log frequency, so picking a muscle always surfaces the same popular-first list
    instead of whatever that one person happens to have logged the most. */
 function ctmGetFilteredCatalog(muscleVal,equipmentVal,textVal,includeMulti,includeCustom){
-  const classes=ctmMuscleClassesFor(muscleVal);
   const text=(textVal||'').toLowerCase().trim();
+  // "Custom" is a pseudo-muscle value (appended by ctmBuildMuscleOptionsHTML, not a real
+  // EXERCISE_CATALOG class) meaning "only exercises I've created myself" — regardless of which real
+  // muscle class each one happens to be tagged with. Bypasses the normal EXERCISE_CATALOG search and
+  // class-matching entirely rather than trying to literally match a "Custom" class (which no
+  // exercise, built-in or custom, ever actually has).
+  if(muscleVal==='Custom'){
+    if(includeCustom===false)return[];
+    return getCustomExerciseCatalog().filter(c=>{
+      if(equipmentVal&&c.equipment!==equipmentVal)return false;
+      if(text&&!c.name.toLowerCase().includes(text))return false;
+      return true;
+    }).map(c=>{
+      const hasEq=c.equipment&&c.equipment!=='Unknown';
+      return{name:hasEq?`${c.name} (${c.equipment})`:c.name,baseName:c.name,class:c.class||'Unknown',equipment:c.equipment||'Unknown',isCustom:true};
+    });
+  }
+  const classes=ctmMuscleClassesFor(muscleVal);
   let list=EXERCISE_CATALOG.filter(e=>{
     if(e.class==='multi'){
       if(!includeMulti)return false;
@@ -14135,6 +14174,61 @@ function finalizeCustomExerciseName(rawName,selectedClass,selectedEquipment){
   upsertCustomExercise(finalBase,cls,equipment);
   return equipment?`${finalBase} (${equipment})`:finalBase;
 }
+/* Edit modal for an EXISTING custom exercise, opened from the ✏️ icon on a row in the Muscle filter's
+   "Custom" list (see handleWorkoutSearchAuto). Unlike _showClassPickerForInput/
+   _showEquipmentPickerForInput (which write a Class/Equipment choice into whichever input box is
+   currently open, as part of typing/picking a name into the form), this edits the custom-exercise
+   REGISTRY entry directly — upsertCustomExercise, the same function every other save path already
+   goes through — with no exercise-name input involved at all. Both pickers live in one modal, each
+   tap saves immediately and re-renders in place so the highlighted choice updates right away; "Done"
+   just closes it. The Custom list behind the modal is refreshed after every tap so the row's Class
+   tag / "(Equipment)" suffix reflect the change immediately, without needing to close the modal first. */
+function _showCustomExerciseEditModal(baseName){
+  if(!getCustomExerciseCatalog().some(c=>c.name.toLowerCase()===(baseName||'').toLowerCase()))return;
+  let existing=document.getElementById('_customExEditModal');
+  if(existing)existing.remove();
+  const modal=document.createElement('div');
+  modal.id='_customExEditModal';
+  modal.style.cssText='position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.55);backdrop-filter:blur(4px)';
+  function renderInner(){
+    const cur=getCustomExerciseCatalog().find(c=>c.name.toLowerCase()===baseName.toLowerCase());
+    if(!cur){modal.remove();return;}
+    const escaped=baseName.replace(/'/g,"\\'");
+    modal.innerHTML=`<div style="background:var(--bg-card);border:1.5px solid var(--border-col);border-radius:20px;padding:22px 20px;max-width:340px;width:92%;max-height:80vh;overflow-y:auto;box-shadow:0 8px 40px rgba(0,0,0,0.3)">
+      <div style="font-family:var(--font-alt);font-size:15px;font-weight:800;color:var(--accent);margin-bottom:4px;letter-spacing:0.5px">✏️ Edit <em style="color:var(--text-primary)">${escapeHtml(baseName)}</em></div>
+      <div style="font-size:11px;color:var(--text-muted);margin-bottom:14px">Change this custom workout's Class or Equipment.</div>
+      <div style="font-size:11px;font-weight:800;color:var(--text-muted);margin-bottom:6px;letter-spacing:0.5px">CLASS</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px">${WORKOUT_CLASSES.map(c=>`<button onclick="window._pickCustomExClass('${escaped}','${c}')" style="padding:8px 14px;border-radius:12px;border:2px solid ${CLASS_COLORS[c]||'var(--border-col)'};background:${cur.class===c?(CLASS_COLORS[c]||'var(--accent)'):'var(--bg-panel)'};color:${cur.class===c?'#fff':'var(--text-primary)'};font-family:var(--font-alt);font-weight:700;font-size:12px;cursor:pointer">${c}</button>`).join('')}</div>
+      <div style="font-size:11px;font-weight:800;color:var(--text-muted);margin-bottom:6px;letter-spacing:0.5px">EQUIPMENT</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;max-height:180px;overflow-y:auto">${EQUIPMENT_LIST.map(eq=>`<button onclick="window._pickCustomExEquipment('${escaped}','${eq.replace(/'/g,"\\'")}')" style="padding:8px 14px;border-radius:12px;border:2px solid var(--border-col);background:${cur.equipment===eq?'var(--accent)':'var(--bg-panel)'};color:${cur.equipment===eq?'#fff':'var(--text-primary)'};font-family:var(--font-alt);font-weight:700;font-size:12px;cursor:pointer">${eq}</button>`).join('')}</div>
+      <button onclick="document.getElementById('_customExEditModal').remove()" style="width:100%;padding:10px;border-radius:11px;border:none;background:var(--accent);color:#fff;font-family:var(--font-alt);font-weight:800;cursor:pointer">Done</button>
+    </div>`;
+  }
+  document.body.appendChild(modal);
+  renderInner();
+  window._pickCustomExClass=function(name,cls){
+    upsertCustomExercise(name,cls,null); // equipment left null: upsertCustomExercise never clears an existing value with a blank one
+    renderInner();
+    handleWorkoutSearchAuto(true); // refresh the Custom list behind the modal so the new Class tag shows immediately
+  };
+  window._pickCustomExEquipment=function(name,eq){
+    upsertCustomExercise(name,null,eq);
+    renderInner();
+    handleWorkoutSearchAuto(true);
+  };
+}
+/* Delete (🗑) icon counterpart to _showCustomExerciseEditModal, wired the same way from the Muscle
+   filter's "Custom" list. Confirms via the same showAppConfirm dialog used for deleting a saved
+   workout entry (triggerWorkoutDelete), then removes the entry from the custom-exercise REGISTRY
+   only — this never touches any workout log entries already saved under this name; it only stops
+   the name from resurfacing as a quick-pick with its remembered Class/Equipment going forward. */
+async function _confirmDeleteCustomExercise(baseName){
+  if(!await showAppConfirm({title:'🗑 Delete Custom Workout?',body:`Delete "${baseName}" from your custom workouts? Any workouts you've already logged under this name are kept — this only removes it from the Custom pick list.`}))return;
+  const list=getCustomExerciseCatalog().filter(c=>c.name.toLowerCase()!==baseName.toLowerCase());
+  _saveCustomExerciseCatalogList(list);
+  showToast(`🗑 "${baseName}" removed from your custom workouts`);
+  handleWorkoutSearchAuto(true); // refresh the Custom list so it disappears (and the empty state shows if that was the last one)
+}
 
 /* ===================== "YOUR WORKOUTS" QUICK-PICK SECTION =====================
    Pinned to the top of the exercise-name suggestions dropdown, above the untouched default catalog
@@ -14424,8 +14518,39 @@ async function handleWorkoutSearchAuto(forceShow){
         buildSetsInputFields();
         saveNonLiveDraft();
       });
+      // Edit + Delete icons, mirroring the saved-workout card's own actions-overlay (shrink-the-box-
+      // and-reveal-icons pattern) — only added while browsing the Muscle filter's "Custom" list
+      // (every row there is already a custom exercise, so no extra isCustom check needed), per the
+      // requirement that this only ever applies to custom workouts, shown once the row is clicked/
+      // expanded (the row's existing tap-to-expand trigger).
+      if(muscleVal==='Custom'){
+        const mainEl=div.querySelector('.ex-row-main');
+        if(mainEl&&mainEl.parentNode){
+          const headerFlex=document.createElement('div');
+          headerFlex.className='ex-row-header-flex';
+          mainEl.parentNode.insertBefore(headerFlex,mainEl);
+          headerFlex.appendChild(mainEl);
+          const actions=document.createElement('div');
+          actions.className='ex-row-custom-actions';
+          actions.innerHTML=`<button type="button" class="action-icon-btn edit" title="Edit this custom workout" aria-label="Edit custom workout">${ICON_EDIT}</button><button type="button" class="action-icon-btn delete" title="Delete this custom workout" aria-label="Delete custom workout">${ICON_DELETE}</button>`;
+          headerFlex.appendChild(actions);
+          actions.querySelector('.edit').onclick=(e)=>{e.stopPropagation();_showCustomExerciseEditModal(item.baseName||item.name);};
+          actions.querySelector('.delete').onclick=(e)=>{e.stopPropagation();_confirmDeleteCustomExercise(item.baseName||item.name);};
+        }
+      }
       box.appendChild(div);
     });
+  } else if(muscleVal==='Custom'){
+    // Custom filter picked but nothing (or nothing matching the typed text) came back — tell the
+    // person plainly rather than leaving the "All Exercises" section silently empty, so it's clear
+    // this isn't a bug, they just haven't created any custom workouts yet (or none match what's typed).
+    const hasAnyCustom=getCustomExerciseCatalog().length>0;
+    const emptyMsg=document.createElement('div');
+    emptyMsg.style.cssText='padding:14px 16px;font-size:13px;color:var(--text-muted);cursor:default;text-align:center';
+    emptyMsg.textContent=hasAnyCustom?"No custom workouts match your search.":"You haven't created any custom workouts yet.";
+    box.appendChild(emptyMsg);
+    box.style.display="block";
+    if(icon)icon.classList.add("open");
   }
   // No auto class picker on pause — user uses the inline Choose Class button if needed
   _updateInlineClassBtn('workoutNameInput','_inlineClassBtnNonLive','nonlive');
@@ -23266,7 +23391,7 @@ function initLearnPage(){
   if(!document.getElementById("learnClassFilter").dataset.built){
     // Same option-building helpers (incl. the combined "Upper Body"/"Lower Body" filters) used to
     // populate the Muscle/Equipment dropdowns on the Workout page's exercise selection.
-    document.getElementById("learnClassFilter").innerHTML=ctmBuildMuscleOptionsHTML();
+    document.getElementById("learnClassFilter").innerHTML=ctmBuildMuscleOptionsHTML(false);
     document.getElementById("learnEquipmentFilter").innerHTML=ctmBuildEquipmentOptionsHTML();
     document.getElementById("learnClassFilter").dataset.built="1";
     // Same custom app-themed dropdown used for the Workout page's exercise-selection Muscle/Equipment
@@ -24669,4 +24794,4 @@ function closeLearnVideo(){
 })();
 </script>
 </body>
-</html>
+</html> 
