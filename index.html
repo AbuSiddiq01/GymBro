@@ -2157,6 +2157,74 @@ body.stats-graph-fs-lock{overflow:hidden}
   .excmp-modal-header{padding:14px 14px 10px}
   .excmp-modal-title{font-size:13px}
 }
+/* ===================== CUSTOM WORKOUT CREATION OVERLAY (cwm-*) =====================
+   Single overlay shown the moment "➕ Add X as Custom Workout" is tapped — Class, Equipment
+   (both required, no "optional" wording) and Format all chosen in one place before Save.
+   Mirrors the .excmp-* pattern above (sticky header, blurred full-screen backdrop, own scroll
+   region) so the modal itself scrolls on short screens while the page behind it never moves. */
+.cwm-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;z-index:999999999;padding:16px;box-sizing:border-box;animation:fadeIn 0.2s ease}
+.cwm-modal{background:var(--bg-card);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid var(--border-col);border-radius:20px;box-shadow:0 20px 60px rgba(0,0,0,0.5),0 0 40px var(--accent-glow);width:100%;max-width:420px;max-height:90vh;overflow-y:auto;box-sizing:border-box}
+/* No entrance animation on .cwm-modal itself: it (and everything inside it) is rebuilt from an
+   innerHTML string on every tap — Class pick, Equipment pick, Format pick, accordion toggle — via
+   _renderCustomWorkoutOverlay, so a fadeIn HERE would replay on every single tap, reading as a
+   flash/jump instead of a one-time entrance. The overlay backdrop's own fadeIn (.cwm-overlay) is
+   enough entrance motion — that element is created once and never rebuilt. */
+.cwm-header{position:sticky;top:0;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:16px 18px 12px;background:var(--bg-card);border-bottom:1px solid var(--border-col);z-index:2}
+.cwm-title{font-family:var(--font-alt);font-weight:800;font-size:14.5px;color:var(--text-primary);word-break:break-word;line-height:1.35}
+.cwm-title em{color:var(--accent);font-style:normal}
+.cwm-close-btn{flex-shrink:0;width:30px;height:30px;border-radius:50%;border:none;background:var(--accent-soft);color:var(--accent);font-size:14px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:box-shadow 0.2s ease}
+.cwm-close-btn:hover{box-shadow:0 4px 14px var(--accent-glow)}
+.cwm-body{padding:16px 18px 4px}
+.cwm-section{margin-bottom:18px}
+.cwm-section-label{display:flex;align-items:center;gap:6px;font-family:var(--font-alt);font-size:11px;font-weight:800;letter-spacing:0.6px;color:var(--text-muted);margin-bottom:9px;text-transform:uppercase}
+.cwm-section-label .cwm-req{color:var(--accent);font-size:9px;font-weight:800;background:var(--accent-soft);border-radius:6px;padding:2px 7px;letter-spacing:0.4px}
+/* Accordion header for the Class/Equipment sections — only one open at a time (see _cwmToggleSection),
+   so the overlay shows one picker at a time instead of every chip grid stacked on screen together.
+   Collapsed state shows the current pick (or a muted placeholder) inline, so progress stays visible. */
+.cwm-accordion-header{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;padding:11px 13px;border-radius:13px;border:2px solid var(--border-col);background:var(--bg-panel);cursor:pointer;-webkit-tap-highlight-color:transparent;transition:border-color 0.15s ease}
+.cwm-accordion-header:hover{border-color:var(--accent)}
+.cwm-accordion-header.open{border-color:var(--accent);border-radius:13px 13px 0 0}
+.cwm-accordion-header.done{border-color:var(--accent)}
+.cwm-accordion-left{display:flex;align-items:center;gap:8px;min-width:0}
+.cwm-accordion-label{font-family:var(--font-alt);font-weight:800;font-size:12.5px;color:var(--text-primary);flex-shrink:0}
+.cwm-accordion-value{font-family:var(--font-alt);font-weight:700;font-size:12px;color:var(--accent);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cwm-accordion-value.placeholder{color:var(--text-muted);font-weight:600}
+.cwm-accordion-chev{flex-shrink:0;font-size:11px;color:var(--text-muted);transition:transform 0.2s ease}
+.cwm-accordion-header.open .cwm-accordion-chev{transform:rotate(180deg)}
+.cwm-accordion-panel{border:2px solid var(--accent);border-top:none;border-radius:0 0 13px 13px;padding:12px 13px;background:var(--bg-card)}
+.cwm-chip-grid{display:flex;flex-wrap:wrap;gap:8px}
+.cwm-chip{padding:8px 14px;border-radius:12px;border:2px solid var(--border-col);background:var(--bg-panel);color:var(--text-primary);font-family:var(--font-alt);font-weight:700;font-size:12.5px;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:border-color 0.15s ease,box-shadow 0.15s ease,transform 0.1s ease}
+.cwm-chip:hover{border-color:var(--accent)}
+.cwm-chip:active{transform:scale(0.96)}
+.cwm-chip.picked{background:var(--accent);border-color:var(--accent);color:#fff;box-shadow:0 3px 12px var(--accent-glow)}
+.cwm-equip-grid{max-height:170px;overflow-y:auto;padding-right:2px}
+.cwm-format-grid{display:flex;flex-direction:column;gap:9px}
+.cwm-format-opt{display:flex;align-items:flex-start;gap:10px;padding:11px 13px;border-radius:13px;border:2px solid var(--border-col);background:var(--bg-panel);cursor:pointer;-webkit-tap-highlight-color:transparent;transition:border-color 0.15s ease,box-shadow 0.15s ease}
+.cwm-format-opt:hover{border-color:var(--accent)}
+.cwm-format-opt.picked{border-color:var(--accent);background:var(--accent-soft);box-shadow:0 3px 12px var(--accent-glow)}
+.cwm-format-radio{flex-shrink:0;width:18px;height:18px;border-radius:50%;border:2px solid var(--border-col);margin-top:1px;position:relative;transition:border-color 0.15s ease}
+.cwm-format-opt.picked .cwm-format-radio{border-color:var(--accent)}
+.cwm-format-opt.picked .cwm-format-radio::after{content:'';position:absolute;inset:3px;border-radius:50%;background:var(--accent)}
+.cwm-format-text{display:flex;flex-direction:column;gap:2px;min-width:0}
+.cwm-format-name{font-family:var(--font-alt);font-weight:800;font-size:12.5px;color:var(--text-primary)}
+.cwm-format-desc{font-family:var(--font-body);font-size:10.5px;color:var(--text-muted);line-height:1.35}
+.cwm-footer{position:sticky;bottom:0;display:flex;flex-direction:column;gap:8px;padding:12px 18px 18px;background:var(--bg-card);border-top:1px solid var(--border-col)}
+.cwm-save-btn{width:100%;padding:12px;border-radius:13px;border:none;background:var(--btn-bg);color:#fff;font-family:var(--font-alt);font-weight:800;font-size:13.5px;letter-spacing:0.4px;cursor:pointer;box-shadow:var(--btn-shadow);transition:opacity 0.15s ease,transform 0.1s ease}
+.cwm-save-btn:active{transform:scale(0.98)}
+.cwm-save-btn:disabled{opacity:0.4;cursor:not-allowed;box-shadow:none}
+.cwm-cancel-btn{width:100%;padding:9px;border-radius:11px;border:1px solid var(--border-col);background:var(--bg-panel);color:var(--text-muted);font-family:var(--font-alt);font-weight:700;font-size:12px;cursor:pointer}
+.cwm-hint{font-size:10.5px;color:var(--text-muted);margin-top:6px;line-height:1.4}
+@media(max-width:480px){
+  .cwm-modal{max-width:100%;border-radius:16px}
+  .cwm-header{padding:14px 14px 10px}
+  .cwm-title{font-size:13px}
+  .cwm-body{padding:14px 14px 4px}
+  .cwm-footer{padding:10px 14px 16px}
+}
+@media(min-width:900px){
+  .cwm-modal{max-width:460px}
+}
+
 /* hide single view when compare is on */
 .vol-single-view{transition:all 0.3s}
 .vol-single-view.hidden{display:none}
@@ -7262,6 +7330,10 @@ function getExerciseFormat(nameRaw){
   const base=nameRaw.replace(/\s*\([^)]+\)\s*$/,'').trim().toLowerCase();
   const custom=getCustomExerciseCatalog().find(c=>c.name.toLowerCase()===base);
   if(custom){
+    // An explicit Format chosen in the "Add as Custom Workout" overlay (see
+    // _showCustomWorkoutOverlay) always wins — it's a deliberate one-time choice made at creation
+    // time, not something to re-derive from Class/Equipment on every call.
+    if(custom.format)return custom.format;
     if(custom.class==='Cardio')return 'Km+Time';
     if(custom.equipment==='Bodyweight'&&!/^weighted\s/i.test(nameRaw.trim()))return 'Reps Only';
   }
@@ -13990,16 +14062,13 @@ function _isCustomConfirmed(mode,baseName){
   return !!stored&&!!baseName&&stored===baseName.toLowerCase();
 }
 function _updateInlineClassBtn(inputId,btnId,mode){
-  const input=document.getElementById(inputId);const btn=document.getElementById(btnId);
-  if(!input||!btn)return;
+  // Superseded by the single _showCustomWorkoutOverlay flow — Class is now chosen there, together
+  // with Equipment and Format, the moment "➕ Add ... as Custom Workout" is tapped. This inline
+  // button is kept permanently hidden (still called from many places, so left as a safe no-op)
+  // rather than removed, to avoid touching every call site.
   _updateAddCustomBtn(inputId,mode==='nonlive'?'_addCustomBtnNonLive':'_addCustomBtnLive',mode);
-  const val=input.value.trim();
-  const baseName=stripExerciseClass(val);
-  const isCustom=!!baseName&&!_isKnownCatalogExerciseName(val);
-  const cls=mode==='nonlive'?window._selectedWorkoutClass:window._selectedLiveWorkoutClass;
-  if(!val||!isCustom||cls||!_isCustomConfirmed(mode,baseName)){btn.style.display='none';return;}
-  btn.style.display='block';
-  btn.textContent=`🏷 Choose Class for "${baseName}" (required)`;
+  const btn=document.getElementById(btnId);
+  if(btn)btn.style.display='none';
 }
 /* The "➕ Add Custom Workout" prompt itself — shown in place of Choose Class/Equipment whenever
    there's typed text that isn't a recognized exercise yet and hasn't been confirmed as custom. */
@@ -14013,17 +14082,16 @@ function _updateAddCustomBtn(inputId,btnId,mode){
   btn.style.display='block';
   btn.textContent=`➕ Add "${baseName}" as Custom Workout`;
 }
-/* Tapping "➕ Add Custom Workout" confirms intent for the CURRENT typed name and reveals the
-   Choose Class (required) / Choose Equipment (optional) fields for it. */
+/* Tapping "➕ Add Custom Workout" opens the single overlay (_showCustomWorkoutOverlay) where
+   Class, Equipment, and Format are all chosen together before the exercise is actually created —
+   replacing the old two-step inline "Choose Class" / "Choose Equipment" button reveal below the
+   input (those buttons are now permanently hidden — see _updateInlineClassBtn/_updateInlineEquipBtn). */
 function _confirmAddCustomWorkout(mode){
   const inputId=mode==='nonlive'?'workoutNameInput':'liveWorkoutNameInput';
   const val=document.getElementById(inputId).value.trim();
   const baseName=stripExerciseClass(val);
   if(!baseName)return;
-  window._customConfirmedName[mode]=baseName.toLowerCase();
-  _updateAddCustomBtn(inputId,mode==='nonlive'?'_addCustomBtnNonLive':'_addCustomBtnLive',mode);
-  _updateInlineClassBtn(inputId,mode==='nonlive'?'_inlineClassBtnNonLive':'_inlineClassBtnLive',mode);
-  _updateInlineEquipBtn(inputId,mode==='nonlive'?'_inlineEquipBtnNonLive':'_inlineEquipBtnLive',mode);
+  _showCustomWorkoutOverlay(mode,baseName);
 }
 
 function _triggerInlineClassPicker(inputId,mode){
@@ -14081,16 +14149,10 @@ window._pickExEquipment=function(inputId,baseName,eq,mode){
    button hides for good — including right after this exact custom exercise gets saved for the
    first time, so it never resurfaces the picker for an exercise that's already designated. */
 function _updateInlineEquipBtn(inputId,btnId,mode){
-  const input=document.getElementById(inputId);const btn=document.getElementById(btnId);
-  if(!input||!btn)return;
+  // Superseded by the single _showCustomWorkoutOverlay flow — see _updateInlineClassBtn above.
   _updateAddCustomBtn(inputId,mode==='nonlive'?'_addCustomBtnNonLive':'_addCustomBtnLive',mode);
-  const val=input.value.trim();
-  const baseName=stripExerciseClass(val);
-  const isCustom=!!baseName&&!_isKnownCatalogExerciseName(val);
-  if(!val||!isCustom||!_isCustomConfirmed(mode,baseName)){btn.style.display='none';return;}
-  const eq=mode==='nonlive'?window._selectedWorkoutEquipment:window._selectedLiveWorkoutEquipment;
-  btn.style.display='block';
-  btn.textContent=eq?`🔧 Equipment: ${eq} (change)`:`🔧 Choose Equipment for "${baseName}" (optional)`;
+  const btn=document.getElementById(btnId);
+  if(btn)btn.style.display='none';
 }
 function _triggerInlineEquipPicker(inputId,mode){
   const val=document.getElementById(inputId).value.trim();
@@ -14098,6 +14160,218 @@ function _triggerInlineEquipPicker(inputId,mode){
   const baseName=stripExerciseClass(val);
   _showEquipmentPickerForInput(inputId,baseName,mode);
 }
+
+/* ===================== CUSTOM WORKOUT CREATION OVERLAY ===================== */
+/* Single overlay shown the instant "➕ Add X as Custom Workout" is tapped (_confirmAddCustomWorkout).
+   Replaces the old two-step inline "Choose Class" then "Choose Equipment" button reveal with one
+   box holding all three choices — Class, Equipment (both required — no "optional" wording), and
+   Format (Kg+Reps default, or Reps Only) — with a single Save that commits everything at once.
+   The Format choice is stored as an explicit tag on the custom-exercise registry entry (see
+   upsertCustomExercise / getExerciseFormat) — once set, a Reps Only custom exercise is
+   indistinguishable, everywhere downstream (Track Workout set rows, Previous Performance, the
+   Save Entry summary, Volume/Class breakdown, PRs, the Stats page), from a built-in bodyweight
+   exercise like Push Up, because every one of those already reads the very same getExerciseFormat/
+   isBodyweightNoWeightExercise helpers the built-in catalog exercises use. Nothing else needed to
+   change for the "works exactly like Push Up everywhere" requirement — this overlay's only job is
+   to capture the choice once, up front, instead of deriving it as a guess. */
+window._cwmState=null;
+function _showCustomWorkoutOverlay(mode,baseName){
+  const inputId=mode==='nonlive'?'workoutNameInput':'liveWorkoutNameInput';
+  // Pre-fill from anything already remembered for this exact name (re-opening after Cancel, or
+  // editing a name that was already partly set up before) so the picker doesn't forget prior taps.
+  const existing=getCustomExerciseCatalog().find(c=>c.name.toLowerCase()===baseName.toLowerCase());
+  const preCls=(mode==='nonlive'?window._selectedWorkoutClass:window._selectedLiveWorkoutClass)||(existing&&existing.class)||null;
+  const preEq=(mode==='nonlive'?window._selectedWorkoutEquipment:window._selectedLiveWorkoutEquipment)||(existing&&existing.equipment)||null;
+  const preFmt=(existing&&existing.format)||'Kg+Reps';
+  // Accordion: only one of Class/Equipment is expanded at a time (see _cwmToggleSection). Opens on
+  // Class first, unless Class is already picked and Equipment isn't — then it jumps straight to
+  // Equipment, so re-opening a half-finished pick doesn't re-show a step that's already done.
+  const openSection=!preCls?'class':(!preEq?'equip':null);
+  window._cwmState={mode,baseName,inputId,cls:preCls,eq:preEq,format:preFmt,open:openSection,purpose:'create'};
+  _mountCwmOverlay();
+}
+/* Edit entry point — opened from the ✏️ icon on a row in the Muscle filter's "Custom" list (see
+   handleWorkoutSearchAuto). Reuses the exact same overlay as creation (_renderCustomWorkoutOverlay)
+   so editing an existing custom exercise looks and behaves identically to creating one — same
+   accordion Class/Equipment pickers, same Format cards — pre-filled with its current values.
+   purpose:'edit' (read by _cwmSave below) is what makes Save write straight back into the registry
+   entry instead of touching a workout-name input/draft. */
+function _showCustomWorkoutEditOverlay(baseName){
+  const existing=getCustomExerciseCatalog().find(c=>c.name.toLowerCase()===(baseName||'').toLowerCase());
+  if(!existing)return;
+  const preCls=existing.class||null;
+  const preEq=existing.equipment||null;
+  const preFmt=existing.format||'Kg+Reps';
+  const openSection=!preCls?'class':(!preEq?'equip':null);
+  window._cwmState={mode:null,baseName,inputId:null,cls:preCls,eq:preEq,format:preFmt,open:openSection,purpose:'edit'};
+  _mountCwmOverlay();
+}
+/* Thin, name-compatible wrapper — every existing call site (the Custom list's ✏️ icon) still calls
+   _showCustomExerciseEditModal(baseName) exactly as before; it now just opens the shared overlay. */
+function _showCustomExerciseEditModal(baseName){
+  if(!getCustomExerciseCatalog().some(c=>c.name.toLowerCase()===(baseName||'').toLowerCase()))return;
+  _showCustomWorkoutEditOverlay(baseName);
+}
+function _mountCwmOverlay(){
+  let modal=document.getElementById('_cwmOverlay');
+  if(modal)modal.remove();
+  modal=document.createElement('div');
+  modal.id='_cwmOverlay';
+  modal.className='cwm-overlay';
+  modal.onclick=(e)=>{if(e.target===modal)_closeCustomWorkoutOverlay();};
+  document.body.appendChild(modal);
+  document.body.style.overflow='hidden'; // lock page scroll behind the overlay — no page disturbance
+  _renderCustomWorkoutOverlay();
+}
+function _closeCustomWorkoutOverlay(){
+  const modal=document.getElementById('_cwmOverlay');
+  if(modal)modal.remove();
+  document.body.style.overflow='';
+  window._cwmState=null;
+}
+function _renderCustomWorkoutOverlay(){
+  const modal=document.getElementById('_cwmOverlay');
+  const st=window._cwmState;
+  if(!modal||!st)return;
+  // Every tap rebuilds the modal's whole innerHTML (simplest way to keep every chip's picked/
+  // collapsed state in sync from the one _cwmState object). That rebuild would otherwise reset the
+  // modal's own scroll position back to the top each time — jarring if the person had scrolled down
+  // to Equipment/Format — so the current scrollTop is captured here and reapplied below, after the
+  // new content is in place, once outer layout has settled.
+  const prevModalEl=modal.querySelector('.cwm-modal');
+  const prevScroll=prevModalEl?prevModalEl.scrollTop:0;
+  const classOptions=MULTI_CLASS_EXERCISES[st.baseName]||WORKOUT_CLASSES;
+  const classChips=classOptions.map(c=>{
+    const picked=st.cls===c;
+    const col=CLASS_COLORS[c]||'var(--accent)';
+    return `<button type="button" class="cwm-chip${picked?' picked':''}" style="${picked?`background:${col};border-color:${col}`:`border-color:${col}`}" onclick="_cwmPickClass('${c.replace(/'/g,"\\'")}')">${c}</button>`;
+  }).join('');
+  const equipChips=EQUIPMENT_LIST.map(eq=>{
+    const picked=st.eq===eq;
+    return `<button type="button" class="cwm-chip${picked?' picked':''}" onclick="_cwmPickEquip('${eq.replace(/'/g,"\\'")}')">${eq}</button>`;
+  }).join('');
+  const fmtKgReps=st.format==='Kg+Reps';
+  const fmtReps=st.format==='Reps Only';
+  const canSave=!!st.cls&&!!st.eq;
+  const classOpen=st.open==='class';
+  const equipOpen=st.open==='equip';
+  const isEdit=st.purpose==='edit';
+  modal.innerHTML=`<div class="cwm-modal" role="dialog" aria-modal="true">
+    <div class="cwm-header">
+      <div class="cwm-title">${isEdit?'✏️ Edit':'➕ Add'} <em>${escapeHtml(st.baseName)}</em>${isEdit?'':' as Custom Workout'}</div>
+      <button type="button" class="cwm-close-btn" onclick="_closeCustomWorkoutOverlay()" aria-label="Close">✕</button>
+    </div>
+    <div class="cwm-body">
+      <div class="cwm-section">
+        <div class="cwm-section-label">Class <span class="cwm-req">Required</span></div>
+        <button type="button" class="cwm-accordion-header${classOpen?' open':''}${st.cls?' done':''}" onclick="_cwmToggleSection('class')">
+          <div class="cwm-accordion-left"><span class="cwm-accordion-label">🏷</span><span class="cwm-accordion-value${st.cls?'':' placeholder'}">${st.cls?escapeHtml(st.cls):'Tap to choose'}</span></div>
+          <span class="cwm-accordion-chev">▼</span>
+        </button>
+        ${classOpen?`<div class="cwm-accordion-panel"><div class="cwm-chip-grid">${classChips}</div></div>`:''}
+      </div>
+      <div class="cwm-section">
+        <div class="cwm-section-label">Equipment <span class="cwm-req">Required</span></div>
+        <button type="button" class="cwm-accordion-header${equipOpen?' open':''}${st.eq?' done':''}" onclick="_cwmToggleSection('equip')">
+          <div class="cwm-accordion-left"><span class="cwm-accordion-label">🔧</span><span class="cwm-accordion-value${st.eq?'':' placeholder'}">${st.eq?escapeHtml(st.eq):'Tap to choose'}</span></div>
+          <span class="cwm-accordion-chev">▼</span>
+        </button>
+        ${equipOpen?`<div class="cwm-accordion-panel"><div class="cwm-chip-grid cwm-equip-grid">${equipChips}</div></div>`:''}
+      </div>
+      <div class="cwm-section" style="margin-bottom:6px">
+        <div class="cwm-section-label">Format</div>
+        <div class="cwm-format-grid">
+          <div class="cwm-format-opt${fmtKgReps?' picked':''}" onclick="_cwmPickFormat('Kg+Reps')">
+            <div class="cwm-format-radio"></div>
+            <div class="cwm-format-text">
+              <div class="cwm-format-name">🏋 Kg + Reps <span style="color:var(--text-muted);font-weight:700">(Default)</span></div>
+              <div class="cwm-format-desc">e.g. Bench Press (Barbell), Hammer Curl (Dumbbell)</div>
+            </div>
+          </div>
+          <div class="cwm-format-opt${fmtReps?' picked':''}" onclick="_cwmPickFormat('Reps Only')">
+            <div class="cwm-format-radio"></div>
+            <div class="cwm-format-text">
+              <div class="cwm-format-name">🔢 Reps Only</div>
+              <div class="cwm-format-desc">e.g. Push Up, Pull Up</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="cwm-footer">
+      <button type="button" class="cwm-save-btn" ${canSave?'':'disabled'} onclick="_cwmSave()">${isEdit?'💾 Save Changes':'✅ Save Custom Workout'}</button>
+      <button type="button" class="cwm-cancel-btn" onclick="_closeCustomWorkoutOverlay()">Cancel</button>
+    </div>
+  </div>`;
+  const newModalEl=modal.querySelector('.cwm-modal');
+  if(newModalEl)newModalEl.scrollTop=prevScroll;
+}
+/* Accordion toggle for Class/Equipment — opening one always closes the other, so exactly one (or
+   neither) chip grid is on screen at a time instead of both stacked together. */
+window._cwmToggleSection=function(section){
+  if(!window._cwmState)return;
+  window._cwmState.open=(window._cwmState.open===section)?null:section;
+  _renderCustomWorkoutOverlay();
+};
+window._cwmPickClass=function(cls){
+  if(!window._cwmState)return;
+  window._cwmState.cls=cls;
+  // Auto-advance: once Class is picked, collapse it and open Equipment next if it isn't set yet —
+  // keeps the one-thing-at-a-time flow moving without an extra tap on the header.
+  window._cwmState.open=window._cwmState.eq?null:'equip';
+  _renderCustomWorkoutOverlay();
+};
+window._cwmPickEquip=function(eq){
+  if(!window._cwmState)return;
+  window._cwmState.eq=eq;
+  window._cwmState.open=window._cwmState.cls?null:'class';
+  _renderCustomWorkoutOverlay();
+};
+window._cwmPickFormat=function(fmt){
+  if(!window._cwmState)return;
+  window._cwmState.format=fmt;
+  _renderCustomWorkoutOverlay();
+};
+window._cwmSave=function(){
+  const st=window._cwmState;
+  if(!st||!st.cls||!st.eq)return;
+  const {purpose,mode,baseName,inputId,cls,eq,format}=st;
+  upsertCustomExercise(baseName,cls,eq,format);
+  if(purpose==='edit'){
+    // Edit path: only the registry entry changes — no workout-name input, confirmed-name state, or
+    // draft to touch, since this isn't part of logging a new entry right now.
+    _closeCustomWorkoutOverlay();
+    if(typeof handleWorkoutSearchAuto==='function')handleWorkoutSearchAuto(true); // refresh the Custom list row's Class tag/"(Equipment)" suffix
+    showToast(`💾 "${baseName}" updated${format==='Reps Only'?' (Reps Only)':''}`);
+    return;
+  }
+  const fullName=`${baseName} (${eq})`;
+  const input=document.getElementById(inputId);
+  if(input)input.value=fullName;
+  if(!window._customConfirmedName)window._customConfirmedName={};
+  window._customConfirmedName[mode]=baseName.toLowerCase();
+  // Both the nonlive AND live-mode globals are set together (matching how every other save path in
+  // this form — _pickExClass, _pickExEquipment — already treats window._selectedWorkoutClass /
+  // _selectedWorkoutEquipment as the single source of truth the rest of the form reads from,
+  // regardless of which mode's input triggered the overlay).
+  window._selectedWorkoutClass=cls;
+  window._selectedWorkoutEquipment=eq;
+  window._selectedLiveWorkoutClass=cls;
+  window._selectedLiveWorkoutEquipment=eq;
+  _closeCustomWorkoutOverlay();
+  // Hide the now-resolved prompts (the exercise is a known custom exercise from this point on).
+  const acb=document.getElementById(mode==='nonlive'?'_addCustomBtnNonLive':'_addCustomBtnLive');
+  if(acb)acb.style.display='none';
+  const clsBtn=document.getElementById(mode==='nonlive'?'_inlineClassBtnNonLive':'_inlineClassBtnLive');
+  if(clsBtn)clsBtn.style.display='none';
+  const eqBtn=document.getElementById(mode==='nonlive'?'_inlineEquipBtnNonLive':'_inlineEquipBtnLive');
+  if(eqBtn)eqBtn.style.display='none';
+  fetchPrevPerformance(fullName,mode);
+  if(mode==='nonlive')saveNonLiveDraft();
+  updateTrackWorkoutBtnVisibility(mode);
+  if(typeof handleWorkoutSearchAuto==='function')handleWorkoutSearchAuto(true);
+  showToast(`✅ "${baseName}" added${format==='Reps Only'?' (Reps Only)':''}`);
+};
 
 /* ===================== CUSTOM EXERCISES: SENTENCE CASE + PERSISTENT REGISTRY ===================== */
 /* Normalizes any user-typed exercise name to Sentence/Title Case — "side raise" -> "Side Raise",
@@ -14134,7 +14408,7 @@ function _saveCustomExerciseCatalogList(list){
 /* Adds/updates one custom exercise's remembered Class + Equipment. Never overwrites a previously
    remembered value with a blank one — e.g. saving the same custom name again without re-picking
    Equipment keeps whatever Equipment was chosen for it last time. */
-function upsertCustomExercise(name,cls,equipment){
+function upsertCustomExercise(name,cls,equipment,format){
   if(!name)return;
   const list=getCustomExerciseCatalog();
   const idx=list.findIndex(c=>c.name.toLowerCase()===name.toLowerCase());
@@ -14142,8 +14416,9 @@ function upsertCustomExercise(name,cls,equipment){
     list[idx].name=name;
     if(cls)list[idx].class=cls;
     if(equipment)list[idx].equipment=equipment;
+    if(format)list[idx].format=format;
   }else{
-    list.push({name,class:cls||'',equipment:equipment||''});
+    list.push({name,class:cls||'',equipment:equipment||'',format:format||''});
   }
   _saveCustomExerciseCatalogList(list);
 }
@@ -14177,51 +14452,9 @@ function finalizeCustomExerciseName(rawName,selectedClass,selectedEquipment){
   const existing=getCustomExerciseCatalog().find(c=>c.name.toLowerCase()===finalBase.toLowerCase());
   const cls=selectedClass||(existing&&existing.class)||null;
   const equipment=selectedEquipment||(existing&&existing.equipment)||null;
-  upsertCustomExercise(finalBase,cls,equipment);
+  const format=(existing&&existing.format)||null;
+  upsertCustomExercise(finalBase,cls,equipment,format);
   return equipment?`${finalBase} (${equipment})`:finalBase;
-}
-/* Edit modal for an EXISTING custom exercise, opened from the ✏️ icon on a row in the Muscle filter's
-   "Custom" list (see handleWorkoutSearchAuto). Unlike _showClassPickerForInput/
-   _showEquipmentPickerForInput (which write a Class/Equipment choice into whichever input box is
-   currently open, as part of typing/picking a name into the form), this edits the custom-exercise
-   REGISTRY entry directly — upsertCustomExercise, the same function every other save path already
-   goes through — with no exercise-name input involved at all. Both pickers live in one modal, each
-   tap saves immediately and re-renders in place so the highlighted choice updates right away; "Done"
-   just closes it. The Custom list behind the modal is refreshed after every tap so the row's Class
-   tag / "(Equipment)" suffix reflect the change immediately, without needing to close the modal first. */
-function _showCustomExerciseEditModal(baseName){
-  if(!getCustomExerciseCatalog().some(c=>c.name.toLowerCase()===(baseName||'').toLowerCase()))return;
-  let existing=document.getElementById('_customExEditModal');
-  if(existing)existing.remove();
-  const modal=document.createElement('div');
-  modal.id='_customExEditModal';
-  modal.style.cssText='position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.55);backdrop-filter:blur(4px)';
-  function renderInner(){
-    const cur=getCustomExerciseCatalog().find(c=>c.name.toLowerCase()===baseName.toLowerCase());
-    if(!cur){modal.remove();return;}
-    const escaped=baseName.replace(/'/g,"\\'");
-    modal.innerHTML=`<div style="background:var(--bg-card);border:1.5px solid var(--border-col);border-radius:20px;padding:22px 20px;max-width:340px;width:92%;max-height:80vh;overflow-y:auto;box-shadow:0 8px 40px rgba(0,0,0,0.3)">
-      <div style="font-family:var(--font-alt);font-size:15px;font-weight:800;color:var(--accent);margin-bottom:4px;letter-spacing:0.5px">✏️ Edit <em style="color:var(--text-primary)">${escapeHtml(baseName)}</em></div>
-      <div style="font-size:11px;color:var(--text-muted);margin-bottom:14px">Change this custom workout's Class or Equipment.</div>
-      <div style="font-size:11px;font-weight:800;color:var(--text-muted);margin-bottom:6px;letter-spacing:0.5px">CLASS</div>
-      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px">${WORKOUT_CLASSES.map(c=>`<button onclick="window._pickCustomExClass('${escaped}','${c}')" style="padding:8px 14px;border-radius:12px;border:2px solid ${CLASS_COLORS[c]||'var(--border-col)'};background:${cur.class===c?(CLASS_COLORS[c]||'var(--accent)'):'var(--bg-panel)'};color:${cur.class===c?'#fff':'var(--text-primary)'};font-family:var(--font-alt);font-weight:700;font-size:12px;cursor:pointer">${c}</button>`).join('')}</div>
-      <div style="font-size:11px;font-weight:800;color:var(--text-muted);margin-bottom:6px;letter-spacing:0.5px">EQUIPMENT</div>
-      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;max-height:180px;overflow-y:auto">${EQUIPMENT_LIST.map(eq=>`<button onclick="window._pickCustomExEquipment('${escaped}','${eq.replace(/'/g,"\\'")}')" style="padding:8px 14px;border-radius:12px;border:2px solid var(--border-col);background:${cur.equipment===eq?'var(--accent)':'var(--bg-panel)'};color:${cur.equipment===eq?'#fff':'var(--text-primary)'};font-family:var(--font-alt);font-weight:700;font-size:12px;cursor:pointer">${eq}</button>`).join('')}</div>
-      <button onclick="document.getElementById('_customExEditModal').remove()" style="width:100%;padding:10px;border-radius:11px;border:none;background:var(--accent);color:#fff;font-family:var(--font-alt);font-weight:800;cursor:pointer">Done</button>
-    </div>`;
-  }
-  document.body.appendChild(modal);
-  renderInner();
-  window._pickCustomExClass=function(name,cls){
-    upsertCustomExercise(name,cls,null); // equipment left null: upsertCustomExercise never clears an existing value with a blank one
-    renderInner();
-    handleWorkoutSearchAuto(true); // refresh the Custom list behind the modal so the new Class tag shows immediately
-  };
-  window._pickCustomExEquipment=function(name,eq){
-    upsertCustomExercise(name,null,eq);
-    renderInner();
-    handleWorkoutSearchAuto(true);
-  };
 }
 /* Delete (🗑) icon counterpart to _showCustomExerciseEditModal, wired the same way from the Muscle
    filter's "Custom" list. Confirms via the same showAppConfirm dialog used for deleting a saved
