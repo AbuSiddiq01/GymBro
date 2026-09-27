@@ -434,8 +434,27 @@ body.on-work-page .room-rail.visible{display:flex}
    per-breakpoint pixel jumps, so text size scales smoothly on every screen, and stays proportionate
    when the whole box is enlarged/shrunk via the resize dot (--rail-scale visually scales this same
    pre-scale baseline size along with everything else in the box). */
-.room-rail-name{font-family:var(--font-alt);font-size:clamp(9px,2.6vw,12px);font-weight:800;color:var(--text-muted);max-width:clamp(46px,16vw,70px);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.3}
+.room-rail-name{font-family:var(--font-alt);font-size:clamp(9px,2.6vw,12px);font-weight:800;color:var(--text-muted);max-width:clamp(40px,14vw,64px);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.3}
 .room-rail-item.active .room-rail-name{color:var(--accent)}
+/* Screen-size tiers for the room rail (user-switch box), so its footprint (avatar + name column
+   width) shrinks in visible steps on smaller phones instead of relying on clamp() alone — clamp()
+   scales smoothly but doesn't reliably keep the box clear of the workout-form controls beside it on
+   very narrow screens. Names themselves are also capped to one word / 10 chars in JS (see
+   _roomRailDisplayName) so a long full name like "Arunkumar Venkat" can never be the reason the box
+   is wide; these tiers handle the remaining chrome (avatar size, gaps, padding).
+   Extra narrow: <=340px | Narrow: 341-400px | Medium: 401-600px | Wide: >600px (default clamp sizing). */
+@media(max-width:400px){
+  .room-rail-name{max-width:52px;font-size:9.5px}
+  .room-rail-avatar{width:26px;height:26px}
+  .room-rail{gap:8px;padding:6px 4px}
+  .room-rail-items{gap:12px}
+}
+@media(max-width:340px){
+  .room-rail-name{max-width:42px;font-size:8.5px}
+  .room-rail-avatar{width:22px;height:22px;font-size:9px}
+  .room-rail{gap:6px;padding:5px 3px}
+  .room-rail-items{gap:9px}
+}
 /* Room-switch "paper turn" transition: replaces the old page jump/scroll-jerk when switching who
    you're logging for. Applied briefly (see switchRoomTarget) to whichever form box (initial/full)
    and the saved-entries list just got rebuilt for the newly-selected member, so the change reads as
@@ -18884,6 +18903,18 @@ function _finishRoomTargetBadgeRefresh(){
    page is a .glass element (backdrop-filter), and a backdrop-filter/filter/transform ancestor hijacks
    position:fixed for its descendants — the rail would then scroll along with that card instead of
    staying pinned to the screen. Moving it out to <body> removes that ancestor entirely. */
+/* Caps a member's name to a single word of at most 10 characters for display in the room rail (the
+   floating user-switch box). A long full name like "Arunkumar Venkat" was widening the whole rail
+   (all items share one column width) enough to push it left over the workout form's controls — so
+   only the first word is ever shown, and that word itself is hard-capped at 10 chars with an
+   ellipsis if it's still too long (e.g. a single very long name). */
+function _roomRailDisplayName(name){
+  const n=(name||'').trim();
+  if(!n)return'';
+  let first=n.split(/\s+/)[0];
+  if(first.length>10)first=first.slice(0,10)+'…';
+  return first;
+}
 function renderRoomTargetRail(){
   const rail=document.getElementById('roomTargetRail');
   if(!rail)return;
@@ -18946,7 +18977,8 @@ function renderRoomTargetRail(){
 
     const nameEl=document.createElement('span');
     nameEl.className='room-rail-name';
-    nameEl.textContent=id===null?'You':name;
+    nameEl.textContent=id===null?'You':_roomRailDisplayName(name);
+    nameEl.title=id===null?'You':name; // full name still available on hover/long-press, only the on-screen label is capped
 
     const avatarEl=document.createElement('span');
     avatarEl.className='room-rail-avatar';
@@ -19098,7 +19130,24 @@ function positionRoomRail(){
   const containerEl=document.querySelector('.container');
   const vw=window.innerWidth;
   const margin=4; // always keep this many px clear of the true viewport edge
-  const railWidth=rail.getBoundingClientRect().width||40;
+  // Measure at natural (unshrunk) size first so we know how much room the box actually wants, before
+  // deciding whether it needs to shrink to stay clear of the workout card beside it.
+  rail.style.removeProperty('--rail-scale');
+  let railWidth=rail.getBoundingClientRect().width||40;
+  // Auto-shrink to fit the gutter: if the box (at its natural size for this screen tier) is wider
+  // than the empty space to the right of .container, scale it down just enough to sit fully in that
+  // space instead of spilling left over the form controls. Floors out at 0.6 so it never becomes
+  // illegibly small — on a screen too narrow even for that, it falls back to the old clamp-to-viewport
+  // behavior below (still fully on-screen, just now allowed to sit closer to/over the card edge).
+  if(containerEl){
+    const rect0=containerEl.getBoundingClientRect();
+    const gutter=Math.max(0,vw-rect0.right)-margin;
+    if(gutter>16&&railWidth>gutter){
+      const scale=Math.max(0.6,Math.min(1,gutter/railWidth));
+      rail.style.setProperty('--rail-scale',scale);
+      railWidth=rail.getBoundingClientRect().width||railWidth*scale;
+    }
+  }
   const maxLeft=Math.max(margin,vw-railWidth-margin); // hard limit: whole rail must fit on-screen
   let left=maxLeft;
   if(containerEl){
@@ -24595,4 +24644,4 @@ function closeLearnVideo(){
 })();
 </script>
 </body>
-</html>
+</html> 
