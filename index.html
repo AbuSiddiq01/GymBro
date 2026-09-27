@@ -15320,6 +15320,13 @@ function handleSetsCountSelectChange(){
   applyCardioSwData(_swSnap);
   saveCardioSwStorage(); // re-persist (and prune any set that was removed)
   restoreSeqBreakIfAny(); // same rebuild also dropped a running Live-Mode break's on-screen countdown; its saved epoch resumes it
+  // Picking a Sets-Structure value (e.g. "1 Set" -> "3 Sets") is, on its own, a change nothing else
+  // here was persisting: it only touched the DOM. If the person then refreshed, switched to another
+  // room member, or switched between queued workouts before typing into any Kg/Reps box, the
+  // localStorage draft those all restore from still had the OLD count, so the form snapped back to
+  // 1 Set. saveNonLiveDraft() (routes to saveNonLiveEditDraft() automatically while editing) writes
+  // the just-picked count immediately, same as every other field already does on its own change.
+  saveNonLiveDraft();
 }
 
 /* Disables any dropdown option below the originally-saved set count while editing, so the only way down is the delete icon. */
@@ -18063,6 +18070,7 @@ async function deleteNonLiveSavedSet(i){
   document.getElementById("setsCountSelect").value=String(newCnt);
   applySetsCountMinConstraint();
   if(cardio){renderNonLiveSetsRows([],[],[],kms,mins,secs)}else{renderNonLiveSetsRows(weights,reps)}
+  saveNonLiveEditDraft(); // keep the in-progress edit draft's set count in sync with the DB delete, same reasoning as handleSetsCountSelectChange
   showToast(`🗑 Set ${i} deleted`);
   await loadWorkoutsForDate();
 }
@@ -24644,4 +24652,4 @@ function closeLearnVideo(){
 })();
 </script>
 </body>
-</html> 
+</html>
