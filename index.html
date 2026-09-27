@@ -362,13 +362,7 @@ body.workout-edit-lock .room-rail{z-index:10000}
    switchMemberTab toggles, so it only ever shows while the Workouts page is the active tab. */
 .room-rail.visible{display:none}
 body.on-work-page .room-rail.visible{display:flex}
-/* Auto-docked mode only (see positionRoomRail): the rail is confined to whatever part of the "+ ADD
-   WORKOUT ENTRY" card is currently on-screen, and hides — rather than squashing down to nothing or
-   drifting onto a neighboring card — once that card has scrolled far enough that no meaningful sliver
-   of it remains visible (whichever direction: scrolled up past the top of the screen, or down under the
-   "📈 Workout Tracker" card below it). Stays fully interactive/opaque whenever the person has long-pressed
-   and dragged the box to a custom spot — that's a deliberate placement and isn't governed by this rule. */
-.room-rail.room-rail-anchor-hidden{opacity:0;pointer-events:none;transition:opacity .15s ease}
+
 /* Free-placed mode: once the user has long-pressed the rail and dropped it somewhere (or resized
    it), it's positioned by explicit top/left (in px, set from JS) instead of the auto-docked
    top:50%/right-gutter placement above, and scales from its top-left corner instead of staying
@@ -416,10 +410,24 @@ body.on-work-page .room-rail.visible{display:flex}
    the avatar of its neighbor above/below it, instead of them crowding together. */
 .room-rail-items{display:flex;flex-direction:column;align-items:center;gap:clamp(10px,4vw,20px);overflow:hidden;max-height:60vh;opacity:1;transition:max-height .22s ease,opacity .15s ease,margin .22s ease,gap .22s ease}
 .room-rail.collapsed .room-rail-items{max-height:0;opacity:0;gap:0;margin:0;pointer-events:none}
-.room-rail-item{display:flex;flex-direction:column;align-items:center;gap:clamp(3px,1.2vw,6px);cursor:pointer;background:none;border:none;padding:0;flex-shrink:0;-webkit-tap-highlight-color:transparent}
+.room-rail-item{display:flex;flex-direction:column;align-items:center;gap:clamp(3px,1.2vw,6px);cursor:pointer;background:none;border:none;padding:0;flex-shrink:0;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
 .room-rail-avatar{width:clamp(20px,6vw,38px);height:clamp(20px,6vw,38px);border-radius:50%;overflow:hidden;flex-shrink:0;border:2px solid var(--border-col);display:flex;align-items:center;justify-content:center;background:var(--bg-panel);font-size:clamp(8px,2.4vw,14px);font-weight:800;color:var(--text-muted);font-family:var(--font-alt);transition:box-shadow .18s ease,border-color .18s ease}
-.room-rail-avatar img{width:100%;height:100%;object-fit:cover}
+/* A long-press on the DP image or the name text is exactly what a mobile browser's OWN "save
+   image"/"copy text" popup is watching for — and that native popup wins the race against our custom
+   long-press-to-pick-up gesture, since it doesn't ask permission first. -webkit-touch-callout/
+   user-select/user-drag suppress that native popup on these two elements specifically (see also
+   img.draggable=false set in JS, belt-and-suspenders for the same thing); the two empty spacer zones
+   below (.room-rail-header-space, .room-rail-bottom-space) are the more reliable fallback — there's
+   nothing for the browser to offer a menu ABOUT there, so long-pressing empty space always reaches our
+   own pick-up gesture even on a browser where the CSS suppression above isn't fully honored. */
+.room-rail-avatar img{width:100%;height:100%;object-fit:cover;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;-webkit-user-drag:none;pointer-events:none}
 .room-rail-item.active .room-rail-avatar{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent),0 0 12px 3px var(--accent)}
+/* Empty (no text/image content) long-press zones — one just under the ▾ toggle, one just after the
+   last member's DP — so there's always guaranteed empty space to long-press-and-pick-up the box from,
+   even on a browser that still shows its own image/text long-press menu despite the CSS above. Sized
+   with clamp() like everything else in the rail, so there's a comfortable long-press target on a small
+   phone without wasting space on a larger screen. */
+.room-rail-header-space,.room-rail-bottom-space{width:100%;flex-shrink:0;min-height:clamp(10px,3vw,16px)}
 /* The name is never hidden anymore, at any screen width — it's what tells the person WHO they're about
    to switch to, so hiding it on narrow/extra-narrow phones (the old behavior below 360px) did more harm
    than a small label ever could. Sized with clamp() off the viewport width instead of fixed
@@ -18905,6 +18913,13 @@ function renderRoomTargetRail(){
   headerRow.className='room-rail-header-row';
   headerRow.appendChild(toggleBtn);
 
+  // Empty long-press zone #1: right below the ▾ toggle. Plain, content-free div — nothing here for a
+  // mobile browser's native "save image"/"copy text" popup to latch onto, so a long-press here always
+  // reaches our own pick-up gesture (see initRoomRailFloatHandlers/_rrPointerDown, bound on the whole
+  // rail — this is just a child of it, so pressing it behaves identically to pressing anywhere else).
+  const headerSpace=document.createElement('div');
+  headerSpace.className='room-rail-header-space';
+
   const itemsWrap=document.createElement('div');
   itemsWrap.className='room-rail-items';
 
@@ -18939,6 +18954,7 @@ function renderRoomTargetRail(){
       const img=document.createElement('img');
       img.src=avatarUrl;
       img.alt='';
+      img.draggable=false; // stops the browser's native drag-image-out ghost, which otherwise competes with our own long-press-to-pick-up gesture the same way its save-image popup does
       img.onerror=function(){avatarEl.textContent=initial;};
       avatarEl.appendChild(img);
     }else{
@@ -18950,7 +18966,13 @@ function renderRoomTargetRail(){
     itemsWrap.appendChild(item);
   });
 
+  // Empty long-press zone #2: right after the LAST member's DP, same idea as headerSpace above.
+  const bottomSpace=document.createElement('div');
+  bottomSpace.className='room-rail-bottom-space';
+  itemsWrap.appendChild(bottomSpace);
+
   rail.appendChild(headerRow);
+  rail.appendChild(headerSpace);
   rail.appendChild(itemsWrap);
   rail.classList.toggle('collapsed',wasCollapsed);
   rail.classList.add('visible');
@@ -19051,11 +19073,7 @@ function positionRoomRail(){
   if(_roomRailCustom&&_roomRailCustom.customized){
     // User has long-pressed the rail before and dropped it somewhere (or resized it) — honor that
     // instead of the auto-docked gutter placement below, just re-clamped to the current viewport
-    // (screen size may have changed since it was last placed). A deliberate manual placement isn't
-    // governed by the "confined to the Add Workout Entry card" rule below, so make sure it's never
-    // left invisible from an earlier auto-docked hide.
-    rail.classList.remove('room-rail-anchor-hidden');
-    rail.style.maxHeight='';
+    // (screen size may have changed since it was last placed).
     rail.classList.add('customized');
     rail.style.setProperty('--rail-scale',_roomRailCustom.scale||1);
     const rect=rail.getBoundingClientRect();
@@ -19068,41 +19086,15 @@ function positionRoomRail(){
     return;
   }
   rail.classList.remove('customized');
-  // Auto-docked mode is confined to the "+ ADD WORKOUT ENTRY" card (#workoutFormStructure once it's
-  // open, otherwise the collapsed #initialWorkoutBox) — never drifting up past its own top edge, and
-  // never drifting down onto the "📈 Workout Tracker"/Track Workouts card that sits right below it.
-  // Whichever slice of that card is currently on-screen (it may be partly scrolled past either edge)
-  // is what the rail is vertically centered within and height-capped to, via the CSS translateY(-50%)
-  // baked into .room-rail: setting `top` to the midpoint of that visible slice — not its actual top
-  // edge — is what makes the rail's own CENTER land there. If none of the card is left on-screen, the
-  // rail hides rather than floating disconnected from what it's meant to sit beside (see
-  // .room-rail-anchor-hidden). Re-run on scroll (see the throttled listener below), not just resize —
-  // unlike the pure left/gutter placement, this one moves every time the card does.
-  const formEl=document.getElementById('workoutFormStructure');
-  const anchor=(formEl&&formEl.style.display==='block')?formEl:document.getElementById('initialWorkoutBox');
-  const vh=window.innerHeight;
-  if(anchor){
-    const aRect=anchor.getBoundingClientRect();
-    const visTop=Math.max(aRect.top,0);
-    const visBottom=Math.min(aRect.bottom,vh);
-    const visibleSpan=visBottom-visTop;
-    const MIN_SPAN=36; // below this sliver, there's no meaningful room left to dock against — hide instead of squashing unreadably thin
-    if(visibleSpan<MIN_SPAN){
-      rail.classList.add('room-rail-anchor-hidden');
-      // Left/width don't matter while invisible+inert, but keep them current so the rail reappears
-      // already correctly placed the instant the card scrolls back into view — no visible snap.
-    } else {
-      rail.classList.remove('room-rail-anchor-hidden');
-      rail.style.maxHeight=Math.min(Math.max(MIN_SPAN,visibleSpan-8),vh*0.7)+'px'; // 8px breathing room off the card's own edges; vh*0.7 keeps the old sane upper bound too
-      rail.style.top=Math.round((visTop+visBottom)/2)+'px';
-    }
-  } else {
-    // Markup the rail expects (#workoutFormStructure/#initialWorkoutBox) isn't there for some reason —
-    // fall back to the old whole-viewport centering rather than hiding outright.
-    rail.classList.remove('room-rail-anchor-hidden');
-    rail.style.maxHeight='';
-    rail.style.top='';
-  }
+  // Auto-docked mode is simply centered on the whole viewport (top:50% + translateY(-50%), both from
+  // the base .room-rail CSS rule — clearing any inline `top` here lets that default apply) and, being
+  // position:fixed, is genuinely pinned: it never moves as the page scrolls. It deliberately does NOT
+  // track or confine itself to any particular card's on-screen position — that was tried and made the
+  // box feel restricted (shrinking/hiding while scrolling), which is exactly what this reverts. Runs
+  // once per render, plus on resize/orientation change, but NOT on scroll — the rail locks to this one
+  // spot on screen once placed, exactly like every other position:fixed element.
+  rail.style.top='';
+  rail.style.maxHeight='';
   const containerEl=document.querySelector('.container');
   const vw=window.innerWidth;
   const margin=4; // always keep this many px clear of the true viewport edge
@@ -19122,19 +19114,6 @@ function positionRoomRail(){
 }
 window.addEventListener('resize',function(){if(document.body.classList.contains('has-room-rail'))positionRoomRail();});
 window.addEventListener('orientationchange',function(){if(document.body.classList.contains('has-room-rail'))setTimeout(positionRoomRail,150);});
-// Auto-docked placement now tracks the "+ ADD WORKOUT ENTRY" card's on-screen position (see the anchor
-// logic in positionRoomRail above), so — unlike the old whole-viewport centering, which really did only
-// need resize/orientation — it also has to be recalculated as the page scrolls. rAF-throttled so a fast
-// scroll fling never queues up more than one recompute per frame.
-let _roomRailScrollRAF=null;
-function _scheduleRoomRailScrollUpdate(){
-  if(_roomRailScrollRAF)return;
-  _roomRailScrollRAF=requestAnimationFrame(function(){
-    _roomRailScrollRAF=null;
-    if(document.body.classList.contains('has-room-rail'))positionRoomRail();
-  });
-}
-window.addEventListener('scroll',_scheduleRoomRailScrollUpdate,{passive:true});
 
 /* ===================== ROOM RAIL: LONG-PRESS TO PICK UP, THEN DRAG OR RESIZE =====================
    By default the rail auto-docks to the right-hand gutter (positionRoomRail above). A press-and-hold
@@ -19174,6 +19153,12 @@ function initRoomRailFloatHandlers(rail){
   rail.addEventListener('click',function(e){
     if(_roomRailSuppressClick){e.stopPropagation();e.preventDefault();_roomRailSuppressClick=false;}
   },true);
+  // Belt-and-suspenders alongside the CSS touch-callout/user-select/user-drag suppression on the
+  // avatar images and name text (see their rules): some mobile browsers still pop their own
+  // "save image"/"copy" context menu on a long-press over an <img> or text node regardless of that
+  // CSS, which would otherwise win the race against — and cancel — our own long-press-to-pick-up
+  // gesture. Blocking the browser's native contextmenu event here stops that outright.
+  rail.addEventListener('contextmenu',function(e){e.preventDefault();});
   rail.addEventListener('pointerdown',_rrPointerDown);
 }
 // Bound once, globally — pointermove/up need to keep tracking even if the pointer strays outside
