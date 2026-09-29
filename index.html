@@ -2214,6 +2214,26 @@ body.stats-graph-fs-lock{overflow:hidden}
 .cwm-save-btn:disabled{opacity:0.4;cursor:not-allowed;box-shadow:none}
 .cwm-cancel-btn{width:100%;padding:9px;border-radius:11px;border:1px solid var(--border-col);background:var(--bg-panel);color:var(--text-muted);font-family:var(--font-alt);font-weight:700;font-size:12px;cursor:pointer}
 .cwm-hint{font-size:10.5px;color:var(--text-muted);margin-top:6px;line-height:1.4}
+/* Editable Name field — lets the exercise be renamed right here instead of only at first creation
+   (see _cwmOnNameInput). A plain text input, not a chip/accordion like Class/Equipment, since it's
+   free text rather than a pick from a fixed list. */
+.cwm-name-wrap{position:relative}
+.cwm-name-input{width:100%;padding:11px 34px 11px 13px;border-radius:13px;border:2px solid var(--border-col);background:var(--bg-panel);color:var(--text-primary);font-family:var(--font-alt);font-weight:700;font-size:13px;box-sizing:border-box;transition:border-color 0.15s ease}
+.cwm-name-input:focus{outline:none;border-color:var(--accent)}
+.cwm-name-input.invalid{border-color:#dc2626}
+.cwm-name-msg{font-size:10.5px;color:#dc2626;margin-top:6px;line-height:1.4;font-weight:600}
+.cwm-name-clear{position:absolute;right:8px;top:50%;transform:translateY(-50%);width:22px;height:22px;border-radius:50%;border:none;background:var(--bg-card);color:var(--text-muted);font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent}
+.cwm-name-clear:hover{color:var(--accent)}
+/* Edit mode only: the Name is locked (readonly) until the pencil inside the field is tapped, so a
+   rename is always deliberate (it rewrites past entries too). The pencil sits fixed at the right edge;
+   the clear ✕ shifts left of it and only appears once the field is unlocked. */
+.cwm-name-wrap.edit .cwm-name-input{padding-right:64px}
+.cwm-name-wrap.edit .cwm-name-clear{right:36px}
+.cwm-name-input[readonly]{cursor:default;color:var(--text-secondary)}
+.cwm-name-edit{position:absolute;right:8px;top:50%;transform:translateY(-50%);width:24px;height:24px;border-radius:50%;border:none;background:var(--accent-soft);color:var(--accent);cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;-webkit-tap-highlight-color:transparent;transition:background 0.15s ease,color 0.15s ease}
+.cwm-name-edit svg{width:13px;height:13px;display:block}
+.cwm-name-edit.active{background:var(--accent);color:#fff}
+.cwm-name-note{font-size:10.5px;color:var(--text-muted);margin-top:6px;line-height:1.4;font-weight:600}
 @media(max-width:480px){
   .cwm-modal{max-width:100%;border-radius:16px}
   .cwm-header{padding:14px 14px 10px}
@@ -3188,7 +3208,7 @@ body.tracker-fs-lock{overflow:hidden}
    Add/Video controls below), at which point it grows in-flow and .ex-row-main (the name/class-tag
    line) shrinks to make room, exactly like a saved-workout box does. Edit opens
    _showCustomExerciseEditModal (Class/Equipment); Delete removes the custom-exercise registry entry
-   entirely (via _confirmDeleteCustomExercise) — neither touches any workout already logged with
+   entirely (via _confirmDeleteCustomExercise) — Delete never touches any workout already logged with
    this name. */
 .ex-row-header-flex{display:flex;align-items:stretch}
 .ex-row-header-flex .ex-row-main{flex:1 1 auto;min-width:0}
@@ -14196,7 +14216,7 @@ function _showCustomWorkoutOverlay(mode,baseName){
   // Class first, unless Class is already picked and Equipment isn't — then it jumps straight to
   // Equipment, so re-opening a half-finished pick doesn't re-show a step that's already done.
   const openSection=!preCls?'class':(!preEq?'equip':null);
-  window._cwmState={mode,baseName,inputId,cls:preCls,eq:preEq,format:preFmt,open:openSection,purpose:'create'};
+  window._cwmState={mode,baseName,name:_cwmSanitizeNameString(baseName),inputId,cls:preCls,eq:preEq,format:preFmt,open:openSection,purpose:'create'};
   _mountCwmOverlay();
 }
 /* Edit entry point — opened from the ✏️ icon on a row in the Muscle filter's "Custom" list (see
@@ -14212,7 +14232,7 @@ function _showCustomWorkoutEditOverlay(baseName){
   const preEq=existing.equipment||(existing.class?'None':null);
   const preFmt=existing.format||'Kg+Reps';
   const openSection=!preCls?'class':(!preEq?'equip':null);
-  window._cwmState={mode:null,baseName,inputId:null,cls:preCls,eq:preEq,format:preFmt,open:openSection,purpose:'edit'};
+  window._cwmState={mode:null,baseName,name:_cwmSanitizeNameString(baseName),inputId:null,cls:preCls,eq:preEq,format:preFmt,open:openSection,purpose:'edit'};
   _mountCwmOverlay();
 }
 /* Thin, name-compatible wrapper — every existing call site (the Custom list's ✏️ icon) still calls
@@ -14275,16 +14295,28 @@ function _renderCustomWorkoutOverlay(){
   // four already exist as first-class formats in getExerciseFormat's pipeline; 'Reps+Time' is the
   // newest (a whole-number Reps count + the Time picker, same set-row as Km+Time with Reps in the
   // Km box's place — see getCardioUnit / isCountCardioUnit).
-  const canSave=!!st.cls&&!!st.eq;
+  const nameState=_cwmNameState(st.name,st);
+  const canSave=!!st.cls&&!!st.eq&&nameState.valid;
   const classOpen=st.open==='class';
   const equipOpen=st.open==='equip';
   const isEdit=st.purpose==='edit';
+  const nameLocked=isEdit&&!st.nameUnlocked; // edit mode: name is read-only until the pencil is tapped
   modal.innerHTML=`<div class="cwm-modal" role="dialog" aria-modal="true">
     <div class="cwm-header">
-      <div class="cwm-title">${isEdit?'✏️ Edit':'➕ Add'} <em>${escapeHtml(st.baseName)}</em>${isEdit?'':' as Custom Workout'}</div>
+      <div class="cwm-title">${isEdit?'✏️ Edit':'➕ Add'} <em id="_cwmTitleName">${escapeHtml(st.name)}</em>${isEdit?'':' as Custom Workout'}</div>
       <button type="button" class="cwm-close-btn" onclick="_closeCustomWorkoutOverlay()" aria-label="Close">✕</button>
     </div>
     <div class="cwm-body">
+      <div class="cwm-section">
+        <div class="cwm-section-label">Name <span class="cwm-req">Required</span></div>
+        <div class="cwm-name-wrap${isEdit?' edit':''}">
+          <input type="text" class="cwm-name-input${nameState.valid?'':' invalid'}" id="_cwmNameField" value="${escapeHtml(st.name)}" oninput="_cwmOnNameInput(_cwmSanitizeNameInput(this))" placeholder="Exercise name" maxlength="${CWM_NAME_MAXLEN}" autocomplete="off"${nameLocked?' readonly':''}>
+          <button type="button" class="cwm-name-clear" id="_cwmNameClearBtn" style="${(st.name&&!nameLocked)?'':'display:none'}" onclick="_cwmClearName()" aria-label="Clear name">✕</button>
+          ${isEdit?`<button type="button" class="cwm-name-edit${nameLocked?'':' active'}" id="_cwmNameEditBtn" onclick="_cwmToggleNameLock()" aria-label="Edit workout name"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></button>`:''}
+        </div>
+        <div class="cwm-name-msg" id="_cwmNameMsg" style="${nameState.msg?'':'display:none'}">${escapeHtml(nameState.msg)}</div>
+        ${isEdit?`<div class="cwm-name-note" id="_cwmNameNote" style="${nameLocked?'display:none':''}">ℹ️ Editing the workout name will also update all your previous entries.</div>`:''}
+      </div>
       <div class="cwm-section">
         <div class="cwm-section-label">Class <span class="cwm-req">Required</span></div>
         <button type="button" class="cwm-accordion-header${classOpen?' open':''}${st.cls?' done':''}" onclick="_cwmToggleSection('class')">
@@ -14314,7 +14346,7 @@ function _renderCustomWorkoutOverlay(){
       </div>
     </div>
     <div class="cwm-footer">
-      <button type="button" class="cwm-save-btn" ${canSave?'':'disabled'} onclick="_cwmSave()">${isEdit?'💾 Save Changes':'✅ Save Custom Workout'}</button>
+      <button type="button" class="cwm-save-btn" id="_cwmSaveBtn" ${canSave?'':'disabled'} onclick="_cwmSave()">${isEdit?'💾 Save Changes':'✅ Save Custom Workout'}</button>
       <button type="button" class="cwm-cancel-btn" onclick="_closeCustomWorkoutOverlay()">Cancel</button>
     </div>
   </div>`;
@@ -14347,19 +14379,232 @@ window._cwmPickFormat=function(fmt){
   window._cwmState.format=fmt;
   _renderCustomWorkoutOverlay();
 };
-window._cwmSave=function(){
+/* Live-typing into the Name field updates state and the header title directly, WITHOUT calling
+   _renderCustomWorkoutOverlay() — a full innerHTML rebuild on every keystroke would blow away the
+   input's focus and cursor position mid-type. The state is kept in sync regardless, so if the
+   person then taps a Class/Equipment/Format chip (which DOES trigger a full rebuild), the rebuilt
+   Name field's value=""... still carries whatever they'd already typed. */
+const CWM_NAME_MAXLEN=40;
+/* String-only version of the same rule (no live <input> element involved) — used once, when the
+   overlay first opens, to clean up whatever name it's being pre-filled with (the text already typed
+   into the exercise-name box before "Add as Custom Workout" was tapped, which has no such
+   restriction itself; or an existing custom workout's saved name, from before this rule existed). */
+function _cwmSanitizeNameString(s){return(s||'').replace(/[^A-Za-z0-9 ]/g,'').slice(0,CWM_NAME_MAXLEN);}
+/* Enforces the Name field's input rules on every keystroke: letters, digits and spaces only (no
+   symbols, no decimals/punctuation of any kind — a plain "." or "-" is stripped exactly like any
+   other symbol), capped at CWM_NAME_MAXLEN characters. Runs BEFORE _cwmOnNameInput reads the value,
+   so state/validation/title always see the already-cleaned text. Rewriting el.value mid-keystroke
+   moves the cursor to the end by default, so the caret position is explicitly restored (clamped to
+   the new, possibly-shorter length) to keep typing in the middle of a name from feeling broken. */
+function _cwmSanitizeNameInput(el){
+  const before=el.value;
+  let v=before.replace(/[^A-Za-z0-9 ]/g,'').slice(0,CWM_NAME_MAXLEN);
+  if(v!==before){
+    const pos=Math.min(el.selectionStart||v.length,v.length);
+    el.value=v;
+    try{el.setSelectionRange(pos,pos);}catch(e){}
+  }
+  return v;
+}
+window._cwmOnNameInput=function(v){
+  const st=window._cwmState;
+  if(!st)return;
+  st.name=v;
+  const t=document.getElementById('_cwmTitleName');
+  if(t)t.textContent=v||'…';
+  const clearBtn=document.getElementById('_cwmNameClearBtn');
+  if(clearBtn)clearBtn.style.display=(v&&!(st.purpose==='edit'&&!st.nameUnlocked))?'flex':'none';
+  // Re-validate on every keystroke, but only touch the Name field's own border/message and the Save
+  // button's disabled state directly — never the full _renderCustomWorkoutOverlay() rebuild, which
+  // would drop this input's focus/cursor position mid-type.
+  const ns=_cwmNameState(v,st);
+  const fld=document.getElementById('_cwmNameField');
+  if(fld)fld.classList.toggle('invalid',!ns.valid);
+  const msg=document.getElementById('_cwmNameMsg');
+  if(msg){msg.textContent=ns.msg;msg.style.display=ns.msg?'block':'none';}
+  const btn=document.getElementById('_cwmSaveBtn');
+  if(btn)btn.disabled=!(ns.valid&&!!st.cls&&!!st.eq);
+};
+/* The small "✕" clear button inside the Name field — clears the text, then runs the exact same
+   live-update path as typing (_cwmOnNameInput) so title/validation/Save-button/clear-button-itself
+   all reset together, rather than duplicating that logic here. */
+/* Pencil icon inside the Name field (edit mode only) — a toggle. First tap unlocks the read-only
+   name for typing and shows the "updates previous entries" note; tapping it again locks the field
+   back to read-only and hides the note again. Whatever was typed is KEPT (it lives in _cwmState.name),
+   so locking never discards a rename — Save Changes still applies it to the app and the database.
+   Updates the DOM directly instead of re-rendering the overlay, so the keyboard opens/closes and the
+   caret lands at the end of the name right away. The state is kept on _cwmState so later re-renders
+   (picking a Class/Equipment chip) preserve it. */
+window._cwmToggleNameLock=function(){
+  const st=window._cwmState;
+  if(!st||st.purpose!=='edit')return;
+  st.nameUnlocked=!st.nameUnlocked;
+  const on=st.nameUnlocked;
+  const fld=document.getElementById('_cwmNameField');
+  const editBtn=document.getElementById('_cwmNameEditBtn');
+  const clearBtn=document.getElementById('_cwmNameClearBtn');
+  const note=document.getElementById('_cwmNameNote');
+  if(editBtn)editBtn.classList.toggle('active',on);
+  if(clearBtn)clearBtn.style.display=(on&&st.name)?'flex':'none';
+  if(note)note.style.display=on?'block':'none';
+  if(fld){
+    if(on){
+      fld.removeAttribute('readonly');
+      fld.focus();
+      try{const n=fld.value.length;fld.setSelectionRange(n,n);}catch(e){}
+    }else{
+      fld.setAttribute('readonly','');
+      fld.blur();
+    }
+  }
+};
+window._cwmClearName=function(){
+  const st=window._cwmState;
+  if(st&&st.purpose==='edit'&&!st.nameUnlocked)return;
+  const fld=document.getElementById('_cwmNameField');
+  if(!fld)return;
+  fld.value='';
+  window._cwmOnNameInput('');
+  fld.focus();
+};
+/* null (no collision) | {type:'catalog'|'custom', displayName} — displayName is the FULL existing
+   name as it actually appears everywhere else in the app: "Name (Equipment)" when that entry has
+   equipment, plain "Name" when it doesn't, with a trailing " Custom" tag (kept OUTSIDE displayName,
+   added by the caller) for a custom-workout match so the message can distinguish it from a catalog
+   one. excludeName lets an edit ignore a match against its own current name (so saving unchanged,
+   or just re-casing, isn't treated as a collision). */
+function _cwmNameCollision(name,excludeName){
+  const lower=name.toLowerCase();
+  const catalogHit=EXERCISE_CATALOG.find(e=>stripExerciseClass(e.name).toLowerCase()===lower);
+  if(catalogHit){
+    const hasEq=catalogHit.equipment&&catalogHit.equipment!=='Unknown';
+    return{type:'catalog',displayName:hasEq?`${catalogHit.name} (${catalogHit.equipment})`:catalogHit.name};
+  }
+  const customHit=getCustomExerciseCatalog().find(c=>c.name.toLowerCase()===lower&&(!excludeName||c.name.toLowerCase()!==excludeName.toLowerCase()));
+  if(customHit){
+    const hasEq=customHit.equipment&&customHit.equipment!=='Unknown';
+    return{type:'custom',displayName:hasEq?`${customHit.name} (${customHit.equipment})`:customHit.name};
+  }
+  return null;
+}
+/* Single source of truth for whether the CURRENT Name field text is save-able, used both when the
+   overlay renders (to set the Name field's/Save button's initial state) and live on every keystroke
+   (_cwmOnNameInput, without a full rebuild) — so the two never disagree. Empty text and any name
+   collision (catalog OR a different existing custom workout) both block Save. The collision message
+   names the ACTUAL existing entry it clashes with — e.g. "Push up" already exists as "Push Up
+   (Bodyweight)" — with a trailing " Custom" tag when that existing entry is itself a custom
+   workout, rather than a generic "already exists as a catalog/custom workout" that doesn't say what
+   it collided with. */
+function _cwmNameState(rawName,st){
+  const trimmed=(rawName||'').trim();
+  if(!trimmed)return{valid:false,msg:'Please enter a workout name.'};
+  const base=toSentenceCaseWorkoutName(stripExerciseClass(trimmed));
+  const collision=_cwmNameCollision(base,st.purpose==='edit'?st.baseName:null);
+  if(collision)return{valid:false,msg:`"${trimmed}" workout already exists.`};
+  return{valid:true,msg:''};
+}
+/* Makes every past workout ENTRY of a custom workout carry its CURRENT canonical name —
+   "Name (Equipment)", or plain "Name" when Equipment is None — so a rename (typo fix) AND an
+   Equipment change both show up in past history: Workouts list, Tracker, Volume, Previous
+   Performance, Equipment filter, everything that reads Session.workouts. Without this, changing
+   Equipment left old entries under the old name and the same exercise appeared twice
+   ("Test Bro" and "Test Bro (Bodyweight)") with its Previous Performance split between them.
+   Session.workouts is a jsonb ARRAY of "<name-or-code>:<sets>" strings, so this can't be a single
+   SQL UPDATE: it fetches this user's rows, rewrites only the matching entries in JS, and writes back
+   just the rows that actually changed (each targeted by its full composite key via
+   sessionUpdateByKey, which also clears the Previous-Performance caches).
+   Matching is on the BASE name (any "(Equipment)" suffix stripped, case-insensitive) — base names
+   are unique across catalog + custom (see _cwmNameCollision) — so entries logged under the old
+   name with ANY equipment suffix, or none, are all merged into the one new name. That also repairs
+   a workout that already got split into duplicates: just open it and Save once. Catalog exercises
+   (stored as numeric codes) are never touched. Safe to run repeatedly — already-correct entries are
+   skipped. Returns {ok,rows,entries}; ok:false means a write failed part-way (just retry). */
+async function renameCustomWorkoutInHistory(oldBase,newBase,newEquipment){
+  const uid=localStorage.getItem('user_id');
+  if(!uid||!oldBase||!newBase)return{ok:true,rows:0,entries:0};
+  const oldKey=oldBase.trim().toLowerCase();
+  const targetName=newEquipment?`${newBase} (${newEquipment})`:newBase;
+  const{data,error}=await db.from(SESSION_TABLE).select('date,created_at,workouts').eq('user_id',uid);
+  if(error){console.log('[CustomExercise] history fetch failed',error);return{ok:false,rows:0,entries:0};}
+  let rows=0,entries=0;
+  for(const row of (data||[])){
+    let changed=false;
+    const next=sessionWorkoutsArray(row).map(entry=>{
+      if(typeof entry==='string'&&/^\s*\d+\s*:/.test(entry))return entry; // catalog exercise (numeric code) — never a custom name
+      const d=sessionDecodeWorkoutEntry(entry);
+      if(!d.name)return entry;
+      if(stripExerciseClass(d.name).toLowerCase()!==oldKey)return entry;
+      if(d.name===targetName)return entry; // already canonical
+      changed=true;entries++;
+      return sessionMakeWorkoutEntry(targetName,d.sets);
+    });
+    if(!changed)continue;
+    const{error:upErr}=await sessionUpdateByKey(uid,row.date,row.created_at,{workouts:next});
+    if(upErr){console.log('[CustomExercise] history update failed',upErr);return{ok:false,rows,entries};}
+    rows++;
+  }
+  return{ok:true,rows,entries};
+}
+/* Renames an existing custom-exercise REGISTRY entry in place (keeps its Class/Equipment/Format
+   unless new ones are also passed) — the counterpart to upsertCustomExercise for when the NAME
+   itself changes, not just its Class/Equipment/Format. Registry only: _cwmSave calls
+   renameCustomWorkoutInHistory (above) first so already-logged workouts get the new name too. */
+function renameCustomExercise(oldName,newName,cls,equipment,format,clearEquipment){
+  const list=getCustomExerciseCatalog();
+  const idx=list.findIndex(c=>c.name.toLowerCase()===oldName.toLowerCase());
+  if(idx<0){upsertCustomExercise(newName,cls,equipment,format,clearEquipment);return;}
+  list[idx].name=newName;
+  if(cls)list[idx].class=cls;
+  if(equipment)list[idx].equipment=equipment;
+  else if(clearEquipment)list[idx].equipment='';
+  if(format)list[idx].format=format;
+  _saveCustomExerciseCatalogList(list);
+}
+window._cwmSave=async function(){
   const st=window._cwmState;
   if(!st||!st.cls||!st.eq)return;
-  const {purpose,mode,baseName,inputId,cls,format}=st;
+  if(st._saving)return; // ignore double-taps while a rename is writing to the database
+  const typedName=(st.name||'').trim();
+  if(!typedName){showToast('⚠️ Please enter a workout name.');return;}
+  const baseName=toSentenceCaseWorkoutName(stripExerciseClass(typedName));
+  const collision=_cwmNameCollision(baseName,st.purpose==='edit'?st.baseName:null);
+  if(collision){showToast(`⚠️ "${typedName}" workout already exists.`);return;}
+  const {purpose,mode,inputId,cls,format}=st;
   const noEq=st.eq==='None';
   const eq=noEq?'':st.eq; // "None" is stored as an empty equipment tag
-  upsertCustomExercise(baseName,cls,eq,format,noEq);
+  const renamed=purpose==='edit'&&st.baseName.toLowerCase()!==baseName.toLowerCase();
+  // Any edit-save syncs past entries to the CURRENT "Name (Equipment)" — a rename (even just casing),
+  // an Equipment change, or both — so the workout never splits into two names. No-op (no writes)
+  // when every past entry already matches.
+  let historyEntries=0;
+  if(purpose==='edit'){
+    st._saving=true;
+    showToast('⏳ Updating everywhere…');
+    const res=await renameCustomWorkoutInHistory(st.baseName,baseName,eq);
+    st._saving=false;
+    if(!res.ok){
+      // Nothing is renamed in the registry either, so the two never disagree; already-updated entries
+      // are harmless and a retry just finishes the rest.
+      showToast('⚠️ Couldn\'t update your past workouts, so nothing was changed. Check your connection and try again.');
+      return;
+    }
+    historyEntries=res.entries;
+  }
+  if(renamed)renameCustomExercise(st.baseName,baseName,cls,eq,format,noEq);
+  else upsertCustomExercise(baseName,cls,eq,format,noEq);
   if(purpose==='edit'){
     // Edit path: only the registry entry changes — no workout-name input, confirmed-name state, or
     // draft to touch, since this isn't part of logging a new entry right now.
     _closeCustomWorkoutOverlay();
     if(typeof handleWorkoutSearchAuto==='function')handleWorkoutSearchAuto(true); // refresh the Custom list row's Class tag/"(Equipment)" suffix
-    showToast(`💾 "${baseName}" updated${format&&format!=='Kg+Reps'?' ('+_cwmFormatLabel(format)+')':''}`);
+    if(historyEntries>0){
+      // Past entries changed: refresh the per-exercise counts (also re-renders the suggestion lists) and the visible day's list.
+      try{loadExerciseFrequencyMap();}catch(e){}
+      try{if(typeof loadWorkoutsForDate==='function'&&document.getElementById('workoutCalendarFilter'))loadWorkoutsForDate();}catch(e){}
+    }
+    const nameChanged=st.baseName!==baseName;
+    const syncNote=historyEntries?` — ${historyEntries} past ${historyEntries===1?'entry':'entries'} updated`:'';
+    showToast(nameChanged?`💾 Renamed to "${baseName}"${syncNote}`:`💾 "${baseName}" updated${syncNote||(format&&format!=='Kg+Reps'?' ('+_cwmFormatLabel(format)+')':'')}`);
     return;
   }
   const fullName=noEq?baseName:`${baseName} (${eq})`;
@@ -25096,4 +25341,4 @@ function closeLearnVideo(){
 })();
 </script>
 </body>
-</html>
+</html> 
