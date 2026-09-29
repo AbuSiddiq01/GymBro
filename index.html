@@ -2198,9 +2198,8 @@ body.stats-graph-fs-lock{overflow:hidden}
 .cwm-chip:active{transform:scale(0.96)}
 .cwm-chip.picked{background:var(--accent);border-color:var(--accent);color:#fff;box-shadow:0 3px 12px var(--accent-glow)}
 .cwm-equip-grid{max-height:170px;overflow-y:auto;padding-right:2px}
-.cwm-format-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
-@media(max-width:340px){.cwm-format-grid{grid-template-columns:1fr}}
-.cwm-format-opt{display:flex;align-items:flex-start;gap:8px;padding:10px 10px;min-width:0;border-radius:13px;border:2px solid var(--border-col);background:var(--bg-panel);cursor:pointer;-webkit-tap-highlight-color:transparent;transition:border-color 0.15s ease,box-shadow 0.15s ease}
+.cwm-format-grid{display:flex;flex-direction:column;gap:9px}
+.cwm-format-opt{display:flex;align-items:flex-start;gap:10px;padding:11px 13px;min-width:0;border-radius:13px;border:2px solid var(--border-col);background:var(--bg-panel);cursor:pointer;-webkit-tap-highlight-color:transparent;transition:border-color 0.15s ease,box-shadow 0.15s ease}
 .cwm-format-opt:hover{border-color:var(--accent)}
 .cwm-format-opt.picked{border-color:var(--accent);background:var(--accent-soft);box-shadow:0 3px 12px var(--accent-glow)}
 .cwm-format-radio{flex-shrink:0;width:18px;height:18px;border-radius:50%;border:2px solid var(--border-col);margin-top:1px;position:relative;transition:border-color 0.15s ease}
@@ -14191,7 +14190,7 @@ function _showCustomWorkoutOverlay(mode,baseName){
   // editing a name that was already partly set up before) so the picker doesn't forget prior taps.
   const existing=getCustomExerciseCatalog().find(c=>c.name.toLowerCase()===baseName.toLowerCase());
   const preCls=(mode==='nonlive'?window._selectedWorkoutClass:window._selectedLiveWorkoutClass)||(existing&&existing.class)||null;
-  const preEq=(mode==='nonlive'?window._selectedWorkoutEquipment:window._selectedLiveWorkoutEquipment)||(existing&&existing.equipment)||null;
+  const preEq=(mode==='nonlive'?window._selectedWorkoutEquipment:window._selectedLiveWorkoutEquipment)||(existing&&existing.equipment)||((existing&&existing.class)?'None':null);
   const preFmt=(existing&&existing.format)||'Kg+Reps';
   // Accordion: only one of Class/Equipment is expanded at a time (see _cwmToggleSection). Opens on
   // Class first, unless Class is already picked and Equipment isn't — then it jumps straight to
@@ -14210,7 +14209,7 @@ function _showCustomWorkoutEditOverlay(baseName){
   const existing=getCustomExerciseCatalog().find(c=>c.name.toLowerCase()===(baseName||'').toLowerCase());
   if(!existing)return;
   const preCls=existing.class||null;
-  const preEq=existing.equipment||null;
+  const preEq=existing.equipment||(existing.class?'None':null);
   const preFmt=existing.format||'Kg+Reps';
   const openSection=!preCls?'class':(!preEq?'equip':null);
   window._cwmState={mode:null,baseName,inputId:null,cls:preCls,eq:preEq,format:preFmt,open:openSection,purpose:'edit'};
@@ -14257,13 +14256,18 @@ function _renderCustomWorkoutOverlay(){
   // new content is in place, once outer layout has settled.
   const prevModalEl=modal.querySelector('.cwm-modal');
   const prevScroll=prevModalEl?prevModalEl.scrollTop:0;
-  const classOptions=MULTI_CLASS_EXERCISES[st.baseName]||WORKOUT_CLASSES;
+  // A custom workout can belong to ANY class — never narrowed to a built-in exercise's own
+  // MULTI_CLASS_EXERCISES entry (that list only exists for catalog moves like Dips: Chest/Triceps).
+  const classOptions=WORKOUT_CLASSES;
   const classChips=classOptions.map(c=>{
     const picked=st.cls===c;
     const col=CLASS_COLORS[c]||'var(--accent)';
     return `<button type="button" class="cwm-chip${picked?' picked':''}" style="${picked?`background:${col};border-color:${col}`:`border-color:${col}`}" onclick="_cwmPickClass('${c.replace(/'/g,"\\'")}')">${c}</button>`;
   }).join('');
-  const equipChips=EQUIPMENT_LIST.map(eq=>{
+  // "None" is offered for custom workouts only (the shared EQUIPMENT_LIST used by filters/catalog is
+  // untouched) — for moves with no equipment. It saves as an empty equipment tag, exactly how the
+  // rest of the app already treats "no equipment" (name shown without a "(Equipment)" suffix).
+  const equipChips=['None',...EQUIPMENT_LIST].map(eq=>{
     const picked=st.eq===eq;
     return `<button type="button" class="cwm-chip${picked?' picked':''}" onclick="_cwmPickEquip('${eq.replace(/'/g,"\\'")}')">${eq}</button>`;
   }).join('');
@@ -14346,8 +14350,10 @@ window._cwmPickFormat=function(fmt){
 window._cwmSave=function(){
   const st=window._cwmState;
   if(!st||!st.cls||!st.eq)return;
-  const {purpose,mode,baseName,inputId,cls,eq,format}=st;
-  upsertCustomExercise(baseName,cls,eq,format);
+  const {purpose,mode,baseName,inputId,cls,format}=st;
+  const noEq=st.eq==='None';
+  const eq=noEq?'':st.eq; // "None" is stored as an empty equipment tag
+  upsertCustomExercise(baseName,cls,eq,format,noEq);
   if(purpose==='edit'){
     // Edit path: only the registry entry changes — no workout-name input, confirmed-name state, or
     // draft to touch, since this isn't part of logging a new entry right now.
@@ -14356,7 +14362,7 @@ window._cwmSave=function(){
     showToast(`💾 "${baseName}" updated${format&&format!=='Kg+Reps'?' ('+_cwmFormatLabel(format)+')':''}`);
     return;
   }
-  const fullName=`${baseName} (${eq})`;
+  const fullName=noEq?baseName:`${baseName} (${eq})`;
   const input=document.getElementById(inputId);
   if(input)input.value=fullName;
   if(!window._customConfirmedName)window._customConfirmedName={};
@@ -14366,9 +14372,9 @@ window._cwmSave=function(){
   // _selectedWorkoutEquipment as the single source of truth the rest of the form reads from,
   // regardless of which mode's input triggered the overlay).
   window._selectedWorkoutClass=cls;
-  window._selectedWorkoutEquipment=eq;
+  window._selectedWorkoutEquipment=eq||null;
   window._selectedLiveWorkoutClass=cls;
-  window._selectedLiveWorkoutEquipment=eq;
+  window._selectedLiveWorkoutEquipment=eq||null;
   _closeCustomWorkoutOverlay();
   // Hide the now-resolved prompts (the exercise is a known custom exercise from this point on).
   const acb=document.getElementById(mode==='nonlive'?'_addCustomBtnNonLive':'_addCustomBtnLive');
@@ -14419,7 +14425,7 @@ function _saveCustomExerciseCatalogList(list){
 /* Adds/updates one custom exercise's remembered Class + Equipment. Never overwrites a previously
    remembered value with a blank one — e.g. saving the same custom name again without re-picking
    Equipment keeps whatever Equipment was chosen for it last time. */
-function upsertCustomExercise(name,cls,equipment,format){
+function upsertCustomExercise(name,cls,equipment,format,clearEquipment){
   if(!name)return;
   const list=getCustomExerciseCatalog();
   const idx=list.findIndex(c=>c.name.toLowerCase()===name.toLowerCase());
@@ -14427,6 +14433,7 @@ function upsertCustomExercise(name,cls,equipment,format){
     list[idx].name=name;
     if(cls)list[idx].class=cls;
     if(equipment)list[idx].equipment=equipment;
+    else if(clearEquipment)list[idx].equipment=''; // explicit "None" — a blank equipment arg alone never overwrites
     if(format)list[idx].format=format;
   }else{
     list.push({name,class:cls||'',equipment:equipment||'',format:format||''});
@@ -14600,8 +14607,14 @@ function _renderYourWorkoutsSection(box,mode,textVal,muscleVal,equipmentVal,onPi
         _wireExRowActions(item,m.name,()=>onPick(m.name));
         list.appendChild(item);
       });
-    }else{
-      list.innerHTML=`<div class="yw-empty">No matches in your workouts.</div>`;
+    }else if(muscleVal!=='Custom'){
+      // Muscle==='Custom' is the one exception: the caller (handleWorkoutSearchAuto) always renders
+      // its OWN single "No workouts found..." message right below this section for that filter, so
+      // showing this section's own empty line too would put two near-duplicate messages on screen
+      // at once. Every other filter has no such message below it, so this stays as the only one —
+      // worded exactly the same as that other message, rather than the older, differently-worded
+      // "No matches in your workouts."
+      list.innerHTML=`<div class="yw-empty">${textVal?"No workouts found for your search.":"No workouts found."}</div>`;
     }
   }
   wrap.appendChild(list);
@@ -14794,10 +14807,13 @@ async function handleWorkoutSearchAuto(forceShow){
     // Custom filter picked but nothing (or nothing matching the typed text) came back — tell the
     // person plainly rather than leaving the "All Exercises" section silently empty, so it's clear
     // this isn't a bug, they just haven't created any custom workouts yet (or none match what's typed).
-    const hasAnyCustom=getCustomExerciseCatalog().length>0;
+    // One single, plain message covers both cases (nothing typed matches vs. no custom workouts
+    // exist yet at all) — this is the ONLY empty-state message shown for the Custom filter; the
+    // "Your Workouts" section right above it deliberately stays silent when empty (see the
+    // muscleVal!=='Custom' check in _renderYourWorkoutsSection) so the two never stack together.
     const emptyMsg=document.createElement('div');
     emptyMsg.style.cssText='padding:14px 16px;font-size:13px;color:var(--text-muted);cursor:default;text-align:center';
-    emptyMsg.textContent=hasAnyCustom?"No custom workouts match your search.":"You haven't created any custom workouts yet.";
+    emptyMsg.textContent=val?"No workouts found for your search.":"No workouts found.";
     box.appendChild(emptyMsg);
     box.style.display="block";
     if(icon)icon.classList.add("open");
@@ -14828,16 +14844,25 @@ function toggleSetRowSelection(el){
   if(!wasSelected)row.classList.add('set-selected');
 }
 
-/* Shows/hides the non-live "SETS STRUCTURE" select + set value boxes + quick-fill button. Only
-   revealed once an exercise name is present in the box (typed manually OR chosen from the dropdown);
-   hidden again the instant the name is cleared. Called on every keystroke (handleWorkoutSearchAuto)
-   and every time the set rows are (re)rendered (renderNonLiveSetsRows), so it stays in sync no matter
-   how the name got there — typing, a suggestion click, a restored draft, or opening an existing entry
-   to edit. */
+/* Shows/hides the non-live "SETS STRUCTURE" select + set value boxes + Save Entry button (Save is
+   INSIDE this same wrap in the HTML, so hiding the wrap hides Save too). Only revealed once the
+   typed/chosen name is an exercise that actually exists — a catalog exercise, or a custom workout
+   already created through the "➕ Add ... as Custom Workout" overlay — never for an arbitrary name
+   someone is still typing that matches neither. That overlay is the only way to make a brand-new
+   name real; the moment it's saved there, upsertCustomExercise registers it and this same check
+   (_isKnownCatalogExerciseName) starts passing, revealing the fields immediately (_cwmSave already
+   calls updateTrackWorkoutBtnVisibility right after saving; it also triggers this indirectly via
+   handleWorkoutSearchAuto). An entry currently being edited (currentEditingIndex!==null) is always
+   exempt — its sets must stay editable even if its custom workout was later deleted from the
+   registry (see the exemption in saveWorkoutLogEntry). Called on every keystroke
+   (handleWorkoutSearchAuto) and every time the set rows are (re)rendered (renderNonLiveSetsRows), so
+   it stays in sync no matter how the name got there — typing, a suggestion click, a restored draft,
+   or opening an existing entry to edit. */
 function updateNonLiveSetsStructureVisibility(){
   const wrap=document.getElementById("nonLiveSetsStructureWrap");if(!wrap)return;
-  const hasName=!!document.getElementById("workoutNameInput")?.value.trim();
-  wrap.style.display=hasName?"block":"none";
+  const val=document.getElementById("workoutNameInput")?.value.trim()||'';
+  const show=!!val&&(currentEditingIndex!==null||_isKnownCatalogExerciseName(val));
+  wrap.style.display=show?"block":"none";
 }
 /* Fixed SVG "X" clear icon shared by the Add Workout and Workout Tracker exercise-name
    boxes — only shown once the box has a value, and hidden while the box is read-only. */
@@ -15727,6 +15752,15 @@ async function saveWorkoutLogEntry(){
   // A brand-new custom exercise (not in the catalog, never saved before) must have a Class picked —
   // Equipment stays optional — so it always shows its designated muscle group everywhere (Volume
   // page breakdown, entry list, etc.) instead of falling back to "Unknown".
+  // A NEW entry (not editing) for a name that's neither a catalog exercise nor an already-created
+  // custom workout has no way to reach this point anymore — updateNonLiveSetsStructureVisibility
+  // keeps the Sets Structure/Set rows/Save Entry button (Save lives inside that same wrap) hidden
+  // for such a name, so there's nothing to fill in or click. This check is kept only as a silent,
+  // no-alert last-resort guard (e.g. a stale draft restored after its custom workout was deleted)
+  // rather than something a person can normally trigger by typing.
+  if(currentEditingIndex===null&&!_isKnownCatalogExerciseName(name)){
+    return;
+  }
   if(_customExerciseNeedsClass(name,window._selectedWorkoutClass)){
     alert("Please choose a Class for this custom exercise before saving.");
     _triggerInlineClassPicker('workoutNameInput','nonlive');
@@ -15823,15 +15857,20 @@ async function saveWorkoutLogEntry(){
 
 /* ===================== TRACK WORKOUT (redirect to Workout Tracker for this exercise) ===================== */
 /* Keeps the "Track Workout" button's visibility in sync with whatever's currently typed/selected in the
-   exercise name box — shown whenever there's a name, regardless of whether it has previous-performance
-   history, so custom/first-time exercise names still get the option. Fixed for both add & edit, Live & Non-Live. */
+   exercise name box — shown only once that name is an exercise that actually exists (a catalog
+   exercise, or a custom workout already created through the "➕ Add ... as Custom Workout" overlay),
+   same rule as updateNonLiveSetsStructureVisibility and for the same reason: a name nobody has
+   created yet has no history at all to track, so the button would just open the tracker onto
+   nothing. currentEditingIndex!==null (editing an already-saved entry) is always exempt, matching
+   the Sets Structure exemption. Fixed for both add & edit, Live & Non-Live. */
 function updateTrackWorkoutBtnVisibility(mode){
   const inputId=mode==='live'?'liveWorkoutNameInput':'workoutNameInput';
   const btnId=mode==='live'?'trackWorkoutBtnLive':'trackWorkoutBtnNonLive';
   const input=document.getElementById(inputId),btn=document.getElementById(btnId);
   if(!input||!btn)return;
   const val=input.value.trim();
-  if(val)btn.classList.add('visible');else btn.classList.remove('visible');
+  const show=!!val&&(currentEditingIndex!==null||_isKnownCatalogExerciseName(val));
+  if(show)btn.classList.add('visible');else btn.classList.remove('visible');
 }
 /* Entry point for the "Track Workout" button click — reads whichever name box is active and jumps to the tracker. */
 function trackWorkoutFromForm(mode){
@@ -23699,7 +23738,7 @@ function _renderLearnYourWorkoutsSection(box,textVal,muscleVal,equipmentVal){
         list.appendChild(item);
       });
     }else{
-      list.innerHTML=`<div class="yw-empty">No matches in your workouts.</div>`;
+      list.innerHTML=`<div class="yw-empty">${textVal?"No workouts found for your search.":"No workouts found."}</div>`;
     }
   }
   wrap.appendChild(list);
@@ -25057,4 +25096,4 @@ function closeLearnVideo(){
 })();
 </script>
 </body>
-</html> 
+</html>
