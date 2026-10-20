@@ -9979,6 +9979,69 @@ async function _googleDirectReturn(){
   return true;
 }
 window.addEventListener('load',function(){_googleDirectReturn()});
+
+/* WEB, preferred: Google's own sign-in button (Google Identity Services). Your Gymzify button stays as it looks; Google's real button
+   sits invisibly on top of it, so a tap opens Google's popup (shows the app name from the Google Cloud consent screen).
+   The ID token goes to Supabase exactly like the Android app. If Google's script can't load, the plain button still works (goes to Google directly). */
+const GOOGLE_WEB_GIS=true;
+let _gisRaw='',_gisReady=false,_gisLoading=null;
+function _gisLoad(){
+  if(window.google&&google.accounts&&google.accounts.id)return Promise.resolve(true);
+  if(_gisLoading)return _gisLoading;
+  _gisLoading=new Promise(function(res){
+    const sc=document.createElement('script');sc.src='https://accounts.google.com/gsi/client';sc.async=true;
+    sc.onload=function(){res(true)};sc.onerror=function(){res(false)};
+    document.head.appendChild(sc);setTimeout(function(){res(false)},8000);
+  });
+  return _gisLoading;
+}
+async function _gisCallback(resp){
+  document.querySelectorAll('.google-btn').forEach(b=>{const l=b.querySelector('.google-btn-label');if(l)l.textContent='Signing in…'});
+  try{
+    const idToken=resp&&resp.credential;
+    if(!idToken)throw new Error('Google did not return a sign-in token.');
+    const{data,error}=await db.auth.signInWithIdToken({provider:'google',token:idToken,nonce:_gisRaw});
+    if(error)throw error;
+    if(!data||!data.user)throw new Error('No user returned from sign-in.');
+    await completeGoogleLogin(data.user);
+  }catch(e){_googleBtnsReset();alert('Google sign-in failed: '+String((e&&(e.message||e.code))||e||''))}
+}
+function _gisPlace(btn){
+  try{
+    const w=Math.round(btn.getBoundingClientRect().width),h=Math.round(btn.getBoundingClientRect().height);
+    if(w<40||h<20)return;                                    // hidden right now (other tab): placed again when it shows
+    let ov=btn.querySelector('.gis-ov');
+    if(!ov){
+      ov=document.createElement('div');ov.className='gis-ov';
+      ov.style.cssText='position:absolute;left:0;top:0;width:100%;height:100%;overflow:hidden;opacity:0.01;z-index:3;cursor:pointer';
+      btn.style.position='relative';btn.appendChild(ov);
+    }
+    const iw=Math.max(200,Math.min(400,w));
+    ov.innerHTML='';
+    const inner=document.createElement('div');
+    inner.style.cssText='transform-origin:0 0;transform:scale('+(w/iw)+','+(h/40)+');width:'+iw+'px;height:40px';
+    ov.appendChild(inner);
+    google.accounts.id.renderButton(inner,{type:'standard',theme:'outline',size:'large',text:'continue_with',width:iw});
+  }catch(e){console.warn('Google button:',e)}
+}
+async function _gisSetup(){
+  if(!GOOGLE_WEB_GIS||_isNativeApp()||location.protocol==='file:')return;
+  if(/FBAN|FBAV|Instagram|Line\/|; wv\)|WebView/i.test(navigator.userAgent||''))return;
+  if(!(await _gisLoad()))return;                            // script blocked: the plain button still works
+  if(!_gisReady){
+    _gisRaw=_randHex(16);
+    const dig=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(_gisRaw));
+    const nonceDigest=Array.from(new Uint8Array(dig)).map(b=>b.toString(16).padStart(2,'0')).join('');
+    google.accounts.id.initialize({client_id:GOOGLE_WEB_CLIENT_ID,nonce:nonceDigest,callback:_gisCallback,auto_select:false,cancel_on_tap_outside:true});
+    _gisReady=true;
+  }
+  const btns=document.querySelectorAll('.google-btn');
+  btns.forEach(function(b){
+    _gisPlace(b);
+    if(!b._gisRO&&window.ResizeObserver){b._gisRO=new ResizeObserver(function(){_gisPlace(b)});b._gisRO.observe(b)}
+  });
+}
+window.addEventListener('load',function(){setTimeout(_gisSetup,300)});
 async function googleSignIn(){
   if(_isNativeApp()){return _googleNativeSignIn();}
   // Google refuses to run inside in-app browsers/webviews (Instagram, Facebook, embedded webviews…).
